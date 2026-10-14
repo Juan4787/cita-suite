@@ -1,0 +1,23 @@
+{
+  "project_ref": "yjzferwuzbtgpmdnzlcb",
+  "migrations": 97,
+  "new_versions": [
+    "20261014000000",
+    "20261014010000",
+    "20261014020000",
+    "20261014030000"
+  ],
+  "original_tables_checked": 62,
+  "original_data_unchanged": false,
+  "changed_tables": [
+    "public.professional_booking_forms",
+    "public.server_rate_limit_events"
+  ],
+  "seeds": false,
+  "vault_changes": false,
+  "initial_preflight_matches": 60,
+  "fresh_backup_matches_for_preflight_drift": 2,
+  "preflight_drift_preceded_migrations": true,
+  "preservation_verified": true,
+  "comparison_note": "60 tables match the initial preflight; two tables changed before migration and exactly match the fresh pre-migration COPY backup. No deployment-induced difference found."
+}

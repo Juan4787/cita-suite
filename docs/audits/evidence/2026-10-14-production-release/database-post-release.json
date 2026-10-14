@@ -1,0 +1,21 @@
+{
+  "bucket": {
+    "private": true,
+    "pdf_allowed": true,
+    "max_file_bytes": 5000000
+  },
+  "storage": {
+    "max_bytes": 700000000,
+    "used_bytes": 15675483,
+    "reserved_bytes": 0,
+    "accounting_matches": true
+  },
+  "migrations": 97,
+  "storage_trigger": true,
+  "instructions_trigger": true,
+  "server_contact_allowed": true,
+  "anonymous_contact_denied": true,
+  "authenticated_settings_allowed": true,
+  "public_contact_enabled_businesses": 0,
+  "patient_documents_enabled_businesses": 0
+}

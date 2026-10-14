@@ -39,12 +39,42 @@ protegida y no se incluyen en esta documentación ni en Git.
 
 El `migration list --linked` inicial falló por timeout en la conexión directa. Se verificó
 el destino y se emplea la conexión existente del proyecto; el dry-run por esa ruta pasó.
-El cliente de dump en Docker tuvo problemas de permisos/ruta de Snap y de conexión, sin
-DDL ni cambios de datos. Se prepara el cliente PostgreSQL 17 para ejecutarlo en el host.
+Los intentos de `pg_dump` no completaron por problemas de permisos/ruta de Snap y de
+conexión; no constituyen un respaldo válido. Se cambió a una exportación nativa SQL COPY
+en una transacción de sólo lectura/repeatable read, con metadata exacta del esquema
+afectado. El respaldo privado contiene 66 tablas y 3.225 filas; todos sus bloques y
+recuentos se validaron. Datos: 1.581.793 bytes, SHA-256
+`bb596ce2ebe540718f881b52364c98dc3388145411e51cbc9944aee93215bacc`.
+Metadata: 932.710 bytes, SHA-256
+`8e97f5b5d7c707f12a7d64a6fe8f3c8663d14203fcdf61b7ac693d54f9f17894`.
+Se conservaron las 93 migraciones previas. No se ejecutó una restauración; esta exportación
+cubre datos public/private, historia de migraciones y metadata de Storage, sin exportar
+Auth del proveedor ni binarios de archivos, que esta entrega no modifica.
+
+Las cuatro migraciones se aplicaron realmente: la historia remota ahora contiene 97 y
+coincide con la fuente. De las 62 tablas existentes, 60 coinciden con el preflight inicial;
+dos cambiaron durante la preparación, antes de migrar. Ambas coinciden exactamente con
+el respaldo inmediatamente anterior a las migraciones, sin columnas o filas alteradas
+por el despliegue. Se conservan separados el primer resultado y su investigación: no se
+presenta el preflight antiguo como una captura simultánea al respaldo.
+
+La verificación remota confirma bucket privado, PDF permitido, límite de 5.000.000 bytes
+por archivo, presupuesto global de 700.000.000 bytes, 15.675.483 bytes usados y cero
+reservados. El contador coincide con Storage. Ambos triggers están activos; el rol anónimo
+no puede ejecutar la función de contacto; los roles de servidor/panel tienen los permisos
+previstos. Carga del paciente y contacto público siguen apagados en todos los consultorios;
+no se cambió configuración real para habilitarlos.
+
+El commit de implementación es `66c725fc66c044bff6fa99ab087c988d90eb914a`, publicado
+en `main`. Dos builds secuenciales con esa versión produjeron los mismos 123 archivos;
+SHA-256 del manifiesto: `f5a13d56696211ca457b8daece60e1b91537c9bc23cd78b6b3b955e7739edee0`.
+Natalia quedó publicada en Vercel (`dpl_85cKc1N4gYaKGUSUUDpFMSH7np6Z`, estado READY);
+las 14 páginas y los 35 recursos servidos por su URL pública coinciden byte a byte con
+el artefacto auditado. La clave de integración real de Natalia permanece sin configurar.
 
 ## Secuencia y compatibilidad
 
-1. Conservar respaldo privado y comprobar su archivo y tabla de contenidos.
+1. Conservar respaldo privado y comprobar sus bloques, recuentos y metadata de esquema.
 2. Confirmar que la fuente sigue revisada y libre de credenciales reales; crear commit exacto.
 3. Compilar el Worker con versión fija del commit y comprobar reproducibilidad antes de push.
 4. Aplicar las cuatro migraciones, verificar historia, permisos, límites y conservación de
@@ -63,5 +93,28 @@ pruebas de Auth/push físico ni métricas de facturación y transferencias del p
 
 ## Estado
 
-Preparación y preflight completos. Aplicación de migraciones y publicación pendientes de sus
-comprobantes. Esta sección se actualiza únicamente con resultados observados.
+Publicado: implementación `66c725fc66c044bff6fa99ab087c988d90eb914a` en GitHub `main`,
+cuatro migraciones aplicadas en Supabase, Worker `app` desplegado y Natalia reemplazada
+en Vercel. El build conectado de Cloudflare terminó SUCCESS, identificador
+`5ccf46b7-949a-488f-bc38-759dfc4a7e4e`; la versión recibida por HTTP coincide con el
+commit publicado. Login responde 200 con CSP y sus tres recursos iniciales coinciden
+con el build local fijo. El SDK JS/CSS del turnero y el service worker coinciden con la
+fuente; contacto inexistente responde JSON de error sin exponer errores internos.
+
+Se comprobaron nueve recursos/respuestas actuales. También se consultaron tres recursos
+iniciales del despliegue anterior: responden 404 tras el reemplazo; Cloudflare no conserva
+esos nombres antiguos. Las pestañas que permanezcan abiertas durante una publicación
+pueden requerir recarga. No se presenta esta comprobación como prueba de continuidad
+de una sesión autenticada abierta antes del despliegue.
+
+El [paquete de comprobantes públicos](evidence/2026-10-14-production-release/README.md)
+contiene resultados y hashes sin datos de pacientes ni secretos. Este documento y los
+comprobantes se publican en un commit posterior que sólo cambia documentación: se distingue
+del commit de implementación, y su build conectado se comprueba al cerrar la publicación.
+No se afirma una validación de Auth real, push físico, reserva real de Natalia ni descarga
+real de documentos de producción. La clave de integración de Natalia y las opciones de
+contacto/carga requieren configuración confirmada; la publicación no inventa esos datos.
+
+Limpieza: no quedaron contenedores de cliente de respaldo etiquetados para esta publicación;
+se retiró el archivo vacío del intento fallido de `pg_dump`. Se conserva el respaldo válido
+fuera del repositorio, con permisos privados; los materiales locales ajenos se preservan.

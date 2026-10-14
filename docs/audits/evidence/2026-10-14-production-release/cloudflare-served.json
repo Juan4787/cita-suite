@@ -1,0 +1,102 @@
+{
+  "site": "https://app.cita-suite.workers.dev/",
+  "implementation_commit": "66c725fc66c044bff6fa99ab087c988d90eb914a",
+  "served_version": "66c725fc66c044bff6fa99ab087c988d90eb914a",
+  "checks": [
+    {
+      "path": "_app/version.json?release=66c725fc66c044bff6fa99ab087c988d90eb914a",
+      "status": 200,
+      "bytes": 54,
+      "sha256": "273ebe08559a64c7090c1200a8e2df81543ab7a894416ee47047552988eedba4"
+    },
+    {
+      "path": "login",
+      "status": 200,
+      "bytes": 5120,
+      "sha256": "cd5805bbc357c9a9b47b913ce27e7bbf8daa2fb4bbf7d0c2b8692db79409573b"
+    },
+    {
+      "path": "./_app/immutable/assets/0.CZ21P2eM.css",
+      "status": 200,
+      "bytes": 79943,
+      "sha256": "4c48f902f0f176414a6c016bcf8e54bd148e4de03dcc2229923413094c8067f4",
+      "matches_local_fixed_build": true
+    },
+    {
+      "path": "./_app/immutable/entry/app.BWARyE2A.js",
+      "status": 200,
+      "bytes": 16030,
+      "sha256": "56fd6b5d29f58e0915bead21d118ebec12e26ec0e3cbe5d3f4f08bd7dcda5903",
+      "matches_local_fixed_build": true
+    },
+    {
+      "path": "./_app/immutable/entry/start.c7Qu5ZAy.js",
+      "status": 200,
+      "bytes": 83,
+      "sha256": "d4c3e57e83e27ce35e710e135b45a1849bb787e9ae2cbd45dc8ab65f0a8213b9",
+      "matches_local_fixed_build": true
+    },
+    {
+      "path": "booking/embed-v1.js",
+      "status": 200,
+      "bytes": 12239,
+      "sha256": "0ce779e1c7028300ec165d68a7cd2996fbfcbabc2de8dca8335d9829683cc1ee",
+      "matches_source": true
+    },
+    {
+      "path": "booking/embed-v1.css",
+      "status": 200,
+      "bytes": 1597,
+      "sha256": "afa07bb82f5d7bf0c6421143a9e1debe25ecce7c2b1915bf62f1d0663950cbd1",
+      "matches_source": true
+    },
+    {
+      "path": "push-sw.js",
+      "status": 200,
+      "bytes": 6512,
+      "sha256": "b62dbd8c3d12f078eb79a4e27124e37b2db456ced63726f5f5fe738b024596ef",
+      "matches_source": true
+    },
+    {
+      "path": "api/public/contacto/release-check",
+      "status": 404,
+      "bytes": 57,
+      "sha256": "20a5a3380768f2b25b5da2527a16797679a37f05fdd8db42ee4456b778d5cb80",
+      "response_is_json": true,
+      "does_not_leak_backend_error": true
+    },
+    {
+      "path": "https://app.cita-suite.workers.dev/_app/immutable/assets/0.ovmqOTLw.css",
+      "status": 404,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "https://app.cita-suite.workers.dev/_app/immutable/entry/app.BeVH04L7.js",
+      "status": 404,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "https://app.cita-suite.workers.dev/_app/immutable/entry/start.BzpWEWpr.js",
+      "status": 404,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "previous_entry_resources": [
+    {
+      "path": "/_app/immutable/assets/0.ovmqOTLw.css",
+      "status": 404
+    },
+    {
+      "path": "/_app/immutable/entry/app.BeVH04L7.js",
+      "status": 404
+    },
+    {
+      "path": "/_app/immutable/entry/start.BzpWEWpr.js",
+      "status": 404
+    }
+  ],
+  "scope": "Read-only live HTTP checks; no production patient, appointment, file, Auth or push mutations."
+}

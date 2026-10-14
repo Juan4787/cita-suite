@@ -1,0 +1,182 @@
+{
+  "site": "https://natalia-frutos.vercel.app/",
+  "files": 35,
+  "all_match": true,
+  "checks": [
+    {
+      "path": "_astro/PublicLayout.D_ObUQ90.css",
+      "status": 200,
+      "sha256_matches": true
+    },
+    {
+      "path": "_astro/PublicLayout.astro_astro_type_script_index_0_lang.C2TXNVZ9.js",
+      "status": 200,
+      "sha256_matches": true
+    },
+    {
+      "path": "aula/",
+      "status": 200,
+      "sha256_matches": true
+    },
+    {
+      "path": "consultas/consulta-integrativa-primera-vez/",
+      "status": 200,
+      "sha256_matches": true
+    },
+    {
+      "path": "consultas/consulta-seguimiento-evolucion/",
+      "status": 200,
+      "sha256_matches": true
+    },
+    {
+      "path": "consultas/fitoterapia-microbiota-hongos/",
+      "status": 200,
+      "sha256_matches": true
+    },
+    {
+      "path": "consultas/medicina-estres-regulacion-descanso/",
+      "status": 200,
+      "sha256_matches": true
+    },
+    {
+      "path": "contacto/",
+      "status": 200,
+      "sha256_matches": true
+    },
+    {
+      "path": "cursos/botiquin-fito/",
+      "status": 200,
+      "sha256_matches": true
+    },
+    {
+      "path": "cursos/dormir-mejor/",
+      "status": 200,
+      "sha256_matches": true
+    },
+    {
+      "path": "cursos/estres-microbiota/",
+      "status": 200,
+      "sha256_matches": true
+    },
+    {
+      "path": "fonts/hanken.woff2",
+      "status": 200,
+      "sha256_matches": true
+    },
+    {
+      "path": "fonts/licenses/hanken.txt",
+      "status": 200,
+      "sha256_matches": true
+    },
+    {
+      "path": "fonts/licenses/newsreader.txt",
+      "status": 200,
+      "sha256_matches": true
+    },
+    {
+      "path": "fonts/newsreader-italic.woff2",
+      "status": 200,
+      "sha256_matches": true
+    },
+    {
+      "path": "fonts/newsreader.woff2",
+      "status": 200,
+      "sha256_matches": true
+    },
+    {
+      "path": "images/consultorio-480.webp",
+      "status": 200,
+      "sha256_matches": true
+    },
+    {
+      "path": "images/consultorio-480.webp.json",
+      "status": 200,
+      "sha256_matches": true
+    },
+    {
+      "path": "images/consultorio-800.webp",
+      "status": 200,
+      "sha256_matches": true
+    },
+    {
+      "path": "images/consultorio-800.webp.json",
+      "status": 200,
+      "sha256_matches": true
+    },
+    {
+      "path": "images/curso-480.webp",
+      "status": 200,
+      "sha256_matches": true
+    },
+    {
+      "path": "images/curso-480.webp.json",
+      "status": 200,
+      "sha256_matches": true
+    },
+    {
+      "path": "images/curso-800.webp",
+      "status": 200,
+      "sha256_matches": true
+    },
+    {
+      "path": "images/curso-800.webp.json",
+      "status": 200,
+      "sha256_matches": true
+    },
+    {
+      "path": "images/natalia-400.webp",
+      "status": 200,
+      "sha256_matches": true
+    },
+    {
+      "path": "images/natalia-400.webp.json",
+      "status": 200,
+      "sha256_matches": true
+    },
+    {
+      "path": "images/natalia-640.webp",
+      "status": 200,
+      "sha256_matches": true
+    },
+    {
+      "path": "images/natalia-640.webp.json",
+      "status": 200,
+      "sha256_matches": true
+    },
+    {
+      "path": "images/natalia-960.webp",
+      "status": 200,
+      "sha256_matches": true
+    },
+    {
+      "path": "images/natalia-960.webp.json",
+      "status": 200,
+      "sha256_matches": true
+    },
+    {
+      "path": "/",
+      "status": 200,
+      "sha256_matches": true
+    },
+    {
+      "path": "notas/1/",
+      "status": 200,
+      "sha256_matches": true
+    },
+    {
+      "path": "notas/2/",
+      "status": 200,
+      "sha256_matches": true
+    },
+    {
+      "path": "notas/3/",
+      "status": 200,
+      "sha256_matches": true
+    },
+    {
+      "path": "turnos/",
+      "status": 200,
+      "sha256_matches": true
+    }
+  ]
+}

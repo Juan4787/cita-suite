@@ -1,0 +1,16 @@
+[
+  {
+    "table": "public.professional_booking_forms",
+    "matches_recent_backup": true,
+    "backup_rows": 2,
+    "current_rows": 2,
+    "changed_columns": []
+  },
+  {
+    "table": "public.server_rate_limit_events",
+    "matches_recent_backup": true,
+    "backup_rows": 18,
+    "current_rows": 18,
+    "changed_columns": []
+  }
+]

@@ -1,0 +1,15 @@
+{
+  "project_ref": "yjzferwuzbtgpmdnzlcb",
+  "format": "Native PostgreSQL text COPY and exact affected schema metadata, read-only repeatable-read export",
+  "tables": 66,
+  "rows": 3225,
+  "data_bytes": 1581793,
+  "data_sha256": "bb596ce2ebe540718f881b52364c98dc3388145411e51cbc9944aee93215bacc",
+  "schema_bytes": 932710,
+  "schema_sha256": "8e97f5b5d7c707f12a7d64a6fe8f3c8663d14203fcdf61b7ac693d54f9f17894",
+  "baseline_migrations": 93,
+  "validation": "All COPY blocks and row counts match snapshot; actual functions, owners, ACLs, policies, constraints, triggers, indexes and views preserved",
+  "restore_executed": false,
+  "scope": "public/private data, migration history, Storage buckets/object metadata; platform Auth data and file binaries not exported because unchanged by this release",
+  "elapsed_seconds": 94.99
+}

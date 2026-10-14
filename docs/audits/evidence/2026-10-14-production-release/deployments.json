@@ -1,0 +1,15 @@
+{
+  "implementation_commit": "66c725fc66c044bff6fa99ab087c988d90eb914a",
+  "github_main": "https://github.com/Juan4787/dashboard/commit/66c725fc66c044bff6fa99ab087c988d90eb914a",
+  "cloudflare": {
+    "name": "Workers Builds: app",
+    "status": "completed",
+    "conclusion": "success",
+    "details_url": "https://dash.cloudflare.com/52b358653379c162b5a07b10ae5e84b3/workers/services/view/app/production/builds/5ccf46b7-949a-488f-bc38-759dfc4a7e4e"
+  },
+  "natalia": {
+    "deployment_id": "dpl_85cKc1N4gYaKGUSUUDpFMSH7np6Z",
+    "production_url": "https://natalia-frutos.vercel.app",
+    "ready_state": "READY"
+  }
+}

@@ -150,3 +150,8 @@ La documentación independiente de la extensión está completa en
 actual; DESIGN.md y su sidecar se conservaron sin cambios. Se informa allí su deriva
 histórica de alcance, sin reemplazar identidad ni tokens. No se da por publicada una
 función por haber aprobado pruebas o build.
+
+La publicación posterior se registra por separado en el
+[comprobante de producción](2026-10-14-production-release.md): cuatro migraciones aplicadas,
+GitHub main, Cloudflare y Vercel, con verificación remota y sus límites. Los resultados
+de este documento conservan su carácter de pruebas locales y simuladas.
