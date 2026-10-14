@@ -28,3 +28,7 @@ One reservation engine. Clinical information remains private. Professionals dete
 
 ## User steering
 Required booking fields and automatic patient-profile persistence are authorized. All patient study uploads, including PDFs and images, are deferred by the user.
+
+The user rejected the first Astro port because it removed much of the supplied public site and the internal demo screens. Restore the complete public surface first, preserving its design, content and navigation. The public reference includes ten sections, four consultation cards and details, three courses, three complete articles and readers, three supplied testimonials, ten training entries, six questions, complete contact layout and footer. Internal classroom and administration implementation is the next stage. Neither an initial performance budget nor missing operational configuration authorizes removing a section.
+
+Supplied editorial identity and copy are preserved without treating the mockup as verified operational configuration. Reference fees and durations are labeled; live availability and prices come from Cita Suite. Contact details remain pending rather than invented. Public course actions explain that enrollment, payments and student access are not yet enabled; no fake payment, registration, message submission or clinical-upload success may be shown.

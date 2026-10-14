@@ -5,10 +5,12 @@
   "version": "0.1.0",
   "scripts": {
     "dev": "astro dev",
-    "build": "astro check && astro build && node scripts/check-build.mjs",
+    "build": "astro check && astro build && node scripts/check-build.mjs && node scripts/check-public.mjs",
     "check": "astro check",
     "preview": "astro preview",
-    "check:assets": "node scripts/check-build.mjs"
+    "check:assets": "node scripts/check-build.mjs",
+    "check:public": "node scripts/check-public.mjs",
+    "test:browser": "node scripts/test-public-browser.mjs"
   },
   "dependencies": {
     "astro": "7.3.8"
