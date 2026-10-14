@@ -1,6 +1,7 @@
 {
 	"$schema": "./node_modules/wrangler/config-schema.json",
 	"name": "app",
+	"account_id": "52b358653379c162b5a07b10ae5e84b3",
 	"main": ".svelte-kit/cloudflare/_worker.js",
 	"assets": {
 		"binding": "ASSETS",
@@ -12,7 +13,10 @@
 		"region": "aws:sa-east-1"
 	},
 	"vars": {
-		"PUBLIC_SITE_URL": "https://app.cita-suite.workers.dev"
+		"PUBLIC_SITE_URL": "https://app.cita-suite.workers.dev",
+		"BOOKING_CONTEXTS_AVAILABLE": "true",
+		"BOOKING_INTEGRATIONS_ENABLED": "true",
+		"BOOKING_INFORMATION_ENABLED": "true"
 	},
 	"keep_vars": true
 }
