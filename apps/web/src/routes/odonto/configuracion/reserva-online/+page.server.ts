@@ -1,69 +1,126 @@
-import { fail, error, redirect } from '@sveltejs/kit';
-import { env } from '$env/dynamic/private';
-import { getOdontoContext } from '$lib/server/odonto-context';
-import { bookingInformationEnabled } from '$lib/server/booking-information';
-import { bookingProfileConfig } from '$lib/server/booking-profile-config';
-import { parseBookingIntakeFields } from '@turnos-saas/shared/booking-integration';
-import { readBoundedBookingForm } from '$lib/server/public-booking-page';
-import type { Actions, PageServerLoad } from './$types';
-
+import { fail, error, redirect } from "@sveltejs/kit";
+import { env } from "$env/dynamic/private";
+import { getOdontoContext } from "$lib/server/odonto-context";
+import { createSupabaseAdminClient } from "$lib/server/supabase";
+import { bookingInformationEnabled } from "$lib/server/booking-information";
+import { readBoundedBookingForm } from "$lib/server/public-booking-page";
+import { parseBookingSettings } from "$lib/server/booking-settings";
+import type { PageServerLoad, Actions } from "./$types";
 export const load: PageServerLoad = async (event) => {
   const context = await getOdontoContext(event);
-  if (!context.business.canManage && !(context.business.role === 'professional' && context.business.access.canUseBusiness)) error(403, 'Tu usuario no puede configurar las reservas.');
-  if (!bookingInformationEnabled()) return { canManage: context.business.canManage, forms: [], enabled: false, profiles: [], professionals: [], services: [], baseURL: '', selectedId: '' };
-  const businessId = context.business.business.id;
-  let editableProfessionals: string[] | null = null;
+  if (
+    event.url.searchParams.has("perfil") ||
+    event.url.searchParams.has("nuevo")
+  )
+    redirect(
+      303,
+      "/odonto/configuracion/reserva-online/webs" + event.url.search,
+    );
   if (!context.business.canManage) {
-    const own = await context.supabase.from('professional_users').select('professional_id').eq('business_id', businessId).eq('user_id', context.userId);
-    if (own.error) error(503, 'No pudimos cargar tu perfil profesional. Volvé a intentar.');
-    editableProfessionals = (own.data ?? []).map(item => item.professional_id);
+    if (context.business.role === "professional")
+      redirect(303, "/odonto/mis-preguntas");
+    error(403, "Tu usuario no puede administrar las reservas online.");
   }
-  const results = await Promise.all([
-    context.business.canManage ? context.supabase.from('booking_integrations').select('*').eq('business_id', businessId).order('name').limit(20) : Promise.resolve({data: [], error: null}),
-    context.supabase.from('professionals').select('id,name,is_public,is_active').eq('business_id', businessId).order('name'),
-    context.supabase.from('services').select('id,name,is_public,is_active,duration_minutes,price_label').eq('business_id', businessId).order('name'),
-    context.supabase.from('professional_booking_forms').select('professional_id,revision,fields').eq('business_id', businessId)
-  ]);
-  if (results.some(r => r.error)) error(503, 'No pudimos cargar la configuración. Esperá unos segundos y volvé a intentar.');
-  return { canManage: context.business.canManage, forms: results[3].data ?? [], enabled: true, profiles: results[0].data ?? [], professionals: (results[1].data ?? []).filter(person => editableProfessionals === null || editableProfessionals.includes(person.id)), services: results[2].data ?? [], baseURL: env.PUBLIC_SITE_URL || event.url.origin, selectedId: event.url.searchParams.get('perfil') ?? '' };
+  const count = bookingInformationEnabled()
+    ? await context.supabase
+        .from("booking_integrations")
+        .select("id", { count: "exact", head: true })
+        .eq("business_id", context.business.business.id)
+    : { count: 0, error: null };
+  if (count.error)
+    error(503, "No pudimos cargar las reservas. Volvé a intentar.");
+  return {
+    business: context.business.business,
+    enabled: bookingInformationEnabled(),
+    connectedSites: count.count ?? 0,
+    baseURL: env.PUBLIC_SITE_URL || event.url.origin,
+    canBook: context.business.access.allowedCapabilities.canUsePublicBooking,
+  };
 };
-
-export const actions: Actions = {
-  save_form: async (event) => {
-    if (!bookingInformationEnabled()) return fail(503, { message: 'La configuración de reservas todavía no está habilitada.' });
-    const context = await getOdontoContext(event);
-    try {
-      const form = await readBoundedBookingForm(event.request);
-      const fields = parseBookingIntakeFields(JSON.parse(String(form.get('fields') ?? '[]')));
-      const { error: cause } = await context.supabase.rpc('save_professional_booking_form', {
-        p_business_id: context.business.business.id, p_professional_id: String(form.get('professional_id') ?? ''),
-        p_expected_revision: Number(form.get('revision')), p_fields: fields
-      });
-      if (cause) return fail(400, { message: cause.message.includes('BOOKING_INTEGRATION_CHANGED') ? 'Otra persona cambió estas preguntas. Recargá la página antes de guardar.' : cause.message.includes('ACCESS_DENIED') ? 'Tu usuario no puede cambiar las preguntas de esta profesional.' : 'Revisá las preguntas: cada dato del perfil debe aparecer una sola vez y edad y fecha deben ser respuestas cortas.' });
-      return { formSaved: true, message: 'Las preguntas de la profesional quedaron guardadas.' };
-    } catch { return fail(400, { message: 'Revisá los textos, las opciones y los límites de las preguntas antes de guardar.' }); }
-  },
-  save: async (event) => {
-    if (!bookingInformationEnabled()) return fail(503, { message: 'La configuración de reservas todavía no está habilitada.' });
-    const context = await getOdontoContext(event);
-    if (!context.business.canManage) return fail(403, { message: 'Tu usuario no puede administrar los enlaces de reserva.' });
+async function saveSettings(
+  event: Parameters<NonNullable<Actions[string]>>[0],
+  toggle: boolean,
+) {
+  const context = await getOdontoContext(event);
+  if (!context.business.canManage)
+    return fail(403, {
+      message: "Tu usuario no puede cambiar las reservas del consultorio.",
+    });
+  try {
     const form = await readBoundedBookingForm(event.request);
-    try {
-      const config = bookingProfileConfig(form);
-      const { data, error: cause } = await context.supabase.rpc('save_booking_integration', {
-        p_business_id: context.business.business.id, p_integration_id: String(form.get('id') ?? '') || null,
-        p_expected_revision: Number(form.get('revision')) || null, p_config: config
+    let patch: Record<string, unknown>;
+    if (toggle) {
+      const requested = form.get("enabled");
+      if (requested !== "true" && requested !== "false")
+        return fail(400, {
+          message: "Elegí si querés recibir nuevas reservas.",
+        });
+      if (requested === "true" && !context.business.business.address)
+        return fail(400, {
+          message:
+            "Cargá la dirección en Datos del consultorio antes de activar las reservas.",
+        });
+      if (
+        requested === "true" &&
+        (!context.business.business.is_active ||
+          !context.business.access.allowedCapabilities.canUsePublicBooking)
+      )
+        return fail(403, {
+          message:
+            "El consultorio necesita acceso activo para recibir reservas online.",
+        });
+      patch = { public_booking_enabled: requested === "true" };
+    } else patch = parseBookingSettings(form);
+    const expected = String(form.get("revision") ?? "");
+    if (!expected)
+      return fail(409, { message: "Recargá la página antes de guardar." });
+    let client = context.supabase;
+    if (context.business.assistance) {
+      const grant = await client.rpc("user_has_active_account_assistance", {
+        target_business_id: context.business.business.id,
       });
-      if (cause) {
-        const message = cause.message.includes('BOOKING_CONFIG_INCOMPLETE') ? 'Antes de activar, elegí profesionales y prestaciones públicas, configurá sus horarios y habilitá la reserva del consultorio.'
-          : cause.message.includes('BOOKING_INTEGRATION_CHANGED') ? 'Otro usuario actualizó este enlace. Recargá la página y revisá los cambios antes de guardar.'
-          : 'No pudimos guardar el enlace. Revisá su configuración y volvé a intentar.';
-        return fail(400, { message });
-      }
-      throw redirect(303, `?perfil=${data.id}&guardado=1`);
-    } catch (cause) {
-      if ((cause as any)?.status === 303) throw cause;
-      return fail(400, { message: 'Revisá las preguntas y los campos del enlace antes de guardar.' });
+      if (grant.error || grant.data !== true)
+        return fail(403, {
+          message:
+            "La autorización de ayuda venció. Volvé a abrir el consultorio.",
+        });
+      client = await createSupabaseAdminClient("odonto", event.fetch);
     }
+    const result = await client
+      .from("businesses")
+      .update({ ...patch, updated_at: new Date().toISOString() })
+      .eq("id", context.business.business.id)
+      .eq("updated_at", expected)
+      .select("id")
+      .maybeSingle();
+    if (result.error)
+      return fail(400, {
+        message:
+          "No pudimos guardar las reservas. Revisá los valores y volvé a intentar.",
+      });
+    if (!result.data)
+      return fail(409, {
+        message:
+          "La configuración cambió mientras la editabas. Recargá la página antes de guardar.",
+      });
+    return {
+      saved: true,
+      message: toggle
+        ? patch.public_booking_enabled
+          ? "Reservas activadas."
+          : "Reservas pausadas. Los turnos existentes se conservan."
+        : "Reglas de reserva guardadas.",
+    };
+  } catch (cause) {
+    const message = cause instanceof Error ? cause.message : "";
+    return fail(400, {
+      message: /^(Elegí|La anticipación|Las condiciones)/.test(message)
+        ? message
+        : "Revisá los campos antes de guardar.",
+    });
   }
+}
+export const actions: Actions = {
+  save_rules: (event) => saveSettings(event, false),
+  set_enabled: (event) => saveSettings(event, true),
 };

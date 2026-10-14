@@ -1,60 +1,283 @@
 <script lang="ts">
-  import ProfessionalBookingFormEditor from '$lib/booking/ProfessionalBookingFormEditor.svelte';
-  import { enhance } from '$app/forms';
-  import { page } from '$app/stores';
-  import type { BookingIntakeField, BookingModalityWindow } from '@turnos-saas/shared/booking-integration';
+  import { guardUnsavedChanges } from "$lib/ui/confirm-action";
+  import { styledSelect } from "$lib/ui/styled-controls";
+  import { enhance } from "$app/forms";
+  import { untrack } from "svelte";
+  import BackLink from "$lib/components/BackLink.svelte";
+  import BookingShareLink from "$lib/booking/BookingShareLink.svelte";
   let { data, form } = $props();
-  const profile = $derived(data.profiles.find((item: any) => item.id === data.selectedId));
-  let fields = $state<BookingIntakeField[]>([]);
-  let windows = $state<BookingModalityWindow[]>([]);
-  let copying = $state('');
-  $effect(() => { fields = structuredClone(profile?.intake_schema ?? []); windows = structuredClone(profile?.modality_windows ?? []); });
-  async function copyLink() {
-    try { await navigator.clipboard.writeText(`${data.baseURL}/embed/v1/${profile.public_key}`); copying = 'Enlace copiado'; }
-    catch { copying = 'Seleccioná el enlace para copiarlo.'; }
-  }
+  let saving = $state("");
+  let dirty = $state(false);
+  let version = $state(untrack(() => data.business.updated_at ?? ""));
+  let maxDays = $state(untrack(() => data.business.max_booking_days_ahead));
+  let notice = $state(untrack(() => data.business.min_booking_notice_minutes));
+  let policy = $state(untrack(() => data.business.cancellation_policy ?? ""));
+  $effect(() => {
+    if (!dirty && version !== data.business.updated_at) {
+      maxDays = data.business.max_booking_days_ahead;
+      notice = data.business.min_booking_notice_minutes;
+      policy = data.business.cancellation_policy ?? "";
+      version = data.business.updated_at ?? "";
+    }
+  });
+  guardUnsavedChanges(
+    () => dirty,
+    "Tenés reglas sin guardar.",
+    () => {
+      dirty = false;
+      maxDays = data.business.max_booking_days_ahead;
+      notice = data.business.min_booking_notice_minutes;
+      policy = data.business.cancellation_policy ?? "";
+    },
+  );
+  const notices = [
+    { value: 0, label: "Hasta el momento del turno" },
+    { value: 60, label: "1 hora antes" },
+    { value: 120, label: "2 horas antes" },
+    { value: 360, label: "6 horas antes" },
+    { value: 720, label: "12 horas antes" },
+    { value: 1440, label: "1 día antes" },
+    { value: 2880, label: "2 días antes" },
+  ];
 </script>
 
-<section class="space-y-6">
-  <div><h1 class="ux-title">Reserva online</h1>{#if data.canManage}<a class="ux-btn-secondary mt-4 inline-flex" href="/odonto/configuracion/consultorio-publico">Configurar documentos, indicaciones y contacto</a>{/if}<div class="mt-4 flex flex-wrap gap-3">{#each data.professionals as professional}<a class="ux-btn-secondary" href={`/odonto/profesionales/${professional.id}/aranceles`}>Aranceles de {professional.name}</a>{/each}</div><p class="mt-2 text-white/65">Elegí qué puede reservar cada paciente y qué información puede compartir antes de la consulta.</p></div>
-  {#if !data.enabled}
-    <div class="ux-soft-card p-6"><p>Este módulo todavía no está habilitado. Las reservas actuales conservan su funcionamiento.</p></div>
-  {:else}
-    <ProfessionalBookingFormEditor professionals={data.professionals} configurations={data.forms} />
-    {#if form?.message}<p role={form.formSaved ? 'status' : 'alert'} class={form.formSaved ? 'ux-success' : 'ux-error'}>{form.message}</p>{/if}
-    {#if data.canManage}
-    <nav class="flex flex-wrap gap-3" aria-label="Enlaces de reserva">
-      <a class="ux-btn-secondary" href="?nuevo=1">Crear enlace</a>
-      {#each data.profiles as item (item.id)}<a class={item.id === profile?.id ? 'ux-btn-primary' : 'ux-btn-secondary'} href={`?perfil=${item.id}`}>{item.name}{item.is_active ? '' : ' · Borrador'}</a>{/each}
-    </nav>
-    {#if $page.url.searchParams.get('guardado') === '1'}<p role="status" class="ux-success">La configuración quedó guardada.</p>{/if}
-    {#if profile}
-      <div class="ux-soft-card p-5"><label class="block"><span class="ux-label">Enlace individual</span><input class="ux-input" readonly value={`${data.baseURL}/embed/v1/${profile.public_key}`} /></label><button type="button" class="ux-btn-secondary mt-3" onclick={copyLink}>Copiar enlace</button><span role="status" class="ml-3 text-sm">{copying}</span></div>
-    {/if}
-    {#key profile?.id ?? 'new'}
-    <form method="POST" action="?/save" use:enhance class="ux-soft-card space-y-6 p-6">
-      <input type="hidden" name="id" value={profile?.id ?? ''} /><input type="hidden" name="revision" value={profile?.revision ?? ''} />
-      <input type="hidden" name="intake_schema" value={JSON.stringify(fields)} />
-      <input type="hidden" name="modality_windows" value={JSON.stringify(windows)} />
-      <div class="grid gap-4 sm:grid-cols-2">
-        <label><span class="ux-label">Nombre del enlace</span><input name="name" required maxlength="120" class="ux-input" value={profile?.name ?? ''} placeholder="Ejemplo: Agenda de una profesional" /></label>
-        <label><span class="ux-label">Apariencia</span><select name="theme" class="ux-select" value={profile?.theme ?? 'cita-suite'}><option value="cita-suite">Cita Suite</option><option value="natalia">Web Natalia</option></select></label>
+<svelte:head><title>Reserva online · Cita Suite</title></svelte:head>
+<svelte:window
+  onbeforeunload={(event) => {
+    if (dirty) {
+      event.preventDefault();
+      event.returnValue = "";
+    }
+  }}
+/>
+<section class="ux-page reservation-page">
+  <header>
+    <BackLink href="/odonto/configuracion" label="Configuración" class="mb-5" />
+    <h1 class="ux-title">Reserva online</h1>
+    <p class="ux-subtitle">
+      Compartí tu agenda y recibí turnos de tus pacientes.
+    </p>
+  </header>
+  {#if form?.message}<p
+      role={form.saved ? "status" : "alert"}
+      class={form.saved ? "ux-alert ux-alert-success" : "ux-alert"}
+    >
+      {form.message}
+    </p>{/if}
+  <section class="ux-card" aria-labelledby="share-title">
+    <div class="reservation-heading">
+      <div>
+        <h2 id="share-title" class="ux-section-title">
+          Agenda de {data.business.name}
+        </h2>
+        <p class="mt-2 text-sm text-white/75">
+          Tus pacientes reservan con los servicios y horarios de tu equipo.
+        </p>
       </div>
-      <fieldset><legend class="ux-section-title">Profesionales de este enlace</legend><p class="mt-2 text-sm text-white/60">Seleccioná una profesional para su enlace individual. Los horarios se administran desde su perfil.</p><div class="mt-3 grid gap-2 sm:grid-cols-2">{#each data.professionals as person (person.id)}<label class="flex items-center gap-3"><input type="checkbox" name="professional_ids" value={person.id} checked={profile?.allowed_professional_ids?.includes(person.id)} />{person.name}{!person.is_active || !person.is_public ? ' · No disponible públicamente' : ''}</label>{/each}</div></fieldset>
-      <fieldset><legend class="ux-section-title">Prestaciones disponibles</legend><div class="mt-3 grid gap-2 sm:grid-cols-2">{#each data.services as service (service.id)}<label class="flex items-center gap-3"><input type="checkbox" name="service_ids" value={service.id} checked={profile?.allowed_service_ids?.includes(service.id)} /><span>{service.name} · {service.duration_minutes} minutos{service.price_label ? ` · ${service.price_label}` : ''}{!service.is_active || !service.is_public ? ' · No disponible públicamente' : ''}</span></label>{/each}</div></fieldset>
-      <label class="block"><span class="ux-label">Sitios que pueden mostrar este turnero</span><textarea name="origins" class="ux-textarea" rows="3" placeholder="Un dominio completo por línea, por ejemplo https://mi-consultorio.com" value={profile?.allowed_origins?.join('\n') ?? ''}></textarea></label>
-      <fieldset class="space-y-3"><legend class="ux-section-title">Modalidad</legend><p>La atención presencial está disponible en este perfil.</p><label class="flex items-center gap-3"><input type="checkbox" name="video" value="true" checked={profile?.allowed_modalities?.includes('video')} />Ofrecer también atención virtual</label><label class="block"><span class="ux-label">Indicaciones de acceso para la consulta virtual</span><textarea name="video_instructions" rows="2" maxlength="1000" class="ux-textarea" value={profile?.video_instructions ?? ''}></textarea></label></fieldset>
-      <fieldset class="space-y-3"><legend class="ux-section-title">Franjas por modalidad (opcional)</legend><p class="text-sm text-white/60">Limitan los horarios existentes; no reemplazan la agenda de cada profesional.</p>
-        {#each windows as window, index}
-          <div class="grid gap-2 sm:grid-cols-5"><label><span class="ux-label">Modalidad</span><select class="ux-select" bind:value={window.modality}><option value="in_person">Presencial</option><option value="video">Virtual</option></select></label><label><span class="ux-label">Día</span><select class="ux-select" bind:value={window.weekday}>{#each ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'] as day, n}<option value={n}>{day}</option>{/each}</select></label><label><span class="ux-label">Desde</span><input type="time" class="ux-input" bind:value={window.startTime} /></label><label><span class="ux-label">Hasta</span><input type="time" class="ux-input" bind:value={window.endTime} /></label><button type="button" class="ux-btn-secondary self-end" onclick={() => windows = windows.filter((_, n) => n !== index)}>Quitar franja</button></div>
-        {/each}
-        <button type="button" class="ux-btn-secondary" onclick={() => windows = [...windows, { modality: 'in_person', weekday: 1, startTime: '09:00', endTime: '12:00' }]}>Agregar franja</button>
-      </fieldset>
-      {#if fields.length}<section class="space-y-3"><h2 class="ux-section-title">Preguntas existentes de este enlace</h2><p class="text-sm text-white/60">Se conservan por compatibilidad. Configurá los nuevos datos y su guardado en el perfil en “Datos que pedís al reservar”, arriba.</p><ul class="space-y-2">{#each fields as field}<li>{field.label}{field.required ? ' · Obligatoria' : ' · Opcional'}</li>{/each}</ul></section>{/if}
-      <div class="space-y-3"><label class="flex items-center gap-3"><input type="checkbox" name="default" value="true" checked={profile?.is_default} />Usar estas opciones también en el enlace general del consultorio</label><p class="text-sm text-white/60">Sólo un perfil puede ser el general. Para dos agendas individuales, conservá un alcance general que incluya a ambas profesionales.</p><label class="flex items-center gap-3"><input type="checkbox" name="active" value="true" checked={profile?.is_active} />Habilitar nuevas reservas desde este enlace</label></div>
-      <button class="ux-btn-primary" type="submit">Guardar configuración</button>
+      <span
+        class={data.business.public_booking_enabled &&
+        data.canBook &&
+        data.business.is_active
+          ? "ux-badge ux-badge-success"
+          : "ux-badge"}
+        >{data.business.public_booking_enabled
+          ? data.canBook && data.business.is_active
+            ? "Reservas activadas"
+            : "Reservas suspendidas"
+          : "Reservas pausadas"}</span
+      >
+    </div>
+    <div class="mt-5">
+      <BookingShareLink url={`${data.baseURL}/reservar/${data.business.id}`} />
+    </div>
+    <form
+      method="POST"
+      action="?/set_enabled"
+      use:enhance={() => {
+        saving = "activation";
+        return async ({ result, update }) => {
+          try {
+            await update({
+              reset: false,
+              invalidateAll: result.type === "success",
+            });
+          } finally {
+            saving = "";
+          }
+        };
+      }}
+      class="reservation-activation"
+    >
+      <input
+        type="hidden"
+        name="revision"
+        value={data.business.updated_at ?? ""}
+      /><input
+        type="hidden"
+        name="enabled"
+        value={data.business.public_booking_enabled ? "false" : "true"}
+      />
+      <button
+        type="submit"
+        class={data.business.public_booking_enabled
+          ? "ux-btn-secondary"
+          : "ux-btn-primary"}
+        disabled={!!saving || dirty}
+        >{saving === "activation"
+          ? "Guardando…"
+          : data.business.public_booking_enabled
+            ? "Pausar nuevas reservas"
+            : "Activar reservas"}</button
+      >
+      <span class="text-sm text-white/75"
+        >{dirty
+          ? "Guardá las reglas antes de cambiar el estado."
+          : "Los turnos ya reservados se conservan."}</span
+      >
     </form>
-    {/key}
-    {/if}
-  {/if}
+    {#if !data.business.address}<p class="mt-4 text-sm text-amber-100">
+        Falta la dirección. <a
+          class="underline underline-offset-4"
+          href="/odonto/configuracion/negocio"
+          >Completar datos del consultorio</a
+        >
+      </p>{/if}
+  </section>
+  <form
+    method="POST"
+    action="?/save_rules"
+    class="ux-card"
+    oninput={() => (dirty = true)}
+    use:enhance={() => {
+      saving = "rules";
+      return async ({ result, update }) => {
+        try {
+          if (result.type === "success") dirty = false;
+          await update({
+            reset: false,
+            invalidateAll: result.type === "success",
+          });
+        } finally {
+          saving = "";
+        }
+      };
+    }}
+  >
+    <h2 class="ux-section-title">Reglas para reservar</h2>
+    <input
+      type="hidden"
+      name="revision"
+      value={version || data.business.updated_at || ""}
+    />
+    <fieldset disabled={!!saving} class="mt-5 grid gap-5 sm:grid-cols-2">
+      <label
+        ><span class="ux-label">¿Hasta cuándo pueden reservar?</span><select
+          use:styledSelect={maxDays}
+          class="ux-select mt-2"
+          name="max_booking_days_ahead"
+          bind:value={maxDays}
+          >{#if ![15, 30, 60, 90].includes(maxDays)}<option value={maxDays}
+              >Próximos {maxDays} días</option
+            >{/if}{#each [15, 30, 60, 90] as days}<option value={days}
+              >Próximos {days} días</option
+            >{/each}</select
+        ></label
+      >
+      <label
+        ><span class="ux-label">¿Con cuánta anticipación?</span><select
+          use:styledSelect={notice}
+          class="ux-select mt-2"
+          name="min_booking_notice_minutes"
+          bind:value={notice}
+          >{#if !notices.some((item) => item.value === notice)}<option
+              value={notice}>{notice} minutos antes</option
+            >{/if}{#each notices as item}<option value={item.value}
+              >{item.label}</option
+            >{/each}</select
+        ></label
+      >
+      <label class="sm:col-span-2"
+        ><span class="ux-label"
+          >Condiciones de cancelación <span class="text-white/65"
+            >(opcional)</span
+          ></span
+        ><textarea
+          class="ux-textarea mt-2"
+          name="cancellation_policy"
+          rows="2"
+          maxlength="2000"
+          bind:value={policy}
+        ></textarea></label
+      >
+    </fieldset>
+    <div class="mt-5 flex flex-wrap items-center gap-3">
+      <button class="ux-btn-primary" disabled={!!saving}
+        >{saving === "rules" ? "Guardando…" : "Guardar reglas"}</button
+      >{#if dirty}<span class="text-sm text-amber-100">Cambios sin guardar</span
+        >{/if}
+    </div>
+  </form>
+  {#if data.enabled}<a
+      href="/odonto/configuracion/reserva-online/webs"
+      class="reservation-web-link"
+      ><span
+        ><strong class="block">Reservas desde tu sitio web</strong><span
+          class="mt-1 block text-sm text-white/75"
+          >{data.connectedSites
+            ? `${data.connectedSites} sitio${data.connectedSites === 1 ? "" : "s"} conectado${data.connectedSites === 1 ? "" : "s"}`
+            : "Conectá una web si querés mostrar tu agenda allí."}</span
+        ></span
+      ><span class="text-sm font-semibold"
+        >{data.connectedSites ? "Administrar sitios" : "Conectar sitio"}</span
+      ></a
+    >{/if}
 </section>
+
+<style>
+  .reservation-page {
+    max-width: 64rem;
+    margin-inline: auto;
+  }
+  .reservation-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1.5rem;
+  }
+  .reservation-heading :global(.ux-badge) {
+    flex-shrink: 0;
+  }
+  .reservation-activation {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1.25rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+  }
+  .reservation-web-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding: 1.25rem 0;
+    border-block: 1px solid rgba(255, 255, 255, 0.12);
+  }
+  .reservation-web-link:hover {
+    color: var(--accent);
+  }
+  @media (max-width: 640px) {
+    .reservation-heading,
+    .reservation-activation {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .reservation-web-link {
+      align-items: flex-start;
+    }
+    .reservation-web-link > span:last-child {
+      max-width: 7rem;
+      text-align: right;
+    }
+  }
+</style>

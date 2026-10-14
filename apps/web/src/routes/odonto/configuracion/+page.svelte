@@ -1,70 +1,125 @@
 <script lang="ts">
-	import { page } from '$app/stores';
-	import BackLink from '$lib/components/BackLink.svelte';
-
-	let { data } = $props<{
-		data: { demo: boolean; isMaster?: boolean; canExportPatientData?: boolean };
-	}>();
-
-	const returnTarget = $derived.by(() => {
-		const raw = $page.url.searchParams.get('return') ?? '';
-		try {
-			const decoded = decodeURIComponent(raw);
-			return decoded.startsWith('/odonto/') ? decoded : '';
-		} catch {
-			return '';
-		}
-	});
+  import { page } from "$app/stores";
+  import BackLink from "$lib/components/BackLink.svelte";
+  let { data } = $props<{
+    data: { demo: boolean; isMaster?: boolean; canExportPatientData?: boolean };
+  }>();
+  const returnTarget = $derived.by(() => {
+    const raw = $page.url.searchParams.get("return") ?? "";
+    try {
+      const decoded = decodeURIComponent(raw);
+      return decoded.startsWith("/odonto/") ? decoded : "";
+    } catch {
+      return "";
+    }
+  });
+  const practice = [
+    {
+      href: "negocio",
+      title: "Datos del consultorio",
+      description: "Nombre, dirección y contacto",
+    },
+    {
+      href: "usuarios",
+      title: "Equipo",
+      description: "Profesionales, servicios, aranceles, horarios y preguntas",
+    },
+    {
+      href: "reserva-online",
+      title: "Reserva online",
+      description: "Compartir la agenda y definir cómo pueden reservar",
+    },
+    {
+      href: "documentos",
+      title: "Archivos de pacientes",
+      description: "Permisos de carga y espacio para archivos",
+    },
+    {
+      href: "resena-google",
+      title: "Reseña de Google",
+      description: "Enlace para recibir opiniones",
+    },
+  ];
 </script>
 
-<section class="ux-page">
-	<div class="ux-hero">
-		<BackLink href={returnTarget || '/odonto/pacientes'} label="Volver" class="mb-5" />
-		<p class="ux-badge">Configuración</p>
-		<h1 class="ux-title mt-4">Ajustes del consultorio</h1>
-		<p class="ux-subtitle">Datos, equipo y acceso.</p>
-	</div>
-
-	<div class="grid gap-4 lg:grid-cols-2">
-		<a href="/odonto/configuracion/reserva-online" class="ux-choice p-6"><h2 class="ux-section-title">Reserva online</h2><p class="mt-2 text-sm text-white/55">Enlaces individuales, prestaciones y datos solicitados por profesional.</p></a>
-		<a href="/odonto/configuracion/negocio" class="ux-choice p-6">
-			<span class="ux-badge">Consultorio</span>
-			<h2 class="mt-4 text-2xl font-bold text-white">Datos y reserva online</h2>
-			<p class="mt-2 text-sm text-white/55">Nombre, contacto y reglas de reserva.</p>
-		</a>
-		<a href="/odonto/configuracion/usuarios" class="ux-choice p-6">
-			<span class="ux-badge">Permisos</span>
-			<h2 class="mt-4 text-2xl font-bold text-white">Equipo</h2>
-			<p class="mt-2 text-sm text-white/55">Quién puede entrar al consultorio y qué rol cumple.</p>
-		</a>
-		<a href="/odonto/configuracion/suscripcion" class="ux-choice p-6">
-			<span class="ux-badge">Acceso</span>
-			<h2 class="mt-4 text-2xl font-bold text-white">Suscripción</h2>
-			<p class="mt-2 text-sm text-white/55">Estado comercial, vencimiento e historial de acceso.</p>
-		</a>
-		<a href="/odonto/configuracion/comunicacion" class="ux-choice p-6">
-			<span class="ux-badge">Reservas</span>
-			<h2 class="mt-4 text-2xl font-bold text-white">Link de reserva</h2>
-			<p class="mt-2 text-sm text-white/55">Copiá o abrí el enlace que compartís con tus pacientes.</p>
-		</a>
-		<a href="/odonto/configuracion/resena-google" class="ux-choice p-6">
-			<span class="ux-badge">Opinión</span>
-			<h2 class="mt-4 text-2xl font-bold text-white">Reseña de Google</h2>
-			<p class="mt-2 text-sm text-white/55">Configurá el enlace y el mensaje automático.</p>
-		</a>
-		{#if data.canExportPatientData}
-			<a href="/odonto/exportar-datos" class="ux-choice p-6">
-				<span class="ux-badge">Excel</span>
-				<h2 class="mt-4 text-2xl font-bold text-white">Exportar datos</h2>
-				<p class="mt-2 text-sm text-white/55">Prepará un Excel con pacientes, historial, turnos y seguimientos.</p>
-			</a>
-		{/if}
-		{#if !data.isMaster}
-			<a href="/odonto/configuracion/ayuda" class="ux-choice p-6">
-				<span class="ux-badge">Ayuda</span>
-				<h2 class="mt-4 text-2xl font-bold text-white">Ayuda para configurar</h2>
-				<p class="mt-2 text-sm text-white/55">Pedí ayuda por 1 hora para completar la configuración inicial.</p>
-			</a>
-		{/if}
-	</div>
+<svelte:head><title>Configuración · Cita Suite</title></svelte:head>
+<section class="ux-page settings-page">
+  <header>
+    <BackLink
+      href={returnTarget || "/odonto/pacientes"}
+      label="Volver"
+      class="mb-5"
+    />
+    <h1 class="ux-title">Configuración</h1>
+  </header>
+  <div class="settings-columns">
+    <section aria-labelledby="practice-settings">
+      <h2 id="practice-settings" class="ux-section-title mb-4">Consultorio</h2>
+      <nav class="settings-list" aria-label="Configuración del consultorio">
+        {#each practice as item}<a href={`/odonto/configuracion/${item.href}`}
+            ><strong>{item.title}</strong><span>{item.description}</span></a
+          >{/each}
+      </nav>
+    </section>
+    <section aria-labelledby="account-settings">
+      <h2 id="account-settings" class="ux-section-title mb-4">Cuenta</h2>
+      <nav class="settings-list" aria-label="Configuración de la cuenta">
+        <a href="/odonto/configuracion/suscripcion"
+          ><strong>Suscripción</strong><span
+            >Acceso y pagos del consultorio</span
+          ></a
+        >{#if data.canExportPatientData}<a href="/odonto/exportar-datos"
+            ><strong>Exportar datos</strong><span
+              >Pacientes, historial, turnos y seguimientos</span
+            ></a
+          >{/if}{#if !data.isMaster}<a href="/odonto/configuracion/ayuda"
+            ><strong>Ayuda para configurar</strong><span
+              >Solicitar asistencia</span
+            ></a
+          >{/if}
+      </nav>
+    </section>
+  </div>
 </section>
+
+<style>
+  .settings-page {
+    max-width: 72rem;
+    margin-inline: auto;
+  }
+  .settings-columns {
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+    gap: 3rem;
+  }
+  .settings-list {
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+  }
+  .settings-list a {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    padding: 1.25rem 0.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    min-height: 5.5rem;
+  }
+  .settings-list strong {
+    font-size: 1.0625rem;
+  }
+  .settings-list span {
+    font-size: 0.9375rem;
+    color: var(--text-muted);
+  }
+  .settings-list a:hover {
+    background: rgba(255, 255, 255, 0.04);
+  }
+  .settings-list a:hover strong {
+    color: var(--accent);
+  }
+  @media (max-width: 720px) {
+    .settings-columns {
+      grid-template-columns: 1fr;
+      gap: 2.5rem;
+    }
+  }
+</style>

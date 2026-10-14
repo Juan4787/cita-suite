@@ -23,10 +23,13 @@ test.describe('isolated booking integration', () => {
     await expect(booking.getByRole('heading', { name: '¿Qué necesitás?' })).toBeVisible();
     await booking.getByRole('link', { name: /Consulta de prueba/ }).click();
     await expect(booking.getByRole('heading', { name: 'Elegí un día' })).toBeVisible();
-    await booking.getByRole('link', { name: /Horarios disponibles/ }).first().click();
+    // Use a future available day so today's final slot cannot make the shared-availability assertion time-dependent.
+    await booking.getByRole('link', { name: /Horarios disponibles/ }).nth(1).click();
     await booking.getByRole('link', { name: /^\d{2}:\d{2}$/ }).first().click();
     await booking.getByLabel('Nombre y apellido').fill('Ana Prueba');
-    await booking.getByLabel('Teléfono').fill('3425048209');
+    // A fresh synthetic identity keeps a failed prior attempt from altering the history-count proof.
+    const syntheticPhone='3425'+String(Date.now()%1_000_000).padStart(6,'0');
+    await booking.getByLabel('Teléfono').fill(syntheticPhone);
     await booking.getByLabel('Obra social y plan').fill('Particular');
     await booking.getByLabel('Edad', { exact: true }).fill('35'); await booking.getByLabel('Obra social del perfil').fill('Particular'); await booking.getByLabel(/Medicación/).fill('Medicación sintética inicial');
     await booking.locator('[name="intake_labs"]').selectOption('false');
@@ -140,15 +143,15 @@ test.describe('isolated booking integration', () => {
     await expect(panel.getByRole('article')).toHaveCount(2);
     await panel.locator('summary').first().click(); await expect(panel.getByText('Medicación sintética ampliada',{exact:true}).first()).toBeVisible();
     await panel.screenshot({path:'/tmp/cita-natalia-implementation/review/patient-history.png',fullPage:true});
-    await panel.goto(fixture.appOrigin + '/odonto/configuracion/reserva-online');
-    await expect(panel.getByRole('heading',{name:'Datos que pedís al reservar'})).toBeVisible();
-    await panel.getByRole('button',{name:'Agregar dato',exact:true}).click();
-    const lastField = panel.locator('section[aria-labelledby="patient-form-title"] fieldset').last();
-    await lastField.getByLabel('Pregunta para el paciente').fill('Antecedentes exigidos');
-    await lastField.getByLabel('Guardar en el perfil como').selectOption('background');
-    await lastField.getByLabel('Exigir esta respuesta para reservar').check();
+    await panel.goto(fixture.appOrigin + '/odonto/profesionales/' + fixture.professionalId + '/preguntas');
+    await expect(panel.getByRole('heading',{name:'Preguntas al paciente',exact:true})).toBeVisible();
+    await panel.getByRole('checkbox',{name:'Antecedentes',exact:true}).check();
+    const lastField = panel.locator('.question-row').filter({hasText:'Antecedentes'});
+    await lastField.locator('summary').click();
+    await lastField.getByLabel('Texto de la pregunta').fill('Antecedentes exigidos');
+    await lastField.getByRole('checkbox',{name:'Obligatorio',exact:true}).check();
     await panel.getByRole('button',{name:'Guardar preguntas',exact:true}).click();
-    await expect(panel.getByRole('status')).toContainText('quedaron guardadas');
+    await expect(panel.getByRole('status')).toContainText('Preguntas guardadas');
     const ownForm = await db.from('professional_booking_forms').select('fields').eq('professional_id',fixture.professionalId).single();
     expect(ownForm.data!.fields).toHaveLength(4);
     expect(ownForm.data!.fields.some((field:any)=>field.patientField==='background' && field.required)).toBe(true);
@@ -174,7 +177,8 @@ test.describe('isolated booking integration', () => {
     const doctor = await browser.newContext();
     await doctor.addCookies([{name:'sb-module',value:'odonto',url:fixture.appOrigin},{name:'sb-access-token',value:fixture.doctorToken,url:fixture.appOrigin},{name:'sb-refresh-token',value:'local-auth-simulator-only',url:fixture.appOrigin},{name:'active-business-id',value:fixture.businessId,url:fixture.appOrigin}]);
     const doctorPage = await doctor.newPage(); await doctorPage.goto(fixture.appOrigin + '/odonto/configuracion/reserva-online');
-    await expect(doctorPage.getByRole('heading',{name:'Datos que pedís al reservar'})).toBeVisible();
+    await expect(doctorPage.getByRole('heading',{name:'Preguntas al paciente',exact:true})).toBeVisible();
+    await expect(doctorPage).toHaveURL(new RegExp('/profesionales/'+fixture.professionalId+'/preguntas$'));
     await expect(doctorPage.getByRole('link',{name:'Crear enlace',exact:true})).toHaveCount(0);
     await doctor.close();
     expect(exceptions).toEqual([]);

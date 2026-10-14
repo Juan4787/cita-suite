@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { styledDate, styledSelect } from "$lib/ui/styled-controls";
 	import { beforeNavigate, goto, invalidate } from '$app/navigation';
 	import { enhance } from '$app/forms';
 	import BackLink from '$lib/components/BackLink.svelte';
@@ -25,7 +26,7 @@
 	const weekdays = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 	const tabs = [
 		{ id: 'perfil', label: 'Perfil' },
-		{ id: 'servicios', label: 'Servicios' },
+		{ id: 'servicios', label: 'Servicios y aranceles' },
 		{ id: 'horarios', label: 'Horarios' }
 	] as const;
 
@@ -38,6 +39,9 @@
 		buffer_before_minutes: number;
 		buffer_after_minutes: number;
 		price_label: string | null;
+		updated_at: string;
+		patient_instructions: string | null;
+		public_reminder_description: string | null;
 		is_active: boolean;
 		is_public: boolean;
 		sort_order: number;
@@ -861,7 +865,7 @@
 	});
 </script>
 
-<section class="ux-page">
+<section class="ux-page" data-editor-ready={draftReady}>
 		<div class="ux-hero">
 			<BackLink href="/odonto/configuracion/usuarios" label="Volver" class="mb-5" />
 			<div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
@@ -931,7 +935,7 @@
 		</form>
 
 		<div class="ux-card p-2">
-			<div class="grid gap-2 sm:grid-cols-3">
+			<div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
 				{#each tabs as tab}
 					<button
 					type="button"
@@ -950,6 +954,7 @@
 						</span>
 					</button>
 				{/each}
+				<a class="ux-profile-tab text-center" href={`/odonto/profesionales/${professional?.id}/preguntas`}>Preguntas al paciente</a>
 			</div>
 		</div>
 
@@ -1211,8 +1216,9 @@
 							<input name="duration_minutes" type="number" min="5" max="480" step="5" value="30" disabled={!canOperate} class="ux-input" />
 						</label>
 						<label>
-							<span class="ux-label">Texto de arancel sin política mensual (opcional)</span>
+							<span class="ux-label">Arancel a mostrar (opcional)</span>
 							<input name="price_label" type="text" inputmode="numeric" disabled={!canOperate} placeholder="$ 35.000" class="ux-input" oninput={handlePriceInput} />
+							<p class="mt-2 text-sm text-white/70">Se usa cuando no configuraste ajustes mensuales.</p>
 						</label>
 						<button class="ux-btn-primary" disabled={!canOperate || saving === 'service-create'}>
 							{saving === 'service-create' ? 'Creando...' : 'Crear y asignar'}
@@ -1226,6 +1232,7 @@
 			{#if editingService}
 				<form method="POST" action="?/update_service" class="grid gap-4" use:enhance={updateServiceEnhance}>
 					<input type="hidden" name="service_id" value={editingService.id} />
+					<input type="hidden" name="service_updated_at" value={editingService.updated_at} />
 					<p class="text-sm text-white/60">
 						Los cambios se aplican a los turnos nuevos. Los turnos ya reservados conservan el servicio y la duración originales.
 					</p>
@@ -1248,8 +1255,9 @@
 							<input name="duration_minutes" type="number" min="5" max="480" step="5" required value={editingService.duration_minutes} disabled={!canManage} class="ux-input" />
 						</label>
 						<label>
-							<span class="ux-label">Texto de arancel sin política mensual (opcional)</span>
+							<span class="ux-label">Arancel a mostrar (opcional)</span>
 							<input name="price_label" type="text" inputmode="numeric" value={editingService.price_label ?? ''} disabled={!canManage} placeholder="$ 35.000" class="ux-input" oninput={handlePriceInput} />
+							<p class="mt-2 text-sm text-white/70">Se usa cuando no configuraste ajustes mensuales.</p>
 						</label>
 					</div>
 					<label>
@@ -1266,6 +1274,7 @@
 							<input name="buffer_after_minutes" type="number" min="0" max="480" step="5" required value={editingService.buffer_after_minutes} disabled={!canManage} class="ux-input" />
 						</label>
 					</div>
+					<fieldset class="space-y-4 border-t border-white/10 pt-4"><legend class="ux-section-title">Información para el paciente</legend><label class="block"><span class="ux-label">Indicaciones para la consulta <span class="text-white/65">(opcional)</span></span><textarea class="ux-textarea mt-2" name="patient_instructions" rows="2" maxlength="2000" disabled={!canManage}>{editingService.patient_instructions??''}</textarea></label><label class="block"><span class="ux-label">Texto del aviso del turno <span class="text-white/65">(opcional)</span></span><textarea class="ux-textarea mt-2" name="public_reminder_description" rows="2" maxlength="180" disabled={!canManage}>{editingService.public_reminder_description??''}</textarea><span class="mt-1 block text-sm text-white/75">Puede verse con el teléfono bloqueado. Evitá datos clínicos.</span></label></fieldset>
 					{#if editingDefaultService}
 						<input type="hidden" name="is_active" value="true" />
 						<input type="hidden" name="is_public" value="true" />
@@ -1319,7 +1328,7 @@
 							<div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 								<div>
 									<h3 class="text-base font-black text-white">Bloque {blockIndex + 1}</h3>
-									<p class="mt-1 text-sm text-white/55">Días que comparten la misma franja habitual.</p><div class="mt-4"><label class="ux-label">Prestaciones de esta franja<select class="ux-input mt-2" value={block.serviceScope??'all'} onchange={event=>updateScheduleBlock(block.id,{serviceScope:event.currentTarget.value as 'all'|'restricted',allowedServiceIds:block.allowedServiceIds??[]})}><option value="all">Todas las habilitadas</option><option value="restricted">Sólo las seleccionadas</option></select></label>{#if block.serviceScope==='restricted'}<fieldset class="mt-3"><legend class="ux-label">Prestaciones permitidas</legend>{#if dirtyFields.services}<p class="mt-2 text-sm text-white/75">Usá Guardar todo para aplicar juntos los cambios de prestaciones y horarios.</p>{/if}{#each data.services.filter((service:Service)=>draft.serviceIds.includes(service.id)||defaultServiceIdSet.has(service.id)) as service}<label class="mt-2 flex min-h-11 items-center gap-3 text-sm text-white/80"><input type="checkbox" checked={block.allowedServiceIds?.includes(service.id)??false} onchange={event=>updateScheduleBlock(block.id,{allowedServiceIds:event.currentTarget.checked?[...(block.allowedServiceIds??[]),service.id]:(block.allowedServiceIds??[]).filter(id=>id!==service.id)})}/>{service.name}</label>{/each}{#if !block.allowedServiceIds?.length}<p class="mt-2 text-sm text-white/80">La franja está cerrada hasta que elijas una prestación.</p>{/if}</fieldset>{/if}</div>
+									<p class="mt-1 text-sm text-white/55">Días que comparten la misma franja habitual.</p><div class="mt-4"><label class="ux-label">Prestaciones de esta franja<select use:styledSelect={block.serviceScope??'all'} class="ux-input mt-2" value={block.serviceScope??'all'} onchange={event=>updateScheduleBlock(block.id,{serviceScope:event.currentTarget.value as 'all'|'restricted',allowedServiceIds:block.allowedServiceIds??[]})}><option value="all">Todas las habilitadas</option><option value="restricted">Sólo las seleccionadas</option></select></label>{#if block.serviceScope==='restricted'}<fieldset class="mt-3"><legend class="ux-label">Prestaciones permitidas</legend>{#if dirtyFields.services}<p class="mt-2 text-sm text-white/75">Usá Guardar todo para aplicar juntos los cambios de prestaciones y horarios.</p>{/if}{#each data.services.filter((service:Service)=>draft.serviceIds.includes(service.id)||defaultServiceIdSet.has(service.id)) as service}<label class="mt-2 flex min-h-11 items-center gap-3 text-sm text-white/80"><input type="checkbox" checked={block.allowedServiceIds?.includes(service.id)??false} onchange={event=>updateScheduleBlock(block.id,{allowedServiceIds:event.currentTarget.checked?[...(block.allowedServiceIds??[]),service.id]:(block.allowedServiceIds??[]).filter(id=>id!==service.id)})}/>{service.name}</label>{/each}{#if !block.allowedServiceIds?.length}<p class="mt-2 text-sm text-white/80">La franja está cerrada hasta que elijas una prestación.</p>{/if}</fieldset>{/if}</div>
 								</div>
 								<button type="button" class="ux-btn-secondary text-sm" disabled={!canOperate} onclick={() => removeScheduleBlock(block.id)}>
 									Quitar bloque
@@ -1505,11 +1514,11 @@
 							</div>
 						</div>
 					{/if}
-					{#if draft.exception.periodMode==='multiple'}<label class="ux-label">Agregar una fecha<input type="date" bind:value={draft.exception.date} class="ux-input"/></label><button type="button" class="ux-btn-secondary" disabled={!draft.exception.date} onclick={()=>{draft.exception.dates=[...new Set([...(draft.exception.dates??[]),draft.exception.date])].sort();draft.exception.date='';}}>Agregar fecha</button><ul>{#each draft.exception.dates??[] as date}<li class="mt-2 flex items-center justify-between gap-3"><span>{date}</span><button type="button" class="ux-btn-secondary" aria-label={`Quitar fecha ${date}`} onclick={()=>draft.exception.dates=draft.exception.dates.filter(item=>item!==date)}>Quitar</button></li>{/each}</ul>{:else if draft.exception.periodMode === 'single'}
+					{#if draft.exception.periodMode==='multiple'}<label class="ux-label">Agregar una fecha<input use:styledDate={draft.exception.date} type="date" bind:value={draft.exception.date} class="ux-input"/></label><button type="button" class="ux-btn-secondary" disabled={!draft.exception.date} onclick={()=>{draft.exception.dates=[...new Set([...(draft.exception.dates??[]),draft.exception.date])].sort();draft.exception.date='';}}>Agregar fecha</button><ul>{#each draft.exception.dates??[] as date}<li class="mt-2 flex items-center justify-between gap-3"><span>{date}</span><button type="button" class="ux-btn-secondary" aria-label={`Quitar fecha ${date}`} onclick={()=>draft.exception.dates=draft.exception.dates.filter(item=>item!==date)}>Quitar</button></li>{/each}</ul>{:else if draft.exception.periodMode === 'single'}
 						<div class="grid gap-4 sm:grid-cols-2">
 							<label>
 								<span class="ux-label">Fecha</span>
-								<input name="date" type="date" bind:value={draft.exception.date} required disabled={!canOperate} class={`ux-input ${fieldStateClass(dirtyFields.exception)}`} />
+								<input use:styledDate={draft.exception.date} name="date" type="date" bind:value={draft.exception.date} required disabled={!canOperate} class={`ux-input ${fieldStateClass(dirtyFields.exception)}`} />
 							</label>
 							<label>
 								<span class="ux-label">Horario</span>
@@ -1520,11 +1529,11 @@
 						<div class="grid gap-4 sm:grid-cols-2">
 							<label>
 								<span class="ux-label">Desde</span>
-								<input name="date_from" type="date" bind:value={draft.exception.dateFrom} required disabled={!canOperate} class={`ux-input ${fieldStateClass(dirtyFields.exception)}`} />
+								<input use:styledDate={draft.exception.dateFrom} name="date_from" type="date" bind:value={draft.exception.dateFrom} required disabled={!canOperate} class={`ux-input ${fieldStateClass(dirtyFields.exception)}`} />
 							</label>
 							<label>
 								<span class="ux-label">Hasta</span>
-								<input name="date_to" type="date" min={draft.exception.dateFrom} bind:value={draft.exception.dateTo} required disabled={!canOperate} class={`ux-input ${fieldStateClass(dirtyFields.exception)}`} />
+								<input use:styledDate={draft.exception.dateTo} name="date_to" type="date" min={draft.exception.dateFrom} bind:value={draft.exception.dateTo} required disabled={!canOperate} class={`ux-input ${fieldStateClass(dirtyFields.exception)}`} />
 							</label>
 						</div>
 						<p class="rounded-2xl border border-violet-300/20 bg-violet-400/10 px-4 py-3 text-sm font-bold text-violet-100">

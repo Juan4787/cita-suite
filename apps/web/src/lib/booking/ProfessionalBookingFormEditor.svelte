@@ -1,54 +1,329 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import { enhance } from '$app/forms';
-  import type { BookingIntakeField } from '@turnos-saas/shared/booking-integration';
-  let { professionals, configurations } = $props<{
-    professionals: Array<{ id: string; name: string }>;
-    configurations: Array<{ professional_id: string; revision: number; fields: BookingIntakeField[] }>;
+  import { guardUnsavedChanges } from "$lib/ui/confirm-action";
+  import { onMount, untrack, tick } from "svelte";
+  import { revealInvalidFields } from "$lib/client/reveal-invalid-fields";
+  import { enhance } from "$app/forms";
+  import BookingQuestionDetails from "./BookingQuestionDetails.svelte";
+  import type { BookingIntakeField } from "@turnos-saas/shared/booking-integration";
+  let { professional, configuration } = $props<{
+    professional: { id: string; name: string };
+    configuration: { revision: number; fields: BookingIntakeField[] } | null;
   }>();
-  let selected = $state('');
-  let fields = $state<BookingIntakeField[]>([]);
+  let fields = $state<BookingIntakeField[]>(
+    untrack(() => structuredClone(configuration?.fields ?? [])),
+  );
   let saving = $state(false);
   let ready = $state(false);
-  onMount(() => { ready = true; });
-  const person = $derived(professionals.find((item: {id: string; name: string}) => item.id === selected) ?? professionals[0]);
-  const configuration = $derived(configurations.find((item: {professional_id: string; revision: number; fields: BookingIntakeField[]}) => item.professional_id === person?.id));
-  $effect(() => { person?.id; fields = structuredClone(configuration?.fields ?? []); });
-  const targets: Array<{ value: NonNullable<BookingIntakeField['patientField']>; label: string }> = [
-    { value: 'insurance', label: 'Obra social' }, { value: 'insurance_plan', label: 'Plan de cobertura' },
-    { value: 'age', label: 'Edad declarada' }, { value: 'birth_date', label: 'Fecha de nacimiento' },
-    { value: 'medication', label: 'Medicación' }, { value: 'background', label: 'Antecedentes' },
-    { value: 'allergies', label: 'Alergias' }, { value: 'dni', label: 'DNI' },
-    { value: 'address', label: 'Domicilio' }, { value: 'custom', label: 'Otro dato del perfil' }
+  let expandedQuestion = $state<string | null>(null);
+  let dirty = $state(false);
+  let version = $state(
+    untrack(() => `${professional.id}:${configuration?.revision ?? 0}`),
+  );
+  let revision = $state(untrack(() => configuration?.revision ?? 0));
+  const targets: Array<{
+    value: NonNullable<BookingIntakeField["patientField"]>;
+    label: string;
+    kind: "text" | "textarea";
+  }> = [
+    { value: "insurance", label: "Obra social", kind: "text" },
+    { value: "insurance_plan", label: "Plan de obra social", kind: "text" },
+    { value: "age", label: "Edad", kind: "text" },
+    { value: "birth_date", label: "Fecha de nacimiento", kind: "text" },
+    { value: "medication", label: "Medicación actual", kind: "textarea" },
+    { value: "background", label: "Antecedentes", kind: "textarea" },
+    { value: "allergies", label: "Alergias", kind: "textarea" },
+    { value: "dni", label: "DNI", kind: "text" },
+    { value: "address", label: "Domicilio", kind: "text" },
   ];
-  function add() { fields = [...fields, { id: 'q_' + crypto.randomUUID().replaceAll('-', ''), label: '', kind: 'text', maxLength: 500, required: false, patientField: 'custom' }]; }
-  function changeKind(index: number, kind: BookingIntakeField['kind']) {
-    const previous = fields[index];
-    fields[index] = { id: previous.id, label: previous.label, patientField: previous.patientField, required: previous.required, kind,
-      ...(kind === 'text' || kind === 'textarea' ? { maxLength: 1000 } : kind === 'choice' ? { options: [] } : {}) };
+  const custom = $derived(
+    fields.filter(
+      (field) => !targets.some((target) => target.value === field.patientField),
+    ),
+  );
+  onMount(() => {
+    ready = true;
+  });
+  $effect(() => {
+    const next = `${professional.id}:${configuration?.revision ?? 0}`;
+    if (next !== version && !dirty) {
+      fields = structuredClone(configuration?.fields ?? []);
+      revision = configuration?.revision ?? 0;
+      version = next;
+    }
+  });
+  guardUnsavedChanges(
+    () => dirty,
+    "Tenés preguntas sin guardar.",
+    () => {
+      dirty = false;
+      fields = structuredClone(configuration?.fields ?? []);
+      revision = configuration?.revision ?? 0;
+      version = "";
+    },
+  );
+  function id() {
+    return "q_" + crypto.randomUUID().replaceAll("-", "");
+  }
+  function toggle(target: (typeof targets)[number], checked: boolean) {
+    dirty = true;
+    if (checked)
+      fields = [
+        ...fields,
+        {
+          id: id(),
+          label: target.label,
+          kind: target.kind,
+          maxLength: target.kind === "textarea" ? 2000 : 500,
+          required: false,
+          patientField: target.value,
+        },
+      ];
+    else fields = fields.filter((field) => field.patientField !== target.value);
+  }
+  function remove(field: BookingIntakeField) {
+    fields = fields.filter((item) => item.id !== field.id);
+    dirty = true;
+  }
+  function add() {
+    const questionId = id();
+    fields = [
+      ...fields,
+      {
+        id: questionId,
+        label: "",
+        kind: "text",
+        maxLength: 500,
+        required: false,
+        patientField: "custom",
+      },
+    ];
+    expandedQuestion = questionId;
+    dirty = true;
+    tick().then(() =>
+      document
+        .querySelector<HTMLInputElement>(
+          `[data-question-id="${questionId}"] input[type="text"], [data-question-id="${questionId}"] input:not([type])`,
+        )
+        ?.focus(),
+    );
+  }
+  function move(field: BookingIntakeField) {
+    const index = fields.findIndex((item) => item.id === field.id);
+    if (index > 0) {
+      [fields[index - 1], fields[index]] = [fields[index], fields[index - 1]];
+      dirty = true;
+    }
   }
 </script>
 
-<section class="ux-soft-card space-y-5 p-6" aria-labelledby="patient-form-title">
-  <div><h2 id="patient-form-title" class="ux-section-title">Datos que pedís al reservar</h2><p class="mt-2 text-sm text-white/65">Se aplican a todos tus enlaces de reserva. Elegí dónde se guarda cada respuesta y cuáles son obligatorias. Los cambios se aplican a nuevas reservas; cada turno conserva sus preguntas originales.</p></div>
-  {#if person}
-    <label class="block"><span class="ux-label">Profesional del formulario</span><select class="ux-select" value={person.id} onchange={event => selected = event.currentTarget.value}>{#each professionals as professional}<option value={professional.id}>{professional.name}</option>{/each}</select></label>
-    <form method="POST" action="?/save_form" use:enhance={() => { saving = true; return async ({ update }) => { try { await update({ reset: false }); } finally { saving = false; } }; }} class="space-y-5">
-      <input type="hidden" name="professional_id" value={person.id} /><input type="hidden" name="revision" value={configuration?.revision ?? 0} /><input type="hidden" name="fields" value={JSON.stringify(fields)} />
-      {#each fields as field, index (field.id)}
-        <fieldset class="rounded-xl border border-white/15 p-4 space-y-3"><legend class="px-2 text-sm">Pregunta {index + 1}</legend>
-          <label class="block"><span class="ux-label">Pregunta para el paciente</span><input class="ux-input" required maxlength="120" bind:value={field.label} /></label>
-          <div class="grid gap-3 sm:grid-cols-2">
-            <label><span class="ux-label">Guardar en el perfil como</span><select class="ux-select" value={field.patientField} onchange={event => { field.patientField = event.currentTarget.value as BookingIntakeField['patientField']; if (field.patientField === 'age' || field.patientField === 'birth_date' || (field.patientField !== 'custom' && field.kind === 'boolean')) changeKind(index, 'text'); }}>{#each targets as target}<option value={target.value} disabled={target.value !== 'custom' && fields.some((other, n) => n !== index && other.patientField === target.value)}>{target.label}</option>{/each}</select></label>
-            <label><span class="ux-label">Tipo de respuesta</span><select class="ux-select" value={field.kind} onchange={event => changeKind(index, event.currentTarget.value as BookingIntakeField['kind'])} disabled={field.patientField === 'age' || field.patientField === 'birth_date'}><option value="text">Respuesta corta</option><option value="textarea">Respuesta extensa</option><option value="choice">Lista de opciones</option>{#if field.patientField === 'custom'}<option value="boolean">Sí / No</option>{/if}</select></label>
+<svelte:window
+  onbeforeunload={(event) => {
+    if (dirty) {
+      event.preventDefault();
+      event.returnValue = "";
+    }
+  }}
+/>
+<form
+  method="POST"
+  action="?/save_form"
+  use:revealInvalidFields
+  use:enhance={() => {
+    saving = true;
+    return async ({ result, update }) => {
+      try {
+        if (result.type === "success") dirty = false;
+        await update({
+          reset: false,
+          invalidateAll: result.type === "success",
+        });
+      } finally {
+        saving = false;
+      }
+    };
+  }}
+  class="question-editor"
+  data-editor-ready={ready}
+>
+  <input type="hidden" name="revision" value={revision} /><input
+    type="hidden"
+    name="fields"
+    value={JSON.stringify(fields)}
+  />
+  <div>
+    <h2 class="ux-section-title">Preguntas al paciente</h2>
+    <p class="mt-2 text-sm text-white/75">
+      El paciente responde al reservar. Sus respuestas quedan en su ficha.
+    </p>
+  </div>
+  <fieldset disabled={!ready || saving} class="mt-6">
+    <legend class="text-base font-semibold">Datos habituales</legend>
+    <div class="mt-3 divide-y divide-white/10">
+      {#each targets as target}
+        {@const field = fields.find(
+          (item) => item.patientField === target.value,
+        )}
+        <div class="question-row" data-question-id={field?.id}>
+          <div class="question-controls">
+            <label
+              class="flex min-h-11 min-w-0 flex-1 cursor-pointer items-center gap-3"
+              ><input
+                type="checkbox"
+                checked={!!field}
+                disabled={!field && fields.length >= 24}
+                onchange={(event) =>
+                  toggle(target, event.currentTarget.checked)}
+              /><span>{field?.label || target.label}</span></label
+            >{#if field}<label class="flex min-h-11 items-center gap-2 text-sm"
+                ><input
+                  type="checkbox"
+                  bind:checked={field.required}
+                  onchange={() => (dirty = true)}
+                />Obligatorio</label
+              >{/if}
           </div>
-          {#if field.kind === 'choice'}<label class="block"><span class="ux-label">Opciones, una por línea</span><textarea class="ux-textarea" rows="3" required value={field.options?.join('\n') ?? ''} oninput={event => field.options = event.currentTarget.value.split('\n').map(value => value.trim()).filter(Boolean)}></textarea></label>{:else if field.kind === 'text' || field.kind === 'textarea'}<label class="block"><span class="ux-label">Máximo de caracteres</span><input class="ux-input" type="number" min="1" max="2000" required bind:value={field.maxLength} /></label>{/if}
-          <label class="flex items-center gap-3"><input type="checkbox" bind:checked={field.required} />Exigir esta respuesta para reservar</label>
-          <div class="flex flex-wrap gap-3"><button class="ux-btn-secondary" type="button" disabled={index === 0} onclick={() => { const previous = fields[index - 1]; fields[index - 1] = fields[index]; fields[index] = previous; }}>Subir pregunta</button><button class="ux-btn-secondary" type="button" onclick={() => fields = fields.filter((_, n) => n !== index)}>Quitar pregunta</button></div>
-        </fieldset>
+          {#if field}<details class="question-details">
+              <summary>Editar pregunta</summary>
+              <div class="py-4">
+                <BookingQuestionDetails
+                  {field}
+                  onchange={(changes) => {
+                    Object.assign(field, changes);
+                    dirty = true;
+                  }}
+                />
+              </div>
+            </details>{/if}
+        </div>
       {/each}
-      {#if !fields.length}<p class="text-sm text-white/65">Todavía no pedís datos adicionales al reservar.</p>{/if}
-      <div class="flex flex-wrap gap-3"><button class="ux-btn-secondary" type="button" disabled={!ready || fields.length >= 24} onclick={add}>Agregar dato</button><button class="ux-btn-primary" type="submit" disabled={!ready || saving}>{saving ? 'Guardando…' : 'Guardar preguntas'}</button></div>
-    </form>
-  {:else}<p>Primero configurá un perfil profesional en el consultorio.</p>{/if}
-</section>
+    </div>
+  </fieldset>
+  <fieldset disabled={!ready || saving} class="mt-8">
+    <legend class="text-base font-semibold">Otras preguntas</legend>
+    {#if !custom.length}<p class="mt-2 text-sm text-white/75">
+        Agregá una pregunta si necesitás otro dato.
+      </p>{/if}
+    <div class="mt-3 divide-y divide-white/10">
+      {#each custom as field (field.id)}<div
+          class="question-row"
+          data-question-id={field.id}
+        >
+          <div class="question-controls">
+            <span class="min-w-0 flex-1 font-medium"
+              >{field.label || "Nueva pregunta"}</span
+            ><label class="flex min-h-11 items-center gap-2 text-sm"
+              ><input
+                type="checkbox"
+                bind:checked={field.required}
+                onchange={() => (dirty = true)}
+              />Obligatorio</label
+            ><button
+              type="button"
+              class="text-sm underline underline-offset-4"
+              onclick={() => remove(field)}>Eliminar</button
+            >
+          </div>
+          <details
+            class="question-details"
+            open={expandedQuestion === field.id}
+          >
+            <summary>Editar pregunta</summary>
+            <div class="py-4">
+              <BookingQuestionDetails
+                {field}
+                onchange={(changes) => {
+                  Object.assign(field, changes);
+                  dirty = true;
+                }}
+              />
+            </div>
+          </details>
+        </div>{/each}
+    </div>
+    <button
+      type="button"
+      class="ux-btn-secondary mt-4"
+      disabled={fields.length >= 24}
+      onclick={add}>Agregar pregunta</button
+    >
+  </fieldset>
+  {#if fields.length > 1}<details class="mt-7">
+      <summary class="cursor-pointer min-h-11">Orden de las preguntas</summary>
+      <ol class="divide-y divide-white/10">
+        {#each fields as field, index (field.id)}<li
+            class="flex min-h-14 items-center justify-between gap-4 py-2"
+          >
+            <span>{index + 1}. {field.label || "Nueva pregunta"}</span><button
+              type="button"
+              class="ux-btn-secondary"
+              disabled={index === 0 || saving}
+              onclick={() => move(field)}>Subir</button
+            >
+          </li>{/each}
+      </ol>
+    </details>{/if}
+  <div class="question-footer">
+    <button class="ux-btn-primary" type="submit" disabled={!ready || saving}
+      >{saving ? "Guardando…" : "Guardar preguntas"}</button
+    >{#if dirty}<span class="text-sm text-amber-100">Cambios sin guardar</span
+      >{/if}
+  </div>
+  <noscript
+    ><p class="ux-alert mt-4">
+      Activá JavaScript para editar las preguntas. Las preguntas guardadas se
+      conservan.
+    </p></noscript
+  >
+</form>
+
+<style>
+  .question-editor {
+    max-width: 52rem;
+  }
+  .question-row {
+    padding: 0.75rem 0;
+  }
+  .question-controls {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+  }
+  .question-details {
+    padding-left: 2rem;
+  }
+  .question-details summary {
+    cursor: pointer;
+    width: fit-content;
+    min-height: 2.5rem;
+    display: flex;
+    align-items: center;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+  }
+  .question-details summary:hover {
+    color: var(--text);
+  }
+  .question-footer {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+  }
+  @media (max-width: 480px) {
+    .question-controls {
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .question-controls > label:first-child {
+      flex-basis: 55%;
+    }
+    .question-details {
+      padding-left: 0;
+    }
+    .question-controls :global(input) {
+      flex-shrink: 0;
+    }
+  }
+</style>

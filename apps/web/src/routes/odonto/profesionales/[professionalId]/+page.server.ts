@@ -1,3 +1,4 @@
+import {readBoundedBookingForm} from '$lib/server/public-booking-page';
 import {previewMonthlyPrices,formatQuotedPrice,monthForTimezone} from '$lib/booking/pricing';
 import { env } from '$env/dynamic/private';
 import { demoBusinessContext } from '$lib/server/business';
@@ -264,7 +265,7 @@ export const load: PageServerLoad = async ({ params, locals, fetch, cookies, url
 	] = await Promise.all([
 		supabase
 			.from('services')
-			.select('id, name, description, duration_minutes, buffer_before_minutes, buffer_after_minutes, price_label, is_active, is_public, sort_order')
+			.select('id, name, description, duration_minutes, buffer_before_minutes, buffer_after_minutes, price_label, is_active, is_public, sort_order, updated_at, patient_instructions, public_reminder_description')
 			.eq('business_id', businessId)
 			.order('sort_order')
 			.order('name'),
@@ -443,13 +444,14 @@ export const actions: Actions = {
 		const { supabase, business, userId } = await getOdontoContext({ locals, fetch, cookies });
 		if (!business.canManage) return fail(403, { message: 'No tenés permisos para editar servicios.' });
 
-		const form = await request.formData();
+		let form:FormData;
+		try {form=await readBoundedBookingForm(request);}catch{return fail(400,{message:"Revisá los datos del servicio antes de guardar."});}
 		const serviceId = String(form.get('service_id') ?? '').trim();
 		if (!serviceId) return fail(400, { message: 'No pudimos identificar el servicio. Cerrá el editor y volvé a abrirlo.' });
 
 		const { data: currentService, error: serviceError } = await supabase
 			.from('services')
-			.select('id, name')
+			.select('id, name, updated_at')
 			.eq('business_id', business.business.id)
 			.eq('id', serviceId)
 			.maybeSingle();
@@ -458,6 +460,11 @@ export const actions: Actions = {
 			return fail(404, { message: 'Ese servicio ya no está disponible. Cerrá el editor y recargá la página.' });
 		}
 
+		const expectedVersion = String(form.get('service_updated_at') ?? currentService.updated_at);
+		if (expectedVersion !== currentService.updated_at) return fail(409, {message:'El servicio cambió. Cerrá el editor y recargá antes de guardar.'});
+		const instructions = String(form.get('patient_instructions') ?? '').trim();
+		const reminderDescription = String(form.get('public_reminder_description') ?? '').trim();
+		if (instructions.length > 2000 || reminderDescription.length > 180) return fail(400, {message:'Acortá las indicaciones o el texto del aviso antes de guardar.'});
 		const isDefault = isDefaultServiceName(String(currentService.name ?? ''));
 		const name = isDefault
 			? String(currentService.name)
@@ -479,6 +486,8 @@ export const actions: Actions = {
 			.update({
 				name,
 				description: String(form.get('description') ?? '').trim() || null,
+				...(form.has('patient_instructions') ? {patient_instructions:instructions||null} : {}),
+				...(form.has('public_reminder_description') ? {public_reminder_description:reminderDescription||null} : {}),
 				duration_minutes: duration,
 				buffer_before_minutes: bufferBefore,
 				buffer_after_minutes: bufferAfter,
@@ -489,8 +498,10 @@ export const actions: Actions = {
 			})
 			.eq('business_id', business.business.id)
 			.eq('id', serviceId)
+			.eq('updated_at', expectedVersion)
 			.select('id')
 			.maybeSingle();
+		if (!error && !updatedService) return fail(409,{message:"El servicio cambió. Cerrá el editor y recargá antes de guardar."});
 		if (error || !updatedService) {
 			console.error('Error actualizando servicio', error);
 			return fail(500, { message: 'No pudimos guardar el servicio. Revisá los datos e intentá nuevamente.' });

@@ -1,0 +1,44 @@
+{
+  "scope": "Local fixtures and source validation; production artifact verification is separate.",
+  "server": {
+    "files": 4,
+    "passed": 66
+  },
+  "client": {
+    "files": 4,
+    "passed": 18
+  },
+  "svelte_check": {
+    "errors": 0,
+    "warnings": 0
+  },
+  "sql": {
+    "existing_migrations": 97,
+    "contracts_passed": 10,
+    "new_migrations": 0
+  },
+  "booking_e2e": {
+    "passed": 1,
+    "auth": "simulated",
+    "database": "disposable PostgreSQL/PostgREST"
+  },
+  "browser": {
+    "checks_passed": 16,
+    "additional_accessibility_check": "Selected month value retained after min/disabled changes",
+    "viewports": [
+      1440,
+      390,
+      320
+    ]
+  },
+  "review": {
+    "independent": true,
+    "final_disposition": "ship",
+    "fixed": [
+      "discard restores draft before reused-route navigation",
+      "personalized address folded out of basic profile",
+      "Arancel a mostrar label",
+      "date accessible name survives attribute changes"
+    ]
+  }
+}

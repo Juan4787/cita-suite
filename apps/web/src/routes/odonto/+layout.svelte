@@ -71,7 +71,7 @@
 	];
 
 	const professionalNav: NavItem[] = [
-        { label: 'Mis preguntas', href: '/odonto/configuracion/reserva-online' },
+        { label: 'Mis preguntas', href: '/odonto/mis-preguntas' },
 		{ label: 'Mis turnos', href: '/odonto/mis-turnos', activePrefixes: ['/odonto/mis-turnos'] },
 		{
 			label: 'Seguimientos',
@@ -88,10 +88,9 @@
 	];
 
 	const baseConfigNav: NavItem[] = [
-		{ label: 'Negocio', href: '/odonto/configuracion/negocio' },
+		{ label: 'Datos del consultorio', href: '/odonto/configuracion/negocio' },
 		{ label: 'Equipo', href: '/odonto/configuracion/usuarios' },
 		{ label: 'Suscripción', href: '/odonto/configuracion/suscripcion' },
-		{ label: 'Link de reserva', href: '/odonto/configuracion/comunicacion' },
 		{ label: 'Reserva online', href: '/odonto/configuracion/reserva-online' },
 		{ label: 'Reseña de Google', href: '/odonto/configuracion/resena-google' },
 		{ label: 'Exportar datos', href: '/odonto/exportar-datos' },
@@ -206,7 +205,9 @@
 		) {
 			return false;
 		}
-		return Boolean(isAssistingAccount || accountAssistance.status === 'active' || accountAssistance.canActivate);
+		if (isAssistingAccount || accountAssistance.status === 'active') return true;
+		const configuring = $page.url.pathname.startsWith('/odonto/configuracion') || $page.url.pathname.startsWith('/odonto/profesionales') || $page.url.pathname.startsWith('/odonto/mis-preguntas');
+		return !configuring && Boolean(accountAssistance.canActivate);
 	});
 	const routeAllowsCommercialBypass = $derived.by(() => {
 		if ($page.url.pathname.startsWith('/odonto/maestro')) return true;

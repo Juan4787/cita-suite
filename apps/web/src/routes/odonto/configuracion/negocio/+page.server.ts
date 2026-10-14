@@ -129,9 +129,6 @@ export const actions: Actions = {
 		const maps_url = String(form.get('maps_url') ?? '').trim();
 		const logo_url = String(form.get('logo_url') ?? '').trim();
 		const timezone = String(form.get('timezone') ?? '').trim() || 'America/Argentina/Cordoba';
-		const max_booking_days_ahead = Number(form.get('max_booking_days_ahead') ?? 60);
-		const min_booking_notice_minutes = Number(form.get('min_booking_notice_minutes') ?? 0);
-		const cancellation_policy = String(form.get('cancellation_policy') ?? '').trim();
 
 		if (!name) {
 			return fail(400, { message: 'El nombre del consultorio es obligatorio.', values: Object.fromEntries(form) });
@@ -141,23 +138,6 @@ export const actions: Actions = {
 		}
 		if (!isBusinessIndustry(industry)) {
 			return fail(400, { message: 'La industria seleccionada no es válida.', values: Object.fromEntries(form) });
-		}
-		if (!Number.isInteger(max_booking_days_ahead) || max_booking_days_ahead < 1 || max_booking_days_ahead > 90) {
-			return fail(400, {
-				message: 'Los días máximos hacia adelante deben estar entre 1 y 90.',
-				values: Object.fromEntries(form)
-			});
-		}
-		// Tope de 7 días: más que eso deja la agenda pública inservible por error de tipeo.
-		if (
-			!Number.isInteger(min_booking_notice_minutes) ||
-			min_booking_notice_minutes < 0 ||
-			min_booking_notice_minutes > 7 * 24 * 60
-		) {
-			return fail(400, {
-				message: 'La anticipación mínima debe estar entre 0 y 7 días.',
-				values: Object.fromEntries(form)
-			});
 		}
 		try {
 			new Intl.DateTimeFormat('es-AR', { timeZone: timezone }).format(new Date());
@@ -191,7 +171,7 @@ export const actions: Actions = {
 		// Sin dirección los pacientes no saben dónde asistir: no se puede habilitar la
 		// reserva pública. No es retroactivo: a quien ya la tiene activa no se lo apaga,
 		// solo se le muestra la advertencia en la página.
-		const wantsPublicBooking = form.get('public_booking_enabled') === 'true';
+		const wantsPublicBooking = context.business.public_booking_enabled;
 		if (wantsPublicBooking && !address) {
 			return fail(400, {
 				message:
@@ -231,11 +211,7 @@ export const actions: Actions = {
 				maps_url: maps_url || null,
 				logo_url: logo_url || null,
 				timezone,
-				public_booking_enabled: wantsPublicBooking,
 				whatsapp_enabled: form.get('whatsapp_enabled') === 'true',
-				max_booking_days_ahead,
-				min_booking_notice_minutes,
-				cancellation_policy: cancellation_policy || null,
 				is_active: form.get('is_active') === 'true',
 				updated_at: new Date().toISOString()
 			})

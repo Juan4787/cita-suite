@@ -202,7 +202,7 @@ export const loadPublicBookingPage = async ({ params, fetch, url, setHeaders }: 
 	}
 };
 
-export async function readBoundedBookingForm(request: Request): Promise<FormData> {
+export async function readBoundedBookingForm(request: Request, repeatableFields: readonly string[] = ['professional_ids']): Promise<FormData> {
 	const reader = request.body?.getReader();
 	if (!reader) throw new Error('BOOKING_FORM_INVALID');
 	const chunks: Uint8Array[] = [];
@@ -221,7 +221,7 @@ export async function readBoundedBookingForm(request: Request): Promise<FormData
 	for (const chunk of chunks) { body.set(chunk, offset); offset += chunk.byteLength; }
 	const parsed = await new Request(request.url, { method: 'POST', headers: request.headers, body }).formData();
 	for (const [key, value] of parsed) {
-		if (typeof value !== 'string' || key.length > 80 || (key !== 'professional_ids' && parsed.getAll(key).length > 1)) throw new Error('BOOKING_FORM_INVALID');
+		if (typeof value !== 'string' || key.length > 80 || (!repeatableFields.includes(key) && parsed.getAll(key).length > 1)) throw new Error('BOOKING_FORM_INVALID');
 	}
 	return parsed;
 }
