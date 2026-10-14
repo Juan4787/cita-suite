@@ -1,0 +1,9 @@
+---
+import BookingLink from './BookingLink.astro';
+const links = [['#senales','Señales'],['#areas','Consultas'],['#como-trabajo','Mi enfoque'],['#sobre-mi','Sobre mí'],['#preguntas','Preguntas'],['#contacto','Contacto']];
+---
+<header class="site-header"><div class="container header-inner">
+  <a class="brand" href="#inicio" aria-label="Natalia Frutos, inicio"><span class="brand-name">Natalia Frutos</span><span class="brand-sub">Médica de familia</span></a>
+  <nav class="main-nav" aria-label="Principal"><ul>{links.map(([href,label]) => <li><a href={href}>{label}</a></li>)}</ul></nav>
+  <div class="header-actions"><button class="icon-btn" id="theme-toggle" type="button" aria-label="Cambiar entre tema claro y oscuro"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button><BookingLink class="btn btn-primary btn-sm header-booking" /><button class="icon-btn menu-btn" id="menu-toggle" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="mobile-menu"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 8h16M4 16h16"/></svg></button></div>
+</div><nav id="mobile-menu" class="mobile-navigation" aria-label="Menú móvil" hidden><ul>{links.map(([href,label]) => <li><a href={href}>{label}</a></li>)}</ul><BookingLink /></nav></header>

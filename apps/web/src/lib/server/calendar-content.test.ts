@@ -49,6 +49,13 @@ const appointment = (overrides: Partial<PublicAppointmentView> = {}): PublicAppo
 const now = new Date('2026-06-11T12:00:00.000Z');
 
 describe('contenido neutral del evento', () => {
+	it('does not show a physical address for virtual appointments even if a caller retains it', () => {
+		const virtual = appointment({ booking_context: { theme: 'natalia', modality: 'video', videoInstructions: 'Se coordina el acceso.' } });
+		expect(calendarLocationFor(virtual)).toBe('Consulta virtual');
+		expect(calendarDescriptionFor(virtual)).toContain('Modalidad: Virtual');
+		expect(calendarDescriptionFor(virtual)).not.toContain('Av. Santa Fe');
+		expect(calendarDescriptionFor(virtual)).not.toContain('maps.app.goo.gl');
+	});
 	it('el título NUNCA incluye el servicio (privacidad en pantalla bloqueada)', () => {
 		const summary = calendarSummaryFor(appointment());
 		expect(summary).toBe('Turno en Clínica Sabrina');

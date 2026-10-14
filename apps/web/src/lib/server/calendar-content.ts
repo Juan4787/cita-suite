@@ -13,6 +13,7 @@ export const calendarSummaryFor = (appointment: PublicAppointmentView): string =
 	`Turno en ${appointment.business.name}`;
 
 export const calendarLocationFor = (appointment: PublicAppointmentView): string | null => {
+	if (appointment.booking_context?.modality === 'video') return 'Consulta virtual';
 	const address = appointment.business.address?.trim();
 	if (!address) return null;
 	const instructions = appointment.business.address_instructions?.trim();
@@ -32,11 +33,12 @@ export const calendarDescriptionFor = (appointment: PublicAppointmentView): stri
 		`Profesional: ${appointment.professional_name_snapshot}`,
 		`Consultorio: ${appointment.business.name}`
 	];
-	if (appointment.business.address) lines.push(`Dirección: ${appointment.business.address}`);
+	if (appointment.booking_context?.modality !== 'video' && appointment.business.address) lines.push(`Dirección: ${appointment.business.address}`);
+	if (appointment.booking_context?.modality === 'video') lines.push('Modalidad: Virtual');
 	if (appointment.business.address_instructions) {
 		lines.push(`Indicaciones: ${appointment.business.address_instructions}`);
 	}
-	if (appointment.business.maps_link) lines.push(`Cómo llegar: ${appointment.business.maps_link}`);
+	if (appointment.booking_context?.modality !== 'video' && appointment.business.maps_link) lines.push(`Cómo llegar: ${appointment.business.maps_link}`);
 	lines.push(`Ver turno: ${publicAppointmentUrl(appointment.token)}`);
 	return lines.join('\n');
 };

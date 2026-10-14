@@ -6,6 +6,7 @@
 	import { onMount } from 'svelte';
 	import type { SubmitFunction } from '@sveltejs/kit';
 	import { isUpcomingActiveAppointment } from '$lib/utils/appointment-visibility';
+import { BOOKING_MODALITY_LABELS, type BookingModality } from '@turnos-saas/shared/booking-integration';
 
 	type Slot = { date: string; time: string; starts_at: string; professional_name: string };
 	type AuditLog = {
@@ -479,6 +480,12 @@
 						</p>
 					</div>
 				{/if}
+				{#if data.appointment.booking_context}
+						<div class="rounded-2xl border border-white/10 bg-white/[0.045] p-5">
+							<p class="text-sm font-semibold text-white/55">Modalidad</p>
+							<p class="mt-2 text-base font-semibold text-white">{BOOKING_MODALITY_LABELS[data.appointment.booking_context.modality as BookingModality]}</p>
+						</div>
+				{/if}
 				{#if data.appointment.internal_note}
 					<div class="rounded-2xl border border-white/10 bg-white/[0.045] p-5">
 						<p class="text-sm font-semibold text-white/55">Nota interna</p>
@@ -492,6 +499,17 @@
 					</div>
 				{/if}
 			</div>
+			{#if data.appointment.booking_intake?.length}
+				<section class="ux-soft-card mt-5 p-5">
+					<h2 class="ux-section-title">Datos informados al reservar</h2>
+					<p class="mt-2 text-sm text-white/55">Son respuestas aportadas por el paciente desde su reserva. Se conservan junto al turno y al formulario que completó.</p>
+					<dl class="mt-4 grid gap-4 sm:grid-cols-2">
+						{#each data.appointment.booking_intake as response}
+							<div><dt class="text-sm font-semibold text-white/55">{response.label}</dt><dd class="mt-1 whitespace-pre-wrap break-words">{response.value}</dd></div>
+						{/each}
+					</dl>
+				</section>
+			{/if}
 
 			{#if canShowCancelAction}
 				<div class="mt-7 grid gap-4 md:grid-cols-2 xl:grid-cols-4">

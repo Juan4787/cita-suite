@@ -1,3 +1,4 @@
+import { bookingInformationEnabled } from '$lib/server/booking-information';
 import { env } from '$env/dynamic/private';
 import { resolveActiveBusiness } from '$lib/server/business';
 import { newId, readDemoDb, updateDemoDb } from '$lib/server/demo-store';
@@ -483,7 +484,7 @@ export const load: PageServerLoad = async ({ params, locals, fetch, cookies, dep
 		permissions.canReadClinicalProfile
 			? supabase
 					.from('patient_clinical_profiles')
-					.select('allergies, medication, background, custom_fields, updated_at')
+					.select('allergies, medication, background, custom_fields, updated_at, updated_by')
 					.eq('patient_id', params.id)
 					.eq('business_id', context.business.id)
 					.maybeSingle()
@@ -561,11 +562,14 @@ export const load: PageServerLoad = async ({ params, locals, fetch, cookies, dep
 			medication: clinicalProfile?.medication ?? null,
 			background: clinicalProfile?.background ?? null,
 			custom_fields: clinicalProfile?.custom_fields ?? null,
+            booking_extra_fields: Object.values(clinicalProfile?.custom_fields?.booking_fields ?? {}).filter((item: any): item is {label:string;value:string|boolean} => item !== null && typeof item === 'object' && typeof item.label === 'string' && (typeof item.value === 'string' || typeof item.value === 'boolean')),
 			clinical_profile_updated_at: clinicalProfile?.updated_at ?? null,
+            clinical_profile_patient_reported: bookingInformationEnabled() && clinicalProfile?.updated_by === null && !!clinicalProfile?.custom_fields?.booking_last_reported_at && new Date(clinicalProfile.custom_fields.booking_last_reported_at).getTime() === new Date(clinicalProfile.updated_at).getTime(),
 			professional_archived_at:
 				context.role === 'professional' ? ((professionalLink as any)?.archived_at ?? null) : null
 		},
 		businessTimeZone: context.business.timezone,
+		bookingInformationEnabled: bookingInformationEnabled(),
 		entries: hasMoreEntries ? entriesWithCosts.slice(0, ENTRIES_PAGE_SIZE) : entriesWithCosts,
 		appointments: appointments ?? [],
 		radiographs: [],

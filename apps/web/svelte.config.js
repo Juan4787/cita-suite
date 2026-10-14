@@ -39,7 +39,7 @@ const config = {
 					mode: 'auto',
 					directives: {
 						'default-src': ['self'],
-						'script-src': ['self', 'https://accounts.google.com'],
+						'script-src': ['self', 'https://accounts.google.com', 'https://challenges.cloudflare.com'],
 						'style-src': ['self', 'https://fonts.googleapis.com'],
 						'style-src-elem': ['self', 'https://fonts.googleapis.com'],
 						'style-src-attr': ['unsafe-inline'],
@@ -55,7 +55,7 @@ const config = {
 							'https://*.supabase.co',
 							'wss://*.supabase.co'
 						],
-						'frame-src': ['https://accounts.google.com'],
+						'frame-src': ['https://accounts.google.com', 'https://challenges.cloudflare.com'],
 						'base-uri': ['self'],
 						// Mercado Pago: el action de suscripción responde al POST del
 						// form con un 303 al checkout de MP; los navegadores aplican

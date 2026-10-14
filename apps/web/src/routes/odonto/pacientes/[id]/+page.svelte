@@ -30,6 +30,7 @@
 			currentUserId?: string | null;
 			clinicalTodayISO: string;
 			businessTimeZone?: string;
+			bookingInformationEnabled?: boolean;
 			hasMoreEntries?: boolean;
 			permissions: {
 				canReadClinicalProfile: boolean;
@@ -592,6 +593,7 @@ const preventEnterSubmit = (event: KeyboardEvent) => {
 				{/if}
 			</div>
 		</div>
+		{#if data.bookingInformationEnabled && data.permissions.canReadClinicalProfile}<a class="ux-btn-secondary mt-4" href={`/odonto/pacientes/${data.patient.id}/informacion-previa`}>Información aportada al reservar</a>{/if}
 		<div class="mt-4 grid grid-cols-2 gap-2 text-xs sm:grid-cols-4 sm:text-sm md:flex md:items-center md:gap-3">
 			<a
 				href="/odonto/pacientes"
@@ -868,8 +870,11 @@ const preventEnterSubmit = (event: KeyboardEvent) => {
 								</button>
 							{/if}
 					</div>
-					<div class="space-y-3">
-						<div class="flex min-w-0 items-start justify-between gap-3 rounded-lg bg-amber-100/30 px-3 py-2 dark:bg-amber-500/10">
+					{#if data.patient.clinical_profile_patient_reported}<p class="mb-3 text-xs text-neutral-600 dark:text-neutral-300">Última actualización informada por el paciente desde su reserva. Revisá el historial de información previa para consultar los cambios.</p>{/if}
+                    {#if permissions.canReadClinicalProfile && data.patient.custom_fields?.booking_age}<p class="mb-3 text-sm">Edad declarada: {data.patient.custom_fields.booking_age.years} años (al {data.patient.custom_fields.booking_age.as_of}).</p>{/if}
+                    {#if permissions.canReadClinicalProfile && data.patient.booking_extra_fields?.length}<dl class="mb-4 space-y-2">{#each data.patient.booking_extra_fields as field}<div><dt class="text-xs text-neutral-600 dark:text-neutral-300">{field.label}</dt><dd class="text-sm whitespace-pre-wrap break-words">{typeof field.value === 'boolean' ? field.value ? 'Sí' : 'No' : String(field.value)}</dd></div>{/each}</dl>{/if}
+                    <div class="space-y-3">
+                        <div class="flex min-w-0 items-start justify-between gap-3 rounded-lg bg-amber-100/30 px-3 py-2 dark:bg-amber-500/10">
 							<div class="flex items-center gap-2 text-xs font-semibold text-amber-700 dark:text-amber-200">
 								<svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
 									<path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M4.93 19h14.14a1 1 0 0 0 .9-1.45L12.9 4.55a1 1 0 0 0-1.8 0L4.03 17.55A1 1 0 0 0 4.93 19Z" />

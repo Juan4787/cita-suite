@@ -31,6 +31,7 @@
 	"pnpm": {
 		"overrides": {
 			"cookie": "0.7.2",
+			"astro>cookie": "2.0.1",
 			"esbuild": "0.28.1",
 			"nanoid": "3.3.18",
 			"miniflare>undici": "7.29.0",

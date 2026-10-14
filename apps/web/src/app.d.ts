@@ -3,6 +3,8 @@
 declare global {
 	namespace App {
 		interface Locals {
+			bookingFrameAncestors?: string[];
+			bookingIntegrationRequest?: { publicKey: string; promise: Promise<import('$lib/server/booking-integration-request').ResolvedBookingIntegration> };
 			auth: {
 				module: import('$lib/server/supabase').Module;
 				access_token: string;

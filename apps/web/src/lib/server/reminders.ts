@@ -20,6 +20,8 @@
 // externa.
 
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { bookingContextsAvailable } from './booking-integration-flags';
+import type { BookingModality } from '@turnos-saas/shared/booking-integration';
 import { ACTIVE_APPOINTMENT_STATUSES } from '$lib/utils/appointment-visibility';
 import { formatInTimeZone } from '$lib/utils/format';
 import { publicAppointmentUrl } from './messaging';
@@ -118,6 +120,7 @@ export const localDayWindowUtc = (
 // --- Mensaje manual de WhatsApp (§48: neutral, sin datos clínicos) -----------
 
 export type ReminderMessageInput = {
+	modality?: BookingModality;
 	patientName: string;
 	startsAt: string;
 	timezone: string;
@@ -133,8 +136,9 @@ export const buildReminderWhatsAppMessage = (input: ReminderMessageInput): strin
 		`Hola ${input.patientName}. Te recordamos tu turno el ${dateLabel} a las ${timeLabel} en ${input.businessName}.`,
 		''
 	];
-	if (input.address) lines.push(`Dirección: ${input.address}`);
-	if (input.mapsLink) lines.push(`Cómo llegar: ${input.mapsLink}`);
+	if (input.modality === 'video') lines.push('Modalidad: Virtual');
+	if (input.modality !== 'video' && input.address) lines.push(`Dirección: ${input.address}`);
+	if (input.modality !== 'video' && input.mapsLink) lines.push(`Cómo llegar: ${input.mapsLink}`);
 	lines.push(`Ver turno: ${publicAppointmentUrl(input.token)}`);
 	return lines.join('\n');
 };
@@ -332,7 +336,7 @@ export const loadReminderCandidates = async (
 	const ids = appointments.map((row: any) => String(row.id));
 	const managedGoogleCalendarEnabled = isManagedGoogleCalendarEnabled();
 
-	const [pushResult, dispatchResult, googleCalendarResult] = await Promise.all([
+	const [pushResult, dispatchResult, googleCalendarResult, bookingContextResult] = await Promise.all([
 		options.pushSubscriptionsSupabase
 			.from('push_subscriptions')
 			.select(
@@ -355,11 +359,16 @@ export const loadReminderCandidates = async (
 					.select('appointment_id, sync_status, synced_sequence')
 					.eq('business_id', business.id)
 					.in('appointment_id', ids)
+			: Promise.resolve({ data: [], error: null }),
+		bookingContextsAvailable()
+			? supabase.from('appointment_booking_contexts').select('appointment_id, modality').eq('business_id', business.id).in('appointment_id', ids)
 			: Promise.resolve({ data: [], error: null })
 	]);
 	if (pushResult.error) throw pushResult.error;
 	if (dispatchResult.error) throw dispatchResult.error;
 	if (googleCalendarResult.error) throw googleCalendarResult.error;
+	if (bookingContextResult.error) throw bookingContextResult.error;
+	const modalitiesByAppointment = new Map((bookingContextResult.data ?? []).map((row: any) => [String(row.appointment_id), row.modality as BookingModality]));
 	const pushRows = pushResult.data;
 	const dispatchRows = dispatchResult.data;
 	const googleCalendarRows = googleCalendarResult.data;
@@ -406,7 +415,7 @@ export const loadReminderCandidates = async (
 			? buildWaMeUrl(
 					phone,
 					buildReminderWhatsAppMessage({
-						patientName,
+						modality: modalitiesByAppointment.get(String(row.id)),						patientName,
 						startsAt: String(row.starts_at),
 						timezone: business.timezone,
 						businessName: business.name,

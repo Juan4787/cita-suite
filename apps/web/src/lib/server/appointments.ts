@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import type { IntegratedBookingInput } from './booking-integrations';
 import { writeAuditLog } from './audit';
 import { normalizePhoneE164, normalizePhoneRaw } from './phone';
 import {
@@ -233,6 +234,8 @@ export type AppointmentPatientSelection =
 			email?: string | null;
 		};
 
+export type BookingPatientInformationInput = { schemaHash: string; answers: import('@turnos-saas/shared/booking-integration').BookingIntakeAnswers };
+
 export type AtomicAppointmentInput = {
 	businessId: string;
 	ownerId?: string | null;
@@ -247,6 +250,8 @@ export type AtomicAppointmentInput = {
 	phoneCommunicationStatus?: CommunicationPhoneStatus;
 	phoneWarningAcknowledged?: boolean;
 	idempotencyKey: string;
+	bookingIntegration?: IntegratedBookingInput;
+	bookingInformation?: BookingPatientInformationInput;
 };
 
 const APPOINTMENT_IDEMPOTENCY_KEY_PATTERN =
@@ -298,7 +303,45 @@ const runAtomicAppointmentRpc = async (
 				? normalizePhoneE164(patientPhone)
 				: null;
 
-	const rpc = supabase.rpc('create_appointment_with_patient_identity', {
+	if ((input.bookingIntegration || input.bookingInformation) && (input.patient.mode !== 'public' || source !== 'public_booking' || input.ignoreBreak || input.ownerId || input.createdByUserId)) {
+		throw new Error('PATIENT_MODE_SOURCE_MISMATCH');
+	}
+	const rpc = input.bookingInformation
+        ? supabase.rpc('create_public_booking_with_information', {
+            p_input: {
+                business_id: input.businessId, patient_name: input.patient.mode === 'public' ? input.patient.name.trim() : null,
+                patient_phone_raw: normalizePhoneRaw(patientPhone), patient_phone_e164: patientPhoneE164,
+                patient_email: input.patient.mode === 'public' ? String(input.patient.email ?? '').trim() || null : null,
+                service_id: input.serviceId, professional_ids: professionalIds, starts_at: input.startsAt.toISOString(),
+                comment: input.internalNote?.trim() || null, phone_status: phoneDecision.status,
+                request_key: input.idempotencyKey.toLowerCase(), schema_hash: input.bookingInformation.schemaHash,
+                answers: input.bookingInformation.answers, integration_id: input.bookingIntegration?.integrationId ?? null,
+                integration_revision: input.bookingIntegration?.integrationRevision ?? null,
+                availability_revision: input.bookingIntegration?.expectedAvailabilityRevision ?? null,
+                entry_point: input.bookingIntegration?.entryPoint ?? 'public_page', modality: input.bookingIntegration?.modality ?? 'in_person'
+            }, p_replay_only: replayOnly
+        })
+        : input.bookingIntegration
+		? supabase.rpc('create_integrated_public_appointment', {
+			p_integration_id: input.bookingIntegration.integrationId,
+			p_integration_revision: input.bookingIntegration.integrationRevision,
+			p_expected_availability_revision: input.bookingIntegration.expectedAvailabilityRevision ?? null,
+			p_patient_name: input.patient.mode === 'public' ? input.patient.name.trim() : null,
+			p_patient_phone_raw: normalizePhoneRaw(patientPhone),
+			p_patient_phone_e164: patientPhoneE164,
+			p_patient_email: input.patient.mode === 'public' ? String(input.patient.email ?? '').trim() || null : null,
+			p_service_id: input.serviceId,
+			p_professional_ids: professionalIds,
+			p_starts_at: input.startsAt.toISOString(),
+			p_internal_note: input.internalNote?.trim() || null,
+			p_phone_communication_status: phoneDecision.status,
+			p_modality: input.bookingIntegration.modality,
+			p_intake_answers: input.bookingIntegration.intakeAnswers,
+			p_idempotency_key: input.idempotencyKey.toLowerCase(),
+			p_replay_only: replayOnly,
+			p_entry_point: input.bookingIntegration.entryPoint ?? 'embedded'
+		})
+		: supabase.rpc('create_appointment_with_patient_identity', {
 			p_business_id: input.businessId,
 			p_patient_mode: input.patient.mode,
 			p_patient_id: input.patient.mode === 'existing' ? input.patient.patientId : null,
@@ -355,6 +398,8 @@ export const createManualAppointment = async (
 		phoneCommunicationStatus?: CommunicationPhoneStatus;
 		phoneWarningAcknowledged?: boolean;
 		idempotencyKey: string;
+		bookingIntegration?: IntegratedBookingInput;
+	bookingInformation?: BookingPatientInformationInput;
 	}
 ) => {
 	const created = await runAtomicAppointmentRpc(supabase, {
@@ -381,6 +426,8 @@ export const createJointAppointment = async (
 		phoneCommunicationStatus?: CommunicationPhoneStatus;
 		phoneWarningAcknowledged?: boolean;
 		idempotencyKey: string;
+		bookingIntegration?: IntegratedBookingInput;
+	bookingInformation?: BookingPatientInformationInput;
 	}
 ) => {
 	const professionalIds = input.professionalIds

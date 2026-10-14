@@ -6,6 +6,7 @@ import { error } from '@sveltejs/kit';
 import { loadAppointmentForToken } from '$lib/server/appointment-token';
 import { buildAppointmentReceiptPdf, type ReceiptField } from '$lib/server/receipt-pdf';
 import { formatDateTime } from '$lib/utils/format';
+import { BOOKING_MODALITY_LABELS } from '@turnos-saas/shared/booking-integration';
 import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async ({ params, fetch }) => {
@@ -21,6 +22,7 @@ export const GET: RequestHandler = async ({ params, fetch }) => {
 		},
 		{ label: 'Fecha y hora', value: formatDateTime(appointment.starts_at, business.timezone) }
 	];
+	if (appointment.booking_context) fields.push({ label: 'Modalidad', value: BOOKING_MODALITY_LABELS[appointment.booking_context.modality] });
 	if (business.address) fields.push({ label: 'Ubicación', value: business.address });
 	if (business.address_instructions) {
 		fields.push({ label: 'Indicaciones', value: business.address_instructions });

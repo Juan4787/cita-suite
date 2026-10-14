@@ -1,5 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import type { BookingModality, BookingModalityWindow } from '@turnos-saas/shared/booking-integration';
 import type { Business } from './business';
+import { loadIntegratedAvailabilityRows } from './integrated-availability';
 import {
 	calculateAvailabilitySlots,
 	clampRangeToBusinessRules,
@@ -18,6 +20,8 @@ export * from '$lib/availability/calculate';
 const BLOCKING_STATUSES = ['reserved', 'confirmed', 'reschedule_requested'] as const;
 
 export type AvailabilityInput = {
+	modality?: BookingModality;
+	modalityWindows?: BookingModalityWindow[];
 	business: Business;
 	serviceId: string;
 	professionalId?: string | null;
@@ -51,6 +55,30 @@ export const getAvailabilitySlots = async (
 	];
 
 	if (publicOnly && (!business.is_active || !business.public_booking_enabled)) return [];
+	if (publicOnly && input.modality) {
+		const selectedIds = requiredProfessionalIds.length ? requiredProfessionalIds : professionalId ? [professionalId] : [];
+		if (!selectedIds.length) return [];
+		const dates = clampRangeToBusinessRules(business, input.fromDate, input.toDate);
+		if (!dates.length) return [];
+		const dayAfter = new Date(dates[dates.length - 1] + 'T12:00:00Z');
+		dayAfter.setUTCDate(dayAfter.getUTCDate() + 1);
+		const rows = await loadIntegratedAvailabilityRows(supabase, {
+			businessId: business.id, serviceId, professionalIds: selectedIds,
+			rangeStart: zonedDateTimeToUtc(dates[0], '00:00', business.timezone),
+			rangeEnd: zonedDateTimeToUtc(dayAfter.toISOString().slice(0, 10), '00:00', business.timezone)
+		});
+		const service = rows.services.find((service) => service.id === serviceId);
+		if (!service) return [];
+		const assigned = new Set(rows.assignments.filter((assignment) => assignment.service_id === serviceId).map((assignment) => assignment.professional_id));
+		return calculateAvailabilitySlots({
+			business, service, professionals: rows.professionals.filter((professional) => assigned.has(professional.id)),
+			rules: rows.rules, exceptions: rows.exceptions,
+			blocks: rows.blocks.filter((block) => block.appointment_id !== input.excludeAppointmentId),
+			fromDate: dates[0], toDate: dates[dates.length - 1], publicOnly,
+			requiredProfessionalIds, modality: input.modality, modalityWindows: input.modalityWindows,
+			maxSlots: input.maxSlots, maxSlotsPerDate: input.maxSlotsPerDate
+		});
+	}
 
 	const { data: service, error: serviceError } = await supabase
 		.from('services')
@@ -145,6 +173,8 @@ export const getAvailabilitySlots = async (
 	if (blocksError) throw blocksError;
 
 	return calculateAvailabilitySlots({
+		modality: input.modality,
+		modalityWindows: input.modalityWindows,
 		business,
 		service,
 		professionals,

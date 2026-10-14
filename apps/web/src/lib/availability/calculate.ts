@@ -1,3 +1,5 @@
+import type { BookingModality, BookingModalityWindow } from '@turnos-saas/shared/booking-integration';
+
 export type AvailabilityBusiness = {
 	timezone: string;
 	max_booking_days_ahead: number;
@@ -69,6 +71,7 @@ export type AvailabilityAppointmentBlockRow = {
 
 type Interval = {
 	start: Date;
+	gridStart?: Date;
 	end: Date;
 	stepMinutes: number;
 	breakMinutes: number;
@@ -163,6 +166,8 @@ export const clampRangeToBusinessRules = (
 };
 
 export const calculateAvailabilitySlots = (input: {
+	modality?: BookingModality;
+	modalityWindows?: BookingModalityWindow[];
 	business: AvailabilityBusiness;
 	service: AvailabilityServiceRow;
 	professionals: AvailabilityProfessionalRow[];
@@ -281,7 +286,10 @@ export const calculateAvailabilitySlots = (input: {
 		const remember = (candidate: Date) => candidates.set(candidate.getTime(), candidate);
 
 		for (const interval of context.intervals) {
-			const firstStart = addMinutes(interval.start, service.buffer_before_minutes);
+			const gridStart = addMinutes(interval.gridStart ?? interval.start, service.buffer_before_minutes);
+			const minimumStart = addMinutes(interval.start, service.buffer_before_minutes);
+			const steps = Math.max(0, Math.ceil((minimumStart.getTime() - gridStart.getTime()) / (interval.stepMinutes * 60_000)));
+			const firstStart = addMinutes(gridStart, steps * interval.stepMinutes);
 			for (
 				let startsAt = firstStart;
 				addMinutes(startsAt, service.duration_minutes) <= interval.end;
@@ -318,7 +326,7 @@ export const calculateAvailabilitySlots = (input: {
 				.filter((value) => value > 0);
 			const defaultStepMinutes =
 				professionalStepOptions.length > 0 ? Math.min(...professionalStepOptions) : 15;
-			const intervals: Interval[] = professionalRules
+			let intervals: Interval[] = professionalRules
 				.filter((rule) => rule.weekday === weekday)
 				.map((rule) => ({
 					start: zonedDateTimeToUtc(date, rule.start_time.slice(0, 5), business.timezone),
@@ -336,6 +344,15 @@ export const calculateAvailabilitySlots = (input: {
 				if (localDate === date) {
 					intervals.push({ start, end, stepMinutes: defaultStepMinutes, breakMinutes: 0 });
 				}
+			}
+			const modalityWindows = input.modality ? (input.modalityWindows ?? []).filter((window) =>
+				window.modality === input.modality && (!window.professionalId || window.professionalId === professional.id)) : [];
+			if (modalityWindows.length) {
+				intervals = intervals.flatMap((interval) => modalityWindows.filter((window) => window.weekday === weekday).flatMap((window) => {
+					const start = new Date(Math.max(interval.start.getTime(), zonedDateTimeToUtc(date, window.startTime, business.timezone).getTime()));
+					const end = new Date(Math.min(interval.end.getTime(), zonedDateTimeToUtc(date, window.endTime, business.timezone).getTime()));
+					return start < end ? [{ ...interval, gridStart: interval.start, start, end }] : [];
+				}));
 			}
 			intervals.sort((a, b) => a.start.getTime() - b.start.getTime());
 			if (intervals.length === 0) continue;

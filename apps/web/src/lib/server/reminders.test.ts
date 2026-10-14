@@ -24,6 +24,13 @@ beforeEach(() => {
 	googleCalendarFlag.enabled = false;
 });
 
+it('virtual reminders never direct the patient to the physical consulting room', () => {
+	const message = buildReminderWhatsAppMessage({ modality: 'video', patientName: 'Ana Prueba', startsAt: '2026-06-15T17:30:00Z', timezone: CORDOBA, businessName: 'Consultorio prueba', address: 'Dirección física privada', mapsLink: 'https://maps.example.test', token: 'synthetic-token' });
+	expect(message).toContain('Modalidad: Virtual');
+	expect(message).not.toContain('Dirección física privada');
+	expect(message).not.toContain('maps.example.test');
+});
+
 describe('localDayWindowUtc', () => {
 	// 2026-06-11 02:00 UTC = 2026-06-10 23:00 en Córdoba: el día local NO es el día UTC.
 	const now = new Date('2026-06-11T02:00:00.000Z');

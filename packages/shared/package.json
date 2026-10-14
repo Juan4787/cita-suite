@@ -11,7 +11,8 @@
 		"./appointment-status": "./src/appointment-status.ts",
 		"./dates": "./src/dates.ts",
 		"./messaging": "./src/messaging.ts",
-		"./phone": "./src/phone.ts"
+		"./phone": "./src/phone.ts",
+		"./booking-integration": "./src/booking-integration.ts"
 	},
 	"devDependencies": {
 		"typescript": "^5.9.3"

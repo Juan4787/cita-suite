@@ -1,4 +1,5 @@
 import { env } from '$env/dynamic/private';
+import { bookingContextsAvailable } from '$lib/server/booking-integration-flags';
 import { demoBusinessContext } from '$lib/server/business';
 import { getAvailabilitySlots } from '$lib/server/availability';
 import {
@@ -9,6 +10,7 @@ import {
 } from '$lib/server/appointments';
 import { getOdontoContext } from '$lib/server/odonto-context';
 import { createSupabaseAdminClient } from '$lib/server/supabase';
+import { loadAppointmentBookingContext, loadAppointmentIntakeForPatient } from '$lib/server/booking-integrations';
 import { processAppointmentGoogleCalendarSync } from '$lib/server/google-calendar';
 import { resetPushRemindersForReschedule, sendReschedulePushNotice } from '$lib/server/push';
 import {
@@ -104,6 +106,10 @@ export const load: PageServerLoad = async ({ params, locals, fetch, cookies, url
 			'No encontramos ese turno o tu usuario no puede verlo. Volvé a la agenda y comprobá que siga disponible para tu rol.'
 		);
 	}
+	const bookingContext = bookingContextsAvailable()
+		? await loadAppointmentBookingContext(supabase, data.id) : null;
+	const bookingIntake = bookingContext
+		? await loadAppointmentIntakeForPatient(supabase, business.business.id, data.id, data.patient_id) : null;
 
 	const appointmentLocalDate = localDateFor(data.starts_at, business.business.timezone);
 	const minReprogramDate = todayForTimezone(business.business.timezone);
@@ -191,6 +197,8 @@ export const load: PageServerLoad = async ({ params, locals, fetch, cookies, url
 		context: business,
 		appointment: {
 			...data,
+			booking_context: bookingContext,
+			booking_intake: bookingIntake,
 			professionals:
 				teamResult.data && teamResult.data.length > 0
 					? teamResult.data

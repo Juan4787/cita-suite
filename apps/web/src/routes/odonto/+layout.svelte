@@ -71,6 +71,7 @@
 	];
 
 	const professionalNav: NavItem[] = [
+        { label: 'Mis preguntas', href: '/odonto/configuracion/reserva-online' },
 		{ label: 'Mis turnos', href: '/odonto/mis-turnos', activePrefixes: ['/odonto/mis-turnos'] },
 		{
 			label: 'Seguimientos',
@@ -91,6 +92,7 @@
 		{ label: 'Equipo', href: '/odonto/configuracion/usuarios' },
 		{ label: 'Suscripción', href: '/odonto/configuracion/suscripcion' },
 		{ label: 'Link de reserva', href: '/odonto/configuracion/comunicacion' },
+		{ label: 'Reserva online', href: '/odonto/configuracion/reserva-online' },
 		{ label: 'Reseña de Google', href: '/odonto/configuracion/resena-google' },
 		{ label: 'Exportar datos', href: '/odonto/exportar-datos' },
 		{ label: 'Ayuda', href: '/odonto/configuracion/ayuda' }

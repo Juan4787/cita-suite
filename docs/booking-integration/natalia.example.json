@@ -1,0 +1,13 @@
+{
+  "businessId": "REEMPLAZAR_POR_EL_CONSULTORIO_REAL",
+  "name": "Web Natalia",
+  "theme": "natalia",
+  "isDefault": true,
+  "allowedOrigins": ["https://natalia-frutos.vercel.app"],
+  "serviceIds": ["REEMPLAZAR_POR_SERVICIOS_REALES"],
+  "professionalIds": ["REEMPLAZAR_POR_EL_PROFESIONAL_REAL"],
+  "modalities": ["in_person"],
+  "videoInstructions": null,
+  "modalityWindows": [],
+  "intakeFields": []
+}

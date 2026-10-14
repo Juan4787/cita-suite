@@ -112,7 +112,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 	};
 
 	const isDemo = env.DEMO_MODE === 'true';
-	if (event.locals.auth && !isDemo) {
+	if (event.locals.auth && !isDemo && !event.url.pathname.startsWith('/embed/v1/')) {
 		try {
 			const supabase = await createSupabaseServerClient(
 				event.locals.auth.module,
@@ -193,10 +193,19 @@ export const handle: Handle = async ({ event, resolve }) => {
 	}
 
 	const response = await resolve(event);
+	// Only a validated public integration may opt into framing. Private routes
+	// and every rejected/unknown integration retain DENY.
+	if (event.locals.bookingFrameAncestors?.length) {
+		response.headers.delete('x-frame-options');
+		const policy = (response.headers.get('content-security-policy') ?? '')
+			.split(';').filter((directive) => !directive.trim().startsWith('frame-ancestors')).join(';');
+		response.headers.set('content-security-policy', policy + "; frame-ancestors " + event.locals.bookingFrameAncestors.join(' '));
+	}
 	const securityHeaders: Record<string, string> = {
+		...(event.url.pathname.startsWith('/embed/v1/') ? { 'cache-control': 'no-store' } : {}),
 		'strict-transport-security': 'max-age=31536000',
 		'x-content-type-options': 'nosniff',
-		'x-frame-options': 'DENY',
+		...(event.locals.bookingFrameAncestors?.length ? {} : { 'x-frame-options': 'DENY' }),
 		'referrer-policy': 'strict-origin-when-cross-origin',
 		'permissions-policy': 'camera=(), microphone=(), geolocation=()'
 	};

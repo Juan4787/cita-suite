@@ -31,6 +31,9 @@ import {
 } from './commercial-access';
 import { isLikelyPhoneE164, normalizePhoneE164 } from './phone';
 import { sanitizePublicImageUrl } from './public-image';
+import type { IntegratedBookingInput } from './booking-integrations';
+import type { BookingModality, BookingModalityWindow } from '@turnos-saas/shared/booking-integration';
+import { loadIntegratedAvailabilityRows } from './integrated-availability';
 
 export type PublicService = {
 	id: string;
@@ -70,6 +73,7 @@ export type PublicBookingBusiness = Pick<
 >;
 
 export type PublicBookingIssue =
+	| 'integration_unavailable'
 	| 'business_not_found'
 	| 'booking_disabled'
 	| 'commercial_unavailable'
@@ -275,7 +279,8 @@ const getPublicBusinessSubscription = async (
 
 export const getReservableServices = async (
 	supabase: SupabaseClient,
-	businessId: string
+	businessId: string,
+	scope?: { serviceIds: string[]; professionalIds: string[] }
 ): Promise<PublicService[]> => {
 	const [
 		{ data: services, error: servicesError },
@@ -321,6 +326,7 @@ export const getReservableServices = async (
 			.filter(
 				(professional: any) =>
 					hasVisibleProfessionalName(professional) &&
+					(!scope?.professionalIds.length || scope.professionalIds.includes(String(professional.id))) &&
 					scheduledProfessionalIds.has(String(professional.id))
 			)
 			.map((professional: any) => String(professional.id))
@@ -334,7 +340,8 @@ export const getReservableServices = async (
 	);
 
 	return (services ?? [])
-		.filter((service: any) => reservableServiceIds.has(String(service.id)))
+		.filter((service: any) => reservableServiceIds.has(String(service.id)) &&
+			(!scope?.serviceIds.length || scope.serviceIds.includes(String(service.id))))
 		.map((service: any) => ({
 			id: String(service.id),
 			name: String(service.name),
@@ -500,6 +507,7 @@ const loadPublicAvailabilitySnapshot = async (
 	supabase: SupabaseClient,
 	input: {
 		businessId: string;
+		modality?: BookingModality;
 		serviceId: string;
 		professionalIds: string[];
 		rangeStart: Date;
@@ -510,6 +518,7 @@ const loadPublicAvailabilitySnapshot = async (
 	if (professionalIds.length === 0) {
 		return { services: [], professionals: [], assignments: [], rules: [], exceptions: [], blocks: [] };
 	}
+	if (input.modality) return loadIntegratedAvailabilityRows(supabase, { ...input, professionalIds });
 
 	// Estas lecturas son independientes y se ejecutan en una sola ola, pero ya
 	// no descargan la agenda completa del consultorio: sólo el procedimiento y
@@ -649,6 +658,8 @@ const slotsFromPublicSnapshot = (
 	snapshot: PublicAvailabilitySnapshot,
 	input: {
 		serviceId: string;
+		modality?: BookingModality;
+		modalityWindows?: BookingModalityWindow[];
 		professionalId?: string | null;
 		professionalIds?: string[];
 		maxSlots?: number;
@@ -674,6 +685,8 @@ const slotsFromPublicSnapshot = (
 	);
 	const professionalIds = new Set(professionals.map((professional) => professional.id));
 	return calculateAvailabilitySlots({
+		modality: input.modality,
+		modalityWindows: input.modalityWindows,
 		business: business as Business,
 		service,
 		professionals,
@@ -696,11 +709,14 @@ export const loadPublicBookingState = async (
 	supabase: SupabaseClient,
 	input: {
 		slug: string;
+		modality?: BookingModality;
+		modalityWindows?: BookingModalityWindow[];
 		serviceId?: string | null;
 		professionalId?: string | null;
 		professionalIds?: string[] | null;
 		bookingMode?: PublicBookingMode | null;
 		date?: string | null;
+		scope?: { serviceIds: string[]; professionalIds: string[] };
 	}
 ): Promise<PublicBookingState> => {
 	const normalizedSlug = input.slug.trim().toLowerCase();
@@ -718,8 +734,8 @@ export const loadPublicBookingState = async (
 			getPublicBusinessSubscription(supabase, businessId)
 		);
 	const loadServices = (businessId: string) =>
-		cachedScan(`public-services:${businessId}`, STRUCTURE_SCAN_CACHE_TTL_MS, () =>
-			getReservableServices(supabase, businessId)
+		cachedScan(`public-services:${businessId}:${input.scope ? JSON.stringify(input.scope) : ''}`, STRUCTURE_SCAN_CACHE_TTL_MS, () =>
+			getReservableServices(supabase, businessId, input.scope)
 		);
 	const loadProfessionals = (businessId: string, serviceId: string) =>
 		cachedScan(
@@ -777,6 +793,10 @@ export const loadPublicBookingState = async (
 	if (!commerciallyUsable) {
 		return { business, services: [], professionals: [], slots: [], days: [], issue: 'commercial_unavailable' };
 	}
+	if (input.scope) {
+		if (input.scope.serviceIds.length) services = services.filter((service) => input.scope!.serviceIds.includes(service.id));
+		if (input.scope.professionalIds.length) professionals = professionals.filter((professional) => input.scope!.professionalIds.includes(professional.id));
+	}
 	if (services.length === 0) {
 		return { business, services: [], professionals: [], slots: [], days: [], issue: 'no_services' };
 	}
@@ -832,11 +852,12 @@ export const loadPublicBookingState = async (
 	);
 	const selectionCacheKey = selectedProfessionalIds.join(',');
 	const availabilityRows = await cachedScan(
-		`availability-rows:${business.id}:${selectedService.id}:${selectionCacheKey}:${scanFromDate}:${scanToDate}`,
+		`availability-rows:${business.id}:${selectedService.id}:${selectionCacheKey}:${scanFromDate}:${scanToDate}:${input.modality ?? ''}`,
 		SLOT_SCAN_CACHE_TTL_MS,
 		() =>
 			loadPublicAvailabilitySnapshot(supabase, {
 				businessId: business.id,
+				modality: input.modality,
 				serviceId: selectedService.id,
 				professionalIds: selectedProfessionalIds,
 				rangeStart,
@@ -850,6 +871,8 @@ export const loadPublicBookingState = async (
 	};
 	const calculatedSlots = uniqueSlots(
 		slotsFromPublicSnapshot(business, availabilitySnapshot, {
+			modality: input.modality,
+			modalityWindows: input.modalityWindows,
 			serviceId: selectedService.id,
 			professionalId: bookingMode === 'individual' ? selectedProfessionalIds[0] : null,
 			professionalIds: bookingMode === 'joint' ? selectedProfessionalIds : [],
@@ -985,10 +1008,24 @@ export const createPublicBooking = async (
 		userAgent?: string | null;
 		idempotencyKey: string;
 		now?: Date;
+		bookingIntegration?: IntegratedBookingInput;
+        bookingInformation?: import('./appointments').BookingPatientInformationInput;
 	}
 ) => {
 	const now = input.now ?? new Date();
-	const business = await getPublicBusinessBySlug(supabase, input.slug);
+	let business = await getPublicBusinessBySlug(supabase, input.slug);
+	let availabilityRevision: number | undefined;
+	if (input.bookingIntegration && business) {
+		// Read the business rules and revision together BEFORE reading schedule rows.
+		// The final RPC holds this row and refuses edits committed during calculation.
+		const { data, error } = await supabase.from('businesses')
+			.select(PUBLIC_BUSINESS_SELECT + ', booking_availability_revision').eq('id', business.id)
+			.single<PublicBookingBusiness & { booking_availability_revision: number }>();
+		if (error) throw error;
+		business = data as PublicBookingBusiness;
+		availabilityRevision = Number(data.booking_availability_revision);
+		if (!Number.isSafeInteger(availabilityRevision) || availabilityRevision < 1) throw new Error('BOOKING_AVAILABILITY_CHANGED');
+	}
 	const requestedProfessionalIds = [
 		...new Set(
 			[
@@ -1041,7 +1078,11 @@ export const createPublicBooking = async (
 				startsAt: new Date(input.slotStartsAt),
 				internalNote: input.note?.trim() || null,
 				source: 'public_booking' as const,
-				idempotencyKey: input.idempotencyKey
+				idempotencyKey: input.idempotencyKey,
+                bookingInformation: input.bookingInformation,
+				bookingIntegration: input.bookingIntegration ? {
+					...input.bookingIntegration, expectedAvailabilityRevision: availabilityRevision
+				} : undefined
 			};
 			const replay = await findAppointmentCreationReplay(supabase, commonInput);
 			if (replay) return { business, appointment: replay };
@@ -1063,6 +1104,8 @@ export const createPublicBooking = async (
 
 		const slotDate = localDateParts(new Date(input.slotStartsAt), business.timezone);
 		const slots = await getAvailabilitySlots(supabase, {
+			modality: input.bookingIntegration?.modality,
+			modalityWindows: input.bookingIntegration?.modalityWindows,
 			business: business as Business,
 			serviceId: input.serviceId,
 			professionalId: bookingMode === 'individual' ? professionalId : null,

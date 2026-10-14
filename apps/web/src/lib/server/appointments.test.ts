@@ -228,6 +228,16 @@ const createAtomicAppointmentMock = (options: { replayData?: Record<string, unkn
 };
 
 describe('patient identity during appointment creation', () => {
+    it('commits required declarations with the public reservation through the information wrapper', async () => {
+        const {supabase, rpcCalls} = createAtomicAppointmentMock();
+        await createManualAppointment(supabase, {
+            businessId: 'business-1', patient: {mode:'public', name:'Ana Prueba', phone:'3425048209'},
+            serviceId:'service-1', professionalId:'professional-1', startsAt:new Date('2026-07-30T13:00:00Z'),
+            source:'public_booking', idempotencyKey:requestKey, internalNote:'Comentario clínico',
+            bookingInformation:{schemaHash:'a'.repeat(64),answers:{profile_insurance:'Particular'}}
+        });
+        expect(rpcCalls[0]).toMatchObject({name:'create_public_booking_with_information',payload:{p_replay_only:false,p_input:{business_id:'business-1',schema_hash:'a'.repeat(64),answers:{profile_insurance:'Particular'},comment:'Comentario clínico',integration_id:null,professional_ids:['professional-1']}}});
+    });
 	it('consulta la idempotencia sin crear nada y recupera sólo una coincidencia previa', async () => {
 		const absent = createAtomicAppointmentMock({ replayData: null });
 		const input = {

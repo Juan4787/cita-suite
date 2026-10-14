@@ -1,0 +1,18 @@
+import { json, error } from '@sveltejs/kit';
+import { resolveBookingIntegrationRequest } from '$lib/server/booking-integration-request';
+import { canUsePublicBusiness } from '$lib/server/public-booking';
+import type { RequestHandler } from './$types';
+
+export const GET: RequestHandler = async (event) => {
+  try {
+  const { supabase, integration } = await resolveBookingIntegrationRequest(event);
+  const origin = event.request.headers.get('origin');
+  if (origin && !integration.allowedOrigins.includes(origin)) error(403, 'Este sitio no está habilitado para consultar las prestaciones.');
+  if (!integration.isActive || !(await canUsePublicBusiness(supabase, integration.businessId))) error(404, 'Las reservas todavía no están disponibles.');
+  const { data, error: cause } = await supabase.rpc('get_public_booking_catalogue', { p_integration_id: integration.id });
+  if (cause) error(503, 'No pudimos cargar las prestaciones. Volvé a intentar en unos minutos.');
+  return json(data, {
+    headers: { ...(origin ? { 'access-control-allow-origin': origin } : {}), vary: 'Origin', 'cache-control': 'public, max-age=60, s-maxage=60', 'x-content-type-options': 'nosniff' }
+  });
+  } catch (cause) { event.setHeaders({ 'cache-control': 'no-store' }); throw cause; }
+};

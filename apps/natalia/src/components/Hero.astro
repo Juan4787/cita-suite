@@ -1,0 +1,48 @@
+---
+import BookingLink from "./BookingLink.astro";
+---
+<section class="hero" id="inicio">
+        <div class="container hero-grid">
+          <div class="hero-copy">
+            <h1 class="">
+              <span class="line">El cuerpo</span>
+              <span class="line">no funciona</span>
+              <span class="line"><em>por partes.</em></span>
+            </h1>
+
+            <p class="lead">
+              Soy Natalia Frutos, médica de familia. Si hace tiempo sentís que tu cuerpo te pasa factura
+              (en el sueño, la energía, la digestión o el estrés), no lo tratemos con respuestas aisladas.
+              Busquemos la causa real para recuperar tu equilibrio de forma sostenible.
+            </p>
+
+            <div class="hero-actions">
+              <BookingLink class="btn btn-primary btn-lg" />
+              <a href="#como-trabajo" class="btn btn-secondary btn-lg hero-btn-method">
+                Conocer mi método
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 13l7 7 7-7"/></svg>
+              </a>
+            </div>
+
+            <dl class="hero-facts">
+              <div><dt>Tu consulta</dt><dd>elegí una prestación y un horario</dd></div>
+              <div><dt>Datos previos</dt><dd>completá lo que pide la profesional</dd></div>
+              <div><dt>Tu reserva</dt><dd>consultá sus detalles desde tu enlace</dd></div>
+            </dl>
+          </div>
+
+          <figure class="hero-figure">
+            <div class="arch hero-arch">
+              <img  src="/images/natalia-640.webp" alt="Dra. Natalia Soledad Frutos · Médica de familia con enfoque integrativo" width="640" height="666" srcset="/images/natalia-400.webp 400w, /images/natalia-640.webp 640w, /images/natalia-960.webp 960w" sizes="(max-width: 640px) 90vw, (max-width: 1000px) 45vw, 540px" fetchpriority="high" loading="eager" decoding="async">
+              <div class="hero-doctor-badge">
+                <span class="badge-dr-name">Dra. Natalia Frutos</span>
+                <span class="badge-dr-sub">Médica de Familia</span>
+              </div>
+            </div>
+            <figcaption>
+              <em>Elegí entre las opciones de atención habilitadas en el turnero</em>
+              <span>Consultorio y Telemedicina</span>
+            </figcaption>
+          </figure>
+        </div>
+      </section>

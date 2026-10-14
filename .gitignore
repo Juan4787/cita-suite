@@ -34,3 +34,7 @@ supabase/.branches/
 # Vite
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Natalia static artifacts
+apps/natalia/dist/
+apps/natalia/.astro/

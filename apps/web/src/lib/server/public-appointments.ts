@@ -1,4 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { bookingContextsAvailable } from './booking-integration-flags';
+import { loadAppointmentBookingContext, type AppointmentBookingContext } from './booking-integrations';
 import { isActiveAppointmentStatus } from '$lib/utils/appointment-visibility';
 import { writeAuditLog } from './audit';
 import { resolveMapsUrl } from './location';
@@ -18,7 +20,17 @@ import { sanitizePublicImageUrl } from './public-image';
 
 export type PublicAppointmentAction = 'confirm' | 'cancel' | 'reschedule';
 
+type PublicAppointmentDatabaseRow = {
+	id: string; status: string; starts_at: string; ends_at: string; confirmation_token: string;
+	service_name_snapshot: string; professional_name_snapshot: string;
+	calendar_action_status?: string; calendar_action_at?: string | null;
+	calendar_action_count?: number; calendar_sequence?: number; calendar_update_required_at?: string | null;
+	businesses: Record<string, any>; patients?: { full_name?: string | null };
+	appointment_professionals?: unknown[];
+};
+
 export type PublicAppointmentView = {
+	booking_context?: AppointmentBookingContext | null;
 	id: string;
 	token: string;
 	status: AppointmentStatus;
@@ -124,15 +136,19 @@ const publicActionAttempt: Record<
 export const loadPublicAppointmentByToken = async (
 	supabase: SupabaseClient,
 	token: string,
-	now = new Date()
+	now = new Date(),
+	expectedIntegrationId?: string
 ): Promise<PublicAppointmentView | null> => {
-	const { data, error } = await supabase
+	let query = supabase
 		.from('appointments')
-		.select(appointmentSelect)
-		.eq('confirmation_token', token)
-		.maybeSingle();
+		.select(appointmentSelect + (expectedIntegrationId ? ', appointment_booking_contexts!inner(integration_id)' : ''))
+		.eq('confirmation_token', token);
+	if (expectedIntegrationId) query = query.eq('appointment_booking_contexts.integration_id', expectedIntegrationId);
+	const { data, error } = await query.maybeSingle<PublicAppointmentDatabaseRow>();
 	if (error) throw error;
 	if (!data) return null;
+	const bookingContext = bookingContextsAvailable()
+		? await loadAppointmentBookingContext(supabase, String(data.id)) : null;
 
 	const status = String(data.status);
 	if (!isAppointmentStatus(status)) return null;
@@ -152,6 +168,7 @@ export const loadPublicAppointmentByToken = async (
 	);
 
 	return {
+		booking_context: bookingContext,
 		id: String(data.id),
 		token: String(data.confirmation_token),
 		status,
@@ -171,9 +188,9 @@ export const loadPublicAppointmentByToken = async (
 			name: String(business.name),
 			slug: String(business.slug),
 			phone: business.phone ?? null,
-			address: business.address ?? null,
-			address_instructions: business.address_instructions ?? null,
-			maps_link: resolveMapsUrl({
+			address: bookingContext?.modality === 'video' ? null : business.address ?? null,
+			address_instructions: bookingContext?.modality === 'video' ? bookingContext.videoInstructions : business.address_instructions ?? null,
+			maps_link: bookingContext?.modality === 'video' ? null : resolveMapsUrl({
 				address: business.address ?? null,
 				maps_url: business.maps_url ?? null
 			}),

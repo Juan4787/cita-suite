@@ -1,3 +1,4 @@
+import { bookingInformationEnabled } from '$lib/server/booking-information';
 import { env } from '$env/dynamic/private';
 import { env as publicEnv } from '$env/dynamic/public';
 import { getPublicSiteUrl } from '$lib/server/messaging';
@@ -109,6 +110,7 @@ export const load: PageServerLoad = async ({ params, fetch, url, request, setHea
 		const appointment = demoPublicAppointment(params.token);
 		return {
 			appointment,
+			bookingInformationEnabled: bookingInformationEnabled(),
 			message: getPublicAppointmentMessage(appointment),
 			created: url.searchParams.has('creado'),
 			suggestedAction: url.searchParams.get('accion') ?? '',
@@ -156,6 +158,7 @@ export const load: PageServerLoad = async ({ params, fetch, url, request, setHea
 		}
 		return {
 			appointment,
+			bookingInformationEnabled: bookingInformationEnabled(),
 			message: getPublicAppointmentMessage(appointment),
 			created: url.searchParams.has('creado'),
 			suggestedAction: url.searchParams.get('accion') ?? '',
@@ -173,6 +176,7 @@ export const load: PageServerLoad = async ({ params, fetch, url, request, setHea
 		console.error('Error cargando turno publico', error);
 		return {
 			appointment: null,
+			bookingInformationEnabled: false,
 			message: 'El enlace no es válido o no está disponible.',
 			created: false,
 			suggestedAction: '',

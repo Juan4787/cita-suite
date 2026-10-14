@@ -1,4 +1,7 @@
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+const bookingFlags = vi.hoisted(() => ({ BOOKING_INTEGRATIONS_ENABLED: 'false', BOOKING_CONTEXTS_AVAILABLE: 'false' }));
+vi.mock('$env/dynamic/private', () => ({ env: bookingFlags }));
+beforeEach(() => { bookingFlags.BOOKING_INTEGRATIONS_ENABLED = 'false'; bookingFlags.BOOKING_CONTEXTS_AVAILABLE = 'false'; });
 import {
 	getPublicAppointmentMessage,
 	getPublicTokenErrorMessage,
@@ -81,6 +84,23 @@ describe('getPublicAppointmentMessage', () => {
 });
 
 describe('loadPublicAppointmentByToken', () => {
+	it('keeps a historical virtual booking correct when new integration bookings are switched off', async () => {
+		bookingFlags.BOOKING_CONTEXTS_AVAILABLE = 'true';
+		const view = appointment({});
+		const rows: Record<string, unknown> = {
+			appointments: { ...view, confirmation_token: view.token, businesses: { ...view.business, created_at: '2026-01-01T00:00:00Z', public_booking_enabled: true, address: 'Dirección física', address_instructions: 'Timbre físico', maps_url: 'https://maps.example.test' }, patients: { full_name: 'Ana Prueba' }, appointment_professionals: [{ professional_id: 'professional-1' }] },
+			appointment_booking_contexts: { theme_snapshot: 'natalia', modality: 'video', video_instructions_snapshot: 'El consultorio coordina el acceso virtual.' },
+			business_subscriptions: { business_id: view.business.id, commercial_access_enabled: true, is_permanent: true, archived_at: null }
+		};
+		const supabase = { from: (table: string) => { const builder: any = { select: () => builder, eq: () => builder, maybeSingle: async () => ({ data: rows[table], error: null }) }; return builder; } };
+		const result = await loadPublicAppointmentByToken(supabase as never, view.token, new Date('2026-05-01T00:00:00Z'));
+		expect(result?.booking_context?.modality).toBe('video');
+		expect(result?.business.address).toBeNull();
+		expect(result?.business.maps_link).toBeNull();
+		expect(result?.business.address_instructions).toBe('El consultorio coordina el acceso virtual.');
+		expect(result?.can_cancel).toBe(true);
+	});
+
 	it('identifica un equipo por sus asignaciones sin duplicar el turno público', async () => {
 		const query = (data: unknown) => {
 			const builder: Record<string, unknown> = {};

@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import BookingAppearance from '$lib/booking/BookingAppearance.svelte';
+	import { BOOKING_MODALITY_LABELS, type BookingModality } from '@turnos-saas/shared/booking-integration';
 	import { onMount } from 'svelte';
 	import { formatDateTime, formatInTimeZone } from '$lib/utils/format';
 	import { isActiveAppointmentStatus } from '$lib/utils/appointment-visibility';
@@ -38,11 +40,13 @@
 				reminderLabel: string;
 			};
 			calendarMessage: string | null;
+			bookingInformationEnabled?: boolean;
 		};
 		form?: { success?: boolean; message?: string };
 	}>();
 
 	const appointment = $derived(data.appointment);
+	const isVirtual = $derived(appointment?.booking_context?.modality === 'video');
 
 	// El server clasifica por User-Agent; acá solo se corrige el iPad que se
 	// presenta como Mac (invisible para el UA, detectable por touch).
@@ -1041,7 +1045,9 @@
 		if (device === 'ios') {
 			return 'Agregá el turno al calendario del iPhone para recibir el recordatorio.';
 		}
-		return 'Agregá el turno a tu calendario para recibir avisos antes y tener la dirección a mano.';
+		return isVirtual
+			? 'Agregá el turno a tu calendario para recibir avisos antes y tener los datos de acceso a mano.'
+			: 'Agregá el turno a tu calendario para recibir avisos antes y tener la dirección a mano.';
 	});
 	const calendarSummaryClass = $derived.by(() => {
 		if (managedGoogleCalendar) return 'ux-btn-secondary';
@@ -1383,11 +1389,11 @@
 	<section class="ux-card">
 		{#if data.isSoon}
 			<p class="ux-badge ux-badge-warning">Tu turno es pronto</p>
-			<h2 class="ux-section-title mt-3">Revisá la dirección ahora</h2>
+			<h2 class="ux-section-title mt-3">{isVirtual ? 'Revisá el acceso a tu consulta' : 'Revisá la dirección ahora'}</h2>
 		{:else}
-			<h2 class="ux-section-title">Dónde es</h2>
+			<h2 class="ux-section-title">{isVirtual ? 'Tu consulta virtual' : 'Dónde es'}</h2>
 		{/if}
-		<p class="mt-4 text-lg font-bold text-white">📍 {appointment.business.address}</p>
+		<p class="mt-4 text-lg font-bold text-white">{isVirtual ? 'Modalidad: Virtual' : '📍 ' + appointment.business.address}</p>
 		{#if appointment.business.address_instructions}
 			<p class="mt-2 text-sm text-white/70">{appointment.business.address_instructions}</p>
 		{/if}
@@ -1449,7 +1455,7 @@
 						{/each}
 					</div>
 					<p class="mt-4 text-xs text-white/45">
-						El evento incluye avisos sugeridos 24 horas y 2 horas antes, la dirección y este enlace.
+						El evento incluye avisos sugeridos 24 horas y 2 horas antes, {isVirtual ? 'las indicaciones de acceso' : 'la dirección'} y este enlace.
 						Algunos calendarios usan tus recordatorios habituales.
 					</p>
 				</div>
@@ -1473,6 +1479,7 @@
 	</section>
 {/snippet}
 
+<BookingAppearance theme={appointment?.booking_context?.theme ?? 'cita-suite'}>
 <main class="min-h-screen bg-[#06111f] px-4 py-6 text-white sm:py-10">
 	<div class="mx-auto flex w-full max-w-3xl flex-col gap-5">
 		<section class="ux-hero">
@@ -1495,6 +1502,9 @@
 		</section>
 
 		{#if appointment}
+			{#if data.bookingInformationEnabled && isActive}
+				<section class="ux-soft-card p-5"><h2 class="ux-section-title">Información para tu consulta</h2><p class="mt-2 text-white/65">Podés ampliar la información para la profesional. Los campos configurados se incorporan a tu perfil. Tu reserva se conserva.</p><a class="ux-btn-primary mt-4" href={`/turno/${appointment.token}/informacion`}>Ver y ampliar mis datos</a></section>
+			{/if}
 			{#if googleCalendarIsUpdating && isActive}
 				<div class="ux-alert ux-alert-success">
 					La nueva fecha y hora se están actualizando automáticamente en tu cuenta Google.
@@ -1505,7 +1515,7 @@
 				</div>
 			{/if}
 
-			{#if data.isSoon && appointment.business.address}
+			{#if data.isSoon && (appointment.business.address || isVirtual)}
 				{@render locationCard()}
 			{/if}
 
@@ -1523,6 +1533,12 @@
 				</div>
 
 				<div class="mt-6 grid gap-4 sm:grid-cols-2">
+					{#if appointment.booking_context}
+						<div class="ux-soft-card p-5 sm:col-span-2">
+							<p class="text-sm font-bold text-white/55">Modalidad</p>
+							<p class="mt-2 text-lg font-bold text-white">{BOOKING_MODALITY_LABELS[appointment.booking_context.modality as BookingModality]}</p>
+						</div>
+					{/if}
 					<div class="ux-soft-card p-5">
 						<p class="text-sm font-bold text-white/55">Servicio</p>
 						<p class="mt-2 text-lg font-bold text-white">{appointment.service_name_snapshot}</p>
@@ -1552,7 +1568,7 @@
 				</a>
 			</section>
 
-			{#if !data.isSoon && appointment.business.address}
+			{#if !data.isSoon && (appointment.business.address || isVirtual)}
 				{@render locationCard()}
 			{/if}
 
@@ -1621,3 +1637,4 @@
 		{/if}
 	</div>
 </main>
+</BookingAppearance>

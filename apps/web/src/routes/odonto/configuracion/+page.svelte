@@ -26,6 +26,7 @@
 	</div>
 
 	<div class="grid gap-4 lg:grid-cols-2">
+		<a href="/odonto/configuracion/reserva-online" class="ux-choice p-6"><h2 class="ux-section-title">Reserva online</h2><p class="mt-2 text-sm text-white/55">Enlaces individuales, prestaciones y datos solicitados por profesional.</p></a>
 		<a href="/odonto/configuracion/negocio" class="ux-choice p-6">
 			<span class="ux-badge">Consultorio</span>
 			<h2 class="mt-4 text-2xl font-bold text-white">Datos y reserva online</h2>
