@@ -263,6 +263,14 @@ Etiquetas visibles y campos amplios, con alto mínimo de `patient-input`; respue
 
 Las preguntas mantienen su configuración, ayuda, obligatoriedad y nombres de envío. La fecha de nacimiento ofrece día, mes y año después del montaje y envía un único valor ISO con el nombre original. Antes del montaje, o sin JavaScript, ofrece un campo de fecha nativo con ese mismo nombre y límites; conserva una fecha ingresada antes de hidratar. Los selectores mantienen la mejora progresiva compartida y el menú adopta el tema Natalia cuando corresponde.
 
+### Website installation
+
+La instalación es un patrón compuesto de los controles administrativos existentes. Después de guardar, el bloque “Paso 2” prioriza elegir entre agenda dentro de la web y botón para reservar. Conserva radios visibles, acción principal de copia, confirmación textual y acceso manual al código. El editor guardado se pliega al continuar; las opciones secundarias siguen disponibles.
+
+**The Instalación explícita Rule.** Guardar la configuración autoriza el dominio; colocar el código instala la agenda. “Autorizado” describe el permiso configurado y no acredita que la web tenga un turnero funcionando.
+
+El bloque usa las tarjetas, botones, campos, bordes y foco existentes. Las elecciones pasan de dos columnas a una hasta (640px), y la acción de copia ocupa todo el ancho en móvil. Los enlaces de prueba abren los dominios autorizados y permiten una comprobación manual; no generan una marca automática de conexión. El contrato declarativo y los estados concretos se registran en [.impeccable/surfaces/conectar-sitio.md](.impeccable/surfaces/conectar-sitio.md).
+
 ## Do's and Don'ts
 
 ### Do:

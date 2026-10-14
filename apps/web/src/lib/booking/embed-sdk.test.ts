@@ -78,4 +78,17 @@ describe('framework-independent booking host', () => {
     expect(() => hostApi().mount({ integrationKey: key, baseURL })).toThrow();
     expect(document.querySelector('iframe')).toBeNull();
   });
+  it('installs copied markup once, preserves an invalid block fallback and never removes the manual API', () => {
+    document.body.insertAdjacentHTML('beforeend', `<div data-cita-suite-booking="bad-key"><a data-cita-suite-fallback href="/">Fallback</a></div><div data-cita-suite-booking="${key}"><a data-cita-suite-fallback href="${origin}/embed/v1/${key}">Reservar turno</a></div>`);
+    const installed=hostApi().install();
+    expect(installed).toHaveLength(1);
+    expect(document.querySelectorAll('iframe')).toHaveLength(1);
+    expect(new URL(frame().src).pathname).toBe('/embed/v1/'+key);
+    expect((document.querySelector('[data-cita-suite-booking="bad-key"] a') as HTMLAnchorElement).hidden).toBe(false);
+    expect((document.querySelector(`[data-cita-suite-booking="${key}"] a`) as HTMLAnchorElement).hidden).toBe(true);
+    expect(hostApi().install()[0]).toBe(installed[0]);
+    expect(document.querySelectorAll('iframe')).toHaveLength(1);
+    expect(typeof hostApi().mount).toBe('function');
+    installed.forEach((widget:any)=>widget.destroy());
+  });
 });

@@ -1,0 +1,12 @@
+19:03:10   ├─ /notas/1/index.html (+3ms)
+19:03:10   ├─ /notas/2/index.html (+4ms)
+19:03:10   ├─ /notas/3/index.html (+3ms)
+19:03:10   ├─ /turnos/index.html (+2ms)
+19:03:10   ├─ /index.html (+6ms)
+19:03:10 ✓ Completed in 165ms.
+
+19:03:10 [build] ✓ Completed in 1.30s.
+19:03:10 [build] 14 page(s) built in 1.50s
+19:03:10 [build] Complete!
+{"htmlBytes":67136,"javascriptBytes":7261,"cssBytes":46354,"fontBytes":157308,"initialWidget":false}
+Public fidelity contract passed: 10 sections, 4 consultations, 3 courses, 3 complete notes, 3 testimonials, 10 training entries, 6 questions, navigation, footer and all public destinations.

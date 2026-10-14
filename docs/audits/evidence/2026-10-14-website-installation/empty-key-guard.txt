@@ -1,0 +1,1 @@
+PASS: an isolated copied production artifact with an empty key is rejected before publication.

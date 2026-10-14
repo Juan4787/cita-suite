@@ -1,0 +1,4 @@
+> natalia@0.1.0 test:browser /home/usuario/CascadeProjects/Base de Datos Sabrina/apps/natalia
+> node scripts/test-public-browser.mjs
+
+{"fixtureOnly":true,"actualSDK":true,"sequential":true,"results":[{"scenario":"configured","passed":true,"databaseWrites":0},{"scenario":"contact-before-catalogue","passed":true,"databaseWrites":0},{"scenario":"empty-services","passed":true,"databaseWrites":0},{"scenario":"absent-contact","passed":true,"databaseWrites":0},{"scenario":"invalid-phone","passed":true,"databaseWrites":0},{"scenario":"failed-sdk","passed":true,"databaseWrites":0},{"scenario":"inline-page","passed":true,"databaseWrites":0},{"scenario":"inline-failed-sdk","passed":true,"databaseWrites":0}]}

@@ -224,11 +224,11 @@
         ><strong class="block">Reservas desde tu sitio web</strong><span
           class="mt-1 block text-sm text-white/75"
           >{data.connectedSites
-            ? `${data.connectedSites} sitio${data.connectedSites === 1 ? "" : "s"} conectado${data.connectedSites === 1 ? "" : "s"}`
-            : "Conectá una web si querés mostrar tu agenda allí."}</span
+            ? `${data.connectedSites} sitio${data.connectedSites === 1 ? "" : "s"} configurado${data.connectedSites === 1 ? "" : "s"}`
+            : "Configurá e instalá la agenda en tu web."}</span
         ></span
       ><span class="text-sm font-semibold"
-        >{data.connectedSites ? "Administrar sitios" : "Conectar sitio"}</span
+        >{data.connectedSites ? "Administrar sitios" : "Agregar sitio"}</span
       ></a
     >{/if}
 </section>

@@ -5,7 +5,7 @@
   import { page } from "$app/stores";
   import { onMount, untrack } from "svelte";
   import BackLink from "$lib/components/BackLink.svelte";
-  import BookingShareLink from "$lib/booking/BookingShareLink.svelte";
+  import BookingInstallation from "$lib/booking/BookingInstallation.svelte";
   import { revealInvalidFields } from "$lib/client/reveal-invalid-fields";
   import type {
     BookingIntakeField,
@@ -16,6 +16,7 @@
     data.profiles.find((item) => item.id === data.selectedId),
   );
   const editing = $derived(!!profile || data.isNew);
+  const installing = $derived(!!profile && $page.url.searchParams.get('instalar') === '1');
   function initial() {
     const row = profile;
     const publicProfessionals = data.professionals
@@ -139,7 +140,7 @@
   }
 </script>
 
-<svelte:head><title>Sitios web conectados · Cita Suite</title></svelte:head>
+<svelte:head><title>Sitios web · Cita Suite</title></svelte:head>
 <svelte:window
   onbeforeunload={(event) => {
     if (dirty) {
@@ -161,7 +162,7 @@
         <p class="ux-subtitle">Mostrá tu agenda en una web externa.</p>
       </div>
       {#if !editing && data.enabled}<a class="ux-btn-primary" href="?nuevo=1"
-          >Conectar sitio web</a
+          >Agregar sitio web</a
         >{/if}
     </div>
   </header>
@@ -170,7 +171,7 @@
       role="status"
       class="ux-alert ux-alert-success"
     >
-      Sitio web guardado.
+      Configuración guardada. Completá la instalación en tu web.
     </p>{/if}
   {#if !data.enabled}<p class="ux-empty">
       La conexión con sitios externos todavía no está habilitada.
@@ -189,25 +190,20 @@
             </div>
             <span
               class={item.is_active ? "ux-badge ux-badge-success" : "ux-badge"}
-              >{item.is_active ? "Activo" : "Pausado"}</span
-            ><span class="text-sm font-semibold">Editar</span></a
+              >{item.is_active ? "Autorizado" : "Pausado"}</span
+            ><span class="text-sm font-semibold">Configurar e instalar</span></a
           >{/each}
       </div>
     {:else}<div class="ux-card">
-        <h2 class="ux-section-title">Todavía no conectaste un sitio</h2>
+        <h2 class="ux-section-title">Agregá el sitio donde querés mostrar la agenda</h2>
         <p class="mt-2 text-white/75">
           Podés seguir compartiendo el enlace de tu agenda.
         </p>
       </div>{/if}
   {:else}
-    {#if profile}<section aria-label="Vista del turnero">
-        <h2 class="ux-section-title">Turnero de {profile.name}</h2>
-        <div class="mt-4">
-          <BookingShareLink
-            url={`${data.baseURL}/embed/v1/${profile.public_key}`}
-          />
-        </div>
-      </section>{/if}
+    {#if profile}<BookingInstallation baseURL={data.baseURL} {profile}/>{/if}
+    <details class="connection-editor" open={!installing}>
+      <summary>{profile ? 'Editar configuración de ' + profile.name : 'Paso 1 · Configurar el sitio'}</summary>
     <form
       method="POST"
       action="?/save"
@@ -255,7 +251,7 @@
         />{/each}
       <fieldset disabled={!ready || saving} class="space-y-7">
         <h2 class="ux-section-title">
-          {profile ? "Editar sitio" : "Conectar un sitio"}
+          {profile ? "Configuración del sitio" : "Elegir la agenda de tu web"}
         </h2>
         <label class="block"
           ><span class="ux-label">Nombre del sitio</span><input
@@ -374,6 +370,8 @@
                 class="flex min-h-11 items-center gap-3"
                 ><input
                   type="checkbox"
+                  name="limit_services"
+                  value="true"
                   bind:checked={draft.limitServices}
                 />Mostrar sólo algunos servicios</label
               >{#if draft.limitServices}<div class="mt-2 space-y-2">
@@ -533,11 +531,11 @@
             name="active"
             value="true"
             bind:checked={draft.active}
-          />Recibir reservas desde este sitio</label
+          />Permitir reservas desde este sitio</label
         >
         <div class="connection-footer">
           <button class="ux-btn-primary" type="submit"
-            >{saving ? "Guardando…" : "Guardar sitio web"}</button
+            >{saving ? "Guardando…" : "Guardar y continuar"}</button
           ><a
             class="ux-btn-secondary"
             href="/odonto/configuracion/reserva-online/webs">Cancelar</a
@@ -552,6 +550,7 @@
         </p></noscript
       >
     </form>
+    </details>
   {/if}
 </section>
 
@@ -560,6 +559,8 @@
     max-width: 64rem;
     margin-inline: auto;
   }
+  .connection-editor > summary { cursor: pointer; min-height: 2.75rem; font-weight: 600; padding-block: .625rem; overflow-wrap: anywhere; }
+  .connection-editor > form { margin-top: 1rem; }
   .connection-heading,
   .connected-site {
     display: flex;

@@ -1,0 +1,7 @@
+> web@0.0.1 check /home/usuario/CascadeProjects/Base de Datos Sabrina/apps/web
+> svelte-kit sync && svelte-check --tsconfig ./tsconfig.json
+
+Loading svelte-check in workspace: /home/usuario/CascadeProjects/Base de Datos Sabrina/apps/web
+Getting Svelte diagnostics...
+
+svelte-check found 0 errors and 0 warnings

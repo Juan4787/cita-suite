@@ -1,8 +1,10 @@
 /* Cita Suite booking host contract v1. No patient data or booking rules live here. */
 (function () {
     'use strict';
-    if (window.CitaSuiteBooking && window.CitaSuiteBooking.version === 1)
+    if (window.CitaSuiteBooking && window.CitaSuiteBooking.version === 1) {
+        if (typeof window.CitaSuiteBooking.install === 'function') window.CitaSuiteBooking.install();
         return;
+    }
     var script = document.currentScript;
     var defaultOrigin = script && script.src ? new URL(script.src).origin : window.location.origin;
     var mounted = new WeakMap();
@@ -250,5 +252,23 @@
             load();
         return api;
     }
-    window.CitaSuiteBooking = Object.freeze({ version: 1, mount: mount });
+    // Declarative installation keeps the existing manual mount API compatible.
+    // A real link remains usable when the script is blocked or fails to load.
+    function install() {
+        var installations = [];
+        document.querySelectorAll('[data-cita-suite-booking]').forEach(function (container) {
+            if (mounted.has(container)) { installations.push(mounted.get(container)); return; }
+            try {
+                installations.push(mount({ integrationKey: container.getAttribute('data-cita-suite-booking'), container: container, mode: 'inline' }));
+                var link = container.querySelector('[data-cita-suite-fallback]');
+                if (link) link.hidden = true;
+            } catch (_) {
+                // An invalid block must not disable other blocks or its plain link.
+            }
+        });
+        return installations;
+    }
+    window.CitaSuiteBooking = Object.freeze({ version: 1, mount: mount, install: install });
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install, { once: true });
+    else install();
 }());

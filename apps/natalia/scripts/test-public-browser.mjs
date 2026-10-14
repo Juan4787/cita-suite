@@ -58,10 +58,11 @@ const server = createServer((request, response) => {
       body
         .toString()
         .replace(
-          /data-booking-key(?:="")?(?=\s|>)/,
+          /data-booking-key(?:="[^"]*")?(?=\s|>)/,
           `data-booking-key="${key}"`,
         )
-        .replaceAll('href="/turnos"', `href="${origin}/embed/v1/${key}"`),
+        .replaceAll('href="/turnos"', `href="${origin}/embed/v1/${key}"`)
+        .replace(/href="https:\/\/app\.cita-suite\.workers\.dev\/embed\/v1\/[a-f0-9]{32}"/g, `href="${origin}/embed/v1/${key}"`),
     );
   response
     .writeHead(200, {
@@ -82,6 +83,8 @@ try {
     "absent-contact",
     "invalid-phone",
     "failed-sdk",
+    "inline-page",
+    "inline-failed-sdk",
   ]) {
     const context = await browser.newContext({
       viewport: { width: 390, height: 844 },
@@ -98,7 +101,7 @@ try {
       if (url.pathname === "/booking/embed-v1.js") {
         sdkLoads++;
         await route.fulfill(
-          scenario === "failed-sdk"
+          ["failed-sdk", "inline-failed-sdk"].includes(scenario)
             ? { status: 503, body: "Unavailable" }
             : {
                 contentType: "text/javascript",
@@ -164,15 +167,30 @@ try {
     page.on("pageerror", (error) => errors.push(error.message));
     await page.goto(
       local +
-        (["configured", "contact-before-catalogue", "failed-sdk"].includes(
+        (scenario.startsWith('inline-') ? '/turnos/' : ["configured", "contact-before-catalogue", "failed-sdk"].includes(
           scenario,
         )
           ? "/"
           : "/contacto/"),
     );
-    assert.equal(sdkLoads, 0, "SDK must wait for booking intent.");
-    assert.equal(await page.locator("iframe").count(), 0);
-    if (scenario === "configured") {
+    if (!scenario.startsWith('inline-')) {
+      assert.equal(sdkLoads, 0, "SDK must wait for booking intent.");
+      assert.equal(await page.locator("iframe").count(), 0);
+    }
+    if (scenario === 'inline-page') {
+      await page.locator('#public-booking iframe:visible').waitFor();
+      assert.equal(sdkLoads, 1);
+      assert.equal(await page.locator('#public-booking > section').count(), 1);
+      assert.equal(await page.locator('dialog.cita-booking-host').count(), 0);
+      assert(await page.frameLocator('#public-booking iframe').getByRole('heading', {name:'Agenda de prueba',exact:true}).isVisible());
+      assert(await page.getByRole('link',{name:'Abrir la agenda en otra página',exact:true}).isVisible());
+    } else if (scenario === 'inline-failed-sdk') {
+      await page.getByText('No pudimos cargar la agenda. Podés abrirla en otra página.',{exact:true}).waitFor();
+      assert.equal(await page.locator('iframe').count(),0);
+      await page.getByRole('link',{name:'Abrir la agenda en otra página',exact:true}).click();
+      await page.waitForURL(origin+'/embed/v1/'+key);
+      assert(await page.getByText('Agenda de prueba').isVisible());
+    } else if (scenario === "configured") {
       await page.locator("#areas").scrollIntoViewIfNeeded();
       await page
         .locator("#public-catalogue .service-commercial-card")

@@ -1,0 +1,11 @@
+> web@0.0.1 test /home/usuario/CascadeProjects/Base de Datos Sabrina/apps/web
+> vitest run --passWithNoTests src/lib/booking/embed-sdk.test.ts src/lib/booking/booking-installation.test.ts src/lib/server/booking-integrations.test.ts src/lib/server/booking-integration-request.test.ts --maxWorkers=1 --no-file-parallelism
+
+
+ RUN  v4.1.6 /home/usuario/CascadeProjects/Base de Datos Sabrina/apps/web
+
+
+ Test Files  4 passed (4)
+      Tests  65 passed (65)
+   Start at  18:37:54
+   Duration  3.97s (transform 634ms, setup 0ms, import 1.03s, tests 731ms, environment 1.22s)

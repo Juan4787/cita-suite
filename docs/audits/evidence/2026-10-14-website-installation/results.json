@@ -1,0 +1,19 @@
+{
+  "scope": "Local disposable PostgreSQL/PostgREST, simulated Auth, real app and SDK. No production requests or bookings.",
+  "browserPath": "No host-managed browser tools exposed; installed Playwright used per frontend-testing-debugging skill.",
+  "checks": [
+    "Saving leads to installation, preserves the public key and settings; explicit empty professional/service restrictions cannot broaden the scope.",
+    "Both installation choices copy their actual key/source; 1440/390/320 layouts have no horizontal overflow.",
+    "Exactly the copied markup loads the actual SDK/calendar on the allowed external origin and reaches the patient form; repeated loading does not duplicate it.",
+    "Without JavaScript the copied block opens the actual booking page through its fallback link.",
+    "A professional without management permission cannot administer site installation.",
+    "No application page errors and no actual booking submissions."
+  ],
+  "screenshots": [
+    "desktop.png",
+    "mobile.png",
+    "user-320.png",
+    "installed-site-mobile.png"
+  ],
+  "errors": []
+}

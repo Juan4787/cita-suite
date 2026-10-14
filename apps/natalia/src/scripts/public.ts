@@ -1,5 +1,5 @@
 type BookingWidget = { open(): void; setTheme(theme: 'light' | 'dark'): void };
-declare global { interface Window { CitaSuiteBooking?: { mount(options: { integrationKey: string; baseURL: string; theme: 'light' | 'dark' }): BookingWidget } } }
+declare global { interface Window { CitaSuiteBooking?: { mount(options: { integrationKey: string; baseURL: string; theme: 'light' | 'dark'; container?: HTMLElement; mode?: 'inline' }): BookingWidget } } }
 const themeButton = document.querySelector<HTMLButtonElement>('#theme-toggle');
 let widget: BookingWidget | undefined;
 const theme = () => document.documentElement.classList.contains('dark') ? 'dark' : 'light';
@@ -48,6 +48,7 @@ document.querySelectorAll<HTMLDialogElement>('dialog.public-dialog').forEach(dia
 
 const base = document.body.dataset.bookingBase!;
 const integrationKey = document.body.dataset.bookingKey;
+const bookingContainer = document.querySelector<HTMLElement>('#public-booking');
 let sdk: Promise<BookingWidget> | undefined;
 function getWidget() {
   if (!sdk) sdk = new Promise<void>((resolve, reject) => {
@@ -56,9 +57,15 @@ function getWidget() {
     script.onload = () => { clearTimeout(timeout); resolve(); }; script.onerror = () => { clearTimeout(timeout); reject(new Error('No se pudo abrir el turnero.')); }; document.head.append(script);
   }).then(() => {
     if (!window.CitaSuiteBooking || !integrationKey) throw new Error('La reserva todavía no está habilitada.');
-    widget = window.CitaSuiteBooking.mount({ baseURL: base, integrationKey, theme: theme() }); return widget;
+    widget = window.CitaSuiteBooking.mount({ baseURL: base, integrationKey, theme: theme(), ...(bookingContainer ? { container: bookingContainer, mode: 'inline' as const } : {}) }); return widget;
   }).catch(cause => { sdk = undefined; throw cause; });
   return sdk;
+}
+if (integrationKey && bookingContainer) {
+  const feedback = document.querySelector<HTMLElement>('[data-booking-load-state]');
+  void getWidget().then(() => { if (feedback) feedback.hidden = true; }).catch(() => {
+    if (feedback) feedback.textContent = 'No pudimos cargar la agenda. Podés abrirla en otra página.';
+  });
 }
 if (integrationKey) document.addEventListener('click', async event => {
   const anchor = (event.target as HTMLElement).closest<HTMLAnchorElement>('a[data-booking]');

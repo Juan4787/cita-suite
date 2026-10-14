@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-14T21:23:03.370480+00:00",
+  "generatedAt": "2026-10-14T22:05:34.623354+00:00",
   "title": "Design System: Cita Suite",
   "extensions": {
     "colorMeta": {
@@ -571,7 +571,7 @@
     ],
     "sources": {
       "designMd": "DESIGN.md",
-      "designMdSha256": "d9eb7f924de1dec183571277f36c39153e26a4502d4629e7f994eaa624b0aee2",
+      "designMdSha256": "853c4ee5f132dc34c0d92001a62d9d498236e8a0372e910494cd66ca2b46d2bd",
       "files": [
         {
           "path": "src/app.css",
@@ -583,15 +583,15 @@
         },
         {
           "path": "src/routes/odonto/configuracion/reserva-online/+page.svelte",
-          "sha256": "99bc0a6ade3ecd06c07e8c24b8300b6a021ae2090e7f846a2a409cee7e68b890"
+          "sha256": "bb2cca97a9fe147c9752d8720e2aa28703dcbd03426209fabccd7a79498d3841"
         },
         {
           "path": "src/routes/odonto/configuracion/reserva-online/webs/+page.svelte",
-          "sha256": "4703d1059f62c4d248d478f8bd5d8363858c8a6c5e2400a19b6ac8eb92c1798c"
+          "sha256": "bce9c03d3346143dccf18c2f426a5248a150522d3907848c778b63362d1b42d9"
         },
         {
           "path": "src/routes/odonto/configuracion/reserva-online/webs/+page.server.ts",
-          "sha256": "7f4294ea23ca44f1d808c8d72e465214285a6ca6ab8b1ea4a651aef6d1a9e7a8"
+          "sha256": "01f1f7fa99edcbd66e1afb34cf75280db4b5e7a8a80b3feb160a4119d26fa9e2"
         },
         {
           "path": "src/routes/odonto/configuracion/negocio/+page.svelte",
@@ -656,6 +656,22 @@
         {
           "path": "src/lib/booking/patient-booking.css",
           "sha256": "eac5ea28c3723b00c7629070174ef55347a4329819b687a2d456b5b3d33c9cd7"
+        },
+        {
+          "path": "src/lib/booking/BookingInstallation.svelte",
+          "sha256": "334e0df376139f5c27364b21151780812baa0dcece02cf86471aa47a7e92458b"
+        },
+        {
+          "path": "src/lib/booking/booking-installation.ts",
+          "sha256": "f2a1f61411870eb8d454e3aa7a19b44f6404a4cfe32384f2ad73cc5988b41b1a"
+        },
+        {
+          "path": "src/routes/odonto/configuracion/reserva-online/+page.server.ts",
+          "sha256": "67296f72d4fc29478c5d53d82fd858df53ab92b000856488b299444ebe743606"
+        },
+        {
+          "path": "static/booking/embed-v1.js",
+          "sha256": "981ce327b701eaeccf39a695110e38793530e78962ee3388d7effc162d6df9c9"
         }
       ],
       "rampNote": "Las rampas OKLCH son previsualizaciones sintéticas de oscuro a claro; no sustituyen los colores normativos del frontmatter.",
@@ -769,6 +785,11 @@
       {
         "name": "Respuesta explícita",
         "body": "Una pregunta binaria conserva respuestas independientes para Sí y No. Si es opcional, permite volver a Sin responder; vacío y No representan datos diferentes.",
+        "section": "components"
+      },
+      {
+        "name": "Instalación explícita",
+        "body": "Guardar la configuración autoriza el dominio; colocar el código instala la agenda. “Autorizado” describe el permiso configurado y no acredita que la web tenga un turnero funcionando.",
         "section": "components"
       }
     ],

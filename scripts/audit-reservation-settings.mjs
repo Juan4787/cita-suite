@@ -570,10 +570,10 @@ try {
     { public_key: fixture.key },
   );
   await p
-    .getByRole("button", { name: "Guardar sitio web", exact: true })
+    .getByRole("button", { name: "Guardar y continuar", exact: true })
     .click();
   await expect(
-    p.getByRole("status").filter({ hasText: "Sitio web guardado" }),
+    p.getByRole("status").filter({ hasText: "Configuración guardada" }),
   ).toBeVisible();
   const integrationAfter = await row(
     "booking_integrations",
@@ -589,6 +589,7 @@ try {
   await p.setViewportSize({ width: 320, height: 844 });
   await capture(p, "web-editor-320");
   await p.setViewportSize({ width: 1440, height: 900 });
+  await p.getByText('Editar configuración de', {exact:false}).click();
   await p.getByLabel("Nombre del sitio").fill("Borrador que debe descartarse");
   await p.evaluate(() => {
     const anchor = document.createElement("a");

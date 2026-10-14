@@ -26,6 +26,7 @@ export const load: PageServerLoad = async (event) => {
         .from("booking_integrations")
         .select("id", { count: "exact", head: true })
         .eq("business_id", context.business.business.id)
+        .neq("allowed_origins", "{}")
     : { count: 0, error: null };
   if (count.error)
     error(503, "No pudimos cargar las reservas. Volvé a intentar.");

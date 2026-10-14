@@ -10,7 +10,7 @@ export const load: PageServerLoad = async (event) => {
   if (!context.business.canManage)
     error(
       403,
-      "Sólo quien administra el consultorio puede conectar sitios web.",
+      "Sólo quien administra el consultorio puede configurar sitios web.",
     );
   const enabled = bookingInformationEnabled();
   const empty = {
@@ -49,13 +49,13 @@ export const load: PageServerLoad = async (event) => {
       .eq("business_id", id),
   ]);
   if (results.some((row) => row.error))
-    error(503, "No pudimos cargar los sitios conectados. Volvé a intentar.");
+    error(503, "No pudimos cargar los sitios web. Volvé a intentar.");
   const selectedId = event.url.searchParams.get("perfil") ?? "";
   if (
     selectedId &&
     !(results[0].data ?? []).some((row) => row.id === selectedId)
   )
-    error(404, "Este sitio no está conectado a tu consultorio.");
+    error(404, "Este sitio no está registrado en tu consultorio.");
   return {
     ...empty,
     profiles: results[0].data ?? [],
@@ -84,6 +84,10 @@ export const actions: Actions = {
         "origins",
       ]);
       const config = bookingProfileConfig(form);
+      if (form.get('scope') === 'selected' && !config.professional_ids.length)
+        return fail(400, {message:'Elegí al menos un profesional para esta web.'});
+      if (form.get('limit_services') === 'true' && !config.service_ids.length)
+        return fail(400, {message:'Elegí al menos un servicio para esta web.'});
       const { data, error: cause } = await context.supabase.rpc(
         "save_booking_integration",
         {
@@ -101,7 +105,7 @@ export const actions: Actions = {
             : "No pudimos guardar el enlace. Revisá su configuración y volvé a intentar.";
         return fail(400, { message });
       }
-      throw redirect(303, `?perfil=${data.id}&guardado=1`);
+      throw redirect(303, `?perfil=${data.id}&instalar=1&guardado=1`);
     } catch (cause) {
       if ((cause as any)?.status === 303) throw cause;
       return fail(400, {
