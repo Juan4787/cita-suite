@@ -117,6 +117,9 @@ export const getHumanAppointmentErrorMessage = (error: unknown) => {
 	const anyError = error as { code?: string; message?: string; details?: string };
 	const raw = `${anyError?.message ?? ''} ${anyError?.details ?? ''}`;
 
+	if(raw.includes('SCHEDULE_SERVICE_UNAVAILABLE'))return 'Esta franja está reservada para otras prestaciones. Elegí una prestación permitida u otro horario.';
+ if(raw.includes('SCHEDULE_BLOCKED'))return 'El consultorio bloqueó ese horario. Actualizá la agenda y elegí otro disponible.';
+ if(raw.includes('PRICE_'))return 'El arancel necesita una revisión. Actualizá la página y revisá la fecha y el precio antes de confirmar.';
 	if (raw.includes('appointment_professionals_no_break_overlap')) {
 		return 'Ese horario invade el descanso configurado de al menos uno de los profesionales. Elegí la primera hora disponible que muestra la agenda. Si estás cargando el turno manualmente y confirmaste que nadie estará atendiendo a otro paciente al mismo tiempo, activá “Ignorar descanso” y volvé a elegir el horario.';
 	}
@@ -234,7 +237,7 @@ export type AppointmentPatientSelection =
 			email?: string | null;
 		};
 
-export type BookingPatientInformationInput = { schemaHash: string; answers: import('@turnos-saas/shared/booking-integration').BookingIntakeAnswers };
+export type BookingPatientInformationInput = { schemaHash: string; answers: import('@turnos-saas/shared/booking-integration').BookingIntakeAnswers; priceQuoteHash?: string };
 
 export type AtomicAppointmentInput = {
 	businessId: string;
@@ -315,7 +318,7 @@ const runAtomicAppointmentRpc = async (
                 service_id: input.serviceId, professional_ids: professionalIds, starts_at: input.startsAt.toISOString(),
                 comment: input.internalNote?.trim() || null, phone_status: phoneDecision.status,
                 request_key: input.idempotencyKey.toLowerCase(), schema_hash: input.bookingInformation.schemaHash,
-                answers: input.bookingInformation.answers, integration_id: input.bookingIntegration?.integrationId ?? null,
+                answers: input.bookingInformation.answers, price_quote_hash: input.bookingInformation.priceQuoteHash ?? '', integration_id: input.bookingIntegration?.integrationId ?? null,
                 integration_revision: input.bookingIntegration?.integrationRevision ?? null,
                 availability_revision: input.bookingIntegration?.expectedAvailabilityRevision ?? null,
                 entry_point: input.bookingIntegration?.entryPoint ?? 'public_page', modality: input.bookingIntegration?.modality ?? 'in_person'

@@ -664,7 +664,7 @@ export const sendReschedulePushNotice = async (
 
 	const { data: appointment, error: appointmentError } = await supabase
 		.from('appointments')
-		.select('id, status, starts_at, confirmation_token, businesses!inner(name, timezone)')
+		.select('id, status, starts_at, public_reminder_description_snapshot, confirmation_token, businesses!inner(name, timezone)')
 		.eq('id', input.appointmentId)
 		.eq('business_id', input.businessId)
 		.maybeSingle();
@@ -697,7 +697,7 @@ export const sendReschedulePushNotice = async (
 	// Payload neutral (§67), como los recordatorios.
 	const payload = {
 		title: `Turno en ${business.name}`,
-		body: `Tu turno fue reprogramado para el ${dateLabel} a las ${timeLabel}.`,
+		body: `Tu turno fue reprogramado para el ${dateLabel} a las ${timeLabel}.` + (appointment.public_reminder_description_snapshot ? ` ${String(appointment.public_reminder_description_snapshot).slice(0,180)}` : ''),
 		url: pushAppointmentPath(String(appointment.confirmation_token)),
 		tag: `turno-${input.appointmentId}-24h`,
 		group: `turno-${input.appointmentId}`
@@ -849,7 +849,7 @@ export const sendDuePushReminders = async (
 			const { data: appointment, error: appointmentError } = await supabase
 				.from('appointments')
 				.select(
-					'id, status, starts_at, confirmation_token, businesses!inner(name, timezone)'
+					'id, status, starts_at, public_reminder_description_snapshot, confirmation_token, businesses!inner(name, timezone)'
 				)
 				.eq('id', claimed.appointment_id)
 				.eq('business_id', claimed.business_id)
@@ -873,7 +873,7 @@ export const sendDuePushReminders = async (
 			// service worker cerrar notificaciones viejas del mismo turno (otro kind).
 			const payload = {
 				title: `Turno en ${business.name}`,
-				body: `Te recordamos tu turno el ${dateLabel} a las ${timeLabel}.`,
+				body: `Te recordamos tu turno el ${dateLabel} a las ${timeLabel}.` + (appointment.public_reminder_description_snapshot ? ` ${String(appointment.public_reminder_description_snapshot).slice(0,180)}` : ''),
 				url: pushAppointmentPath(String(appointment.confirmation_token)),
 				tag: `turno-${claimed.appointment_id}-${claimed.reminder_kind}`,
 				group: `turno-${claimed.appointment_id}`

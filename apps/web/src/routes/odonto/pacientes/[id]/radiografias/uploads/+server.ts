@@ -9,7 +9,7 @@ import {
 	normalizeClinicalFilename,
 	normalizeClinicalNote,
 	requireClinicalFileUpload,
-	CLINICAL_FILE_MAX_BYTES
+	CLINICAL_FILE_MAX_BYTES, readClinicalJson
 } from '$lib/server/clinical-files';
 import { enforceRateLimits, radiographUploadRateLimitRules } from '$lib/server/rate-limits';
 import { json } from '@sveltejs/kit';
@@ -24,10 +24,10 @@ export const POST: RequestHandler = async (event) => {
 	try {
 		const context = await getClinicalFileRequestContext(event);
 		requireClinicalFileUpload(context);
-		const body = (await event.request.json().catch(() => null)) as Record<string, unknown> | null;
+		const body = (await readClinicalJson(event.request)) as Record<string, unknown> | null;
 		if (!body) {
 			return json(
-				{ code: 'INVALID_REQUEST', message: 'Revisá los datos de la imagen.' },
+				{ code: 'INVALID_REQUEST', message: 'Revisá los datos del archivo.' },
 				{ status: 400 }
 			);
 		}
@@ -42,25 +42,25 @@ export const POST: RequestHandler = async (event) => {
 
 		if (!uuidPattern.test(clientRequestId) || !originalFilename || !checksumPattern.test(sha256)) {
 			return json(
-				{ code: 'INVALID_METADATA', message: 'Revisá los datos de la imagen.' },
+				{ code: 'INVALID_METADATA', message: 'Revisá los datos del archivo.' },
 				{ status: 400 }
 			);
 		}
 		if (!isClinicalFileMime(mimeType)) {
 			return json(
-				{ code: 'INVALID_FILE_TYPE', message: 'Elegí una imagen JPG o PNG.' },
+				{ code: 'INVALID_FILE_TYPE', message: 'Elegí un archivo JPG, PNG o PDF.' },
 				{ status: 400 }
 			);
 		}
 		if (!Number.isSafeInteger(bytes) || bytes < 1 || bytes > CLINICAL_FILE_MAX_BYTES) {
 			return json(
-				{ code: 'FILE_TOO_LARGE', message: 'La imagen debe pesar hasta 25 MB.' },
+				{ code: 'FILE_TOO_LARGE', message: 'El archivo debe pesar hasta 5 MB.' },
 				{ status: 400 }
 			);
 		}
 		if (takenAt === undefined || note === undefined) {
 			return json(
-				{ code: 'INVALID_METADATA', message: 'Revisá la fecha y la nota de la imagen.' },
+				{ code: 'INVALID_METADATA', message: 'Revisá la fecha y la nota del archivo.' },
 				{ status: 400 }
 			);
 		}
@@ -85,7 +85,7 @@ export const POST: RequestHandler = async (event) => {
 					radiograph_id: string;
 					storage_bucket: string;
 					storage_path: string;
-					thumbnail_path: string;
+					thumbnail_path: string | null;
 					status: string;
 			  }
 			| null;
@@ -95,7 +95,7 @@ export const POST: RequestHandler = async (event) => {
 		}
 		if (row.status !== 'uploading') {
 			return json(
-				{ code: 'UPLOAD_CONFLICT', message: 'Esta carga ya terminó. Volvé a elegir la imagen.' },
+				{ code: 'UPLOAD_CONFLICT', message: 'Esta carga ya terminó. Volvé a elegir el archivo.' },
 				{ status: 409 }
 			);
 		}

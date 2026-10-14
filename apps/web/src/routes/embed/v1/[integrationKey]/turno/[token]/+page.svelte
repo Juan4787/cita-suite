@@ -1,4 +1,5 @@
 <script lang="ts">
+ import {formatQuotedPrice} from '$lib/booking/pricing';
     import BookingAppearance from '$lib/booking/BookingAppearance.svelte';
     import BookingFrameBridge from '$lib/booking/BookingFrameBridge.svelte';
     import { formatInTimeZone } from '$lib/utils/format';
@@ -10,7 +11,7 @@
 <svelte:head><title>Tu turno · {appointment.business.name}</title></svelte:head>
 <BookingAppearance theme={data.theme}>
     {#if data.embed}<BookingFrameBridge context={data.embed} completed={true} />{/if}
-    <main class="min-h-screen bg-[#06111f] px-4 py-5 text-white sm:py-8">
+    <main class="min-h-screen bg-[#06111f] px-4 py-5 text-white sm:py-8">{#if data.appointment.price_quote_snapshot}<section class="ux-card mb-5"><h2 class="ux-section-title">Arancel registrado al reservar</h2><p class="mt-2 font-bold">{formatQuotedPrice(data.appointment.price_quote_snapshot)}</p></section>{/if}{#if data.appointment.patient_instructions_snapshot}<section class="ux-card mb-5"><h2 class="ux-section-title">Indicaciones para tu turno</h2><p class="mt-2 whitespace-pre-wrap break-words">{data.appointment.patient_instructions_snapshot}</p></section>{/if}
         <div class="mx-auto flex max-w-3xl flex-col gap-4">
             <section class="ux-card">
                 <p class="ux-badge">{appointment.public_status_label}</p>

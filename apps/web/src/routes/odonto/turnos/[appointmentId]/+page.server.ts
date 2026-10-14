@@ -1,3 +1,4 @@
+import {readBoundedBookingForm} from '$lib/server/public-booking-page';
 import { env } from '$env/dynamic/private';
 import { bookingContextsAvailable } from '$lib/server/booking-integration-flags';
 import { demoBusinessContext } from '$lib/server/business';
@@ -78,7 +79,7 @@ export const load: PageServerLoad = async ({ params, locals, fetch, cookies, url
 		};
 	}
 
-	const { supabase, business } = await getOdontoContext({
+	const { supabase, business, userId } = await getOdontoContext({
 		locals,
 		fetch,
 		cookies,
@@ -87,7 +88,7 @@ export const load: PageServerLoad = async ({ params, locals, fetch, cookies, url
 	const { data, error } = await supabase
 		.from('appointments')
 		.select(
-			'id, business_id, patient_id, service_id, professional_id, starts_at, ends_at, blocking_starts_at, blocking_ends_at, status, source, confirmation_token, service_name_snapshot, professional_name_snapshot, duration_minutes_snapshot, buffer_before_minutes_snapshot, buffer_after_minutes_snapshot, break_minutes_snapshot, ignore_break, confirmed_at, cancelled_at, cancelled_reason, reschedule_requested_at, internal_note, phone_communication_status_at_booking, phone_warning_acknowledged_at, created_by_user_id, updated_by_user_id, cancelled_by_user_id, created_at, updated_at, patients(id, full_name, phone_e164, email, blocked)'
+			'id, business_id, patient_id, service_id, professional_id, starts_at, ends_at, blocking_starts_at, blocking_ends_at, status, source, confirmation_token, service_name_snapshot, professional_name_snapshot, duration_minutes_snapshot, buffer_before_minutes_snapshot, buffer_after_minutes_snapshot, break_minutes_snapshot, ignore_break, confirmed_at, cancelled_at, cancelled_reason, reschedule_requested_at, internal_note, patient_instructions_snapshot, public_reminder_description_snapshot, price_quote_snapshot, phone_communication_status_at_booking, phone_warning_acknowledged_at, created_by_user_id, updated_by_user_id, cancelled_by_user_id, created_at, updated_at, patients(id, full_name, phone_e164, email, blocked)'
 		)
 		.eq('business_id', business.business.id)
 		.eq('id', params.appointmentId)
@@ -106,6 +107,9 @@ export const load: PageServerLoad = async ({ params, locals, fetch, cookies, url
 			'No encontramos ese turno o tu usuario no puede verlo. Volvé a la agenda y comprobá que siga disponible para tu rol.'
 		);
 	}
+ const {data:instructionScope,error:scopeError}=await supabase.rpc('patient_document_in_appointment_scope',{p_business_id:business.business.id,p_appointment_id:data.id,p_actor_id:userId});
+ if(scopeError)throw kitError(503,'No pudimos revisar los permisos de las indicaciones. Volvé a intentar.');
+ const canEditInstructions=instructionScope===true&&business.access.canUseBusiness;
 	const bookingContext = bookingContextsAvailable()
 		? await loadAppointmentBookingContext(supabase, data.id) : null;
 	const bookingIntake = bookingContext
@@ -194,7 +198,7 @@ export const load: PageServerLoad = async ({ params, locals, fetch, cookies, url
 		: null;
 
 	return {
-		context: business,
+		context: business,canEditInstructions,
 		appointment: {
 			...data,
 			booking_context: bookingContext,
@@ -235,6 +239,12 @@ export const load: PageServerLoad = async ({ params, locals, fetch, cookies, url
 };
 
 export const actions: Actions = {
+ save_instructions:async event=>{
+  if(!event.locals.auth)throw redirect(303,'/login');if(env.DEMO_MODE==='true')return fail(400,{message:'No disponible en modo demo.'});
+  const {supabase,business}=await getOdontoContext(event);const form=await readBoundedBookingForm(event.request);
+  const {error}=await supabase.rpc('save_appointment_patient_instructions',{p_business_id:business.business.id,p_appointment_id:event.params.appointmentId,p_expected_updated_at:String(form.get('updated_at')??''),p_instructions:String(form.get('instructions')??''),p_public_description:String(form.get('public_description')??'')});
+  if(error)return fail(409,{message:error.message.includes('CARE_CONFIGURATION_CHANGED')?'El turno cambió. Recargá la página antes de guardar las indicaciones.':'No pudimos guardar las indicaciones. Revisá tu permiso y la extensión de los textos.'});return {success:true,message:'Las indicaciones de este turno quedaron guardadas.'};
+ },
 	update_status: async ({ request, params, locals, fetch, cookies }) => {
 		if (!locals.auth) throw redirect(303, '/login');
 		if (env.DEMO_MODE === 'true') return fail(400, { message: 'No disponible en modo demo.' });

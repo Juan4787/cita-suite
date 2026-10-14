@@ -1,0 +1,16 @@
+{
+  "cloudflare": {
+    "output": "apps/web/.svelte-kit/cloudflare",
+    "file_count": 123,
+    "manifest_sha256": "200ddbf0f257654a967c302479a09a27e1583717bd098899057ddbb3b6db8ced",
+    "bytes": 1566771,
+    "scope": "Local compilation; not a production served-artifact verification"
+  },
+  "natalia": {
+    "output": "apps/natalia/dist",
+    "file_count": 35,
+    "manifest_sha256": "accc70caf7583c81f49ff07b5e62c564bed374f89d84a0b975319381742f5201",
+    "bytes": 500995,
+    "scope": "Local compilation; not a production served-artifact verification"
+  }
+}

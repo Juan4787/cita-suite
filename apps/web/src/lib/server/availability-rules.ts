@@ -65,32 +65,11 @@ export const replaceProfessionalScheduleBlocks = async (
 		businessId: string;
 		professionalId: string;
 		blocks: NormalizedScheduleBlock[];
+		expectedRevision?: number;
 	}
 ) => {
-	const { businessId, professionalId, blocks } = input;
-	const { error: deleteError } = await supabase
-		.from('availability_rules')
-		.delete()
-		.eq('business_id', businessId)
-		.eq('professional_id', professionalId);
-	if (deleteError) throw deleteError;
-
-	const rows = blocks.flatMap((block) =>
-		block.weekdays.flatMap((weekday) =>
-			block.ranges.map((range) => ({
-				business_id: businessId,
-				professional_id: professionalId,
-				weekday,
-				start_time: range.start,
-				end_time: range.end,
-				slot_interval_minutes: block.slotIntervalMinutes,
-				break_minutes: block.breakMinutes,
-				is_active: true
-			}))
-		)
-	);
-
-	if (rows.length === 0) return;
-	const { error: insertError } = await supabase.from('availability_rules').insert(rows);
-	if (insertError) throw insertError;
+    let revision=input.expectedRevision;
+    if(revision===undefined){const {data,error}=await supabase.from('businesses').select('booking_availability_revision').eq('id',input.businessId).single();if(error)throw error;revision=Number(data.booking_availability_revision);}
+    const {error}=await supabase.rpc('replace_professional_schedule_blocks' as never,{p_business_id:input.businessId,p_professional_id:input.professionalId,p_expected_revision:revision,p_blocks:input.blocks.map(block=>({weekdays:block.weekdays,ranges:block.ranges,slot_interval_minutes:block.slotIntervalMinutes,break_minutes:block.breakMinutes,service_scope:block.serviceScope??'all',service_ids:block.allowedServiceIds??[]}))} as never);
+    if(error)throw error;
 };

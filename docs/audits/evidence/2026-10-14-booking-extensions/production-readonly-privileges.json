@@ -1,0 +1,8 @@
+{
+  "storageOwner": "supabase_storage_admin",
+  "migrationRole": "postgres",
+  "canReadObjects": true,
+  "canUpdateBucket": true,
+  "canUseStorageSchema": true,
+  "canCreateStorageTrigger": true
+}

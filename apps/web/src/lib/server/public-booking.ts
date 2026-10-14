@@ -129,7 +129,7 @@ type BookingAttemptInput = {
 };
 
 export const PUBLIC_BUSINESS_SELECT =
-	'id, name, slug, phone, address, address_instructions, maps_url, logo_url, timezone, public_booking_enabled, is_active, created_at, min_booking_notice_minutes, max_booking_days_ahead, cancellation_policy';
+	'id, name, slug, phone, address, address_instructions, maps_url, logo_url, timezone, public_booking_enabled, is_active, created_at, min_booking_notice_minutes, max_booking_days_ahead, cancellation_policy, booking_availability_revision';
 
 export const PUBLIC_ACTIVE_FUTURE_APPOINTMENT_LIMIT = 4;
 
@@ -563,7 +563,7 @@ const loadPublicAvailabilitySnapshot = async (
 	const rulesQuery = supabase
 		.from('availability_rules')
 		.select(
-			'id, professional_id, weekday, start_time, end_time, slot_interval_minutes, break_minutes, is_active'
+			'id, professional_id, weekday, start_time, end_time, slot_interval_minutes, break_minutes, is_active, service_scope, rule_services:availability_rule_services(service_id)'
 		)
 		.eq('business_id', input.businessId)
 		.in('professional_id', professionalIds)
@@ -583,7 +583,7 @@ const loadPublicAvailabilitySnapshot = async (
 		rulesQuery,
 		supabase
 			.from('availability_exceptions')
-			.select('id, professional_id, starts_at, ends_at, type')
+			.select('id, professional_id, starts_at, ends_at, type, exception_services:availability_exception_services(service_id)')
 			.eq('business_id', input.businessId)
 			.lt('starts_at', input.rangeEnd.toISOString())
 			.gt('ends_at', input.rangeStart.toISOString()),
@@ -852,7 +852,7 @@ export const loadPublicBookingState = async (
 	);
 	const selectionCacheKey = selectedProfessionalIds.join(',');
 	const availabilityRows = await cachedScan(
-		`availability-rows:${business.id}:${selectedService.id}:${selectionCacheKey}:${scanFromDate}:${scanToDate}:${input.modality ?? ''}`,
+		`availability-rows:${business.id}:${(business as any).booking_availability_revision??0}:${selectedService.id}:${selectionCacheKey}:${scanFromDate}:${scanToDate}:${input.modality ?? ''}`,
 		SLOT_SCAN_CACHE_TTL_MS,
 		() =>
 			loadPublicAvailabilitySnapshot(supabase, {
@@ -1019,7 +1019,7 @@ export const createPublicBooking = async (
 		// Read the business rules and revision together BEFORE reading schedule rows.
 		// The final RPC holds this row and refuses edits committed during calculation.
 		const { data, error } = await supabase.from('businesses')
-			.select(PUBLIC_BUSINESS_SELECT + ', booking_availability_revision').eq('id', business.id)
+			.select(PUBLIC_BUSINESS_SELECT).eq('id', business.id)
 			.single<PublicBookingBusiness & { booking_availability_revision: number }>();
 		if (error) throw error;
 		business = data as PublicBookingBusiness;
@@ -1257,6 +1257,7 @@ const hasTechnicalErrorToken = (raw: string, token: string) =>
 	new RegExp(`(^|[^A-Z0-9_])${token}([^A-Z0-9_]|$)`).test(raw);
 
 export function getPublicBookingErrorCode(error: unknown): PublicBookingErrorCode {
+ if(/SCHEDULE_SERVICE_UNAVAILABLE|SCHEDULE_BLOCKED/.test(String((error as {message?:string})?.message??'')))return 'PUBLIC_SLOT_UNAVAILABLE';
 	const value = error as { message?: string; code?: string; details?: string; hint?: string };
 	const raw = [value?.message, value?.code, value?.details, value?.hint].filter(Boolean).join(' ');
 	if (value?.code === '23P01' || raw.includes('appointments_no_overlapping_active')) {

@@ -66,7 +66,7 @@ export const GET: RequestHandler = async (event) => {
 		let query = context.supabase
 			.from('patient_radiographs')
 			.select(
-				'id, patient_id, status, original_filename, mime_type, bytes, taken_at, note, created_at, ready_at, integrity_status, storage_bucket, thumbnail_path, uploaded_by'
+				'id, patient_id, status, original_filename, mime_type, bytes, taken_at, note, created_at, ready_at, integrity_status, storage_bucket, thumbnail_path, uploaded_by, source, appointment_id'
 			)
 			.eq('business_id', context.businessId)
 			.eq('patient_id', event.params.id)
@@ -122,7 +122,7 @@ export const GET: RequestHandler = async (event) => {
 			ready_at: row.ready_at,
 			integrity_status: row.integrity_status,
 			thumbnail_url: row.thumbnail_path ? (thumbnailUrls.get(row.thumbnail_path) ?? null) : null,
-			is_mine: row.uploaded_by === context.userId
+			source: row.source, appointment_id: row.appointment_id, is_mine: row.uploaded_by === context.userId
 		}));
 		const last = visibleRows.at(-1);
 

@@ -1,23 +1,58 @@
-import { spawnSync } from 'node:child_process';
-import { readFileSync, readdirSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
-import { randomBytes } from 'node:crypto';
+import { spawnSync } from "node:child_process";
+import { readFileSync, readdirSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { randomBytes } from "node:crypto";
+import { writeFileSync, rmSync } from "node:fs";
 // This runner cannot target a supplied URL or existing database. Only its own
 // disposable, portless container is ever mutated. All work is sequential.
-const root = fileURLToPath(new URL('../', import.meta.url));
-const image = 'public.ecr.aws/supabase/postgres:17.6.1.166';
-const container = 'cita-booking-test-' + randomBytes(6).toString('hex');
-const keep = process.argv.slice(2).includes('--keep');
-if (process.argv.slice(2).some((argument) => argument !== '--keep'))
-    throw new Error('Only --keep is supported; remote database targets are forbidden.');
+const root = fileURLToPath(new URL("../", import.meta.url));
+const image = "public.ecr.aws/supabase/postgres:17.6.1.166";
+const container = "cita-booking-test-" + randomBytes(6).toString("hex");
+const keep = process.argv.slice(2).includes("--keep");
+const realStorage = process.argv.slice(2).includes("--real-storage");
+const storageContainer = container + "-storage";
+const fixtureSecret =
+  "cita-local-disposable-jwt-secret-with-more-than-32-characters";
+let storageCreated = false;
+if (
+  process.argv
+    .slice(2)
+    .some((argument) => !["--keep", "--real-storage"].includes(argument))
+)
+  throw new Error(
+    "Only --keep and --real-storage are supported; remote database targets are forbidden.",
+  );
 function command(args, input) {
-    const result = spawnSync('docker', args, { cwd: root, input, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 });
-    if (result.error || result.status !== 0)
-        throw new Error(result.error?.message ?? result.stderr.trim() ?? 'Docker failed');
-    return result.stdout;
+  const result = spawnSync("docker", args, {
+    cwd: root,
+    input,
+    encoding: "utf8",
+    maxBuffer: 16 * 1024 * 1024,
+  });
+  if (result.error || result.status !== 0)
+    throw new Error(
+      result.error?.message ?? result.stderr.trim() ?? "Docker failed",
+    );
+  return result.stdout;
 }
 function sql(input) {
-    return command(['exec', '-i', container, 'psql', '-X', '-U', 'supabase_admin', '-d', 'postgres', '-v', 'ON_ERROR_STOP=1', '-q'], input);
+  return command(
+    [
+      "exec",
+      "-i",
+      container,
+      "psql",
+      "-X",
+      "-U",
+      "supabase_admin",
+      "-d",
+      "postgres",
+      "-v",
+      "ON_ERROR_STOP=1",
+      "-q",
+    ],
+    input,
+  );
 }
 const platform = `
 create schema if not exists realtime;
@@ -40,57 +75,231 @@ create or replace function auth.jwt() returns jsonb language sql stable as $$sel
 let created = false;
 let localNetwork = null;
 try {
-    command(['image', 'inspect', image]); // Never pull a large image implicitly.
-    if (keep) {
-        localNetwork = container + '-net';
-        command(['network', 'create', '--internal', localNetwork]);
+  command(["image", "inspect", image]); // Never pull a large image implicitly.
+  if (keep || realStorage) {
+    localNetwork = container + "-net";
+    command(["network", "create", "--internal", localNetwork]);
+  }
+  command([
+    "run",
+    "-d",
+    "--name",
+    container,
+    "--label",
+    "com.cita-suite.booking-fixture=true",
+    "--network",
+    localNetwork ?? "none",
+    "--memory",
+    "384m",
+    "--cpus",
+    "1",
+    "-e",
+    "POSTGRES_PASSWORD=cita-disposable-test-only",
+    image,
+    "postgres",
+    "-c",
+    "shared_buffers=32MB",
+    "-c",
+    "max_connections=12",
+    "-c",
+    "listen_addresses=*",
+    "-c",
+    "shared_preload_libraries=pg_cron",
+    "-c",
+    "cron.database_name=postgres",
+  ]);
+  created = true;
+  let ready = false;
+  for (let attempt = 0; attempt < 100; attempt++) {
+    // The image's temporary initialization server accepts Unix sockets before
+    // platform migrations finish. TCP readiness waits for the final server.
+    const result = spawnSync(
+      "docker",
+      [
+        "exec",
+        container,
+        "pg_isready",
+        "-h",
+        "127.0.0.1",
+        "-U",
+        "supabase_admin",
+      ],
+      { encoding: "utf8" },
+    );
+    if (result.status === 0) {
+      ready = true;
+      break;
     }
-    command(['run', '-d', '--name', container, '--label', 'com.cita-suite.booking-fixture=true', '--network', localNetwork ?? 'none', '--memory', '384m', '--cpus', '1', '-e', 'POSTGRES_PASSWORD=cita-disposable-test-only', image, 'postgres', '-c', 'shared_buffers=32MB', '-c', 'max_connections=12', '-c', 'listen_addresses=*', '-c', 'shared_preload_libraries=pg_cron', '-c', 'cron.database_name=postgres']);
-    created = true;
-    let ready = false;
-    for (let attempt = 0; attempt < 100; attempt++) {
-        // The image's temporary initialization server accepts Unix sockets before
-        // platform migrations finish. TCP readiness waits for the final server.
-        const result = spawnSync('docker', ['exec', container, 'pg_isready', '-h', '127.0.0.1', '-U', 'supabase_admin'], { encoding: 'utf8' });
-        if (result.status === 0) {
-            ready = true;
-            break;
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+  if (!ready)
+    throw new Error(
+      "Disposable PostgreSQL did not start.\n" +
+        command(["logs", "--tail", "30", container]),
+    );
+  sql(
+    realStorage
+      ? platform.slice(
+          0,
+          platform.indexOf("create schema if not exists storage;"),
+        ) +
+          platform.slice(
+            platform.indexOf("create or replace function auth.uid()"),
+          )
+      : platform,
+  );
+  sql("alter role supabase_admin password 'cita-disposable-test-only';");
+  if (realStorage) {
+    const storageImage = "public.ecr.aws/supabase/storage-api:v1.70.3";
+    command(["image", "inspect", storageImage]);
+    command([
+      "run",
+      "-d",
+      "--name",
+      storageContainer,
+      "--label",
+      "com.cita-suite.booking-fixture=true",
+      "--network",
+      localNetwork,
+      "--memory",
+      "192m",
+      "--cpus",
+      "0.5",
+      "-e",
+      "NODE_OPTIONS=--max-old-space-size=96",
+      "-e",
+      "SERVER_HOST=0.0.0.0",
+      "-e",
+      "SERVER_PORT=5000",
+      "-e",
+      "AUTH_JWT_SECRET=" + fixtureSecret,
+      "-e",
+      "AUTH_JWT_ALGORITHM=HS256",
+      "-e",
+      "DATABASE_URL=postgres://supabase_admin:cita-disposable-test-only@" +
+        container +
+        ":5432/postgres",
+      "-e",
+      "DATABASE_MAX_CONNECTIONS=2",
+      "-e",
+      "DB_SUPER_USER=supabase_admin",
+      "-e",
+      "DB_INSTALL_ROLES=false",
+      "-e",
+      "STORAGE_BACKEND=file",
+      "-e",
+      "STORAGE_FILE_BACKEND_PATH=/tmp/cita-fixture-storage",
+      "-e",
+      "TENANT_ID=cita-isolated",
+      "-e",
+      "STORAGE_S3_BUCKET=cita-isolated",
+      "-e",
+      "REGION=local",
+      "-e",
+      "UPLOAD_FILE_SIZE_LIMIT=5000000",
+      "-e",
+      "UPLOAD_FILE_SIZE_LIMIT_STANDARD=5000000",
+      "-e",
+      "IMAGE_TRANSFORMATION_ENABLED=false",
+      "-e",
+      "PG_QUEUE_ENABLE=false",
+      "-e",
+      "OTEL_METRICS_ENABLED=false",
+      storageImage,
+    ]);
+    storageCreated = true;
+    const storageAddress = command([
+      "inspect",
+      "--format",
+      "{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}",
+      storageContainer,
+    ]).trim();
+    const storageOrigin = "http://" + storageAddress + ":5000";
+    let healthy = false;
+    for (let n = 0; n < 100; n++) {
+      try {
+        const response = await fetch(storageOrigin + "/status", {
+          signal: AbortSignal.timeout(1000),
+        });
+        if (response.ok) {
+          healthy = true;
+          break;
         }
-        await new Promise((resolve) => setTimeout(resolve, 500));
+      } catch {}
+      await new Promise((resolve) => setTimeout(resolve, 500));
     }
-    if (!ready)
-        throw new Error('Disposable PostgreSQL did not start.\n' + command(['logs', '--tail', '30', container]));
-    sql(platform);
-    sql("alter role supabase_admin password 'cita-disposable-test-only';");
-    const migrations = readdirSync(root + 'supabase/migrations').filter((file) => file.endsWith('.sql')).sort();
-    for (const file of migrations) {
-        try {
-            sql(readFileSync(root + 'supabase/migrations/' + file, 'utf8'));
-        }
-        catch (error) {
-            throw new Error(file + ': ' + error.message);
-        }
+    if (!healthy)
+      throw new Error(
+        "Isolated Storage API did not become ready.\n" +
+          command(["logs", "--tail", "12", storageContainer]),
+      );
+    writeFileSync(
+      "/tmp/cita-booking-storage.json",
+      JSON.stringify({
+        database: container,
+        container: storageContainer,
+        origin: storageOrigin,
+        version: "v1.70.3",
+        fileBackend: true,
+      }),
+      { mode: 0o600 },
+    );
+  }
+  const migrations = readdirSync(root + "supabase/migrations")
+    .filter((file) => file.endsWith(".sql"))
+    .sort();
+  for (const file of migrations) {
+    try {
+      sql(readFileSync(root + "supabase/migrations/" + file, "utf8"));
+    } catch (error) {
+      throw new Error(file + ": " + error.message);
     }
-    console.log('Clean reconstruction: ' + migrations.length + ' migrations applied.');
-    for (const file of ['000_pgtap_setup.sql', 'patient_identity_atomicity.sql', 'public_booking_patient_policy.sql', 'joint_appointments.sql', 'booking_integration_foundation.sql', 'patient_optional_alert_timestamp.sql', 'booking_patient_information.sql']) {
-        const output = sql(readFileSync(root + 'supabase/tests/' + file, 'utf8'));
-        if (/\bnot ok\b/.test(output))
-            throw new Error(file + ': pgTAP failed.\n' + output);
-        console.log(file + '\n' + output.trim());
-    }
-    console.log('PASS: isolated SQL contracts. Storage/Realtime services and network delivery are not exercised by this runner.');
-}
-catch (error) {
-    console.error(error.message);
-    process.exitCode = 1;
-}
-finally {
-    if (created && keep && !process.exitCode)
-        console.log('Disposable database retained for local development only: ' + container + '\nCleanup: docker rm -f -v ' + container + '\nNetwork cleanup: docker network rm ' + localNetwork);
-    else {
-        if (created)
-            command(['rm', '-f', '-v', container]);
-        if (localNetwork)
-            command(['network', 'rm', localNetwork]);
-    }
+  }
+  console.log(
+    "Clean reconstruction: " + migrations.length + " migrations applied.",
+  );
+  for (const file of [
+    "000_pgtap_setup.sql",
+    "patient_identity_atomicity.sql",
+    "public_booking_patient_policy.sql",
+    "joint_appointments.sql",
+    "booking_integration_foundation.sql",
+    "patient_optional_alert_timestamp.sql",
+    "booking_patient_information.sql",
+    "booking_extension_contracts.sql",
+    "clinical_files_phase1.sql",
+    "clinical_provenance_triggers.sql",
+  ]) {
+    const output = sql(readFileSync(root + "supabase/tests/" + file, "utf8"));
+    if (/\bnot ok\b/.test(output))
+      throw new Error(file + ": pgTAP failed.\n" + output);
+    console.log(file + "\n" + output.trim());
+  }
+  if(keep)sql("select cron.unschedule(jobid) from cron.job;");
+  console.log(
+    "PASS: isolated SQL contracts. " +
+      (realStorage
+        ? "Storage API schema is real; file transfer still needs HTTP verification."
+        : "Storage/Realtime services and network delivery are not exercised by this runner."),
+  );
+} catch (error) {
+  console.error(error.message);
+  process.exitCode = 1;
+} finally {
+  if (created && keep && !process.exitCode)
+    console.log(
+      "Disposable database retained for local development only: " +
+        container +
+        (storageCreated?"\nStorage cleanup: docker rm -f -v "+storageContainer:"") +
+        "\nCleanup: docker rm -f -v " +
+        container +
+        "\nNetwork cleanup: docker network rm " +
+        localNetwork,
+    );
+  else {
+    if (storageCreated) command(["rm", "-f", "-v", storageContainer]);
+    if (realStorage) rmSync("/tmp/cita-booking-storage.json", { force: true });
+    if (created) command(["rm", "-f", "-v", container]);
+    if (localNetwork) command(["network", "rm", localNetwork]);
+  }
 }

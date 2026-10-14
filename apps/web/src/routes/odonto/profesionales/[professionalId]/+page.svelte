@@ -43,6 +43,7 @@
 		sort_order: number;
 	};
 	type Rule = {
+        service_scope?:'all'|'restricted';rule_services?:Array<{service_id:string}>;
 		id: string;
 		weekday: number;
 		start_time: string;
@@ -53,11 +54,12 @@
 		created_at: string | null;
 	};
 	type Exception = {
+        exception_services?:Array<{service_id:string}>;
 		id: string;
 		professional_id: string | null;
 		starts_at: string;
 		ends_at: string;
-		type: 'blocked' | 'extra_available';
+		type: 'blocked' | 'extra_available' | 'restricted';
 		reason: string | null;
 	};
 	type ProfessionalDraft = {
@@ -72,8 +74,10 @@
 		};
 		exception: {
 			appliesTo: 'professional' | 'business';
-			type: 'blocked' | 'extra_available';
-			periodMode: 'single' | 'range';
+			type: 'blocked' | 'extra_available' | 'restricted';
+			periodMode: 'single' | 'range' | 'multiple';
+            allowedServiceIds:string[];requestId:string;
+            dates:string[];
 			date: string;
 			dateFrom: string;
 			dateTo: string;
@@ -106,7 +110,8 @@
 			is_active: boolean;
 			is_public: boolean;
 		} | null;
-		services: Service[];
+		services: Service[];currentPriceLabels?:Record<string,string>;
+        availabilityRevision?:number;exceptionRequestId?:string;
 		assignedServiceIds: string[];
 		defaultServiceIds: string[];
 		rules: Rule[];
@@ -123,10 +128,11 @@
 
 	let { data, form } = $props<{
 		data: PageData;
-		form?: { success?: boolean; message?: string };
+		form?: { success?: boolean; message?: string;exceptionConflict?:boolean };
 	}>();
 
 	const cloneDraft = (value: ProfessionalDraft): ProfessionalDraft => JSON.parse(JSON.stringify(value));
+    const restrictionLabel=(ids:string[])=>ids.length?ids.map(id=>{const service=data.services.find((s:Service)=>s.id===id);return service?service.name+(service.is_active?'':' (no disponible)'):'Prestación no disponible';}).join(', '):'Franja cerrada';
 	const normalizedText = (value: string) => value.trim();
 	const uniqueSortedNumbers = (items: number[]) => [...new Set(items)].sort((a, b) => a - b);
 	const uniqueSortedStrings = (items: string[]) => [...new Set(items)].sort((a, b) => a.localeCompare(b));
@@ -136,7 +142,7 @@
 	const emptyExceptionDraft = (): ProfessionalDraft['exception'] => ({
 		appliesTo: 'professional',
 		type: 'blocked',
-		periodMode: 'single',
+		periodMode: 'single',dates:[],allowedServiceIds:[],requestId:crypto.randomUUID(),
 		date: '',
 		dateFrom: '',
 		dateTo: '',
@@ -165,7 +171,8 @@
 	): ProfessionalDraft['schedule'] => {
 		if (Array.isArray(value?.schedule?.blocks)) {
 			const blocks = value.schedule.blocks.map((block, index) => ({
-				id: typeof block?.id === 'string' ? block.id : `restored-block-${index + 1}`,
+				serviceScope:block?.serviceScope==='restricted'?'restricted' as const:'all' as const,allowedServiceIds:Array.isArray(block?.allowedServiceIds)?block.allowedServiceIds.map(String):[],
+                id: typeof block?.id === 'string' ? block.id : `restored-block-${index + 1}`,
 				weekdays: Array.isArray(block?.weekdays)
 					? block.weekdays.map(Number).filter((item) => Number.isInteger(item) && item >= 0 && item <= 6)
 					: [],
@@ -211,8 +218,9 @@
 		schedule: sanitizeSchedule(value, fallback),
 		exception: {
 			appliesTo: value?.exception?.appliesTo === 'business' ? 'business' : 'professional',
-			type: value?.exception?.type === 'extra_available' ? 'extra_available' : 'blocked',
-			periodMode: value?.exception?.periodMode === 'range' ? 'range' : 'single',
+			type: value?.exception?.type === 'extra_available' ? 'extra_available' : value?.exception?.type==='restricted'?'restricted':'blocked',
+			periodMode: value?.exception?.periodMode === 'range' ? 'range' : value?.exception?.periodMode==='multiple'?'multiple':'single',
+            dates:Array.isArray(value?.exception?.dates)?value.exception.dates.map(String):[],allowedServiceIds:Array.isArray(value?.exception?.allowedServiceIds)?value.exception.allowedServiceIds.map(String):[],requestId:typeof value?.exception?.requestId==='string'&&/^[0-9a-f-]{36}$/i.test(value.exception.requestId)?value.exception.requestId:crypto.randomUUID(),
 			date: typeof value?.exception?.date === 'string' ? value.exception.date : fallback.exception.date,
 			dateFrom: typeof value?.exception?.dateFrom === 'string' ? value.exception.dateFrom : fallback.exception.dateFrom,
 			dateTo: typeof value?.exception?.dateTo === 'string' ? value.exception.dateTo : fallback.exception.dateTo,
@@ -226,7 +234,7 @@
 	};
 
 	const hasExceptionDraft = (exception: ProfessionalDraft['exception']) =>
-		exception.periodMode === 'range'
+		exception.periodMode === 'multiple' ? Boolean(exception.dates?.length||exception.date.trim()||exception.reason.trim()) : exception.periodMode === 'range'
 			? Boolean(exception.dateFrom.trim() || exception.dateTo.trim() || exception.reason.trim())
 			: Boolean(exception.date.trim() || exception.timeRange.trim() || exception.reason.trim());
 
@@ -308,6 +316,9 @@
 		showDeleteConfirm = true;
 		void loadDependencyCounts();
 	};
+	let acknowledgedAppointments=$state(false);
+    $effect(()=>{JSON.stringify(draft.exception);acknowledgedAppointments=false;});
+
 	let saveAllForm = $state<HTMLFormElement | null>(null);
 	let scheduleError = $state('');
 	let scheduleTimeEditing = $state(false);
@@ -402,6 +413,7 @@
 	const scheduleCanSave = $derived(validateScheduleBlocks(draft.schedule.blocks).ok);
 	const exceptionErrorFor = (exception: ProfessionalDraft['exception']) => {
 		if (!hasExceptionDraft(exception)) return '';
+        if(exception.periodMode==='multiple')return exception.dates?.length?'':'Agregá al menos una fecha.';
 		if (exception.periodMode === 'range') {
 			if (!exception.dateFrom.trim() || !exception.dateTo.trim()) {
 				return 'Completá las fechas Desde y Hasta.';
@@ -487,6 +499,7 @@
 	};
 
 	const toggleService = (serviceId: string) => {
+        if(draft.serviceIds.includes(serviceId)){draft.schedule.blocks=draft.schedule.blocks.map(block=>({...block,allowedServiceIds:(block.allowedServiceIds??[]).filter(id=>id!==serviceId)}));if(draft.exception.appliesTo==='professional')draft.exception.allowedServiceIds=draft.exception.allowedServiceIds.filter(id=>id!==serviceId);}
 		draft.serviceIds = draft.serviceIds.includes(serviceId)
 			? draft.serviceIds.filter((id) => id !== serviceId)
 			: [...draft.serviceIds, serviceId];
@@ -519,7 +532,7 @@
 						: block.weekdays.filter((item) => item !== weekday)
 				};
 			}
-			return adding ? { ...block, weekdays: block.weekdays.filter((item) => item !== weekday) } : block;
+			return block;
 		});
 		scheduleError = '';
 	};
@@ -528,7 +541,7 @@
 		const normalized = uniqueSortedNumbers(items);
 		draft.schedule.blocks = draft.schedule.blocks.map((block) => {
 			if (block.id === blockId) return { ...block, weekdays: normalized };
-			return { ...block, weekdays: block.weekdays.filter((weekday) => !normalized.includes(weekday)) };
+			return block;
 		});
 		scheduleError = '';
 	};
@@ -893,6 +906,7 @@
 		{/if}
 
 		<form method="POST" action="?/save_all" class="hidden" use:enhance={saveAllEnhance} bind:this={saveAllForm}>
+			<input type="hidden" name="ack_existing_appointments" value={acknowledgedAppointments?'true':'false'}/>{#each draft.exception.allowedServiceIds as serviceId}<input type="hidden" name="exception_service_ids" value={serviceId}/>{/each}
 			<input type="hidden" name="save_profile" value={shouldSaveProfile ? 'true' : 'false'} />
 			<input type="hidden" name="save_services" value={dirtyFields.services ? 'true' : 'false'} />
 			<input type="hidden" name="save_schedule" value={dirtyFields.schedule ? 'true' : 'false'} />
@@ -905,10 +919,10 @@
 			{#each draft.serviceIds.filter((id) => !defaultServiceIdSet.has(id)) as serviceId}
 				<input type="hidden" name="service_id" value={serviceId} />
 			{/each}
-			<input type="hidden" name="schedule_blocks" value={scheduleBlocksJson} />
+			<input type="hidden" name="schedule_blocks" value={scheduleBlocksJson} /><input type="hidden" name="availability_revision" value={data.availabilityRevision??0}/><input type="hidden" name="exception_request_id" value={draft.exception.requestId}/>
 			<input type="hidden" name="applies_to" value={draft.exception.appliesTo} />
 			<input type="hidden" name="type" value={draft.exception.type} />
-			<input type="hidden" name="period_mode" value={draft.exception.periodMode} />
+			<input type="hidden" name="period_mode" value={draft.exception.periodMode} /><input type="hidden" name="availability_revision" value={data.availabilityRevision??0}/><input type="hidden" name="exception_request_id" value={draft.exception.requestId}/><input type="hidden" name="dates" value={JSON.stringify(draft.exception.dates??[])}/>
 			<input type="hidden" name="date" value={draft.exception.date} />
 			<input type="hidden" name="date_from" value={draft.exception.dateFrom} />
 			<input type="hidden" name="date_to" value={draft.exception.dateTo} />
@@ -1123,6 +1137,7 @@
 	{/if}
 
 	{#if activeTab === 'servicios'}
+        <a class="ux-btn-secondary mb-5 inline-flex" href={`/odonto/profesionales/${data.professional?.id}/aranceles`}>Configurar aranceles y ajustes mensuales</a>
 		<div class="grid gap-5 xl:grid-cols-[minmax(0,1fr)_20rem]">
 			<form method="POST" action="?/save_services" class={`ux-card ${sectionStateClass(dirtyFields.services)}`} use:enhance={sectionEnhance('services')}>
 				<div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -1155,7 +1170,7 @@
 								<span class="min-w-0 flex-1">
 									<span class="block font-black text-white">{service.name}</span>
 									<span class="mt-1 block text-sm text-white/55">
-										{durationLabel(service.duration_minutes)}{service.price_label ? ` · ${service.price_label}` : ''}
+										{durationLabel(service.duration_minutes)}{data.currentPriceLabels?.[service.id] ? ` · ${data.currentPriceLabels[service.id]} este mes` : service.price_label ? ` · ${service.price_label}` : ''}
 									</span>
 								</span>
 							</label>
@@ -1196,7 +1211,7 @@
 							<input name="duration_minutes" type="number" min="5" max="480" step="5" value="30" disabled={!canOperate} class="ux-input" />
 						</label>
 						<label>
-							<span class="ux-label">Precio visible (opcional)</span>
+							<span class="ux-label">Texto de arancel sin política mensual (opcional)</span>
 							<input name="price_label" type="text" inputmode="numeric" disabled={!canOperate} placeholder="$ 35.000" class="ux-input" oninput={handlePriceInput} />
 						</label>
 						<button class="ux-btn-primary" disabled={!canOperate || saving === 'service-create'}>
@@ -1233,7 +1248,7 @@
 							<input name="duration_minutes" type="number" min="5" max="480" step="5" required value={editingService.duration_minutes} disabled={!canManage} class="ux-input" />
 						</label>
 						<label>
-							<span class="ux-label">Precio visible (opcional)</span>
+							<span class="ux-label">Texto de arancel sin política mensual (opcional)</span>
 							<input name="price_label" type="text" inputmode="numeric" value={editingService.price_label ?? ''} disabled={!canManage} placeholder="$ 35.000" class="ux-input" oninput={handlePriceInput} />
 						</label>
 					</div>
@@ -1292,7 +1307,7 @@
 						<p class="ux-section-meta ux-section-meta-warning">Cambios sin guardar</p>
 					{/if}
 				</div>
-				<input type="hidden" name="schedule_blocks" value={scheduleBlocksJson} />
+				<input type="hidden" name="schedule_blocks" value={scheduleBlocksJson} /><input type="hidden" name="availability_revision" value={data.availabilityRevision??0}/><input type="hidden" name="exception_request_id" value={draft.exception.requestId}/>
 				<div class="mt-6 grid gap-4">
 					{#each draft.schedule.blocks as block, blockIndex (block.id)}
 						{@const assignedByOtherBlock = usedWeekdays(block.id)}
@@ -1304,7 +1319,7 @@
 							<div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 								<div>
 									<h3 class="text-base font-black text-white">Bloque {blockIndex + 1}</h3>
-									<p class="mt-1 text-sm text-white/55">Días que comparten la misma franja habitual.</p>
+									<p class="mt-1 text-sm text-white/55">Días que comparten la misma franja habitual.</p><div class="mt-4"><label class="ux-label">Prestaciones de esta franja<select class="ux-input mt-2" value={block.serviceScope??'all'} onchange={event=>updateScheduleBlock(block.id,{serviceScope:event.currentTarget.value as 'all'|'restricted',allowedServiceIds:block.allowedServiceIds??[]})}><option value="all">Todas las habilitadas</option><option value="restricted">Sólo las seleccionadas</option></select></label>{#if block.serviceScope==='restricted'}<fieldset class="mt-3"><legend class="ux-label">Prestaciones permitidas</legend>{#if dirtyFields.services}<p class="mt-2 text-sm text-white/75">Usá Guardar todo para aplicar juntos los cambios de prestaciones y horarios.</p>{/if}{#each data.services.filter((service:Service)=>draft.serviceIds.includes(service.id)||defaultServiceIdSet.has(service.id)) as service}<label class="mt-2 flex min-h-11 items-center gap-3 text-sm text-white/80"><input type="checkbox" checked={block.allowedServiceIds?.includes(service.id)??false} onchange={event=>updateScheduleBlock(block.id,{allowedServiceIds:event.currentTarget.checked?[...(block.allowedServiceIds??[]),service.id]:(block.allowedServiceIds??[]).filter(id=>id!==service.id)})}/>{service.name}</label>{/each}{#if !block.allowedServiceIds?.length}<p class="mt-2 text-sm text-white/80">La franja está cerrada hasta que elijas una prestación.</p>{/if}</fieldset>{/if}</div>
 								</div>
 								<button type="button" class="ux-btn-secondary text-sm" disabled={!canOperate} onclick={() => removeScheduleBlock(block.id)}>
 									Quitar bloque
@@ -1328,7 +1343,7 @@
 											class={`min-h-14 min-w-0 rounded-2xl border px-3 py-3 text-center text-sm font-black leading-tight whitespace-normal transition disabled:cursor-not-allowed disabled:opacity-50 ${
 												block.weekdays.includes(index)
 													? 'border-[#8b5cf6] bg-[#7c3aed] text-white shadow-lg shadow-[#7c3aed]/20'
-													: assignedByOtherBlock.has(index)
+													: false /* Another block on this weekday is valid when the time ranges do not overlap. */
 														? 'border-white/5 bg-white/[0.015] text-white/30'
 														: 'border-white/10 bg-white/[0.03] text-white/65 hover:border-[#8b5cf6]/60 hover:bg-white/[0.06]'
 											}`}
@@ -1427,12 +1442,12 @@
 				onsubmit={normalizeExceptionBeforeSubmit}
 				use:enhance={sectionEnhance('exception')}
 			>
-				<h2 class="ux-section-title">Ausencia o cambio de horario</h2>
-				<p class="mt-2 text-sm text-white/55">Bloqueá un horario puntual o varios días completos.</p>
+				<h2 class="ux-section-title">Ausencia o cambio de horario</h2>{#if form?.exceptionConflict}<label class="ux-alert mt-3 flex items-start gap-3"><input type="checkbox" name="ack_existing_appointments" value="true" bind:checked={acknowledgedAppointments} required/><span>Revisé los turnos existentes. Confirmo el bloqueo de nuevos turnos; los anteriores se conservan.</span></label>{/if}
+				<p class="mt-2 text-sm text-white/55">Bloqueá un horario puntual o varios días completos.</p><label class="mt-4 flex min-h-11 items-center gap-3 text-sm text-white/80"><input type="radio" name="type" value="restricted" bind:group={draft.exception.type} onclick={()=>draft.exception.periodMode='single'}/>Reservar esta franja para prestaciones específicas</label>{#if draft.exception.type==='restricted'}<fieldset class="mt-3"><legend class="ux-label">Prestaciones permitidas en esta fecha</legend>{#each data.services.filter((service:Service)=>draft.exception.appliesTo==='business'||draft.serviceIds.includes(service.id)||defaultServiceIdSet.has(service.id)) as service}<label class="mt-2 flex min-h-11 items-center gap-3 text-sm text-white/80"><input type="checkbox" name="exception_service_ids" value={service.id} bind:group={draft.exception.allowedServiceIds}/>{service.name}</label>{/each}</fieldset>{/if}
 				{#if dirtyFields.exception}
 					<p class="ux-section-meta ux-section-meta-warning">Cambios sin guardar</p>
 				{/if}
-				<input type="hidden" name="period_mode" value={draft.exception.periodMode} />
+				<input type="hidden" name="period_mode" value={draft.exception.periodMode} /><input type="hidden" name="availability_revision" value={data.availabilityRevision??0}/><input type="hidden" name="exception_request_id" value={draft.exception.requestId}/><input type="hidden" name="dates" value={JSON.stringify(draft.exception.dates??[])}/>
 				<div class="mt-5 grid gap-4">
 					<div>
 						<span class="ux-label">Afecta a</span>
@@ -1486,11 +1501,11 @@
 								>
 									<span class="block font-black text-white">Rango de días</span>
 									<span class="mt-1 block text-xs text-white/50">Desde y hasta, días completos.</span>
-								</button>
+								</button><button type="button" class="ux-choice p-4 text-left" aria-pressed={draft.exception.periodMode==='multiple'} onclick={()=>draft.exception.periodMode='multiple'}><span class="block font-bold">Fechas separadas</span><span class="mt-1 block text-xs text-white/70">Elegí varios días completos.</span></button>
 							</div>
 						</div>
 					{/if}
-					{#if draft.exception.periodMode === 'single'}
+					{#if draft.exception.periodMode==='multiple'}<label class="ux-label">Agregar una fecha<input type="date" bind:value={draft.exception.date} class="ux-input"/></label><button type="button" class="ux-btn-secondary" disabled={!draft.exception.date} onclick={()=>{draft.exception.dates=[...new Set([...(draft.exception.dates??[]),draft.exception.date])].sort();draft.exception.date='';}}>Agregar fecha</button><ul>{#each draft.exception.dates??[] as date}<li class="mt-2 flex items-center justify-between gap-3"><span>{date}</span><button type="button" class="ux-btn-secondary" aria-label={`Quitar fecha ${date}`} onclick={()=>draft.exception.dates=draft.exception.dates.filter(item=>item!==date)}>Quitar</button></li>{/each}</ul>{:else if draft.exception.periodMode === 'single'}
 						<div class="grid gap-4 sm:grid-cols-2">
 							<label>
 								<span class="ux-label">Fecha</span>
@@ -1546,11 +1561,11 @@
 								<div class="flex flex-1 flex-wrap gap-2">
 									{#if day.rules.length > 0}
 										{#each day.rules as rule}
-											<form method="POST" action="?/delete_rule" class="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-2" use:enhance={refreshEnhance}>
-												<input type="hidden" name="rule_id" value={rule.id} />
-												<span class="text-sm font-bold text-white">{rule.start_time.slice(0, 5)} - {rule.end_time.slice(0, 5)}</span>
-												<span class="text-xs font-bold text-white/50">Descanso entre consultas: {rule.break_minutes} min</span>
-												<button type="submit" disabled={!canOperate} class="text-xs font-black text-red-200 disabled:opacity-50">Quitar</button>
+											<form method="POST" action="?/delete_rule" class="flex w-full flex-col items-start gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2" use:enhance={refreshEnhance}>
+												<input type="hidden" name="rule_id" value={rule.id}/><input type="hidden" name="availability_revision" value={data.availabilityRevision??0} />
+												<span class="whitespace-nowrap text-sm font-bold text-white">{rule.start_time.slice(0, 5)} - {rule.end_time.slice(0, 5)}</span>
+												<span class="text-xs font-bold text-white/50">Descanso entre consultas: {rule.break_minutes} min</span>{#if rule.service_scope==='restricted'}<span class="text-xs text-white/75">{restrictionLabel((rule.rule_services??[]).map(item=>item.service_id))}</span>{/if}
+												<button type="submit" disabled={!canOperate} class="min-h-11 whitespace-nowrap font-black text-red-200 disabled:opacity-50">Quitar</button>
 											</form>
 										{/each}
 									{:else}
@@ -1571,11 +1586,11 @@
 							<input type="hidden" name="exception_id" value={item.id} />
 							<div class="flex items-start justify-between gap-3">
 								<div class="text-sm">
-									<p class="font-bold text-white">{item.type === 'blocked' ? 'Bloqueo' : 'Horario extra'} · {exceptionTarget(item)}</p>
-									<p class="mt-1 text-white/55">{exceptionPeriodLabel(item)}</p>
+									<p class="font-bold text-white">{item.type === 'blocked' ? 'Bloqueo' : item.type==='restricted'?'Franja reservada':'Horario extra'} · {exceptionTarget(item)}</p>
+									<p class="mt-1 text-white/55">{exceptionPeriodLabel(item)}</p>{#if item.type==='restricted'}<p class="mt-1 text-xs text-white/75">{restrictionLabel((item.exception_services??[]).map((row:{service_id:string})=>row.service_id))}</p>{/if}
 									{#if item.reason}<p class="mt-1 text-xs text-white/42">{item.reason}</p>{/if}
 								</div>
-								<button type="submit" disabled={!canOperate} class="text-sm font-bold text-red-200 disabled:opacity-50">Eliminar</button>
+								<button type="submit" disabled={!canOperate} class="min-h-11 shrink-0 whitespace-nowrap text-sm font-bold text-red-200 disabled:opacity-50">Eliminar</button>
 							</div>
 						</form>
 					{/each}

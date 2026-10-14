@@ -1,5 +1,6 @@
-export const CLINICAL_IMAGE_MAX_BYTES = 25 * 1024 * 1024;
-export const CLINICAL_IMAGE_MIME_TYPES = ['image/jpeg', 'image/png'] as const;
+import {CLINICAL_DOCUMENT_MAX_BYTES,CLINICAL_DOCUMENT_MIMES,hasPdfHeader,hasPdfEof} from '$lib/clinical-documents';
+export const CLINICAL_IMAGE_MAX_BYTES = CLINICAL_DOCUMENT_MAX_BYTES;
+export const CLINICAL_IMAGE_MIME_TYPES = CLINICAL_DOCUMENT_MIMES;
 export type ClinicalImageMime = (typeof CLINICAL_IMAGE_MIME_TYPES)[number];
 
 export type ClinicalImageValidation =
@@ -7,6 +8,7 @@ export type ClinicalImageValidation =
 	| { ok: false; message: string };
 
 export const hasClinicalImageSignature = (bytes: Uint8Array, mimeType: ClinicalImageMime) => {
+    if(mimeType==='application/pdf')return hasPdfHeader(bytes);
 	if (mimeType === 'image/jpeg') {
 		return bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
 	}
@@ -25,10 +27,10 @@ export const hasClinicalImageSignature = (bytes: Uint8Array, mimeType: ClinicalI
 
 export const validateClinicalImageFile = async (file: File): Promise<ClinicalImageValidation> => {
 	if (!CLINICAL_IMAGE_MIME_TYPES.includes(file.type as ClinicalImageMime)) {
-		return { ok: false, message: 'Elegí una imagen JPG o PNG.' };
+		return { ok: false, message: 'Elegí un archivo JPG, PNG o PDF.' };
 	}
 	if (file.size < 1 || file.size > CLINICAL_IMAGE_MAX_BYTES) {
-		return { ok: false, message: 'La imagen debe pesar hasta 25 MB.' };
+		return { ok: false, message: 'El archivo debe pesar hasta 5 MB.' };
 	}
 	if (!file.name.trim() || file.name.length > 160 || /[\\/]/.test(file.name)) {
 		return { ok: false, message: 'El nombre del archivo no es válido.' };
@@ -37,8 +39,9 @@ export const validateClinicalImageFile = async (file: File): Promise<ClinicalIma
 	const prefix = new Uint8Array(await file.slice(0, 32).arrayBuffer());
 	const mimeType = file.type as ClinicalImageMime;
 	if (!hasClinicalImageSignature(prefix, mimeType)) {
-		return { ok: false, message: 'El archivo no contiene una imagen JPG o PNG válida.' };
+		return { ok: false, message: 'El contenido del archivo no coincide con su formato.' };
 	}
+    if(mimeType==='application/pdf'&&!hasPdfEof(new Uint8Array(await file.slice(-1024).arrayBuffer())))return {ok:false,message:'El PDF parece incompleto. Elegí una copia que se pueda abrir y probá nuevamente.'};
 	return { ok: true, mimeType };
 };
 
@@ -52,8 +55,8 @@ export const formatClinicalFileBytes = (value?: number | null) => {
 	const units = ['B', 'KB', 'MB'];
 	let current = Number(value);
 	let index = 0;
-	while (current >= 1024 && index < units.length - 1) {
-		current /= 1024;
+	while (current >= 1000 && index < units.length - 1) {
+		current /= 1000;
 		index += 1;
 	}
 	return `${current.toFixed(current >= 10 || index === 0 ? 0 : 1)} ${units[index]}`;
@@ -103,7 +106,7 @@ export const uploadClinicalFileWithProgress = ({
 			if (!event.lengthComputable) return;
 			onProgress?.(Math.min(100, Math.round((event.loaded / event.total) * 100)));
 		};
-		request.onerror = () => reject(new Error('No se pudo enviar la imagen. Revisá tu conexión.'));
+		request.onerror = () => reject(new Error('No se pudo enviar el archivo. Revisá tu conexión.'));
 		request.ontimeout = () => reject(new Error('La carga tardó demasiado. Probá de nuevo.'));
 		request.onabort = () => reject(new Error('La carga fue cancelada.'));
 		request.onload = () => {
@@ -112,7 +115,7 @@ export const uploadClinicalFileWithProgress = ({
 				resolve();
 				return;
 			}
-			reject(new Error('No pudimos guardar la imagen. Probá de nuevo.'));
+			reject(new Error('No pudimos guardar el archivo. Probá de nuevo.'));
 		};
 
 		const body = new FormData();

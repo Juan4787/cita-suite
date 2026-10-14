@@ -1,4 +1,5 @@
 <script lang="ts">
+ import { formatQuotedPrice, type PriceQuote } from './pricing';
 	import { enhance } from '$app/forms';
 	import BookingAppearance from '$lib/booking/BookingAppearance.svelte';
 	import BookingFrameBridge from '$lib/booking/BookingFrameBridge.svelte';
@@ -36,6 +37,7 @@
 
 	let { data, form } = $props<{
 		data: {
+            priceQuote?: PriceQuote | null;
 			state: {
 				business: any;
 				services: Service[];
@@ -715,6 +717,14 @@
 				{@render doneStep('Día', selectedDay?.label ?? selection.date, queryFor({ date: '', slot: '' }))}
 			{/if}
 
+            {#if step >= 4 && !slotsStale && data.priceQuote && data.priceQuote.date === selection.date}
+                <section class="ux-card" aria-live="polite" aria-atomic="true">
+                    <h2 class="ux-section-title">Arancel para la fecha elegida</h2>
+                    <p class="mt-3 text-xl font-bold tabular-nums">{formatQuotedPrice(data.priceQuote)}</p>
+                    {#if data.priceQuote.adjusted}<p class="mt-2 text-sm text-white/75">Este importe incluye los ajustes mensuales configurados por el consultorio para tu fecha. Podés cambiar el día antes de confirmar.</p>{/if}
+                </section>
+            {/if}
+
 			<!-- Paso 4 · Horario -->
 			{#if step === 4}
 				{#if slotsStale}
@@ -797,6 +807,7 @@
 						<input type="hidden" name="professional_ids" value={selection.professionalIds.join(',')} />
 					{/if}
 					<input type="hidden" name="slot_starts_at" value={selectedSlot.starts_at} />
+                    <input type="hidden" name="price_quote_hash" value={data.priceQuote?.hash ?? ''} />
 					<input
 						type="hidden"
 						name="idempotency_key"

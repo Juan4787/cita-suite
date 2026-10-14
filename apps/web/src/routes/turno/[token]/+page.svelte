@@ -1,4 +1,5 @@
 <script lang="ts">
+ import {formatQuotedPrice} from '$lib/booking/pricing';
 	import { enhance } from '$app/forms';
 	import BookingAppearance from '$lib/booking/BookingAppearance.svelte';
 	import { BOOKING_MODALITY_LABELS, type BookingModality } from '@turnos-saas/shared/booking-integration';
@@ -1480,7 +1481,7 @@
 {/snippet}
 
 <BookingAppearance theme={appointment?.booking_context?.theme ?? 'cita-suite'}>
-<main class="min-h-screen bg-[#06111f] px-4 py-6 text-white sm:py-10">
+<main class="min-h-screen bg-[#06111f] px-4 py-6 text-white sm:py-10">{#if data.appointment.price_quote_snapshot}<section class="ux-card mb-5"><h2 class="ux-section-title">Arancel registrado al reservar</h2><p class="mt-2 font-bold">{formatQuotedPrice(data.appointment.price_quote_snapshot)}</p></section>{/if}{#if data.appointment.patient_instructions_snapshot}<section class="ux-card mb-5"><h2 class="ux-section-title">Indicaciones para tu turno</h2><p class="mt-2 whitespace-pre-wrap break-words">{data.appointment.patient_instructions_snapshot}</p></section>{/if}
 	<div class="mx-auto flex w-full max-w-3xl flex-col gap-5">
 		<section class="ux-hero">
 			{#if appointment?.business?.logo_url}

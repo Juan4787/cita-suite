@@ -205,7 +205,7 @@
 			loaded = true;
 		} catch (error) {
 			if (generation !== patientGeneration) return;
-			loadError = error instanceof Error ? error.message : 'No pudimos cargar las imágenes.';
+			loadError = error instanceof Error ? error.message : 'No pudimos cargar los documentos.';
 		} finally {
 			if (generation === patientGeneration) {
 				append ? (loadingMore = false) : (loading = false);
@@ -281,7 +281,7 @@
 		const requestEndpoint = endpoint;
 		const generation = patientGeneration;
 		if (takenAt && takenAt > todayISO) {
-			errorMessage = 'La fecha de la imagen no puede estar en el futuro.';
+			errorMessage = 'La fecha del estudio no puede estar en el futuro.';
 			return;
 		}
 
@@ -301,7 +301,7 @@
 					body: JSON.stringify({ thumbnailUploaded: thumbnailWasUploaded })
 				});
 				if (generation === patientGeneration) {
-					message = 'Imagen guardada en la ficha del paciente.';
+					message = 'Documento guardado en la ficha del paciente.';
 					showUpload = false;
 					selectedFile = null;
 					clientRequestId = '';
@@ -328,9 +328,9 @@
 			const validation = await validateClinicalImageFile(file);
 			if (!validation.ok) throw new Error(validation.message);
 
-			uploadStatus = 'Preparando la imagen…';
+			uploadStatus = 'Preparando el archivo…';
 			const sha256 = await sha256File(file);
-			const thumbnail = await createClinicalImageThumbnail(file);
+			const thumbnail = validation.mimeType==='application/pdf'?null:await createClinicalImageThumbnail(file);
 			const started = await fetchJson<{
 				id: string;
 				upload_url?: string;
@@ -352,7 +352,7 @@
 			radiographId = started.id;
 			if (started.already_complete) {
 				if (generation === patientGeneration) {
-					message = 'La imagen ya estaba guardada.';
+					message = 'El archivo ya estaba guardado.';
 					showUpload = false;
 					selectedFile = null;
 					clientRequestId = '';
@@ -363,7 +363,7 @@
 			}
 			if (!started.upload_url) throw new Error('No pudimos preparar la carga. Probá de nuevo.');
 
-			uploadStatus = 'Subiendo imagen…';
+			uploadStatus = 'Subiendo archivo…';
 			originalUploadStarted = true;
 			await uploadClinicalFileWithProgress({
 				url: started.upload_url,
@@ -400,7 +400,7 @@
 			});
 			if (generation === patientGeneration) {
 				uploadProgress = 100;
-				message = 'Imagen guardada en la ficha del paciente.';
+				message = 'Documento guardado en la ficha del paciente.';
 				showUpload = false;
 				selectedFile = null;
 				clientRequestId = '';
@@ -416,7 +416,7 @@
 				void notifyFailedUpload(radiographId, 'client_upload_failed', requestEndpoint);
 			}
 			if (generation === patientGeneration) {
-				errorMessage = error instanceof Error ? error.message : 'No pudimos guardar la imagen.';
+				errorMessage = error instanceof Error ? error.message : 'No pudimos guardar el archivo.';
 				if (completionStarted) discardRejectedCompletion(error);
 			}
 		} finally {
@@ -433,6 +433,7 @@
 		viewerError = '';
 		viewerBusy = true;
 		try {
+            if(item.mime_type==='application/pdf'){const payload=await fetchJson<{url:string}>(`${requestEndpoint}/${item.id}/access-grants`,{method:'POST'});if(generation===patientGeneration)window.location.assign(payload.url);return;}
 			const url = await getOrLoadPatientRadiographOriginal({
 				cacheScope,
 				radiographId: item.id,
@@ -472,6 +473,7 @@
 	};
 
 	const openViewer = (item: RadiographItem, trigger: HTMLElement) => {
+        if(item.mime_type==='application/pdf'){void requestViewerAccess(item);return;}
 		if (demo) {
 			errorMessage = 'La vista de imágenes no está disponible en el modo de demostración.';
 			return;
@@ -525,20 +527,20 @@
 			}
 		} catch (error) {
 			if (generation === patientGeneration) {
-				errorMessage = error instanceof Error ? error.message : 'No pudimos mover la imagen a la papelera.';
+				errorMessage = error instanceof Error ? error.message : 'No pudimos mover el documento a la papelera.';
 			}
 		} finally {
 			if (generation === patientGeneration) trashBusy = false;
 		}
 	};
 
-	const titleFor = (item: Partial<RadiographItem>) => item.note?.trim() || item.original_filename || 'Imagen clínica';
+	const titleFor = (item: Partial<RadiographItem>) => item.note?.trim() || item.original_filename || 'Documento clínico';
 	const metadataFor = (item: RadiographItem) =>
 		[
 			item.taken_at || item.ready_at || item.created_at
 				? formatDate(item.taken_at || item.ready_at || item.created_at)
 				: '',
-			item.mime_type === 'image/png' ? 'PNG' : 'JPG',
+			item.mime_type === 'application/pdf' ? 'PDF' : item.mime_type === 'image/png' ? 'PNG' : 'JPG',
 			formatClinicalFileBytes(item.bytes)
 		]
 			.filter(Boolean)
@@ -549,9 +551,9 @@
 	<div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 		<div>
 			<p class="ux-badge">Ficha clínica</p>
-			<h2 id="clinical-images-title" class="ux-section-title mt-3">Imágenes y radiografías</h2>
+			<h2 id="clinical-images-title" class="ux-section-title mt-3">Estudios y documentos</h2>
 			<p class="mt-2 max-w-2xl text-sm text-white/60">
-				El equipo autorizado puede verlas desde esta ficha. Los originales permanecen privados.
+				El equipo autorizado puede consultarlos desde esta ficha. Los originales permanecen privados.
 			</p>
 		</div>
 		{#if canUpload}
@@ -567,7 +569,7 @@
 				<input
 					bind:this={fileInput}
 					type="file"
-					accept="image/jpeg,image/png"
+					accept="image/jpeg,image/png,application/pdf"
 					class="sr-only"
 					onchange={handleFile}
 				/>
@@ -575,14 +577,14 @@
 					Usar cámara
 				</button>
 				<button type="button" class="ux-btn-primary" disabled={uploadBusy || demo} onclick={() => chooseFile('files')}>
-					Añadir imagen
+					Añadir documento
 				</button>
 			</div>
 		{/if}
 	</div>
 
 	{#if !canView}
-		<p class="ux-alert mt-5">Tu rol no permite ver imágenes clínicas.</p>
+		<p class="ux-alert mt-5">Tu rol no permite ver documentos clínicos.</p>
 	{:else}
 		{#if demo}
 			<p class="ux-alert mt-5">En el modo de demostración podés recorrer la ficha, pero no cargar ni abrir archivos.</p>
@@ -601,7 +603,7 @@
 		{/if}
 
 		{#if loading}
-			<div class="mt-6 grid gap-3" aria-label="Cargando imágenes">
+			<div class="mt-6 grid gap-3" aria-label="Cargando documentos">
 				{#each [1, 2, 3] as placeholder}
 					<div class="h-24 animate-pulse rounded-xl bg-white/5" aria-hidden="true"></div>
 				{/each}
@@ -613,12 +615,12 @@
 			</div>
 		{:else if loaded && items.length === 0}
 			<div class="mt-6 rounded-2xl border border-dashed border-white/15 bg-white/[0.03] px-5 py-8 text-center">
-				<p class="text-base font-semibold text-white">Todavía no hay imágenes en esta ficha</p>
+				<p class="text-base font-semibold text-white">Todavía no hay documentos en esta ficha</p>
 				<p class="mx-auto mt-2 max-w-lg text-sm text-white/55">
-					Podés cargar una radiografía o fotografía clínica en formato JPG o PNG, de hasta 25 MB.
+					Podés adjuntar imágenes y estudios en JPG, PNG o PDF, de hasta 5 MB.
 				</p>
 				{#if canUpload && !demo}
-					<button type="button" class="ux-btn-primary mt-5" onclick={() => chooseFile('files')}>Añadir la primera imagen</button>
+					<button type="button" class="ux-btn-primary mt-5" onclick={() => chooseFile('files')}>Añadir el primer documento</button>
 				{/if}
 			</div>
 		{:else}
@@ -646,6 +648,7 @@
 						</div>
 						<div class="min-w-0 flex-1">
 							<h3 class="truncate text-sm font-semibold text-white" title={item.original_filename ?? ''}>{titleFor(item)}</h3>
+ {#if item.source==='patient'}<p class="text-xs text-white/75">Adjuntado desde el enlace del turno</p>{/if}
 							<p class="mt-1 text-xs text-white/50">{metadataFor(item)}</p>
 							{#if item.status === 'ready' && item.integrity_status !== 'ok'}
 								<p class="mt-2 text-xs font-semibold text-red-300">Archivo temporalmente no disponible</p>
@@ -657,7 +660,7 @@
 						</div>
 						<div class="flex flex-col gap-2 sm:flex-row">
 							{#if item.status === 'ready'}
-								<button type="button" class="ux-btn-primary" onclick={(event) => openViewer(item, event.currentTarget)}>Ver imagen</button>
+								<button type="button" class="ux-btn-primary" onclick={(event) => openViewer(item, event.currentTarget)}>{item.mime_type==='application/pdf'?'Descargar PDF':'Ver imagen'}</button>
 							{:else if canUpload && !demo}
 								<button type="button" class="ux-btn-secondary" onclick={() => chooseFile('files', item)}>Reintentar</button>
 							{/if}
@@ -671,7 +674,7 @@
 			{#if hasMore}
 				<div class="mt-5 flex justify-center">
 					<button type="button" class="ux-btn-secondary" disabled={loadingMore} onclick={() => loadItems({ append: true })}>
-						{loadingMore ? 'Cargando…' : 'Ver más imágenes'}
+						{loadingMore ? 'Cargando…' : 'Ver más documentos'}
 					</button>
 				</div>
 			{/if}
@@ -680,13 +683,13 @@
 		<div class="mt-6 flex flex-col gap-3 border-t border-white/10 pt-5 text-xs text-white/50 sm:flex-row sm:items-center sm:justify-between">
 			<p>El acceso se controla con los permisos de la ficha del paciente.</p>
 			{#if canViewTrash}
-				<a class="font-semibold text-white/75 hover:text-white hover:underline" href="/odonto/pacientes/papelera">Abrir papelera de imágenes</a>
+				<a class="font-semibold text-white/75 hover:text-white hover:underline" href="/odonto/pacientes/papelera">Abrir papelera de documentos</a>
 			{/if}
 		</div>
 	{/if}
 </section>
 
-<Modal open={showUpload} title="Añadir imagen clínica" closable={!uploadBusy} on:close={closeUpload}>
+<Modal open={showUpload} title="Añadir documento clínica" closable={!uploadBusy} on:close={closeUpload}>
 	<div class="space-y-4 text-sm text-neutral-800 dark:text-neutral-100">
 		<div class="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 dark:border-[#1f3554] dark:bg-[#122641]">
 			<p class="truncate font-semibold text-neutral-900 dark:text-white">{selectedFile?.name ?? 'Imagen seleccionada'}</p>
@@ -720,7 +723,7 @@
 		<div class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
 			<button type="button" class="ux-btn-secondary" disabled={uploadBusy} onclick={closeUpload}>Cancelar</button>
 			<button type="button" class="ux-btn-primary" disabled={!selectedFile || uploadBusy} onclick={upload}>
-				{uploadBusy ? 'Guardando…' : pendingCompletionId ? 'Reintentar confirmación' : 'Guardar imagen'}
+				{uploadBusy ? 'Guardando…' : pendingCompletionId ? 'Reintentar confirmación' : 'Guardar documento'}
 			</button>
 		</div>
 	</div>
@@ -738,9 +741,9 @@
 	onretry={retryViewer}
 />
 
-<Modal open={Boolean(trashTarget)} title="Mover imagen a la papelera" dismissible={!trashBusy} on:close={() => !trashBusy && (trashTarget = null)}>
+<Modal open={Boolean(trashTarget)} title="Mover documento a la papelera" dismissible={!trashBusy} on:close={() => !trashBusy && (trashTarget = null)}>
 	<div class="space-y-4 text-sm text-neutral-800 dark:text-neutral-100">
-		<p>La imagen dejará de verse en la ficha, pero no se borrará físicamente. El dueño o un administrador podrá restaurarla desde la papelera.</p>
+		<p>El documento dejará de verse en la ficha, pero no se borrará físicamente. El dueño o un administrador podrá restaurarla desde la papelera.</p>
 		<div class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
 			<button type="button" class="ux-btn-secondary" disabled={trashBusy} onclick={() => (trashTarget = null)}>Cancelar</button>
 			<button type="button" class="ux-btn-primary" disabled={trashBusy} onclick={moveToTrash}>{trashBusy ? 'Moviendo…' : 'Mover a papelera'}</button>

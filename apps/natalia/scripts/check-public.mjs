@@ -14,7 +14,7 @@ assert.equal((html.match(/class="y"/g) || []).length, 10, 'All ten training entr
 assert.equal((html.match(/<details\b/g) || []).length, 6, 'The six original public questions must remain.');
 assert.equal((html.match(/class="footer-col"/g) || []).length, 3, 'The complete four-column footer must remain.');
 assert.equal((html.match(/class="public-dialog"/g) || []).length, 12, 'All clinical, editorial, course and contact actions must have a dialog.');
-assert(!/onclick=|data-wa\b|wa\.me|api\.whatsapp|Credenciales cita suite|555-1234|subilos en formato PDF|appState/.test(html), 'A mock action or excluded capability was reintroduced.');
+assert(!/onclick=|data-wa\b|api\.whatsapp|Credenciales cita suite|555-1234|subilos en formato PDF|appState/.test(html), 'A mock action or excluded capability was reintroduced.');
 const ids = new Set([...html.matchAll(/\sid="([^"]+)"/g)].map(m => m[1]));
 assert.equal(ids.size, [...html.matchAll(/\sid="([^"]+)"/g)].length, 'Public IDs must be unique.');
 for (const m of html.matchAll(/<a\b[^>]*href="(#[^"]+|\/[^"?#]*)(?:[?#][^"]*)?"/g)) {

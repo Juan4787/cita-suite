@@ -8,13 +8,17 @@ import { hashRateLimitSubject } from './rate-limits';
 export const bookingInformationEnabled = () => env.BOOKING_INFORMATION_ENABLED === 'true';
 export const privateInformationHeaders = { 'cache-control': 'no-store', 'referrer-policy': 'no-referrer', 'x-content-type-options': 'nosniff' };
 export type PublicInformation = {
+ documents_enabled?:boolean;
   theme: import('@turnos-saas/shared/booking-integration').BookingTheme;
   schema: ReturnType<typeof parsePublicPatientFields>;
   schema_hash: string; answers: Record<string, string | boolean>; comment: string; version: string;
 };
 
 export async function informationContext(event: RequestEvent) {
-  event.setHeaders(privateInformationHeaders);
+  if (!event.locals.bookingInformationHeadersApplied) {
+    event.setHeaders(privateInformationHeaders);
+    event.locals.bookingInformationHeadersApplied = true;
+  }
   if (!bookingInformationEnabled()) error(503, 'La información previa todavía no está habilitada. Podés conservar tu reserva.');
   const token = event.params.token ?? '';
   if (!/^[a-f0-9]{64}$/.test(token)) error(404, 'Este enlace no está disponible. Abrí el enlace de tu turno.');

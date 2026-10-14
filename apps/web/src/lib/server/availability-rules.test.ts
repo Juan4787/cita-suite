@@ -1,92 +1,16 @@
-import { describe, expect, it } from 'vitest';
-import { replaceProfessionalScheduleBlocks } from './availability-rules';
-
-describe('replaceProfessionalScheduleBlocks', () => {
-	it('reemplaza todo el set semanal del profesional desde bloques normalizados', async () => {
-		const calls: unknown[] = [];
-		const deleteBuilder = {
-			eq(column: string, value: string) {
-				calls.push({ type: 'delete.eq', column, value });
-				return deleteBuilder;
-			},
-			then(resolve: (value: { error: null }) => unknown) {
-				return Promise.resolve(resolve({ error: null }));
-			}
-		};
-		const supabase = {
-			from(table: string) {
-				expect(table).toBe('availability_rules');
-				return {
-					delete() {
-						calls.push({ type: 'delete' });
-						return deleteBuilder;
-					},
-					insert(rows: unknown[]) {
-						calls.push({ type: 'insert', rows });
-						return Promise.resolve({ error: null });
-					}
-				};
-			}
-		};
-
-		await replaceProfessionalScheduleBlocks(supabase as never, {
-			businessId: 'biz-1',
-			professionalId: 'pro-1',
-			blocks: [
-				{
-					weekdays: [1, 5],
-					ranges: [{ start: '08:00', end: '15:00' }],
-					slotIntervalMinutes: 15,
-					breakMinutes: 0
-				},
-				{
-					weekdays: [6],
-					ranges: [{ start: '09:00', end: '13:00' }],
-					slotIntervalMinutes: 20,
-					breakMinutes: 23
-				}
-			]
-		});
-
-		expect(calls).toEqual([
-			{ type: 'delete' },
-			{ type: 'delete.eq', column: 'business_id', value: 'biz-1' },
-			{ type: 'delete.eq', column: 'professional_id', value: 'pro-1' },
-			{
-				type: 'insert',
-				rows: [
-					{
-						business_id: 'biz-1',
-						professional_id: 'pro-1',
-						weekday: 1,
-						start_time: '08:00',
-						end_time: '15:00',
-						slot_interval_minutes: 15,
-						break_minutes: 0,
-						is_active: true
-					},
-					{
-						business_id: 'biz-1',
-						professional_id: 'pro-1',
-						weekday: 5,
-						start_time: '08:00',
-						end_time: '15:00',
-						slot_interval_minutes: 15,
-						break_minutes: 0,
-						is_active: true
-					},
-					{
-						business_id: 'biz-1',
-						professional_id: 'pro-1',
-						weekday: 6,
-						start_time: '09:00',
-						end_time: '13:00',
-						slot_interval_minutes: 20,
-						break_minutes: 23,
-						is_active: true
-					}
-				]
-			}
-		]);
-	});
+import {describe,expect,it,vi} from 'vitest';
+import {replaceProfessionalScheduleBlocks} from './availability-rules';
+const blocks=[{weekdays:[2],ranges:[{start:'14:00',end:'17:00'}],slotIntervalMinutes:30,breakMinutes:0},{weekdays:[2],ranges:[{start:'17:00',end:'19:00'}],slotIntervalMinutes:30,breakMinutes:15,serviceScope:'restricted' as const,allowedServiceIds:['follow-up-id']}];
+describe('atomic schedule replacement boundary',()=>{
+ it('submits the complete draft and restrictions in one transaction without client-side deletion',async()=>{
+  const rpc=vi.fn().mockResolvedValue({error:null});const from=vi.fn();
+  await replaceProfessionalScheduleBlocks({rpc,from} as never,{businessId:'biz-1',professionalId:'pro-1',expectedRevision:7,blocks});
+  expect(rpc).toHaveBeenCalledOnce();expect(from).not.toHaveBeenCalled();
+  expect(rpc).toHaveBeenCalledWith('replace_professional_schedule_blocks',expect.objectContaining({p_business_id:'biz-1',p_professional_id:'pro-1',p_expected_revision:7,p_blocks:[expect.objectContaining({service_scope:'all',service_ids:[]}),expect.objectContaining({service_scope:'restricted',service_ids:['follow-up-id']})]}));
+ });
+ it('does not fall back to deleting rules when the atomic operation fails',async()=>{
+  const cause={message:'SCHEDULE_CHANGED'};const rpc=vi.fn().mockResolvedValue({error:cause});const from=vi.fn();
+  await expect(replaceProfessionalScheduleBlocks({rpc,from} as never,{businessId:'biz-1',professionalId:'pro-1',expectedRevision:7,blocks})).rejects.toEqual(cause);
+  expect(from).not.toHaveBeenCalled();
+ });
 });

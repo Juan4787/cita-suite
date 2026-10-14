@@ -568,7 +568,7 @@ export const load: PageServerLoad = async ({ params, locals, fetch, cookies, dep
 			professional_archived_at:
 				context.role === 'professional' ? ((professionalLink as any)?.archived_at ?? null) : null
 		},
-		businessTimeZone: context.business.timezone,
+		businessTimeZone: context.business.timezone,businessIndustry:context.business.industry,
 		bookingInformationEnabled: bookingInformationEnabled(),
 		entries: hasMoreEntries ? entriesWithCosts.slice(0, ENTRIES_PAGE_SIZE) : entriesWithCosts,
 		appointments: appointments ?? [],

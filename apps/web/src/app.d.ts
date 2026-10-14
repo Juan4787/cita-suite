@@ -3,6 +3,7 @@
 declare global {
 	namespace App {
 		interface Locals {
+			bookingInformationHeadersApplied?: boolean;
 			bookingFrameAncestors?: string[];
 			bookingIntegrationRequest?: { publicKey: string; promise: Promise<import('$lib/server/booking-integration-request').ResolvedBookingIntegration> };
 			auth: {

@@ -31,6 +31,7 @@ type PublicAppointmentDatabaseRow = {
 
 export type PublicAppointmentView = {
 	booking_context?: AppointmentBookingContext | null;
+ price_quote_snapshot?:import('$lib/booking/pricing').PriceQuote|null;patient_instructions_snapshot?:string|null;public_reminder_description_snapshot?:string|null;
 	id: string;
 	token: string;
 	status: AppointmentStatus;
@@ -113,6 +114,7 @@ const appointmentSelect = `
 	starts_at,
 	ends_at,
 	service_name_snapshot,
+    price_quote_snapshot,patient_instructions_snapshot,public_reminder_description_snapshot,
 	professional_name_snapshot,
 	calendar_action_status,
 	calendar_action_at,
@@ -168,6 +170,7 @@ export const loadPublicAppointmentByToken = async (
 	);
 
 	return {
+        price_quote_snapshot:(data as any).price_quote_snapshot??null,patient_instructions_snapshot:(data as any).patient_instructions_snapshot??null,public_reminder_description_snapshot:(data as any).public_reminder_description_snapshot??null,
 		booking_context: bookingContext,
 		id: String(data.id),
 		token: String(data.confirmation_token),

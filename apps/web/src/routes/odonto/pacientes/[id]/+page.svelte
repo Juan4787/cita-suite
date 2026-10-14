@@ -639,7 +639,7 @@ const preventEnterSubmit = (event: KeyboardEvent) => {
 				}`}
 				onclick={() => selectTab('radiografias')}
 			>
-				Radiografías
+				Estudios y documentos
 			</button>
 		</div>
 		<div class="mt-4 flex flex-wrap gap-3">
@@ -1222,7 +1222,7 @@ const preventEnterSubmit = (event: KeyboardEvent) => {
 		</div>
 		<div class="grid grid-cols-1 gap-3 md:grid-cols-3">
 			<div class="space-y-2">
-				<label class="text-sm font-semibold text-neutral-800 dark:text-white" for="teeth">Dientes / zona (opcional)</label>
+				<label class="text-sm font-semibold text-neutral-800 dark:text-white" for="teeth">{data.businessIndustry && data.businessIndustry!=='odontology'?'Zona / referencia (opcional)':'Dientes / zona (opcional)'}</label>
 				<input
 					id="teeth"
 					name="teeth"
@@ -1388,7 +1388,7 @@ const preventEnterSubmit = (event: KeyboardEvent) => {
 		</div>
 		<div class="grid grid-cols-1 gap-3 md:grid-cols-3">
 			<div class="space-y-2">
-				<label class="text-sm font-semibold text-neutral-800 dark:text-white" for="edit_teeth">Dientes / zona (opcional)</label>
+				<label class="text-sm font-semibold text-neutral-800 dark:text-white" for="edit_teeth">{data.businessIndustry && data.businessIndustry!=='odontology'?'Zona / referencia (opcional)':'Dientes / zona (opcional)'}</label>
 				<input
 					id="edit_teeth"
 					name="teeth"

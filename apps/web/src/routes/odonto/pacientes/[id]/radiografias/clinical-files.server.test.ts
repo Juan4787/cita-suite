@@ -268,14 +268,14 @@ describe('clinical file HTTP contracts', () => {
 		const response = await beginUpload(
 			eventFor(`/odonto/pacientes/${patientId}/radiografias/uploads`, {
 				...validUploadBody,
-				mimeType: 'application/pdf'
+				mimeType: 'image/gif'
 			})
 		);
 
 		expect(response.status).toBe(400);
 		expect(await response.json()).toEqual({
 			code: 'INVALID_FILE_TYPE',
-			message: 'Elegí una imagen JPG o PNG.'
+			message: 'Elegí un archivo JPG, PNG o PDF.'
 		});
 		expect(mocks.enforceRateLimits).not.toHaveBeenCalled();
 		expect(rpc).not.toHaveBeenCalled();
@@ -429,7 +429,8 @@ describe('clinical file HTTP contracts', () => {
 			],
 			error: null
 		}));
-		mocks.getClinicalFileRequestContext.mockResolvedValue(makeContext({ rpc }));
+		const patientQuery:any={select:()=>patientQuery,eq:()=>patientQuery,single:async()=>({data:{full_name:'Ana Pérez Sintética'},error:null})};
+		mocks.getClinicalFileRequestContext.mockResolvedValue(makeContext({ rpc,from:vi.fn(()=>patientQuery) }));
 		const response = await grantAccess(
 			eventFor(`/odonto/pacientes/${patientId}/radiografias/${radiographId}/access-grants`)
 		);

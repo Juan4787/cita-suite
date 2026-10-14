@@ -1,0 +1,21 @@
+{
+  "scope": "Static local Natalia; real isolated Cita PostgreSQL and APIs; no production writes or WhatsApp messages",
+  "checks": [
+    "Natalia retains its complete public layout and obtains contact/catalogue from actual isolated APIs; SDK waits for intent",
+    "Actual SDK opens the actual booking iframe and Escape closes it",
+    "Approved WhatsApp contact remains available with booking disabled",
+    "Disabling the WhatsApp contact flag removes the link while keeping the approved address",
+    "Questionnaire renders existing values and saves medical history without JavaScript"
+  ],
+  "screenshots": [
+    "natalia-desktop.png",
+    "natalia-contact-desktop.png",
+    "natalia-mobile.png",
+    "natalia-contact-mobile.png",
+    "contact-mobile.png",
+    "contact-320.png",
+    "information-nojs-mobile.png"
+  ],
+  "errors": [],
+  "unexpected": []
+}

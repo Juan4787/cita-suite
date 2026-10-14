@@ -109,6 +109,9 @@ const claimedRow = {
 };
 
 const liveAppointment = {
+	public_reminder_description_snapshot: 'Descripción pública sintética',
+	patient_instructions_snapshot: 'Indicación clínica privada',
+	note: 'Nota interna privada',
 	id: 'apt-1',
 	status: 'confirmed',
 	starts_at: '2026-06-12T11:00:00.000Z',
@@ -736,6 +739,9 @@ describe('sendDuePushReminders', () => {
 		const payload = JSON.parse(vi.mocked(webpush.sendNotification).mock.calls[0][1] as string);
 		expect(payload.title).toBe('Turno en Clínica Sabrina');
 		expect(payload.body).toContain('a las 08:00');
+		expect(payload.body).toContain('Descripción pública sintética');
+		expect(payload.body).not.toContain('Indicación clínica privada');
+		expect(payload.body).not.toContain('Nota interna privada');
 		expect(payload.url).toContain('/turno/tok-1');
 		expect(vi.mocked(webpush.sendNotification).mock.calls[0][2]).toMatchObject({
 			topic: pushTopicForAppointment('apt-1'),
@@ -884,6 +890,9 @@ describe('sendReschedulePushNotice', () => {
 		const payload = JSON.parse(vi.mocked(webpush.sendNotification).mock.calls[0][1] as string);
 		expect(payload.body).toContain('reprogramado');
 		expect(payload.body).toContain('a las 08:00');
+		expect(payload.body).toContain('Descripción pública sintética');
+		expect(payload.body).not.toContain('Indicación clínica privada');
+		expect(payload.body).not.toContain('Nota interna privada');
 		// Mismo tag que el aviso de 24h: pisa la notificación vieja en el navegador.
 		expect(payload.tag).toBe('turno-apt-1-24h');
 		expect(payload.group).toBe('turno-apt-1');

@@ -65,7 +65,7 @@ describe('schedule blocks', () => {
 		}
 	);
 
-	it('rechaza el mismo día en más de un bloque para evitar reemplazos ambiguos', () => {
+	it('rechaza franjas superpuestas del mismo día', () => {
 		const result = validateScheduleBlocks([
 			{ weekdays: [1, 2, 3, 4, 5, 6], timeRanges: '8 a 15', slotInterval: '15' },
 			{ weekdays: [6], timeRanges: '9 a 13', slotInterval: '15' }
@@ -73,7 +73,7 @@ describe('schedule blocks', () => {
 
 		expect(result).toMatchObject({
 			ok: false,
-			message: 'Un día no puede estar en dos bloques. Revisá los bloques 1 y 2.'
+			message: expect.stringContaining('superponerse')
 		});
 	});
 
@@ -107,4 +107,14 @@ describe('schedule blocks', () => {
 			canonicalScheduleBlocks([{ weekdays: [5, 1], timeRanges: '8 a 15', slotInterval: '15' }])
 		).toBe(canonicalScheduleBlocks([{ weekdays: [1, 5], timeRanges: '08:00-15:00', slotInterval: '15' }]));
 	});
+});
+
+describe('service restrictions in schedule drafts',()=>{
+ it('permits adjacent blocks on the same weekday and preserves a closed restriction',()=>{
+  const blocks=[{weekdays:[2],timeRanges:'14-17',slotInterval:'0'}, {weekdays:[2],timeRanges:'17-19',slotInterval:'0',serviceScope:'restricted' as const,allowedServiceIds:[]}];
+  expect(validateScheduleBlocks(blocks).ok).toBe(true);
+  expect(canonicalScheduleBlocks(blocks)).toContain('restricted');
+  const reconstructed=scheduleBlocksFromRules([{weekday:2,start_time:'17:00',end_time:'19:00',slot_interval_minutes:30,service_scope:'restricted',allowed_service_ids:[]}]);
+  expect(reconstructed[0]).toMatchObject({serviceScope:'restricted',allowedServiceIds:[]});
+ });
 });

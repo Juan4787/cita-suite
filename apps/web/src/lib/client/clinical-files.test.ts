@@ -25,7 +25,7 @@ describe('clinical image client boundary', () => {
 			validateClinicalImageFile(new File([pngBytes], 'falsa.jpg', { type: 'image/jpeg' }))
 		).resolves.toEqual({
 			ok: false,
-			message: 'El archivo no contiene una imagen JPG o PNG válida.'
+			message: 'El contenido del archivo no coincide con su formato.'
 		});
 		expect(hasClinicalImageSignature(jpegBytes, 'image/jpeg')).toBe(true);
 		expect(hasClinicalImageSignature(pngBytes, 'image/png')).toBe(true);
@@ -34,13 +34,13 @@ describe('clinical image client boundary', () => {
 	it('rejects unsupported formats, unsafe names, empty files and oversized files before upload', async () => {
 		await expect(
 			validateClinicalImageFile(new File([jpegBytes], 'estudio.pdf', { type: 'application/pdf' }))
-		).resolves.toEqual({ ok: false, message: 'Elegí una imagen JPG o PNG.' });
+		).resolves.toEqual({ ok: false, message: 'El contenido del archivo no coincide con su formato.' });
 		await expect(
 			validateClinicalImageFile(new File([jpegBytes], '../imagen.jpg', { type: 'image/jpeg' }))
 		).resolves.toEqual({ ok: false, message: 'El nombre del archivo no es válido.' });
 		await expect(
 			validateClinicalImageFile(new File([], 'vacia.jpg', { type: 'image/jpeg' }))
-		).resolves.toEqual({ ok: false, message: 'La imagen debe pesar hasta 25 MB.' });
+		).resolves.toEqual({ ok: false, message: 'El archivo debe pesar hasta 5 MB.' });
 
 		const oversized = {
 			type: 'image/jpeg',
@@ -50,7 +50,7 @@ describe('clinical image client boundary', () => {
 		} as unknown as File;
 		await expect(validateClinicalImageFile(oversized)).resolves.toEqual({
 			ok: false,
-			message: 'La imagen debe pesar hasta 25 MB.'
+			message: 'El archivo debe pesar hasta 5 MB.'
 		});
 		expect(oversized.slice).not.toHaveBeenCalled();
 	});
@@ -61,7 +61,7 @@ describe('clinical image client boundary', () => {
 		);
 		expect(formatClinicalFileBytes(0)).toBe('0 B');
 		expect(formatClinicalFileBytes(1536)).toBe('1.5 KB');
-		expect(formatClinicalFileBytes(5 * 1024 * 1024)).toBe('5.0 MB');
+		expect(formatClinicalFileBytes(5_000_000)).toBe('5.0 MB');
 		expect(formatClinicalFileBytes(null)).toBe('');
 	});
 
@@ -117,4 +117,13 @@ describe('clinical image client boundary', () => {
 		expect(progress).toHaveBeenCalledWith(50);
 		expect(progress).toHaveBeenLastCalledWith(100);
 	});
+});
+
+describe('basic PDF client boundary',()=>{
+ it.each(['1.7','2.0'])('accepts PDF %s without treating it as an image',async version=>{
+  expect(await validateClinicalImageFile(new File([`%PDF-${version}\ncontent\n%%EOF\n`],'estudio.pdf',{type:'application/pdf'}))).toEqual({ok:true,mimeType:'application/pdf'});
+ });
+ it('rejects a PDF without its closing marker',async()=>{
+  expect(await validateClinicalImageFile(new File(['%PDF-1.7\ncontent'],'incompleto.pdf',{type:'application/pdf'}))).toMatchObject({ok:false,message:expect.stringContaining('incompleto')});
+ });
 });

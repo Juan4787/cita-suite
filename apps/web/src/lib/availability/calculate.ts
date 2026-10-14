@@ -39,6 +39,9 @@ export type AvailabilityProfessionalRow = {
 };
 
 export type AvailabilityRuleRow = {
+    service_scope?: 'all' | 'restricted';
+    allowed_service_ids?: string[];
+    rule_services?: {service_id:string}[];
 	id: string;
 	professional_id: string;
 	weekday: number;
@@ -54,7 +57,9 @@ export type AvailabilityExceptionRow = {
 	professional_id: string | null;
 	starts_at: string;
 	ends_at: string;
-	type: 'blocked' | 'extra_available';
+	type: 'blocked' | 'extra_available' | 'restricted';
+    allowed_service_ids?:string[];
+    exception_services?:{service_id:string}[];
 };
 
 export type AvailabilityAppointmentBlockRow = {
@@ -229,6 +234,7 @@ export const calculateAvailabilitySlots = (input: {
 		intervals: Interval[];
 		blockingExceptions: AvailabilityExceptionRow[];
 		appointmentBlocks: AvailabilityAppointmentBlockRow[];
+        restrictions: Array<{start:Date;end:Date;allowed:string[]}>;
 	};
 
 	const appointmentBlockRange = (block: AvailabilityAppointmentBlockRow) => ({
@@ -247,6 +253,9 @@ export const calculateAvailabilitySlots = (input: {
 	const candidateFits = (context: ProfessionalDayContext, startsAt: Date) => {
 		const endsAt = addMinutes(startsAt, service.duration_minutes);
 		if (startsAt < minStartsAt) return false;
+        const restrictedStart=addMinutes(startsAt,-service.buffer_before_minutes);
+        const restrictedEnd=addMinutes(endsAt,service.buffer_after_minutes);
+        if(context.restrictions.some(item=>overlaps(restrictedStart,restrictedEnd,item.start,item.end)&&!item.allowed.includes(service.id)))return false;
 
 		for (const interval of context.intervals) {
 			const baseBlockingStart = addMinutes(startsAt, -service.buffer_before_minutes);
@@ -337,7 +346,7 @@ export const calculateAvailabilitySlots = (input: {
 
 			for (const exception of input.exceptions) {
 				if (exception.type !== 'extra_available') continue;
-				if (exception.professional_id !== professional.id) continue;
+				if (exception.professional_id !== null && exception.professional_id !== professional.id) continue;
 				const start = new Date(exception.starts_at);
 				const end = new Date(exception.ends_at);
 				const localDate = zonedDateParts(start, business.timezone).date;
@@ -365,7 +374,9 @@ export const calculateAvailabilitySlots = (input: {
 			const appointmentBlocks = input.blocks.filter(
 				(block) => block.professional_id === professional.id
 			);
-			contexts.push({ professional, intervals, blockingExceptions, appointmentBlocks });
+            const restrictions=professionalRules.filter(rule=>rule.weekday===weekday&&rule.service_scope==='restricted').map(rule=>({start:zonedDateTimeToUtc(date,rule.start_time.slice(0,5),business.timezone),end:zonedDateTimeToUtc(date,rule.end_time.slice(0,5),business.timezone),allowed:rule.allowed_service_ids??rule.rule_services?.map(row=>row.service_id)??[]}));
+            restrictions.push(...input.exceptions.filter(item=>item.type==='restricted'&&(item.professional_id===null||item.professional_id===professional.id)).map(item=>({start:new Date(item.starts_at),end:new Date(item.ends_at),allowed:item.allowed_service_ids??item.exception_services?.map(row=>row.service_id)??[]})));
+			contexts.push({ professional, intervals, blockingExceptions, appointmentBlocks,restrictions });
 		}
 
 		if (requiredProfessionalIds.length > 0) {

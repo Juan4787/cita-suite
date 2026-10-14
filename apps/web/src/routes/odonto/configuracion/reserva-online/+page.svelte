@@ -16,7 +16,7 @@
 </script>
 
 <section class="space-y-6">
-  <div><h1 class="ux-title">Reserva online</h1><p class="mt-2 text-white/65">Elegí qué puede reservar cada paciente y qué información puede compartir antes de la consulta.</p></div>
+  <div><h1 class="ux-title">Reserva online</h1>{#if data.canManage}<a class="ux-btn-secondary mt-4 inline-flex" href="/odonto/configuracion/consultorio-publico">Configurar documentos, indicaciones y contacto</a>{/if}<div class="mt-4 flex flex-wrap gap-3">{#each data.professionals as professional}<a class="ux-btn-secondary" href={`/odonto/profesionales/${professional.id}/aranceles`}>Aranceles de {professional.name}</a>{/each}</div><p class="mt-2 text-white/65">Elegí qué puede reservar cada paciente y qué información puede compartir antes de la consulta.</p></div>
   {#if !data.enabled}
     <div class="ux-soft-card p-6"><p>Este módulo todavía no está habilitado. Las reservas actuales conservan su funcionamiento.</p></div>
   {:else}

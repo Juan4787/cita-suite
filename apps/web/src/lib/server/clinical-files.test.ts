@@ -300,7 +300,7 @@ describe('clinical files server boundary', () => {
 		).rejects.toMatchObject({
 			status: 409,
 			code: 'UPLOAD_CONFLICT',
-			message: 'No pudimos verificar la imagen cargada. Volvé a intentarlo.'
+			message: 'No pudimos verificar el archivo cargado. Volvé a intentarlo.'
 		});
 	});
 
@@ -341,4 +341,41 @@ describe('clinical files server boundary', () => {
 			})
 		).resolves.toBe(false);
 	});
+});
+
+describe('bounded PDF storage verification',()=>{
+ afterEach(()=>vi.unstubAllGlobals());
+ const originalSize=5000;
+ const admin=()=>({storage:{from:()=>({info:async()=>({data:{size:originalSize,contentType:'application/pdf'},error:null}),createSignedUrl:async()=>({data:{signedUrl:'https://isolated.example.test/object'},error:null})})}});
+ const verify=()=>verifyStoredClinicalImage({admin:admin() as never,bucket:CLINICAL_FILES_BUCKET,path:'synthetic/original.pdf',expectedBytes:originalSize,expectedMime:'application/pdf'});
+ function partial(start:number,end:number,version='2.0'){
+  const data=new Uint8Array(end-start+1).fill(32);if(start===0)data.set(new TextEncoder().encode('%PDF-'+version+'\n'));else data.set(new TextEncoder().encode('\n%%EOF\n'),data.length-7);
+  return new Response(data,{status:206,headers:{'content-range':`bytes ${start}-${end}/${originalSize}`}});
+ }
+ it('reads only the prefix and tail and verifies their exact ranges',async()=>{
+  const fetch=vi.fn().mockResolvedValueOnce(partial(0,1023)).mockResolvedValueOnce(partial(3976,4999));vi.stubGlobal('fetch',fetch);
+  expect(await verify()).toEqual({bytes:5000,mimeType:'application/pdf'});
+  expect(fetch.mock.calls.map(call=>call[1].headers.Range)).toEqual(['bytes=0-1023','bytes=3976-4999']);
+ });
+ it('stops a large response when Range is ignored',async()=>{
+  const cancel=vi.fn();const stream=new ReadableStream({start(controller){controller.enqueue(new Uint8Array(2048).fill(32));},cancel});const fetch=vi.fn().mockResolvedValue(new Response(stream,{status:200}));vi.stubGlobal('fetch',fetch);
+  await expect(verify()).rejects.toMatchObject({status:400});expect(cancel).toHaveBeenCalledOnce();expect(fetch).toHaveBeenCalledOnce();
+ });
+ it('rejects a mismatching Content-Range before using the tail',async()=>{
+  const response=partial(0,1023);response.headers.set('content-range','bytes 0-1023/9000');vi.stubGlobal('fetch',vi.fn().mockResolvedValue(response));await expect(verify()).rejects.toMatchObject({status:409});
+ });
+ it('rejects a missing PDF closing marker',async()=>{
+  vi.stubGlobal('fetch',vi.fn().mockResolvedValueOnce(partial(0,1023)).mockResolvedValueOnce(new Response(new Uint8Array(1024),{status:206,headers:{'content-range':'bytes 3976-4999/5000'}})));await expect(verify()).rejects.toMatchObject({status:400});
+ });
+});
+
+describe('human HTTP boundary errors',()=>{
+ it('preserves an unavailable reservation link status',async()=>{
+  const {error}=await import('@sveltejs/kit');let cause;try{error(404,'Este enlace no está disponible. Abrí el enlace de tu turno.');}catch(thrown){cause=thrown;}
+  expect(clinicalFileError(cause)).toMatchObject({status:404,code:'FILE_UNAVAILABLE',userMessage:'Este enlace no está disponible. Abrí el enlace de tu turno.'});
+ });
+ it('explains an expired clinic session instead of treating a login redirect as a storage fault',async()=>{
+  const {redirect}=await import('@sveltejs/kit');let cause;try{redirect(303,'/login');}catch(thrown){cause=thrown;}
+  expect(clinicalFileError(cause)).toMatchObject({status:401,code:'AUTH_REQUIRED'});
+ });
 });

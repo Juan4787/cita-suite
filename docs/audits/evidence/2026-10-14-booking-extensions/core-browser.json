@@ -1,0 +1,41 @@
+{
+  "scope": "Local real PostgreSQL/PostgREST/Storage API; Auth simulated; loopback CSP/CORS transport adaptation; no production writes",
+  "checks": [
+    "Future date quotes ARS 20,400 as whole pesos before selecting a time; 1440/390/320 without overflow",
+    "Real public booking persists its accepted whole-peso quote and instructions",
+    "Post-booking questionnaire updates medical history and preserves submission history",
+    "Patient uploads an actual 3.5 MB PDF via the rendered form",
+    "Two 3.5 MB PDFs plus 200 KB fit the 10 MB quota; fourth file denied; completion and request replay idempotent",
+    "Wrong reservation capability cannot complete another patient document",
+    "Independent settings forms preserve drafts across successful and failed saves",
+    "Professional uploads PDF without preview; download preserves exact bytes and uses patient full name",
+    "Native Storage enforces 5 MB independently; exact boundary upload completes; actual 1024-byte Range response verified",
+    "Patient profile lists the patient and professional PDFs",
+    "Real availability excludes general appointments at 17:00, allows follow-up appointments there and accepts a non-contiguous block batch",
+    "Professional scheduling editor renders at desktop, mobile and 320 px",
+    "No browser exceptions or unexpected external requests in tested flows"
+  ],
+  "screenshots": [
+    "booking-desktop.png",
+    "booking-mobile.png",
+    "booking-320.png",
+    "receipt-mobile.png",
+    "information-mobile.png",
+    "information-desktop.png",
+    "information-dark-mobile.png",
+    "price-desktop.png",
+    "price-mobile.png",
+    "price-320.png",
+    "settings-desktop.png",
+    "settings-mobile.png",
+    "settings-320.png",
+    "settings-error-mobile.png",
+    "patient-documents-mobile.png",
+    "schedule-desktop.png",
+    "schedule-mobile.png",
+    "schedule-320.png",
+    "weekly-controls-mobile.png"
+  ],
+  "errors": [],
+  "external": []
+}

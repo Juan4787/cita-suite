@@ -1,5 +1,14 @@
 # Cita Suite: archivos clínicos en Supabase Storage — fase 1
 
+## Actualización de alcance — 14 de octubre de 2026
+
+La ampliación a PDF y carga por el paciente está implementada localmente y se audita en
+[el contrato de extensiones](audits/2026-10-14-booking-extensions-contract.md). Ese contrato
+prevalece para los archivos nuevos: 5 MB por archivo, PDF sin miniatura, presupuesto global
+700 MB y capacidad limitada por reserva. La fase original siguiente queda como antecedente;
+no describe por sí sola los límites ni los permisos de la ampliación. Las migraciones de la
+ampliación todavía no se aplicaron a producción.
+
 ## Estado y propósito
 
 Este documento es la referencia funcional, técnica y operativa de la fase 1 aprobada el

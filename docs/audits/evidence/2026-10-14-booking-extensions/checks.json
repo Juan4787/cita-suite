@@ -1,0 +1,100 @@
+{
+  "date": "2026-10-14",
+  "baseline": "a480dbbe319e1a5dfc4f34e6d771828831b90b29",
+  "environment": "Isolated local PostgreSQL/PostgREST/Storage API, simulated Auth; no production mutations or deployments",
+  "execution": "Sequential suites and builds; one Vitest worker; loopback transport adaptation in browser",
+  "checks": {
+    "server": {
+      "files": 129,
+      "passed": 958,
+      "log": "/tmp/cita-implementation-unit-reviewed.log"
+    },
+    "components": {
+      "files": 8,
+      "passed": 74,
+      "log": "/tmp/cita-implementation-client-final.log"
+    },
+    "database": {
+      "migrations": 97,
+      "contract_files": 10,
+      "storage_api_version": "1.70.3",
+      "log": "/tmp/cita-implementation-schema-final.log"
+    },
+    "svelte_check": {
+      "errors": 0,
+      "warnings": 0,
+      "log": "/tmp/cita-implementation-check-price-final.log"
+    },
+    "cloudflare_build": {
+      "passed": true,
+      "scope": "Compilation only; no remote Worker execution",
+      "log": "/tmp/cita-implementation-cloudflare-price-final.log"
+    },
+    "natalia_build": {
+      "passed": true,
+      "pages": 14,
+      "javascript_bytes": 6986,
+      "css_bytes": 46310,
+      "font_bytes": 157308,
+      "initial_booking_sdk": false,
+      "log": "/tmp/cita-implementation-natalia-final.log"
+    },
+    "synthetic_natalia_browser": {
+      "passed": 6,
+      "business_responses": "Intercepted; no database writes",
+      "log": "/tmp/cita-implementation-natalia-browser.log"
+    },
+    "real_core_browser": {
+      "passed": 13,
+      "evidence": "core-browser.json"
+    },
+    "real_natalia_browser": {
+      "passed": 5,
+      "evidence": "natalia-browser.json"
+    },
+    "price_native_control": {
+      "passed": true,
+      "viewports": [
+        1440,
+        390,
+        320
+      ],
+      "supplement": "September 2027 at 320px",
+      "log": "/tmp/cita-extensions-qa/price-fix-recapture.log"
+    },
+    "visual_review": {
+      "full_review": "full-visual-review.md",
+      "disposition": "fix",
+      "material_findings": 1,
+      "verdict": "visual-fix-verdict.md",
+      "fix_1": "resolved",
+      "verdict_disposition": "ship",
+      "scope": "Independent full review plus scoring of the one material correction; no production certification"
+    }
+  },
+  "not_certified": [
+    "Production deployment and migrations",
+    "Real Auth/provider S3/Cloudflare Worker execution",
+    "Push delivery on a physical device",
+    "Actual provider egress or other organization projects",
+    "Real Natalia practice configuration"
+  ],
+  "secrets": "No runtime tokens, signed URLs, credentials, env files or old attachments copied",
+  "cleanup": {
+    "fixture": "cita-booking-test-39a648573e81",
+    "containers_removed": 3,
+    "networks_removed": 2,
+    "vite_group_terminated": true,
+    "runtime_token_files_removed": true,
+    "owned_label_remaining": 0,
+    "ports_5177_43021_listening": false,
+    "other_projects": "Untouched; removal was restricted to individually verified fixture labels, names and network members"
+  },
+  "documentation": {
+    "product": "apps/natalia/PRODUCT.md",
+    "notes": "docs/audits/2026-10-14-ui-extension-design-notes.md",
+    "incumbent_design_preserved": true,
+    "prior_scope_drift": "Reported without changing design tokens or sidecar",
+    "status": "Complete; independent ordinary-extension comparison"
+  }
+}

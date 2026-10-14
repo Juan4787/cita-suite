@@ -64,7 +64,7 @@ const localDateTime = (date: string, time: string, timeZone: string) => {
 export const parseAvailabilityExceptionInterval = (
 	input: AvailabilityExceptionIntervalInput
 ): AvailabilityExceptionIntervalResult => {
-	if (input.type !== 'blocked' && input.type !== 'extra_available') {
+	if (input.type !== 'blocked' && input.type !== 'extra_available' && input.type !== 'restricted') {
 		return { ok: false, message: 'El tipo de cambio no es válido.' };
 	}
 

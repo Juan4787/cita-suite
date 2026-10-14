@@ -1,4 +1,5 @@
 <script lang="ts">
+	import {formatQuotedPrice} from '$lib/booking/pricing';
 	import BackLink from '$lib/components/BackLink.svelte';
 	import { formatDateTime } from '$lib/utils/format';
 	import { refineDeviceClass, whatsappHrefFor, type DeviceClass } from '$lib/device';
@@ -19,7 +20,7 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@turnos-saas/shar
 
 	let { data, form } = $props<{
 		data: {
-			context: { canOperate: boolean; role: string };
+			context: { canOperate: boolean; role: string };canEditInstructions?:boolean;
 			appointment: any;
 			auditLogs: AuditLog[];
 			messageDispatches: any[];
@@ -486,7 +487,14 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@turnos-saas/shar
 							<p class="mt-2 text-base font-semibold text-white">{BOOKING_MODALITY_LABELS[data.appointment.booking_context.modality as BookingModality]}</p>
 						</div>
 				{/if}
-				{#if data.appointment.internal_note}
+				{#if data.appointment.price_quote_snapshot}<div class="ux-soft-card mb-5 p-4"><p class="ux-label">Arancel registrado al reservar</p><p class="mt-2 text-lg font-semibold">{formatQuotedPrice(data.appointment.price_quote_snapshot)}</p></div>{/if}
+ {#if data.canEditInstructions}
+ <form method="POST" action="?/save_instructions" use:enhance class="ux-soft-card mb-5 space-y-4 p-5">
+ <h2 class="ux-section-title">Indicaciones para este turno</h2><input type="hidden" name="updated_at" value={data.appointment.updated_at}/>
+ <label class="block"><span class="ux-label">Texto en la página del turno</span><textarea name="instructions" class="ux-textarea mt-2" rows="3" maxlength="2000">{data.appointment.patient_instructions_snapshot??''}</textarea></label>
+ <label class="block"><span class="ux-label">Descripción breve del recordatorio</span><textarea name="public_description" class="ux-textarea mt-2" rows="2" maxlength="180">{data.appointment.public_reminder_description_snapshot??''}</textarea><span class="mt-1 block text-sm text-white/75">Puede aparecer en la pantalla bloqueada. No incluyas información clínica ni notas internas.</span></label>
+ <button class="ux-btn-secondary">Guardar indicaciones de este turno</button></form>{/if}
+ {#if data.appointment.internal_note}
 					<div class="rounded-2xl border border-white/10 bg-white/[0.045] p-5">
 						<p class="text-sm font-semibold text-white/55">Nota interna</p>
 						<p class="mt-2 text-base font-semibold text-white">{data.appointment.internal_note}</p>

@@ -1031,8 +1031,8 @@ begin
 		select 1 from storage.buckets
 		where id = 'patient-clinical-files'
 			and public = false
-			and file_size_limit = 26214400
-			and allowed_mime_types @> array['image/jpeg', 'image/png', 'image/webp']::text[]
+			and file_size_limit = 5000000
+			and allowed_mime_types @> array['image/jpeg', 'image/png', 'image/webp','application/pdf']::text[]
 	) then
 		raise exception 'TEST_PRIVATE_BUCKET_CONFIGURATION_INVALID';
 	end if;

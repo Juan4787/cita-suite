@@ -131,13 +131,13 @@ const loadSnapshotFallback = async (
 		supabase
 			.from('availability_rules')
 			.select(
-				'id, professional_id, weekday, start_time, end_time, slot_interval_minutes, break_minutes, is_active'
+				'id, professional_id, weekday, start_time, end_time, slot_interval_minutes, break_minutes, is_active, service_scope, rule_services:availability_rule_services(service_id)'
 			)
 			.eq('business_id', businessId)
 			.eq('is_active', true),
 		supabase
 			.from('availability_exceptions')
-			.select('id, professional_id, starts_at, ends_at, type')
+			.select('id, professional_id, starts_at, ends_at, type, exception_services:availability_exception_services(service_id)')
 			.eq('business_id', businessId)
 			.lt('starts_at', rangeEnd.toISOString())
 			.gt('ends_at', rangeStart.toISOString()),

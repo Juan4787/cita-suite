@@ -1,3 +1,4 @@
+import {previewMonthlyPrices,formatQuotedPrice,monthForTimezone} from '$lib/booking/pricing';
 import { env } from '$env/dynamic/private';
 import { demoBusinessContext } from '$lib/server/business';
 import { writeAuditLog } from '$lib/server/audit';
@@ -68,10 +69,10 @@ const redirectToProfessional = (professionalId: string, tab = 'perfil') => {
 
 type SaveResult<T = unknown> =
 	| { ok: true; data?: T }
-	| { ok: false; status: 400 | 403 | 404 | 409 | 500; message: string };
+	| { ok: false; status: 400 | 403 | 404 | 409 | 500; message: string; exceptionConflict?:boolean };
 
 const failSave = (result: Extract<SaveResult, { ok: false }>) =>
-	fail(result.status, { message: result.message });
+	fail(result.status, { message: result.message, exceptionConflict: result.exceptionConflict });
 
 type OdontoSupabase = SupabaseClient<any, any, any>;
 
@@ -191,74 +192,34 @@ const saveProfessionalWeeklyRules = async (
 		await replaceProfessionalScheduleBlocks(supabase, {
 			businessId,
 			professionalId,
-			blocks: scheduleBlocks.blocks
+			blocks: scheduleBlocks.blocks,expectedRevision:Number(form.get('availability_revision'))
 		});
 	} catch (replaceError) {
 		console.error('Error guardando horarios', replaceError);
-		return { ok: false, status: 500, message: 'No se pudieron guardar los horarios.' };
+		return { ok: false, status: 500, message: replaceError instanceof Object && 'message' in replaceError && String(replaceError.message).includes('SCHEDULE_CHANGED') ? 'Los horarios cambiaron. Recargá la página antes de guardar.' : 'Revisá las franjas y las prestaciones. No se guardó ningún horario.' };
 	}
 
 	return { ok: true, data: { blocks: scheduleBlocks.blocks } };
 };
 
-const createAvailabilityException = async (
-	supabase: OdontoSupabase,
-	businessId: string,
-	professionalId: string,
-	timeZone: string,
-	form: FormData
-): Promise<
-	SaveResult<{
-		id: string | null;
-		professionalId: string | null;
-		type: string;
-		periodMode: 'single' | 'range';
-		startDate: string;
-		endDate: string;
-	}>
-> => {
-	const appliesTo = String(form.get('applies_to') ?? 'professional');
-	const targetProfessionalId = appliesTo === 'business' ? null : professionalId;
-	const type = String(form.get('type') ?? '').trim();
-	const interval = parseAvailabilityExceptionInterval({
-		type,
-		periodMode: String(form.get('period_mode') ?? 'single').trim(),
-		date: String(form.get('date') ?? '').trim(),
-		dateFrom: String(form.get('date_from') ?? '').trim(),
-		dateTo: String(form.get('date_to') ?? '').trim(),
-		timeRange: String(form.get('time_range') ?? '').trim(),
-		timeZone
-	});
-	if (!interval.ok) return { ok: false, status: 400, message: interval.message };
-
-	const exceptionId = crypto.randomUUID();
-	const { error } = await supabase
-		.from('availability_exceptions')
-		.insert({
-			id: exceptionId,
-			business_id: businessId,
-			professional_id: targetProfessionalId,
-			type,
-			starts_at: interval.startsAt.toISOString(),
-			ends_at: interval.endsAt.toISOString(),
-			reason: String(form.get('reason') ?? '').trim() || null
-		});
-	if (error) {
-		console.error('Error creando excepción', error);
-		return { ok: false, status: 500, message: 'No se pudo guardar el cambio puntual.' };
-	}
-
-	return {
-		ok: true,
-		data: {
-			id: exceptionId,
-			professionalId: targetProfessionalId,
-			type,
-			periodMode: interval.periodMode,
-			startDate: interval.startDate,
-			endDate: interval.endDate
-		}
-	};
+const createAvailabilityException = async (supabase:OdontoSupabase,businessId:string,professionalId:string,timeZone:string,form:FormData,dryRun=false):Promise<SaveResult<{id:null;professionalId:string|null;type:string;periodMode:'single'|'range';startDate:string;endDate:string;items?:any[]}>>=>{
+ const target=String(form.get('applies_to'))==='business'?null:professionalId;
+ const type=String(form.get('type')??'');const mode=String(form.get('period_mode')??'single');
+ let dates:string[]=[];try{dates=mode==='multiple'?JSON.parse(String(form.get('dates')??'[]')):[String(form.get('date')??'')];}catch{return {ok:false,status:400,message:'Revisá las fechas seleccionadas.'};}
+ if(!Array.isArray(dates)||dates.length<1||dates.length>366||dates.some(date=>typeof date!=='string'))return {ok:false,status:400,message:'Elegí entre una y 366 fechas válidas.'};
+ const intervals=[];
+ for(const date of [...new Set(dates)]){
+  const interval=parseAvailabilityExceptionInterval({type,periodMode:mode==='multiple'&&type==='blocked'?'range':mode,date,dateFrom:mode==='multiple'?date:String(form.get('date_from')??''),dateTo:mode==='multiple'?date:String(form.get('date_to')??''),timeRange:String(form.get('time_range')??''),timeZone});
+  if(!interval.ok)return {ok:false,status:400,message:interval.message};intervals.push(interval);
+ }
+ const items=intervals.map(interval=>({professional_id:target,type,starts_at:interval.startsAt.toISOString(),ends_at:interval.endsAt.toISOString(),reason:String(form.get('reason')??'').trim()||null,service_ids:form.getAll('exception_service_ids').map(String)}));
+ if(type==='blocked'&&form.get('ack_existing_appointments')!=='true'){
+  for(const interval of intervals){let query=supabase.from('appointment_professionals').select('appointment_id',{count:'exact',head:true}).eq('business_id',businessId).in('status',['reserved','confirmed','reschedule_requested']).lt('starts_at',interval.endsAt.toISOString()).gt('ends_at',interval.startsAt.toISOString());if(target)query=query.eq('professional_id',target);const {count,error}=await query;if(error)return {ok:false,status:500,message:'No pudimos revisar los turnos existentes. Probá nuevamente.'};if(count)return {ok:false,status:409,exceptionConflict:true,message:`Hay turnos ya reservados en las fechas elegidas. El bloqueo no los cancela. Revisá la agenda y confirmá que querés bloquear nuevos turnos.`};}
+ }
+ if(dryRun)return {ok:true,data:{id:null,professionalId:target,type,periodMode:mode==='range'?'range':'single',startDate:intervals[0].startDate,endDate:intervals.at(-1)!.endDate,items}};
+ const {error}=await supabase.rpc('create_availability_exception_batch',{p_business_id:businessId,p_expected_revision:Number(form.get('availability_revision')),p_request_id:String(form.get('exception_request_id')??''),p_items:items,p_ack_existing:form.get('ack_existing_appointments')==='true'});
+ if(error)return {ok:false,status:409,exceptionConflict:error.message.includes('SCHEDULE_EXISTING_APPOINTMENTS'),message:error.message.includes('SCHEDULE_EXISTING_APPOINTMENTS')?'Hay turnos ya reservados en las fechas elegidas. Revisá la agenda y confirmá el bloqueo de nuevas reservas.':error.message.includes('SCHEDULE_CHANGED')?'Los horarios cambiaron. Recargá la página antes de guardar.':'No pudimos guardar las fechas. Revisá horarios, prestaciones y motivo; no se aplicó el lote.'};
+ return {ok:true,data:{id:null,professionalId:target,type,periodMode:mode==='range'?'range':'single',startDate:intervals[0].startDate,endDate:intervals.at(-1)!.endDate}};
 };
 
 export const load: PageServerLoad = async ({ params, locals, fetch, cookies, url, depends }) => {
@@ -283,6 +244,8 @@ export const load: PageServerLoad = async ({ params, locals, fetch, cookies, url
 	const { supabase, business, userId } = await getOdontoContext({ locals, fetch, cookies });
 	if (!business.canManage) throw redirect(303, business.role === 'professional' ? '/odonto/mis-turnos' : '/odonto/agenda');
 	const businessId = business.business.id;
+    const {data:revisionRow,error:revisionError}=await supabase.from('businesses').select('booking_availability_revision').eq('id',businessId).single();if(revisionError)throw kitError(503,'No pudimos cargar los horarios. Volvé a intentar.');
+
 
 	const { data: professional, error: professionalError } = await supabase
 		.from('professionals')
@@ -313,7 +276,7 @@ export const load: PageServerLoad = async ({ params, locals, fetch, cookies, url
 		supabase
 			.from('availability_rules')
 			.select(
-				'id, weekday, start_time, end_time, slot_interval_minutes, break_minutes, is_active, created_at'
+				'id, weekday, start_time, end_time, slot_interval_minutes, break_minutes, is_active, created_at, service_scope, rule_services:availability_rule_services(service_id)'
 			)
 			.eq('business_id', businessId)
 			.eq('professional_id', params.professionalId)
@@ -321,21 +284,27 @@ export const load: PageServerLoad = async ({ params, locals, fetch, cookies, url
 			.order('start_time'),
 		supabase
 			.from('availability_exceptions')
-			.select('id, professional_id, starts_at, ends_at, type, reason')
+			.select('id, professional_id, starts_at, ends_at, type, reason, exception_services:availability_exception_services(service_id)')
 			.eq('business_id', businessId)
 			.or(`professional_id.eq.${params.professionalId},professional_id.is.null`)
 			.order('starts_at', { ascending: false })
 			.limit(80),
 		getPendingProfessionalAccountEmail(supabase, businessId, params.professionalId)
 	]);
-	const defaultServiceIds = (services ?? [])
+ const {data:pricePolicies,error:priceError}=await supabase.from('service_price_policies').select('*,service_price_monthly_adjustments(month,kind,percentage)').eq('business_id',businessId).or(`professional_id.eq.${professional.id},professional_id.is.null`);
+ if(priceError)throw kitError(503,'No pudimos cargar los aranceles. Volvé a intentar.');
+ const currentMonth=monthForTimezone(new Date(),business.business.timezone);const currentPriceLabels:Record<string,string>={};
+ for(const service of services??[]){const policy=(pricePolicies??[]).find(row=>row.service_id===service.id&&row.professional_id===professional.id)??(pricePolicies??[]).find(row=>row.service_id===service.id&&row.professional_id===null);if(policy){try{const [quote]=previewMonthlyPrices(String(policy.base_amount),String(policy.monthly_percentage),String(policy.rounding_unit),policy.base_month.slice(0,7),policy.first_adjustment_month.slice(0,7),policy.service_price_monthly_adjustments as any,1,currentMonth);currentPriceLabels[service.id]=formatQuotedPrice({amount:quote.amount,currency:policy.currency});}catch{currentPriceLabels[service.id]='Revisar configuración de arancel';}}}
+ const defaultServiceIds = (services ?? [])
 		.filter((service: any) => isDefaultServiceName(String(service.name ?? '')))
 		.map((service: any) => String(service.id));
 
+
 	return {
 		context: business,
+        availabilityRevision:Number(revisionRow.booking_availability_revision),exceptionRequestId:crypto.randomUUID(),
 		professional,
-		services: services ?? [],
+		services: services ?? [],currentPriceLabels,
 		assignedServiceIds: (assignments ?? []).map((item: any) => String(item.service_id)),
 		defaultServiceIds,
 		rules: rules ?? [],
@@ -352,6 +321,7 @@ export const load: PageServerLoad = async ({ params, locals, fetch, cookies, url
 };
 
 export const actions: Actions = {
+
 	update_profile: async ({ request, params, locals, fetch, cookies }) => {
 		if (!locals.auth) throw redirect(303, '/login');
 		if (env.DEMO_MODE === 'true') return fail(400, { message: 'No disponible en modo demo.' });
@@ -570,12 +540,7 @@ export const actions: Actions = {
 		const ruleId = String(form.get('rule_id') ?? '').trim();
 		if (!ruleId) return fail(400, { message: 'Horario inválido.' });
 
-		const { error } = await supabase
-			.from('availability_rules')
-			.delete()
-			.eq('business_id', business.business.id)
-			.eq('professional_id', params.professionalId)
-			.eq('id', ruleId);
+		const {error}=await supabase.rpc('delete_professional_schedule_rule',{p_business_id:business.business.id,p_professional_id:params.professionalId,p_rule_id:ruleId,p_expected_revision:Number(form.get('availability_revision'))});
 		if (error) {
 			console.error('Error eliminando horario', error);
 			return fail(500, { message: 'No se pudo eliminar el horario.' });
@@ -670,95 +635,16 @@ export const actions: Actions = {
 		if (!business.canManage) return fail(403, { message: 'No tenés permisos para editar profesionales.' });
 
 		const form = await request.formData();
-		const savedSections: string[] = [];
 
-		if (boolFromForm(form, 'save_profile')) {
-			const pendingAccountEmail = await getPendingProfessionalAccountEmail(
-				supabase,
-				business.business.id,
-				params.professionalId
-			);
-			const profileResult = await saveProfessionalProfile(
-				supabase,
-				business.business.id,
-				params.professionalId,
-				form,
-				{ accountLinkPending: Boolean(pendingAccountEmail) }
-			);
-			if (!profileResult.ok) return failSave(profileResult);
-			await writeAuditLog(supabase, {
-				businessId: business.business.id,
-				userId,
-				action: 'professional.updated',
-				entityType: 'professional',
-				entityId: params.professionalId,
-				metadata: { via: 'save_all' }
-			});
-			savedSections.push('perfil');
-		}
-
-		if (boolFromForm(form, 'save_services')) {
-			const servicesResult = await saveProfessionalServices(supabase, business.business.id, params.professionalId, form);
-			if (!servicesResult.ok) return failSave(servicesResult);
-			await writeAuditLog(supabase, {
-				businessId: business.business.id,
-				userId,
-				action: 'professional.services_updated',
-				entityType: 'professional',
-				entityId: params.professionalId,
-				metadata: { via: 'save_all', service_ids: servicesResult.data?.serviceIds ?? [] }
-			});
-			savedSections.push('servicios');
-		}
-
-		if (boolFromForm(form, 'save_schedule')) {
-			const scheduleResult = await saveProfessionalWeeklyRules(supabase, business.business.id, params.professionalId, form);
-			if (!scheduleResult.ok) return failSave(scheduleResult);
-			await writeAuditLog(supabase, {
-				businessId: business.business.id,
-				userId,
-				action: 'availability_rules.replaced',
-				entityType: 'professional',
-				entityId: params.professionalId,
-				metadata: {
-					via: 'save_all',
-					schedule_blocks: scheduleResult.data?.blocks ?? []
-				}
-			});
-			savedSections.push('horarios');
-		}
-
-		if (boolFromForm(form, 'save_exception')) {
-			const exceptionResult = await createAvailabilityException(
-				supabase,
-				business.business.id,
-				params.professionalId,
-				business.business.timezone,
-				form
-			);
-			if (!exceptionResult.ok) return failSave(exceptionResult);
-			await writeAuditLog(supabase, {
-				businessId: business.business.id,
-				userId,
-				action: 'availability_exception.created',
-				entityType: 'availability_exception',
-				entityId: exceptionResult.data?.id ?? null,
-				metadata: {
-					via: 'save_all',
-					professional_id: exceptionResult.data?.professionalId ?? null,
-					type: exceptionResult.data?.type,
-					period_mode: exceptionResult.data?.periodMode,
-					start_date: exceptionResult.data?.startDate,
-					end_date: exceptionResult.data?.endDate
-				}
-			});
-			savedSections.push('disponibilidad');
-		}
-
-		return {
-			success: true,
-			message: savedSections.length > 0 ? `Guardado: ${savedSections.join(', ')}.` : 'No había cambios pendientes.'
-		};
+  const savedSections:string[]=[];let profile:null|Record<string,unknown>=null;let blocks:NormalizedScheduleBlock[]|null=null;let items:any[]|null=null;
+  if(boolFromForm(form,'save_profile')){const name=String(form.get('name')??'').trim();if(!name)return fail(400,{message:'El nombre es obligatorio. No se guardó ningún cambio.'});const email=normalizeProfessionalEmail(form.get('email'));const existing=await findProfessionalByEmail(supabase,business.business.id,email,params.professionalId);if(existing)return fail(400,{message:humanProfessionalEmailConflict(existing)});const pending=await getPendingProfessionalAccountEmail(supabase,business.business.id,params.professionalId);profile={name,specialty:String(form.get('specialty')??'').trim(),phone:String(form.get('phone')??'').trim(),email,is_public:pending?false:boolFromForm(form,'is_available'),...(pending?{}:{is_active:boolFromForm(form,'is_available')})};savedSections.push('perfil');}
+  if(boolFromForm(form,'save_schedule')){const parsed=scheduleBlocksFromForm(form);if(!parsed.ok)return failSave(parsed);blocks=parsed.blocks;savedSections.push('horarios');}
+  if(boolFromForm(form,'save_exception')){const prepared=await createAvailabilityException(supabase,business.business.id,params.professionalId,business.business.timezone,form,true);if(!prepared.ok)return failSave(prepared);items=prepared.data?.items??[];savedSections.push('disponibilidad');}
+  const serviceIds=boolFromForm(form,'save_services')?idsFromForm(form,'service_id'):null;if(serviceIds)savedSections.push('servicios');
+  if(!savedSections.length)return {success:true,message:'No había cambios pendientes.'};
+  const {error}=await supabase.rpc('save_professional_editor',{p_business_id:business.business.id,p_professional_id:params.professionalId,p_expected_revision:Number(form.get('availability_revision')),p_profile:profile,p_service_ids:serviceIds,p_blocks:blocks?.map(block=>({weekdays:block.weekdays,ranges:block.ranges,slot_interval_minutes:block.slotIntervalMinutes,break_minutes:block.breakMinutes,service_scope:block.serviceScope??'all',service_ids:block.allowedServiceIds??[]}))??null,p_exception_request_id:items?String(form.get('exception_request_id')):null,p_exception_items:items,p_ack_existing:form.get('ack_existing_appointments')==='true'});
+  if(error)return fail(409,{exceptionConflict:error.message.includes('SCHEDULE_EXISTING_APPOINTMENTS'),message:error.message.includes('SCHEDULE_CHANGED')?'La configuración cambió. Recargá la página antes de guardar; no se aplicó ningún cambio.':error.message.includes('SCHEDULE_EXISTING_APPOINTMENTS')?'Hay turnos existentes. Revisá la agenda y confirmá el bloqueo; no se guardó ningún cambio.':'Revisá el perfil, las prestaciones y los horarios. No se guardó ningún cambio.'});
+  return {success:true,message:`Guardado: ${savedSections.join(', ')}.`};
 	},
 
 	archive_professional: async ({ params, locals, fetch, cookies }) => {
