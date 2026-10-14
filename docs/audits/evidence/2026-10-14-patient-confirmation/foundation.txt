@@ -1,0 +1,12 @@
+                                  pass
+-------------------------------------------------------------------------
+ ok 1 - clinical provenance triggers, actor normalization and role guard
+(1 row)
+
+ finish
+--------
+(0 rows)
+PASS: isolated SQL contracts. Storage/Realtime services and network delivery are not exercised by this runner.
+Disposable database retained for local development only: cita-booking-test-656448d7bdda
+Cleanup: docker rm -f -v cita-booking-test-656448d7bdda
+Network cleanup: docker network rm cita-booking-test-656448d7bdda-net

@@ -32,7 +32,7 @@ test.describe('isolated booking integration', () => {
     await booking.getByLabel('Teléfono').fill(syntheticPhone);
     await booking.getByLabel('Obra social y plan').fill('Particular');
     await booking.getByLabel('Edad', { exact: true }).fill('35'); await booking.getByLabel('Obra social del perfil').fill('Particular'); await booking.getByLabel(/Medicación/).fill('Medicación sintética inicial');
-    await booking.locator('[name="intake_labs"]').selectOption('false');
+    await booking.getByRole('group',{name:'Estudios recientes',exact:true}).getByRole('radio',{name:'No',exact:true}).check();
     await booking.getByLabel('Comentario').fill('Comentario clínico sintético privado');
     const frame = page.frames().find((item) => item.url().startsWith(fixture.appOrigin + '/embed/'))!;
     const attempt = await booking.locator('[name="idempotency_key"]').inputValue();

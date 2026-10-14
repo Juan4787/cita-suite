@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-14T19:45:53.733048+00:00",
+  "generatedAt": "2026-10-14T21:23:03.370480+00:00",
   "title": "Design System: Cita Suite",
   "extensions": {
     "colorMeta": {
@@ -395,6 +395,76 @@
           "oklch(84% 0.0000 89.88 / 0.045)",
           "oklch(95% 0.0000 89.88 / 0.045)"
         ]
+      },
+      "patient-muted": {
+        "role": "neutral",
+        "displayName": "Ayuda del paciente",
+        "tonalRamp": [
+          "oklch(15% 0.0329 260.02)",
+          "oklch(26% 0.0329 260.02)",
+          "oklch(38% 0.0329 260.02)",
+          "oklch(49% 0.0329 260.02)",
+          "oklch(61% 0.0329 260.02)",
+          "oklch(72% 0.0329 260.02)",
+          "oklch(84% 0.0329 260.02)",
+          "oklch(95% 0.0329 260.02)"
+        ]
+      },
+      "patient-field": {
+        "role": "neutral",
+        "displayName": "Campo del paciente",
+        "tonalRamp": [
+          "oklch(15% 0.0203 264.47 / 0.045)",
+          "oklch(26% 0.0203 264.47 / 0.045)",
+          "oklch(38% 0.0203 264.47 / 0.045)",
+          "oklch(49% 0.0203 264.47 / 0.045)",
+          "oklch(61% 0.0203 264.47 / 0.045)",
+          "oklch(72% 0.0203 264.47 / 0.045)",
+          "oklch(84% 0.0203 264.47 / 0.045)",
+          "oklch(95% 0.0203 264.47 / 0.045)"
+        ]
+      },
+      "patient-field-border": {
+        "role": "neutral",
+        "displayName": "Borde del campo del paciente",
+        "tonalRamp": [
+          "oklch(15% 0.0439 257.02)",
+          "oklch(26% 0.0439 257.02)",
+          "oklch(38% 0.0439 257.02)",
+          "oklch(49% 0.0439 257.02)",
+          "oklch(61% 0.0439 257.02)",
+          "oklch(72% 0.0439 257.02)",
+          "oklch(84% 0.0439 257.02)",
+          "oklch(95% 0.0439 257.02)"
+        ]
+      },
+      "patient-summary": {
+        "role": "primary",
+        "displayName": "Resumen del paciente",
+        "tonalRamp": [
+          "oklch(15% 0.2189 292.72 / 0.06)",
+          "oklch(26% 0.2189 292.72 / 0.06)",
+          "oklch(38% 0.2189 292.72 / 0.06)",
+          "oklch(49% 0.2189 292.72 / 0.06)",
+          "oklch(61% 0.2189 292.72 / 0.06)",
+          "oklch(72% 0.2189 292.72 / 0.06)",
+          "oklch(84% 0.2189 292.72 / 0.06)",
+          "oklch(95% 0.2189 292.72 / 0.06)"
+        ]
+      },
+      "patient-summary-border": {
+        "role": "primary",
+        "displayName": "Borde del resumen del paciente",
+        "tonalRamp": [
+          "oklch(15% 0.1720 297.32)",
+          "oklch(26% 0.1720 297.32)",
+          "oklch(38% 0.1720 297.32)",
+          "oklch(49% 0.1720 297.32)",
+          "oklch(61% 0.1720 297.32)",
+          "oklch(72% 0.1720 297.32)",
+          "oklch(84% 0.1720 297.32)",
+          "oklch(95% 0.1720 297.32)"
+        ]
       }
     },
     "typographyMeta": {
@@ -425,6 +495,18 @@
       "badge": {
         "displayName": "Estado",
         "purpose": "Estado informativo compacto."
+      },
+      "patient-service": {
+        "displayName": "Servicio del paciente",
+        "purpose": "Servicio y profesional en el resumen final; se adapta en móvil."
+      },
+      "patient-label": {
+        "displayName": "Pregunta del paciente",
+        "purpose": "Etiqueta visible de los campos y preguntas del formulario final."
+      },
+      "patient-confirm": {
+        "displayName": "Confirmación del paciente",
+        "purpose": "Acción principal de ancho completo al terminar la reserva."
       }
     },
     "shadows": [
@@ -483,12 +565,13 @@
       },
       {
         "name": "professional-question-nav",
-        "value": "480px"
+        "value": "480px",
+        "purpose": "Navegación de preguntas y adaptación compacta del formulario final del paciente."
       }
     ],
     "sources": {
       "designMd": "DESIGN.md",
-      "designMdSha256": "5d9860202840d7c5c78ed5da1a5ec0e37183399ee4c079945a45605bbc188491",
+      "designMdSha256": "d9eb7f924de1dec183571277f36c39153e26a4502d4629e7f994eaa624b0aee2",
       "files": [
         {
           "path": "src/app.css",
@@ -544,7 +627,7 @@
         },
         {
           "path": "src/lib/ui/styled-controls.ts",
-          "sha256": "295e297aec970c48f3d7d4500a1f8d42074c1b7c3c3aa5d5383f83a0604ee73c"
+          "sha256": "4c79ccae481a47a97423de4bac53609cec65d1647f75e2381bc3d5804283d044"
         },
         {
           "path": "src/lib/ui/confirm-action.ts",
@@ -553,6 +636,26 @@
         {
           "path": "src/lib/server/booking-profile-config.ts",
           "sha256": "d34fc2c46221cc64c50c50f331b7b8ce938fa6265d69314038fa21b4e9f00aec"
+        },
+        {
+          "path": "src/lib/booking/BookingAppearance.svelte",
+          "sha256": "46f8be279b032a01464065939e8e8bf3b2d0825370e3c7ba5e0f6417ac34523f"
+        },
+        {
+          "path": "src/lib/booking/PublicBookingFlow.svelte",
+          "sha256": "958459148ad043371a19544eaebbdcc48104e98233a5d16e24d98f45a13783d9"
+        },
+        {
+          "path": "src/lib/booking/PublicBookingIntakeField.svelte",
+          "sha256": "be1dd53325e6236dcde8a30a0d2c2529a75d78af98d3a49f6221c3540d428daf"
+        },
+        {
+          "path": "src/lib/booking/BookingBirthDateInput.svelte",
+          "sha256": "0a948d79a42c39e44a298f2a97564b86407c8c0b1f845850c04a68d6d75b99c0"
+        },
+        {
+          "path": "src/lib/booking/patient-booking.css",
+          "sha256": "eac5ea28c3723b00c7629070174ef55347a4329819b687a2d456b5b3d33c9cd7"
         }
       ],
       "rampNote": "Las rampas OKLCH son previsualizaciones sintéticas de oscuro a claro; no sustituyen los colores normativos del frontmatter.",
@@ -638,11 +741,19 @@
       "description": "Vista del diálogo interior: cancelar conserva borrador; aceptar descarta antes de navegar.",
       "html": "<section class=\"ds-dialog\" role=\"dialog\" aria-labelledby=\"ds-dialog-title\"><h2 id=\"ds-dialog-title\">Cambios sin guardar</h2><p>Tenés reglas sin guardar.</p><div class=\"ds-dialog-actions\"><button class=\"ds-dialog-cancel\">Seguir editando</button><button class=\"ds-dialog-accept\">Descartar cambios</button></div></section>",
       "css": ".ds-dialog{width:min(30rem,calc(100vw - 2rem));padding:1.5rem;border:1px solid var(--border-strong,#244062);border-radius:1rem;background:var(--surface-raised,#102842);color:var(--text,#eaf1ff);box-shadow:0 18px 48px #0006;font-family:Inter,system-ui,-apple-system,sans-serif;}.ds-dialog h2{font-size:1.25rem;font-weight:650}.ds-dialog p{margin-top:.75rem;color:#c5d1e2;line-height:1.6}.ds-dialog-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:.65rem;margin-top:1.5rem}.ds-dialog-actions button{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;min-height:var(--tap,2.75rem);max-width:100%;border-radius:var(--radius,1rem);padding:.7rem 1.25rem;font-size:.95rem;font-weight:700;line-height:1;white-space:normal;overflow-wrap:anywhere;cursor:pointer;transition:transform 140ms ease,box-shadow 160ms ease,background-color 160ms ease,border-color 160ms ease,opacity 160ms ease;font-family:Inter,system-ui,-apple-system,sans-serif;}.ds-dialog-cancel{border:1px solid var(--border,rgba(255,255,255,.1));background:rgba(255,255,255,.05);color:var(--text,#eaf1ff)}.ds-dialog-accept{border:0;background:var(--accent-strong,#7c3aed);color:#fff;box-shadow:var(--shadow-accent,0 14px 30px rgba(124,58,237,.26))}.ds-dialog-accept:hover{background:var(--accent-press,#6d28d9)}.ds-dialog-cancel:hover{background:rgba(255,255,255,.09)}.ds-dialog-actions button:focus-visible{outline:2px solid var(--accent-text,#c4b5fd);outline-offset:3px;}.ds-dialog-actions button:active{transform:scale(.99)}"
+    },
+    {
+      "name": "Confirmación del paciente",
+      "kind": "custom",
+      "refersTo": "patient-form",
+      "description": "Variante final: resumen, campo amplio, respuesta explícita y confirmación. La muestra no incorpora datos del consultorio.",
+      "html": "<section class=\"ds-patient-form\" aria-label=\"Formulario final\"><section class=\"ds-patient-summary\"><div class=\"ds-patient-heading\"><p class=\"ds-patient-context\">Estás reservando</p><span class=\"ds-patient-price\">Arancel vigente</span><h2>Servicio y profesional seleccionados</h2></div></section><label class=\"ds-patient-label\" for=\"ds-patient-name\">Nombre y apellido<span class=\"ds-patient-required\" aria-hidden=\"true\">*</span></label><input id=\"ds-patient-name\" class=\"ds-patient-input\" aria-label=\"Nombre y apellido\" autocomplete=\"name\" required /><fieldset class=\"ds-patient-question\"><legend class=\"ds-patient-label\">Pregunta configurada<span class=\"ds-patient-required\" aria-hidden=\"true\">*</span></legend><div class=\"ds-patient-answers\"><label class=\"ds-patient-answer\"><input type=\"radio\" name=\"ds-patient-answer\" value=\"true\" required /><span>Sí</span></label><label class=\"ds-patient-answer\"><input type=\"radio\" name=\"ds-patient-answer\" value=\"false\" checked required /><span>No</span></label></div></fieldset><button type=\"button\" class=\"ds-patient-confirm\">Confirmar reserva</button></section>",
+      "css": ".ds-patient-form{padding:1.5rem;border:1px solid var(--border-strong,#244062);border-radius:1.5rem;background:var(--bg,#0b1626);color:var(--text,#eaf1ff);box-shadow:none;font-family:Inter,system-ui,-apple-system,sans-serif}.ds-patient-summary{padding:1.1rem 1.2rem;border:1px solid var(--patient-summary-border,#8056c9);border-radius:1rem;background:var(--patient-summary-bg,rgba(139,92,246,.06))}.ds-patient-heading{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.6rem 1rem;align-items:center}.ds-patient-context{margin:0;color:var(--accent-text,#c4b5fd);font-size:.85rem;font-weight:650}.ds-patient-price{max-width:10rem;padding:.4rem .7rem;border-radius:.6rem;background:var(--patient-field-bg,rgba(234,241,255,.045));font-size:1.1rem;font-weight:650;line-height:1.35;font-variant-numeric:tabular-nums}.ds-patient-heading h2{grid-column:1/-1;margin:0;font-size:1.4rem;line-height:1.35;font-weight:650;overflow-wrap:anywhere}.ds-patient-label{display:flex;align-items:baseline;gap:.4rem;margin:1.7rem 0 .65rem;font-size:1rem;line-height:1.45;font-weight:600}.ds-patient-required{color:var(--accent-text,#c4b5fd);font-weight:750}.ds-patient-input{width:100%;min-height:3.1rem;padding:.75rem 1rem;border:1px solid var(--patient-field-border,#52637b);border-radius:1.8rem;background:var(--patient-field-bg,rgba(234,241,255,.045));color:inherit;font:inherit;font-size:1rem;line-height:1.45}.ds-patient-input:focus{border-color:var(--accent,#8b5cf6);box-shadow:0 0 0 3px var(--accent-soft,rgba(124,58,237,.18))}.ds-patient-input:focus-visible{outline:2px solid var(--accent,#8b5cf6);outline-offset:2px}.ds-patient-input:disabled{opacity:.6;cursor:not-allowed}.ds-patient-question{margin:1.4rem 0 0;padding:0;border:0;min-width:0}.ds-patient-question .ds-patient-label{width:100%;margin:0 0 .65rem}.ds-patient-answers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.65rem}.ds-patient-answer{position:relative;display:flex;align-items:center;justify-content:center;min-height:3.1rem;padding:.65rem .6rem;border:1px solid var(--patient-field-border,#52637b);border-radius:1.2rem;background:var(--patient-field-bg,rgba(234,241,255,.045));font-weight:600;cursor:pointer}.ds-patient-answer input{position:absolute;width:1px;height:1px;opacity:0;margin:0;padding:0}.ds-patient-answer:hover{border-color:var(--accent,#8b5cf6)}.ds-patient-answer:has(input:checked){border:2px solid var(--accent,#8b5cf6);padding:calc(.65rem - 1px) calc(.6rem - 1px);background:var(--accent-soft,rgba(124,58,237,.18))}.ds-patient-answer:has(input:focus-visible){outline:2px solid var(--accent,#8b5cf6);outline-offset:3px}.ds-patient-answer:has(input:disabled){opacity:.55;cursor:not-allowed}.ds-patient-confirm{display:flex;align-items:center;justify-content:center;width:100%;min-height:3.5rem;margin-top:1.9rem;padding:.7rem 1.25rem;border:0;border-radius:1.8rem;background:var(--accent-strong,#7c3aed);color:var(--on-accent,#fff);box-shadow:var(--shadow-accent,0 14px 30px rgba(124,58,237,.26));font:inherit;font-size:1.15rem;font-weight:700;line-height:1;cursor:pointer;transition:transform 140ms ease,background-color 160ms ease}.ds-patient-confirm:hover:not(:disabled){background:var(--accent-press,#6d28d9);transform:translateY(-1px)}.ds-patient-confirm:focus-visible{outline:2px solid var(--accent-text,#c4b5fd);outline-offset:3px}.ds-patient-confirm:active:not(:disabled){transform:translateY(0) scale(.99)}.ds-patient-confirm:disabled{opacity:.45;cursor:not-allowed;box-shadow:none;transform:none}@media(max-width:480px){.ds-patient-form{padding:1.1rem;border-radius:1.2rem}.ds-patient-summary{padding:.9rem}.ds-patient-heading{column-gap:.6rem}.ds-patient-heading h2{font-size:1.15rem}.ds-patient-price{max-width:7rem;padding:.35rem .5rem;font-size:1rem}}@media(prefers-reduced-motion:reduce){.ds-patient-confirm{transition:none}}"
     }
   ],
   "narrative": {
     "northStar": "Cita Suite: claridad para trabajar",
-    "overview": "Se conserva la identidad existente: Inter, fondos azul oscuro y acento violeta. La precisión de los controles, la jerarquía de texto y los estados hacen reconocible el sistema. Esta frase describe el trabajo del producto; no introduce una identidad comercial nueva.\n\nLa interfaz permite encontrar una tarea y completarla con campos visibles, agrupaciones cortas y opciones secundarias progresivas. Este documento registra los estilos compartidos y los patrones implementados en configuración de reservas; no certifica una renovación de todas las páginas de la aplicación.",
+    "overview": "Se conserva la identidad existente: Inter, fondos azul oscuro y acento violeta. La precisión de los controles, la jerarquía de texto y los estados hacen reconocible el sistema. Esta frase describe el trabajo del producto; no introduce una identidad comercial nueva.\n\nLa interfaz permite encontrar una tarea y completarla con campos visibles, agrupaciones cortas y opciones secundarias progresivas. Este documento registra los estilos compartidos y los patrones implementados en configuración de reservas y confirmación del paciente; no certifica una renovación de todas las páginas de la aplicación.",
     "keyCharacteristics": [
       "Una familia tipográfica para títulos, datos y controles.",
       "Superficies oscuras con diferencias de tono, bordes y elevación suave.",
@@ -654,13 +765,19 @@
         "name": "Estado legible",
         "body": "La persona debe poder reconocer un estado por su texto, sin depender sólo del color.",
         "section": "colors"
+      },
+      {
+        "name": "Respuesta explícita",
+        "body": "Una pregunta binaria conserva respuestas independientes para Sí y No. Si es opcional, permite volver a Sin responder; vacío y No representan datos diferentes.",
+        "section": "components"
       }
     ],
     "dos": [
       "**Do** conservar Inter y los tokens compartidos del sistema oscuro existente.",
       "**Do** usar etiquetas visibles, foco reconocible y texto para comunicar cada estado.",
       "**Do** agrupar por tarea y plegar opciones secundarias después de los campos principales.",
-      "**Do** conservar la semántica, validación y datos del formulario al mejorar sus controles."
+      "**Do** conservar la semántica, validación y datos del formulario al mejorar sus controles.",
+      "**Do** aplicar la variante `patient-*` dentro de la confirmación del paciente y conservar el tema de su integración."
     ],
     "donts": [
       "**Don't** inventar datos reales, tarifas, contactos ni promesas de marca.",

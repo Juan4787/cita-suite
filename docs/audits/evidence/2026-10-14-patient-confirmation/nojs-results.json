@@ -1,0 +1,7 @@
+{
+  "scope": "Disposable local clinic and simulated Auth only; browser JavaScript disabled. No production requests.",
+  "checks": [
+    "Without JavaScript, required birth date has one native named control and persists the entered ISO value in the patient record.",
+    "Without JavaScript, optional birth date has one native named control and persists the entered ISO value in the patient record."
+  ]
+}

@@ -53,6 +53,7 @@ function shell(source: HTMLInputElement | HTMLSelectElement, icon: string) {
   const topLayer = typeof menu.showPopover === "function";
   if (topLayer) menu.setAttribute("popover", "manual");
   else menu.hidden = true;
+  menu.classList.toggle("booking-control-menu-natalia", !!source.closest(".booking-natalia"));
   document.body.append(menu);
   trigger.setAttribute("aria-controls", menu.id);
   trigger.setAttribute("aria-expanded", "false");

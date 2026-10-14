@@ -1,0 +1,11 @@
+> web@0.0.1 test:client /home/usuario/CascadeProjects/Base de Datos Sabrina/apps/web
+> vitest run --config vitest.client.config.ts src/lib/booking/PublicBookingFlow.client.test.ts src/lib/booking/BookingBirthDateInput.client.test.ts src/lib/ui/styled-controls.client.test.ts --maxWorkers=1 --no-file-parallelism
+
+
+ RUN  v4.1.6 /home/usuario/CascadeProjects/Base de Datos Sabrina/apps/web
+
+
+ Test Files  3 passed (3)
+      Tests  17 passed (17)
+   Start at  18:14:34
+   Duration  11.41s (transform 2.92s, setup 0ms, import 4.58s, tests 2.48s, environment 3.40s)

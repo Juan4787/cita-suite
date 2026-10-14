@@ -24,7 +24,7 @@
 
 <style>
 	:global(html[data-booking-embedded='true'] body), :global(html[data-booking-embedded='true'] .booking-surface main) { min-height: 0; }
-    :global(.booking-natalia) {
+    :global(.booking-natalia), :global(.booking-control-menu-natalia) {
         --paper: #f3eee5; --surface: #fffaf2; --text: #1e1a16;
         --text-muted: #463e36; --text-subtle: #6b6155;
         --accent: #a94b22; --accent-strong: #8e3d1a;
@@ -39,7 +39,7 @@
         font-family: 'Hanken Grotesk', system-ui, sans-serif;
         caret-color: var(--accent);
     }
-    :global(html[data-booking-color-mode='dark'] .booking-natalia) {
+    :global(html[data-booking-color-mode='dark'] .booking-natalia), :global(html[data-booking-color-mode='dark'] .booking-control-menu-natalia) {
         --paper: #1a1612; --surface: #211c17; --text: #efe8dc;
         --text-muted: #cfc5b6; --text-subtle: #a39888;
         --accent: #e07a4f; --accent-strong: #ec9068;
@@ -92,4 +92,8 @@
     :global(.booking-natalia a:focus-visible), :global(.booking-natalia button:focus-visible) { outline: 2px solid var(--accent); outline-offset: 3px; }
     :global(.booking-natalia ::selection) { background: var(--accent-soft); color: var(--text); }
     :global(.booking-natalia *) { scrollbar-color: var(--accent) var(--paper); }
+
+    :global(.booking-control-menu-natalia) { background: var(--surface); border-color: var(--border-strong); color: var(--text); }
+    :global(.booking-control-menu-natalia .ux-control-option:hover), :global(.booking-control-menu-natalia .ux-control-option.is-active) { background: var(--accent-soft); }
+    :global(.booking-control-menu-natalia .ux-control-option[aria-selected='true']) { background: var(--accent-strong); color: var(--on-accent); }
 </style>

@@ -1,0 +1,24 @@
+{
+  "scope": "Local Chromium, isolated PostgreSQL/PostgREST; simulated Auth; synthetic fields and price; no production requests.",
+  "checks": [
+    "Only the local synthetic clinic is configured, through the existing owner RPCs.",
+    "Native final form has required data before all optional data, an explicit No, and one actual date quote.",
+    "Choice uses the authored popup and keyboard selection; 1440/390/320 have no horizontal overflow.",
+    "Birth-date parts produce the original ISO field and explicit No produces the original false value.",
+    "Actual local confirmation persists false, ISO birth date and the quoted amount into appointment/patient records.",
+    "Embedded Natalia light/dark preserves its own palette, including authored choice popups.",
+    "Page identity, actual confirmation, no overlay and no relevant console errors."
+  ],
+  "screenshots": [
+    "desktop.png",
+    "mobile.png",
+    "user-320.png",
+    "choice-cita.png",
+    "natalia-light.png",
+    "choice-natalia-light.png",
+    "natalia-dark.png",
+    "choice-natalia-dark.png"
+  ],
+  "errors": [],
+  "console": []
+}
