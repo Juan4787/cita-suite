@@ -20,7 +20,7 @@ const originalKey=source.match(/data-booking-key="([a-f0-9]{32})"/)?.[1];
 assert(originalBase&&originalKey);
 const output='/tmp/cita-direct-booking-qa';
 mkdirSync(output,{recursive:true});
-const result={scope:'Real local Natalia build and Cita Suite app, disposable PostgreSQL/PostgREST, simulated Auth. Synthetic bookings only; no production requests or writes.',checks:[],errors:[]};
+const result={scope:'Real local Natalia build and Cita Suite app, disposable PostgreSQL/PostgREST, simulated Auth. Synthetic bookings only; no production requests or writes.',checks:[],errors:[],consoleErrors:[],consoleWarnings:[]};
 const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.woff2':'font/woff2','.webp':'image/webp'};
 const server=createServer((req,res)=>{
  const path=new URL(req.url,'http://localhost').pathname;
@@ -38,8 +38,9 @@ const booking=f.appOrigin+'/embed/v1/'+f.key;
 let browser;
 try{
  browser=await chromium.launch({headless:true,args:['--disable-dev-shm-usage']});
- for(const [name,width,height] of [['desktop',1440,960],['mobile',390,844]]){
-  const context=await browser.newContext({viewport:{width,height},locale:'es-AR',reducedMotion:'reduce'});
+ for(const [name,width,height,mode,system] of [['desktop',1440,960,'light','dark'],['mobile',390,844,'dark','light']]){
+  const context=await browser.newContext({viewport:{width,height},locale:'es-AR',reducedMotion:'reduce',colorScheme:system});
+  if(mode==='dark')await context.addInitScript(()=>localStorage.setItem('nf_theme','dark'));
   let sdkRequests=0;
   await context.route('**/*',async route=>{
    const url=new URL(route.request().url());
@@ -50,9 +51,10 @@ try{
   });
   const page=await context.newPage();
   page.on('pageerror',e=>result.errors.push(e.message));
+  page.on('console',message=>{if(message.type()==='error')result.consoleErrors.push(message.text());if(message.type()==='warning')result.consoleWarnings.push(message.text());});
   await page.goto(natalia+'/');
   await page.locator('a[data-booking]:visible').first().click();
-  await page.waitForURL(booking);
+  await page.waitForURL(booking+'?color_mode='+mode);
   assert(await page.evaluate(()=>window.top===window));
   assert.equal(await page.locator('iframe').count(),0);
   await expect(page.getByRole('heading',{name:'¿Qué necesitás?',exact:true})).toBeVisible();
@@ -63,6 +65,7 @@ try{
   await page.getByRole('link',{name:/^\d{2}:\d{2}$/}).first().click();
   await expect(page.getByRole('button',{name:'Confirmar reserva',exact:true})).toBeVisible();
   assert.equal(await page.locator('[data-booking-theme="natalia"]').count(),1);
+  await expect(page.locator('[data-booking-theme="natalia"]')).toHaveAttribute('data-booking-color-mode',mode);
   const before=await db.from('appointments').select('id',{count:'exact',head:true}).eq('business_id',f.businessId);
   assert.equal(before.error,null);
   const requestId=await page.locator('[name="idempotency_key"]').getAttribute('value');
@@ -80,6 +83,9 @@ try{
   await expect(page.getByRole('heading',{name:'Tu turno quedó reservado',exact:true})).toBeVisible();
   await expect(page.getByText('Cancelar turno',{exact:true}).first()).toBeVisible();
   assert.equal(await page.locator('[data-booking-theme="natalia"]').count(),1);
+  await expect(page.locator('[data-booking-theme="natalia"]')).toHaveAttribute('data-booking-color-mode',mode);
+  await page.reload();
+  await expect(page.locator('[data-booking-theme="natalia"]')).toHaveAttribute('data-booking-color-mode',mode);
   assert(await page.evaluate(()=>window.top===window));
   assert.equal(await page.locator('iframe').count(),0);
   assert.equal(sdkRequests,0);
@@ -98,10 +104,11 @@ try{
   const after=await db.from('appointments').select('id',{count:'exact',head:true}).eq('business_id',f.businessId);
   assert.equal(after.error,null);
   assert.equal(after.count,before.count+1,'Recovery and old receipt links must not create duplicate appointments.');
-  result.checks.push({name,width,height,nativeSameTab:true,fullManagement:true,themeSnapshot:'natalia',recoveryWithoutDuplicate:true,oldReceiptCompatible:true,sdkRequests,syntheticBookings:1});
+  result.checks.push({name,width,height,nativeSameTab:true,fullManagement:true,themeSnapshot:'natalia',colorMode:mode,systemColorMode:system,reloadPreservesMode:true,recoveryWithoutDuplicate:true,oldReceiptCompatible:true,sdkRequests,syntheticBookings:1});
   await context.close();
  }
  assert.deepEqual(result.errors,[]);
+ assert.deepEqual(result.consoleErrors,[]);
  result.passed=true;
 }finally{
  await browser?.close();

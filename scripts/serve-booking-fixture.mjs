@@ -132,6 +132,8 @@ try {
     "-d",
     "--label",
     "com.cita-suite.booking-fixture=true",
+    "--label",
+    "com.cita-suite.baseline-run=" + (process.env.CITA_BASELINE_RUN_ID ?? "manual"),
     "--name",
     rest,
     "--network",
@@ -351,7 +353,7 @@ try {
       ],
       env: {
         ...process.env,
-        NODE_OPTIONS: "--max-old-space-size=1024",
+        NODE_OPTIONS: process.env.NODE_OPTIONS ?? "--max-old-space-size=1024",
         ODONTO_SUPABASE_URL: apiOrigin,
         ODONTO_SUPABASE_ANON_KEY: anon,
         ODONTO_SUPABASE_SERVICE_ROLE_KEY: service,

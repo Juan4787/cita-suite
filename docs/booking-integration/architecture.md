@@ -1,5 +1,7 @@
 # Integración de reservas: Cita Suite y Web Natalia
 
+> Documento histórico de la base inicial de integración. La activación, el sitio Astro y la navegación nativa evolucionaron después de este diseño. Para el estado vigente, consultar [arquitectura actual](../architecture/current-system.md). El SDK embebido permanece como compatibilidad; Natalia abre el turnero completo de Cita Suite.
+
 Estado: pieza de integración implementada en el workspace y probada con infraestructura local desechable, deshabilitada por defecto. La activación de un consultorio real y la migración del sitio son etapas posteriores. La carpeta `WEB NATALIA` conserva su maqueta. No se crearon consultorios reales, no se migró su contenido simulado, no se aplicaron cambios remotos ni se publicó este código.
 
 ## Decisión y motivo

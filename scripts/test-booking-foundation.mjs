@@ -10,6 +10,7 @@ const image = "public.ecr.aws/supabase/postgres:17.6.1.166";
 const container = "cita-booking-test-" + randomBytes(6).toString("hex");
 const keep = process.argv.slice(2).includes("--keep");
 const realStorage = process.argv.slice(2).includes("--real-storage");
+const allContracts = process.argv.slice(2).includes("--all-contracts");
 const storageContainer = container + "-storage";
 const fixtureSecret =
   "cita-local-disposable-jwt-secret-with-more-than-32-characters";
@@ -17,10 +18,10 @@ let storageCreated = false;
 if (
   process.argv
     .slice(2)
-    .some((argument) => !["--keep", "--real-storage"].includes(argument))
+    .some((argument) => !["--keep", "--real-storage", "--all-contracts"].includes(argument))
 )
   throw new Error(
-    "Only --keep and --real-storage are supported; remote database targets are forbidden.",
+    "Only --keep, --real-storage and --all-contracts are supported; remote database targets are forbidden.",
   );
 function command(args, input) {
   const result = spawnSync("docker", args, {
@@ -87,6 +88,8 @@ try {
     container,
     "--label",
     "com.cita-suite.booking-fixture=true",
+    "--label",
+    "com.cita-suite.baseline-run=" + (process.env.CITA_BASELINE_RUN_ID ?? "manual"),
     "--network",
     localNetwork ?? "none",
     "--memory",
@@ -258,7 +261,9 @@ try {
   console.log(
     "Clean reconstruction: " + migrations.length + " migrations applied.",
   );
-  for (const file of [
+  const contractFiles = allContracts
+    ? readdirSync(root + "supabase/tests").filter(file => file.endsWith('.sql')).sort()
+    : [
     "000_pgtap_setup.sql",
     "patient_identity_atomicity.sql",
     "public_booking_patient_policy.sql",
@@ -269,12 +274,16 @@ try {
     "booking_extension_contracts.sql",
     "clinical_files_phase1.sql",
     "clinical_provenance_triggers.sql",
-  ]) {
+  ];
+  let assertions = 0;
+  for (const file of contractFiles) {
     const output = sql(readFileSync(root + "supabase/tests/" + file, "utf8"));
     if (/\bnot ok\b/.test(output))
       throw new Error(file + ": pgTAP failed.\n" + output);
+    assertions += (output.match(/^\s*ok\s+\d+\b/gm) ?? []).length;
     console.log(file + "\n" + output.trim());
   }
+  console.log(JSON.stringify({ migrations: migrations.length, sqlContracts: contractFiles.length, assertions, allContracts }));
   if(keep)sql("select cron.unschedule(jobid) from cron.job;");
   console.log(
     "PASS: isolated SQL contracts. " +

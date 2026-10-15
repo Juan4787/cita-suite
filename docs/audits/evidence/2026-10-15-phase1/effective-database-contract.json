@@ -1,0 +1,3022 @@
+{
+  "source": "isolated migration reconstruction",
+  "tables": [
+    {
+      "rls": false,
+      "name": "booking_integration_read_limits",
+      "schema": "private"
+    },
+    {
+      "rls": true,
+      "name": "access_grants",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "account_assistance_grants",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "account_assistance_support_users",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "allowed_emails",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "appointment_booking_contexts",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "appointment_google_calendar_events",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "appointment_intake_responses",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "appointment_intake_submissions",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "appointment_patient_information_contexts",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "appointment_professionals",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "appointments",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "audit_logs",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "availability_exception_batches",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "availability_exception_services",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "availability_exceptions",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "availability_rule_services",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "availability_rules",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "booking_integrations",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "business_data_revisions",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "business_subscriptions",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "business_user_invites",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "business_users",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "businesses",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "clinical_entries",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "clinical_entry_costs",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "clinical_storage_budget",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "clinical_upload_slots",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "drive_connections",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "follow_ups",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "google_calendar_connections",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "google_calendar_oauth_attempts",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "google_review_patient_delivery_state",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "google_review_requests",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "google_review_settings",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "inbound_messages",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "message_dispatches",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "message_templates",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "messaging_accounts",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "mp_subscriptions",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "mp_webhook_events",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "patient_clinical_profiles",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "patient_export_sessions",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "patient_profile_change_events",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "patient_radiographs",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "patients",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "professional_booking_forms",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "professional_patient_links",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "professional_services",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "professional_users",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "professionals",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "public_booking_attempts",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "push_delivery_attempts",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "push_devices",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "push_subscriptions",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "server_rate_limit_events",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "service_price_monthly_adjustments",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "service_price_policies",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "service_price_policy_versions",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "services",
+      "schema": "public"
+    },
+    {
+      "rls": true,
+      "name": "whatsapp_webhook_events",
+      "schema": "public"
+    }
+  ],
+  "functions": [
+    {
+      "name": "advance_booking_availability_revision",
+      "schema": "private",
+      "returns": "trigger",
+      "arguments": "",
+      "security_definer": true
+    },
+    {
+      "name": "apply_booking_answers_to_patient",
+      "schema": "private",
+      "returns": "jsonb",
+      "arguments": "p_business_id uuid, p_patient_id uuid, s jsonb, answers jsonb",
+      "security_definer": true
+    },
+    {
+      "name": "assert_service_schedule",
+      "schema": "private",
+      "returns": "void",
+      "arguments": "p_business_id uuid, p_professional_id uuid, p_service_id uuid, p_start timestamp with time zone, p_end timestamp with time zone",
+      "security_definer": true
+    },
+    {
+      "name": "booking_information_appointment",
+      "schema": "private",
+      "returns": "appointments",
+      "arguments": "p_token text",
+      "security_definer": true
+    },
+    {
+      "name": "booking_intake_schema_valid",
+      "schema": "private",
+      "returns": "boolean",
+      "arguments": "p_schema jsonb",
+      "security_definer": false
+    },
+    {
+      "name": "booking_modality_windows_valid",
+      "schema": "private",
+      "returns": "boolean",
+      "arguments": "p_windows jsonb",
+      "security_definer": false
+    },
+    {
+      "name": "booking_patient_schema_valid",
+      "schema": "private",
+      "returns": "boolean",
+      "arguments": "s jsonb",
+      "security_definer": false
+    },
+    {
+      "name": "bump_patients_revision",
+      "schema": "private",
+      "returns": "trigger",
+      "arguments": "",
+      "security_definer": true
+    },
+    {
+      "name": "calculate_policy_monthly_amount",
+      "schema": "private",
+      "returns": "bigint",
+      "arguments": "policy service_price_policies, p_date date",
+      "security_definer": true
+    },
+    {
+      "name": "can_receive_business_data_revision_topic",
+      "schema": "private",
+      "returns": "boolean",
+      "arguments": "p_topic text",
+      "security_definer": true
+    },
+    {
+      "name": "clinical_budget_lock",
+      "schema": "private",
+      "returns": "void",
+      "arguments": "",
+      "security_definer": false
+    },
+    {
+      "name": "clinical_file_actor_business_role",
+      "schema": "private",
+      "returns": "text",
+      "arguments": "p_business_id uuid, p_actor_id uuid",
+      "security_definer": true
+    },
+    {
+      "name": "clinical_file_actor_can_read_patient",
+      "schema": "private",
+      "returns": "boolean",
+      "arguments": "p_business_id uuid, p_patient_id uuid, p_actor_id uuid",
+      "security_definer": true
+    },
+    {
+      "name": "enforce_appointment_service_schedule",
+      "schema": "private",
+      "returns": "trigger",
+      "arguments": "",
+      "security_definer": true
+    },
+    {
+      "name": "expire_patient_export_sessions",
+      "schema": "private",
+      "returns": "integer",
+      "arguments": "p_business_id uuid",
+      "security_definer": true
+    },
+    {
+      "name": "fail_patient_export_session",
+      "schema": "private",
+      "returns": "boolean",
+      "arguments": "p_export_id uuid, p_failure_code text",
+      "security_definer": true
+    },
+    {
+      "name": "invalidate_current_google_review_request",
+      "schema": "private",
+      "returns": "integer",
+      "arguments": "p_appointment_id uuid, p_status text, p_reason text, p_now timestamp with time zone",
+      "security_definer": true
+    },
+    {
+      "name": "is_google_review_url",
+      "schema": "private",
+      "returns": "boolean",
+      "arguments": "value text",
+      "security_definer": false
+    },
+    {
+      "name": "maintain_patient_export_sessions",
+      "schema": "private",
+      "returns": "jsonb",
+      "arguments": "",
+      "security_definer": true
+    },
+    {
+      "name": "normalize_booking_intake",
+      "schema": "private",
+      "returns": "jsonb",
+      "arguments": "p_schema jsonb, p_answers jsonb",
+      "security_definer": false
+    },
+    {
+      "name": "normalize_patient_answers",
+      "schema": "private",
+      "returns": "jsonb",
+      "arguments": "s jsonb, a jsonb",
+      "security_definer": false
+    },
+    {
+      "name": "patient_booking_schema",
+      "schema": "private",
+      "returns": "jsonb",
+      "arguments": "p_business_id uuid, p_professionals uuid[], p_fallback jsonb",
+      "security_definer": false
+    },
+    {
+      "name": "patient_export_session_response",
+      "schema": "private",
+      "returns": "jsonb",
+      "arguments": "p_session patient_export_sessions",
+      "security_definer": true
+    },
+    {
+      "name": "patient_export_snapshot",
+      "schema": "private",
+      "returns": "TABLE(dataset_fingerprint text, expected_counts jsonb)",
+      "arguments": "p_business_id uuid, p_scope text, p_patient_id uuid",
+      "security_definer": true
+    },
+    {
+      "name": "prepare_patient_search_fields",
+      "schema": "private",
+      "returns": "trigger",
+      "arguments": "",
+      "security_definer": true
+    },
+    {
+      "name": "protect_appointment_identity_fields",
+      "schema": "private",
+      "returns": "trigger",
+      "arguments": "",
+      "security_definer": true
+    },
+    {
+      "name": "protect_restricted_schedule",
+      "schema": "private",
+      "returns": "trigger",
+      "arguments": "",
+      "security_definer": true
+    },
+    {
+      "name": "public_booking_contact_bucket",
+      "schema": "private",
+      "returns": "text",
+      "arguments": "p_patient_name text, p_phone_e164 text",
+      "security_definer": true
+    },
+    {
+      "name": "recompute_patient_activity",
+      "schema": "private",
+      "returns": "void",
+      "arguments": "p_business_id uuid, p_patient_id uuid",
+      "security_definer": true
+    },
+    {
+      "name": "reconcile_patient_radiograph_integrity",
+      "schema": "private",
+      "returns": "integer",
+      "arguments": "",
+      "security_definer": true
+    },
+    {
+      "name": "release_expired_clinical_reservations",
+      "schema": "private",
+      "returns": "void",
+      "arguments": "",
+      "security_definer": true
+    },
+    {
+      "name": "require_clinical_file_service_call",
+      "schema": "private",
+      "returns": "void",
+      "arguments": "",
+      "security_definer": true
+    },
+    {
+      "name": "reserve_clinical_document",
+      "schema": "private",
+      "returns": "void",
+      "arguments": "p_file_id uuid",
+      "security_definer": true
+    },
+    {
+      "name": "resolve_service_price",
+      "schema": "private",
+      "returns": "jsonb",
+      "arguments": "p_business_id uuid, p_service_id uuid, p_professional_ids uuid[], p_date date",
+      "security_definer": true
+    },
+    {
+      "name": "schedule_google_review_request",
+      "schema": "private",
+      "returns": "boolean",
+      "arguments": "p_business_id uuid, p_patient_id uuid, p_appointment_id uuid, p_starts_at timestamp with time zone, p_ends_at timestamp with time zone, p_status text, p_now timestamp with time zone",
+      "security_definer": true
+    },
+    {
+      "name": "serialize_patient_contact_changes",
+      "schema": "private",
+      "returns": "trigger",
+      "arguments": "",
+      "security_definer": true
+    },
+    {
+      "name": "snapshot_appointment_price",
+      "schema": "private",
+      "returns": "trigger",
+      "arguments": "",
+      "security_definer": true
+    },
+    {
+      "name": "snapshot_patient_instructions",
+      "schema": "private",
+      "returns": "trigger",
+      "arguments": "",
+      "security_definer": true
+    },
+    {
+      "name": "sync_google_review_request_from_appointment",
+      "schema": "private",
+      "returns": "trigger",
+      "arguments": "",
+      "security_definer": true
+    },
+    {
+      "name": "sync_google_review_requests_from_settings",
+      "schema": "private",
+      "returns": "trigger",
+      "arguments": "",
+      "security_definer": true
+    },
+    {
+      "name": "touch_patient_activity_from_domain",
+      "schema": "private",
+      "returns": "trigger",
+      "arguments": "",
+      "security_definer": true
+    },
+    {
+      "name": "track_storage_budget",
+      "schema": "private",
+      "returns": "trigger",
+      "arguments": "",
+      "security_definer": true
+    },
+    {
+      "name": "user_can_export_patient_data",
+      "schema": "private",
+      "returns": "boolean",
+      "arguments": "p_business_id uuid, p_actor_user_id uuid",
+      "security_definer": true
+    },
+    {
+      "name": "validate_booking_integration",
+      "schema": "private",
+      "returns": "trigger",
+      "arguments": "",
+      "security_definer": true
+    },
+    {
+      "name": "validate_push_delivery_attempt_identity",
+      "schema": "private",
+      "returns": "trigger",
+      "arguments": "",
+      "security_definer": true
+    },
+    {
+      "name": "accessible_patient_counts",
+      "schema": "public",
+      "returns": "TABLE(total_count bigint, active_count bigint, archived_count bigint)",
+      "arguments": "p_business_id uuid",
+      "security_definer": true
+    },
+    {
+      "name": "activate_account_assistance",
+      "schema": "public",
+      "returns": "TABLE(id uuid, business_id uuid, requested_by_user_id uuid, support_user_id uuid, status text, starts_at timestamp with time zone, expires_at timestamp with time zone, revoked_at timestamp with time zone, dismissed_at timestamp with time zone, created_at timestamp with time zone, updated_at timestamp with time zone)",
+      "arguments": "target_business_id uuid, target_support_user_id uuid",
+      "security_definer": true
+    },
+    {
+      "name": "add_business_user_by_email",
+      "schema": "public",
+      "returns": "uuid",
+      "arguments": "target_business_id uuid, target_email text, target_role text",
+      "security_definer": true
+    },
+    {
+      "name": "assert_email_available_for_business",
+      "schema": "public",
+      "returns": "void",
+      "arguments": "target_business_id uuid, target_email text",
+      "security_definer": true
+    },
+    {
+      "name": "audit_security_event",
+      "schema": "public",
+      "returns": "void",
+      "arguments": "p_business_id uuid, p_user_id uuid, p_action text, p_entity_type text, p_entity_id uuid, p_result text, p_reason_code text, p_metadata jsonb",
+      "security_definer": true
+    },
+    {
+      "name": "authorize_google_calendar_event",
+      "schema": "public",
+      "returns": "TABLE(connection_row_id uuid, event_row_id uuid)",
+      "arguments": "p_appointment_id uuid, p_oauth_client_key text, p_google_subject text, p_refresh_token_ciphertext text, p_granted_scopes text[], p_now timestamp with time zone",
+      "security_definer": true
+    },
+    {
+      "name": "begin_patient_export",
+      "schema": "public",
+      "returns": "jsonb",
+      "arguments": "p_actor_user_id uuid, p_business_id uuid, p_scope text, p_patient_id uuid, p_request_key uuid",
+      "security_definer": true
+    },
+    {
+      "name": "begin_patient_radiograph_upload",
+      "schema": "public",
+      "returns": "TABLE(radiograph_id uuid, storage_bucket text, storage_path text, thumbnail_path text, status text, created_at timestamp with time zone)",
+      "arguments": "p_actor_id uuid, p_business_id uuid, p_patient_id uuid, p_client_request_id uuid, p_original_filename text, p_mime_type text, p_bytes bigint, p_sha256 text, p_taken_at date, p_note text",
+      "security_definer": true
+    },
+    {
+      "name": "begin_public_patient_document_upload",
+      "schema": "public",
+      "returns": "patient_radiographs",
+      "arguments": "p_token text, p_request_id uuid, p_filename text, p_mime text, p_bytes bigint, p_sha256 text, p_note text",
+      "security_definer": true
+    },
+    {
+      "name": "business_allows_operation",
+      "schema": "public",
+      "returns": "boolean",
+      "arguments": "target_business_id uuid",
+      "security_definer": true
+    },
+    {
+      "name": "business_allows_owner_restricted_read",
+      "schema": "public",
+      "returns": "boolean",
+      "arguments": "target_business_id uuid",
+      "security_definer": true
+    },
+    {
+      "name": "cancel_business_role_invite",
+      "schema": "public",
+      "returns": "void",
+      "arguments": "target_invite_id uuid",
+      "security_definer": true
+    },
+    {
+      "name": "cancel_patient_export",
+      "schema": "public",
+      "returns": "jsonb",
+      "arguments": "p_actor_user_id uuid, p_export_id uuid",
+      "security_definer": true
+    },
+    {
+      "name": "cash_dist",
+      "schema": "public",
+      "returns": "money",
+      "arguments": "money, money",
+      "security_definer": false
+    },
+    {
+      "name": "claim_due_google_review_requests",
+      "schema": "public",
+      "returns": "TABLE(request_id uuid, claim_token uuid, business_id uuid, patient_id uuid, appointment_id uuid, appointment_ends_at timestamp with time zone, scheduled_for timestamp with time zone, subscription_id uuid, endpoint text, p256dh text, auth text, confirmation_token text)",
+      "arguments": "claim_now timestamp with time zone, claim_limit integer",
+      "security_definer": true
+    },
+    {
+      "name": "claim_due_push_reminders",
+      "schema": "public",
+      "returns": "TABLE(subscription_id uuid, appointment_id uuid, business_id uuid, endpoint text, p256dh text, auth text, reminder_kind text)",
+      "arguments": "claim_now timestamp with time zone, claim_limit integer",
+      "security_definer": true
+    },
+    {
+      "name": "claim_expired_clinical_uploads",
+      "schema": "public",
+      "returns": "jsonb",
+      "arguments": "p_business_id uuid, p_actor_id uuid",
+      "security_definer": true
+    },
+    {
+      "name": "claim_google_calendar_sync_jobs",
+      "schema": "public",
+      "returns": "TABLE(event_row_id uuid)",
+      "arguments": "claim_now timestamp with time zone, claim_limit integer",
+      "security_definer": true
+    },
+    {
+      "name": "claim_queued_message_dispatches",
+      "schema": "public",
+      "returns": "SETOF message_dispatches",
+      "arguments": "claim_limit integer, claim_now timestamp with time zone",
+      "security_definer": true
+    },
+    {
+      "name": "clear_patient_drive_folders_safely",
+      "schema": "public",
+      "returns": "void",
+      "arguments": "p_business_id uuid",
+      "security_definer": true
+    },
+    {
+      "name": "complete_google_calendar_event_delete",
+      "schema": "public",
+      "returns": "uuid",
+      "arguments": "p_event_row_id uuid, p_now timestamp with time zone",
+      "security_definer": true
+    },
+    {
+      "name": "complete_google_calendar_event_sync",
+      "schema": "public",
+      "returns": "text",
+      "arguments": "p_event_row_id uuid, p_google_event_id text, p_synced_sequence integer, p_now timestamp with time zone",
+      "security_definer": true
+    },
+    {
+      "name": "complete_google_review_request",
+      "schema": "public",
+      "returns": "boolean",
+      "arguments": "target_request_id uuid, target_claim_token uuid, target_push_delivery_id uuid, target_push_service_status integer, complete_time timestamp with time zone",
+      "security_definer": true
+    },
+    {
+      "name": "complete_patient_radiograph_upload",
+      "schema": "public",
+      "returns": "uuid",
+      "arguments": "p_actor_id uuid, p_business_id uuid, p_patient_id uuid, p_radiograph_id uuid, p_actual_bytes bigint, p_actual_mime_type text, p_thumbnail_uploaded boolean",
+      "security_definer": true
+    },
+    {
+      "name": "complete_public_patient_document_upload",
+      "schema": "public",
+      "returns": "uuid",
+      "arguments": "p_token text, p_file_id uuid, p_bytes bigint, p_mime text",
+      "security_definer": true
+    },
+    {
+      "name": "compute_business_subscription_status",
+      "schema": "public",
+      "returns": "text",
+      "arguments": "p_commercial_access_enabled boolean, p_is_permanent boolean, p_paid_until timestamp with time zone, p_grace_until timestamp with time zone, p_restricted_until timestamp with time zone, p_archived_at timestamp with time zone",
+      "security_definer": false
+    },
+    {
+      "name": "consume_booking_integration_read_limit",
+      "schema": "public",
+      "returns": "boolean",
+      "arguments": "p_subject_hash text",
+      "security_definer": true
+    },
+    {
+      "name": "consume_google_calendar_oauth_attempt",
+      "schema": "public",
+      "returns": "TABLE(attempt_id uuid, business_id uuid, appointment_id uuid, code_verifier_ciphertext text, force_consent boolean)",
+      "arguments": "p_state_hash text, p_now timestamp with time zone",
+      "security_definer": true
+    },
+    {
+      "name": "consume_server_rate_limit",
+      "schema": "public",
+      "returns": "TABLE(allowed boolean, used integer, retry_after_seconds integer)",
+      "arguments": "p_action text, p_subject_hash text, p_limit integer, p_window_seconds integer",
+      "security_definer": true
+    },
+    {
+      "name": "consume_server_rate_limits",
+      "schema": "public",
+      "returns": "TABLE(allowed boolean, used integer, retry_after_seconds integer)",
+      "arguments": "p_action text, p_subject_hash text, p_windows jsonb",
+      "security_definer": true
+    },
+    {
+      "name": "count_active_business_owners",
+      "schema": "public",
+      "returns": "integer",
+      "arguments": "target_business_id uuid",
+      "security_definer": true
+    },
+    {
+      "name": "create_appointment_with_patient_identity",
+      "schema": "public",
+      "returns": "TABLE(id uuid, patient_id uuid, confirmation_token text, starts_at timestamp with time zone, ends_at timestamp with time zone, service_name_snapshot text, professional_name_snapshot text, patient_created boolean, idempotent_replay boolean, patient_resolution_strategy text)",
+      "arguments": "p_business_id uuid, p_patient_mode text, p_patient_id uuid, p_patient_name text, p_patient_phone_raw text, p_patient_phone_e164 text, p_patient_email text, p_update_existing_phone boolean, p_owner_id uuid, p_service_id uuid, p_professional_ids uuid[], p_starts_at timestamp with time zone, p_internal_note text, p_created_by_user_id uuid, p_ignore_break boolean, p_source text, p_phone_communication_status text, p_phone_warning_acknowledged boolean, p_idempotency_key text, p_replay_only boolean",
+      "security_definer": true
+    },
+    {
+      "name": "create_appointment_with_patient_identity_before_pricing",
+      "schema": "public",
+      "returns": "TABLE(id uuid, patient_id uuid, confirmation_token text, starts_at timestamp with time zone, ends_at timestamp with time zone, service_name_snapshot text, professional_name_snapshot text, patient_created boolean, idempotent_replay boolean, patient_resolution_strategy text)",
+      "arguments": "p_business_id uuid, p_patient_mode text, p_patient_id uuid, p_patient_name text, p_patient_phone_raw text, p_patient_phone_e164 text, p_patient_email text, p_update_existing_phone boolean, p_owner_id uuid, p_service_id uuid, p_professional_ids uuid[], p_starts_at timestamp with time zone, p_internal_note text, p_created_by_user_id uuid, p_ignore_break boolean, p_source text, p_phone_communication_status text, p_phone_warning_acknowledged boolean, p_idempotency_key text, p_replay_only boolean",
+      "security_definer": true
+    },
+    {
+      "name": "create_availability_exception_batch",
+      "schema": "public",
+      "returns": "jsonb",
+      "arguments": "p_business_id uuid, p_expected_revision bigint, p_request_id uuid, p_items jsonb, p_ack_existing boolean",
+      "security_definer": true
+    },
+    {
+      "name": "create_clinical_entry_safely",
+      "schema": "public",
+      "returns": "uuid",
+      "arguments": "p_business_id uuid, p_patient_id uuid, p_entry_type text, p_description text, p_created_at timestamp with time zone, p_teeth text, p_internal_note text, p_amount numeric",
+      "security_definer": true
+    },
+    {
+      "name": "create_clinical_entry_with_result_safely",
+      "schema": "public",
+      "returns": "jsonb",
+      "arguments": "p_business_id uuid, p_patient_id uuid, p_entry_type text, p_description text, p_created_at timestamp with time zone, p_teeth text, p_internal_note text, p_amount numeric",
+      "security_definer": true
+    },
+    {
+      "name": "create_integrated_public_appointment",
+      "schema": "public",
+      "returns": "TABLE(id uuid, patient_id uuid, confirmation_token text, starts_at timestamp with time zone, ends_at timestamp with time zone, service_name_snapshot text, professional_name_snapshot text, patient_created boolean, idempotent_replay boolean, patient_resolution_strategy text)",
+      "arguments": "p_integration_id uuid, p_integration_revision bigint, p_expected_availability_revision bigint, p_patient_name text, p_patient_phone_raw text, p_patient_phone_e164 text, p_patient_email text, p_service_id uuid, p_professional_ids uuid[], p_starts_at timestamp with time zone, p_internal_note text, p_phone_communication_status text, p_modality text, p_intake_answers jsonb, p_idempotency_key text, p_replay_only boolean, p_entry_point text",
+      "security_definer": true
+    },
+    {
+      "name": "create_joint_appointment",
+      "schema": "public",
+      "returns": "TABLE(id uuid, confirmation_token text, starts_at timestamp with time zone, ends_at timestamp with time zone, service_name_snapshot text, professional_name_snapshot text)",
+      "arguments": "p_business_id uuid, p_patient_id uuid, p_service_id uuid, p_professional_ids uuid[], p_starts_at timestamp with time zone, p_internal_note text, p_created_by_user_id uuid, p_ignore_break boolean",
+      "security_definer": true
+    },
+    {
+      "name": "create_joint_appointment_with_phone_decision",
+      "schema": "public",
+      "returns": "TABLE(id uuid, confirmation_token text, starts_at timestamp with time zone, ends_at timestamp with time zone, service_name_snapshot text, professional_name_snapshot text)",
+      "arguments": "p_business_id uuid, p_patient_id uuid, p_service_id uuid, p_professional_ids uuid[], p_starts_at timestamp with time zone, p_internal_note text, p_created_by_user_id uuid, p_ignore_break boolean, p_source text, p_phone_communication_status text, p_phone_warning_acknowledged boolean",
+      "security_definer": true
+    },
+    {
+      "name": "create_joint_appointment_with_source",
+      "schema": "public",
+      "returns": "TABLE(id uuid, confirmation_token text, starts_at timestamp with time zone, ends_at timestamp with time zone, service_name_snapshot text, professional_name_snapshot text)",
+      "arguments": "p_business_id uuid, p_patient_id uuid, p_service_id uuid, p_professional_ids uuid[], p_starts_at timestamp with time zone, p_internal_note text, p_created_by_user_id uuid, p_ignore_break boolean, p_source text",
+      "security_definer": true
+    },
+    {
+      "name": "create_or_restore_professional_patient_link",
+      "schema": "public",
+      "returns": "uuid",
+      "arguments": "p_business_id uuid, p_professional_id uuid, p_patient_id uuid, p_source text, p_source_entity_id uuid, p_created_by uuid",
+      "security_definer": true
+    },
+    {
+      "name": "create_public_booking_with_information",
+      "schema": "public",
+      "returns": "TABLE(id uuid, patient_id uuid, confirmation_token text, starts_at timestamp with time zone, ends_at timestamp with time zone, service_name_snapshot text, professional_name_snapshot text, patient_created boolean, idempotent_replay boolean, patient_resolution_strategy text)",
+      "arguments": "p_input jsonb, p_replay_only boolean",
+      "security_definer": true
+    },
+    {
+      "name": "current_user_professional_id",
+      "schema": "public",
+      "returns": "uuid",
+      "arguments": "target_business_id uuid",
+      "security_definer": true
+    },
+    {
+      "name": "date_dist",
+      "schema": "public",
+      "returns": "integer",
+      "arguments": "date, date",
+      "security_definer": false
+    },
+    {
+      "name": "delete_professional_schedule_rule",
+      "schema": "public",
+      "returns": "void",
+      "arguments": "p_business_id uuid, p_professional_id uuid, p_rule_id uuid, p_expected_revision bigint",
+      "security_definer": true
+    },
+    {
+      "name": "dismiss_account_assistance_notice",
+      "schema": "public",
+      "returns": "void",
+      "arguments": "target_business_id uuid, target_grant_id uuid",
+      "security_definer": true
+    },
+    {
+      "name": "enforce_appointment_role_update",
+      "schema": "public",
+      "returns": "trigger",
+      "arguments": "",
+      "security_definer": true
+    },
+    {
+      "name": "enforce_pending_professional_visibility",
+      "schema": "public",
+      "returns": "trigger",
+      "arguments": "",
+      "security_definer": true
+    },
+    {
+      "name": "enforce_public_booking_future_appointment_limit",
+      "schema": "public",
+      "returns": "trigger",
+      "arguments": "",
+      "security_definer": true
+    },
+    {
+      "name": "ensure_business_subscription",
+      "schema": "public",
+      "returns": "trigger",
+      "arguments": "",
+      "security_definer": true
+    },
+    {
+      "name": "ensure_user_default_business",
+      "schema": "public",
+      "returns": "TABLE(business_id uuid, role text)",
+      "arguments": "p_name text, p_industry text",
+      "security_definer": true
+    },
+    {
+      "name": "fail_google_calendar_event_sync",
+      "schema": "public",
+      "returns": "text",
+      "arguments": "p_event_row_id uuid, p_failure_category text, p_error_code text, p_next_attempt_at timestamp with time zone, p_now timestamp with time zone",
+      "security_definer": true
+    },
+    {
+      "name": "fail_patient_radiograph_upload",
+      "schema": "public",
+      "returns": "uuid",
+      "arguments": "p_actor_id uuid, p_business_id uuid, p_patient_id uuid, p_radiograph_id uuid, p_failure_code text",
+      "security_definer": true
+    },
+    {
+      "name": "float4_dist",
+      "schema": "public",
+      "returns": "real",
+      "arguments": "real, real",
+      "security_definer": false
+    },
+    {
+      "name": "float8_dist",
+      "schema": "public",
+      "returns": "double precision",
+      "arguments": "double precision, double precision",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_bit_compress",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_bit_consistent",
+      "schema": "public",
+      "returns": "boolean",
+      "arguments": "internal, bit, smallint, oid, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_bit_penalty",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal, internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_bit_picksplit",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_bit_same",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "gbtreekey_var, gbtreekey_var, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_bit_union",
+      "schema": "public",
+      "returns": "gbtreekey_var",
+      "arguments": "internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_bool_compress",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_bool_consistent",
+      "schema": "public",
+      "returns": "boolean",
+      "arguments": "internal, boolean, smallint, oid, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_bool_fetch",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_bool_penalty",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal, internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_bool_picksplit",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_bool_same",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "gbtreekey2, gbtreekey2, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_bool_union",
+      "schema": "public",
+      "returns": "gbtreekey2",
+      "arguments": "internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_bpchar_compress",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_bpchar_consistent",
+      "schema": "public",
+      "returns": "boolean",
+      "arguments": "internal, character, smallint, oid, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_bytea_compress",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_bytea_consistent",
+      "schema": "public",
+      "returns": "boolean",
+      "arguments": "internal, bytea, smallint, oid, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_bytea_penalty",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal, internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_bytea_picksplit",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_bytea_same",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "gbtreekey_var, gbtreekey_var, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_bytea_union",
+      "schema": "public",
+      "returns": "gbtreekey_var",
+      "arguments": "internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_cash_compress",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_cash_consistent",
+      "schema": "public",
+      "returns": "boolean",
+      "arguments": "internal, money, smallint, oid, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_cash_distance",
+      "schema": "public",
+      "returns": "double precision",
+      "arguments": "internal, money, smallint, oid, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_cash_fetch",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_cash_penalty",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal, internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_cash_picksplit",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_cash_same",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "gbtreekey16, gbtreekey16, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_cash_union",
+      "schema": "public",
+      "returns": "gbtreekey16",
+      "arguments": "internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_date_compress",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_date_consistent",
+      "schema": "public",
+      "returns": "boolean",
+      "arguments": "internal, date, smallint, oid, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_date_distance",
+      "schema": "public",
+      "returns": "double precision",
+      "arguments": "internal, date, smallint, oid, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_date_fetch",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_date_penalty",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal, internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_date_picksplit",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_date_same",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "gbtreekey8, gbtreekey8, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_date_union",
+      "schema": "public",
+      "returns": "gbtreekey8",
+      "arguments": "internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_decompress",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_enum_compress",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_enum_consistent",
+      "schema": "public",
+      "returns": "boolean",
+      "arguments": "internal, anyenum, smallint, oid, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_enum_fetch",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_enum_penalty",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal, internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_enum_picksplit",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_enum_same",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "gbtreekey8, gbtreekey8, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_enum_union",
+      "schema": "public",
+      "returns": "gbtreekey8",
+      "arguments": "internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_float4_compress",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_float4_consistent",
+      "schema": "public",
+      "returns": "boolean",
+      "arguments": "internal, real, smallint, oid, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_float4_distance",
+      "schema": "public",
+      "returns": "double precision",
+      "arguments": "internal, real, smallint, oid, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_float4_fetch",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_float4_penalty",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal, internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_float4_picksplit",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_float4_same",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "gbtreekey8, gbtreekey8, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_float4_union",
+      "schema": "public",
+      "returns": "gbtreekey8",
+      "arguments": "internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_float8_compress",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_float8_consistent",
+      "schema": "public",
+      "returns": "boolean",
+      "arguments": "internal, double precision, smallint, oid, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_float8_distance",
+      "schema": "public",
+      "returns": "double precision",
+      "arguments": "internal, double precision, smallint, oid, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_float8_fetch",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_float8_penalty",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal, internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_float8_picksplit",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_float8_same",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "gbtreekey16, gbtreekey16, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_float8_union",
+      "schema": "public",
+      "returns": "gbtreekey16",
+      "arguments": "internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_inet_compress",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_inet_consistent",
+      "schema": "public",
+      "returns": "boolean",
+      "arguments": "internal, inet, smallint, oid, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_inet_penalty",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal, internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_inet_picksplit",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_inet_same",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "gbtreekey16, gbtreekey16, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_inet_union",
+      "schema": "public",
+      "returns": "gbtreekey16",
+      "arguments": "internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_int2_compress",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_int2_consistent",
+      "schema": "public",
+      "returns": "boolean",
+      "arguments": "internal, smallint, smallint, oid, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_int2_distance",
+      "schema": "public",
+      "returns": "double precision",
+      "arguments": "internal, smallint, smallint, oid, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_int2_fetch",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_int2_penalty",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal, internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_int2_picksplit",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_int2_same",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "gbtreekey4, gbtreekey4, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_int2_union",
+      "schema": "public",
+      "returns": "gbtreekey4",
+      "arguments": "internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_int4_compress",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_int4_consistent",
+      "schema": "public",
+      "returns": "boolean",
+      "arguments": "internal, integer, smallint, oid, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_int4_distance",
+      "schema": "public",
+      "returns": "double precision",
+      "arguments": "internal, integer, smallint, oid, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_int4_fetch",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_int4_penalty",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal, internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_int4_picksplit",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_int4_same",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "gbtreekey8, gbtreekey8, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_int4_union",
+      "schema": "public",
+      "returns": "gbtreekey8",
+      "arguments": "internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_int8_compress",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_int8_consistent",
+      "schema": "public",
+      "returns": "boolean",
+      "arguments": "internal, bigint, smallint, oid, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_int8_distance",
+      "schema": "public",
+      "returns": "double precision",
+      "arguments": "internal, bigint, smallint, oid, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_int8_fetch",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_int8_penalty",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal, internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_int8_picksplit",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_int8_same",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "gbtreekey16, gbtreekey16, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_int8_union",
+      "schema": "public",
+      "returns": "gbtreekey16",
+      "arguments": "internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_intv_compress",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_intv_consistent",
+      "schema": "public",
+      "returns": "boolean",
+      "arguments": "internal, interval, smallint, oid, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_intv_decompress",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_intv_distance",
+      "schema": "public",
+      "returns": "double precision",
+      "arguments": "internal, interval, smallint, oid, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_intv_fetch",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_intv_penalty",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal, internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_intv_picksplit",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_intv_same",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "gbtreekey32, gbtreekey32, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_intv_union",
+      "schema": "public",
+      "returns": "gbtreekey32",
+      "arguments": "internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_macad8_compress",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_macad8_consistent",
+      "schema": "public",
+      "returns": "boolean",
+      "arguments": "internal, macaddr8, smallint, oid, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_macad8_fetch",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_macad8_penalty",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal, internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_macad8_picksplit",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_macad8_same",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "gbtreekey16, gbtreekey16, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_macad8_union",
+      "schema": "public",
+      "returns": "gbtreekey16",
+      "arguments": "internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_macad_compress",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_macad_consistent",
+      "schema": "public",
+      "returns": "boolean",
+      "arguments": "internal, macaddr, smallint, oid, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_macad_fetch",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_macad_penalty",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal, internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_macad_picksplit",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_macad_same",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "gbtreekey16, gbtreekey16, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_macad_union",
+      "schema": "public",
+      "returns": "gbtreekey16",
+      "arguments": "internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_numeric_compress",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_numeric_consistent",
+      "schema": "public",
+      "returns": "boolean",
+      "arguments": "internal, numeric, smallint, oid, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_numeric_penalty",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal, internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_numeric_picksplit",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_numeric_same",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "gbtreekey_var, gbtreekey_var, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_numeric_union",
+      "schema": "public",
+      "returns": "gbtreekey_var",
+      "arguments": "internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_oid_compress",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_oid_consistent",
+      "schema": "public",
+      "returns": "boolean",
+      "arguments": "internal, oid, smallint, oid, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_oid_distance",
+      "schema": "public",
+      "returns": "double precision",
+      "arguments": "internal, oid, smallint, oid, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_oid_fetch",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_oid_penalty",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal, internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_oid_picksplit",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_oid_same",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "gbtreekey8, gbtreekey8, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_oid_union",
+      "schema": "public",
+      "returns": "gbtreekey8",
+      "arguments": "internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_text_compress",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_text_consistent",
+      "schema": "public",
+      "returns": "boolean",
+      "arguments": "internal, text, smallint, oid, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_text_penalty",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal, internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_text_picksplit",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_text_same",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "gbtreekey_var, gbtreekey_var, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_text_union",
+      "schema": "public",
+      "returns": "gbtreekey_var",
+      "arguments": "internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_time_compress",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_time_consistent",
+      "schema": "public",
+      "returns": "boolean",
+      "arguments": "internal, time without time zone, smallint, oid, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_time_distance",
+      "schema": "public",
+      "returns": "double precision",
+      "arguments": "internal, time without time zone, smallint, oid, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_time_fetch",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_time_penalty",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal, internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_time_picksplit",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_time_same",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "gbtreekey16, gbtreekey16, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_time_union",
+      "schema": "public",
+      "returns": "gbtreekey16",
+      "arguments": "internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_timetz_compress",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_timetz_consistent",
+      "schema": "public",
+      "returns": "boolean",
+      "arguments": "internal, time with time zone, smallint, oid, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_ts_compress",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_ts_consistent",
+      "schema": "public",
+      "returns": "boolean",
+      "arguments": "internal, timestamp without time zone, smallint, oid, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_ts_distance",
+      "schema": "public",
+      "returns": "double precision",
+      "arguments": "internal, timestamp without time zone, smallint, oid, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_ts_fetch",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_ts_penalty",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal, internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_ts_picksplit",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_ts_same",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "gbtreekey16, gbtreekey16, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_ts_union",
+      "schema": "public",
+      "returns": "gbtreekey16",
+      "arguments": "internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_tstz_compress",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_tstz_consistent",
+      "schema": "public",
+      "returns": "boolean",
+      "arguments": "internal, timestamp with time zone, smallint, oid, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_tstz_distance",
+      "schema": "public",
+      "returns": "double precision",
+      "arguments": "internal, timestamp with time zone, smallint, oid, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_uuid_compress",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_uuid_consistent",
+      "schema": "public",
+      "returns": "boolean",
+      "arguments": "internal, uuid, smallint, oid, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_uuid_fetch",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_uuid_penalty",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal, internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_uuid_picksplit",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_uuid_same",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "gbtreekey32, gbtreekey32, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_uuid_union",
+      "schema": "public",
+      "returns": "gbtreekey32",
+      "arguments": "internal, internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_var_decompress",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbt_var_fetch",
+      "schema": "public",
+      "returns": "internal",
+      "arguments": "internal",
+      "security_definer": false
+    },
+    {
+      "name": "gbtreekey16_in",
+      "schema": "public",
+      "returns": "gbtreekey16",
+      "arguments": "cstring",
+      "security_definer": false
+    },
+    {
+      "name": "gbtreekey16_out",
+      "schema": "public",
+      "returns": "cstring",
+      "arguments": "gbtreekey16",
+      "security_definer": false
+    },
+    {
+      "name": "gbtreekey2_in",
+      "schema": "public",
+      "returns": "gbtreekey2",
+      "arguments": "cstring",
+      "security_definer": false
+    },
+    {
+      "name": "gbtreekey2_out",
+      "schema": "public",
+      "returns": "cstring",
+      "arguments": "gbtreekey2",
+      "security_definer": false
+    },
+    {
+      "name": "gbtreekey32_in",
+      "schema": "public",
+      "returns": "gbtreekey32",
+      "arguments": "cstring",
+      "security_definer": false
+    },
+    {
+      "name": "gbtreekey32_out",
+      "schema": "public",
+      "returns": "cstring",
+      "arguments": "gbtreekey32",
+      "security_definer": false
+    },
+    {
+      "name": "gbtreekey4_in",
+      "schema": "public",
+      "returns": "gbtreekey4",
+      "arguments": "cstring",
+      "security_definer": false
+    },
+    {
+      "name": "gbtreekey4_out",
+      "schema": "public",
+      "returns": "cstring",
+      "arguments": "gbtreekey4",
+      "security_definer": false
+    },
+    {
+      "name": "gbtreekey8_in",
+      "schema": "public",
+      "returns": "gbtreekey8",
+      "arguments": "cstring",
+      "security_definer": false
+    },
+    {
+      "name": "gbtreekey8_out",
+      "schema": "public",
+      "returns": "cstring",
+      "arguments": "gbtreekey8",
+      "security_definer": false
+    },
+    {
+      "name": "gbtreekey_var_in",
+      "schema": "public",
+      "returns": "gbtreekey_var",
+      "arguments": "cstring",
+      "security_definer": false
+    },
+    {
+      "name": "gbtreekey_var_out",
+      "schema": "public",
+      "returns": "cstring",
+      "arguments": "gbtreekey_var",
+      "security_definer": false
+    },
+    {
+      "name": "get_availability_snapshot",
+      "schema": "public",
+      "returns": "jsonb",
+      "arguments": "p_business_id uuid, p_from timestamp with time zone, p_to timestamp with time zone",
+      "security_definer": false
+    },
+    {
+      "name": "get_clinical_file_daily_transfer_estimates",
+      "schema": "public",
+      "returns": "TABLE(business_id uuid, local_day date, upload_events bigint, original_access_events bigint, upload_bytes bigint, original_access_bytes bigint, estimated_transfer_bytes bigint, threshold_level text)",
+      "arguments": "p_local_day date",
+      "security_definer": true
+    },
+    {
+      "name": "get_clinical_storage_budget",
+      "schema": "public",
+      "returns": "jsonb",
+      "arguments": "p_business_id uuid",
+      "security_definer": true
+    },
+    {
+      "name": "get_integrated_public_availability_snapshot",
+      "schema": "public",
+      "returns": "jsonb",
+      "arguments": "p_business_id uuid, p_service_id uuid, p_professional_ids uuid[], p_range_start timestamp with time zone, p_range_end timestamp with time zone",
+      "security_definer": true
+    },
+    {
+      "name": "get_patient_data_revision",
+      "schema": "public",
+      "returns": "TABLE(business_id uuid, patients_revision bigint, realtime_topic text, viewer_role text, can_create_patient boolean)",
+      "arguments": "p_business_id uuid",
+      "security_definer": true
+    },
+    {
+      "name": "get_patient_drive_folder_safely",
+      "schema": "public",
+      "returns": "text",
+      "arguments": "p_business_id uuid, p_patient_id uuid",
+      "security_definer": true
+    },
+    {
+      "name": "get_public_booking_active_future_count_for_request",
+      "schema": "public",
+      "returns": "integer",
+      "arguments": "p_business_id uuid, p_patient_id uuid, p_patient_name text, p_phone_e164 text, p_now timestamp with time zone",
+      "security_definer": true
+    },
+    {
+      "name": "get_public_booking_catalogue",
+      "schema": "public",
+      "returns": "jsonb",
+      "arguments": "p_integration_id uuid",
+      "security_definer": true
+    },
+    {
+      "name": "get_public_booking_information",
+      "schema": "public",
+      "returns": "jsonb",
+      "arguments": "p_token text",
+      "security_definer": true
+    },
+    {
+      "name": "get_public_patient_booking_schema",
+      "schema": "public",
+      "returns": "jsonb",
+      "arguments": "p_business_id uuid, p_professional_ids uuid[], p_integration_id uuid, p_request_key text",
+      "security_definer": true
+    },
+    {
+      "name": "get_public_patient_document_upload",
+      "schema": "public",
+      "returns": "patient_radiographs",
+      "arguments": "p_token text, p_file_id uuid",
+      "security_definer": true
+    },
+    {
+      "name": "get_public_practice_contact",
+      "schema": "public",
+      "returns": "jsonb",
+      "arguments": "p_key text",
+      "security_definer": true
+    },
+    {
+      "name": "get_public_service_price_labels",
+      "schema": "public",
+      "returns": "jsonb",
+      "arguments": "p_business_id uuid, p_service_ids uuid[], p_professional_ids uuid[]",
+      "security_definer": true
+    },
+    {
+      "name": "get_public_service_price_quote",
+      "schema": "public",
+      "returns": "jsonb",
+      "arguments": "p_business_id uuid, p_service_id uuid, p_professional_ids uuid[], p_date date",
+      "security_definer": true
+    },
+    {
+      "name": "grant_business_access",
+      "schema": "public",
+      "returns": "TABLE(applied boolean, grant_id uuid, paid_until_before timestamp with time zone, paid_until_after timestamp with time zone, status_after text)",
+      "arguments": "p_business_id uuid, p_operation text, p_duration_seconds integer, p_duration_unit text, p_is_permanent boolean, p_amount numeric, p_source text, p_note text, p_admin_id uuid, p_admin_email text, p_idempotency_key text",
+      "security_definer": true
+    },
+    {
+      "name": "grant_patient_radiograph_original_access",
+      "schema": "public",
+      "returns": "TABLE(storage_bucket text, storage_path text, original_filename text, mime_type text, bytes bigint)",
+      "arguments": "p_actor_id uuid, p_business_id uuid, p_patient_id uuid, p_radiograph_id uuid",
+      "security_definer": true
+    },
+    {
+      "name": "grant_patient_radiograph_original_access_legacy",
+      "schema": "public",
+      "returns": "TABLE(storage_bucket text, storage_path text, original_filename text, mime_type text, bytes bigint)",
+      "arguments": "p_actor_id uuid, p_business_id uuid, p_patient_id uuid, p_radiograph_id uuid",
+      "security_definer": true
+    },
+    {
+      "name": "int2_dist",
+      "schema": "public",
+      "returns": "smallint",
+      "arguments": "smallint, smallint",
+      "security_definer": false
+    },
+    {
+      "name": "int4_dist",
+      "schema": "public",
+      "returns": "integer",
+      "arguments": "integer, integer",
+      "security_definer": false
+    },
+    {
+      "name": "int8_dist",
+      "schema": "public",
+      "returns": "bigint",
+      "arguments": "bigint, bigint",
+      "security_definer": false
+    },
+    {
+      "name": "interval_dist",
+      "schema": "public",
+      "returns": "interval",
+      "arguments": "interval, interval",
+      "security_definer": false
+    },
+    {
+      "name": "is_email_enabled",
+      "schema": "public",
+      "returns": "boolean",
+      "arguments": "p_email text",
+      "security_definer": true
+    },
+    {
+      "name": "link_patient_to_professional_from_appointment",
+      "schema": "public",
+      "returns": "trigger",
+      "arguments": "",
+      "security_definer": true
+    },
+    {
+      "name": "link_patient_to_professional_from_clinical_entry",
+      "schema": "public",
+      "returns": "trigger",
+      "arguments": "",
+      "security_definer": true
+    },
+    {
+      "name": "list_accessible_patients_page",
+      "schema": "public",
+      "returns": "TABLE(id uuid, full_name text, dni text, phone text, archived_at timestamp with time zone, professional_archived_at timestamp with time zone, last_entry_at timestamp with time zone, activity_at timestamp with time zone, created_at timestamp with time zone, search_rank integer)",
+      "arguments": "p_business_id uuid, p_show_archived boolean, p_query text, p_limit integer, p_snapshot_at timestamp with time zone, p_cursor_rank integer, p_cursor_activity_at timestamp with time zone, p_cursor_id uuid",
+      "security_definer": true
+    },
+    {
+      "name": "list_business_role_access",
+      "schema": "public",
+      "returns": "TABLE(id uuid, business_id uuid, user_id uuid, email text, role text, status text, professional_id uuid, created_at timestamp with time zone)",
+      "arguments": "target_business_id uuid",
+      "security_definer": true
+    },
+    {
+      "name": "list_business_users",
+      "schema": "public",
+      "returns": "TABLE(id uuid, business_id uuid, user_id uuid, email text, role text, created_at timestamp with time zone)",
+      "arguments": "target_business_id uuid",
+      "security_definer": true
+    },
+    {
+      "name": "list_trashed_patient_radiographs_page",
+      "schema": "public",
+      "returns": "TABLE(id uuid, patient_id uuid, patient_name text, original_filename text, mime_type text, bytes bigint, taken_at date, created_at timestamp with time zone, deleted_at timestamp with time zone, deleted_by_label text, integrity_status text, thumbnail_path text)",
+      "arguments": "p_business_id uuid, p_query text, p_limit integer, p_cursor_deleted_at timestamp with time zone, p_cursor_id uuid",
+      "security_definer": true
+    },
+    {
+      "name": "list_upcoming_active_appointments_snapshot",
+      "schema": "public",
+      "returns": "jsonb",
+      "arguments": "p_business_id uuid, p_limit integer",
+      "security_definer": true
+    },
+    {
+      "name": "list_user_business_contexts",
+      "schema": "public",
+      "returns": "TABLE(business jsonb, role text, assistance jsonb, subscription jsonb)",
+      "arguments": "",
+      "security_definer": true
+    },
+    {
+      "name": "mark_push_device_gone",
+      "schema": "public",
+      "returns": "integer",
+      "arguments": "target_endpoint text, gone_time timestamp with time zone",
+      "security_definer": true
+    },
+    {
+      "name": "normalize_patient_search_digits",
+      "schema": "public",
+      "returns": "text",
+      "arguments": "p_value text",
+      "security_definer": false
+    },
+    {
+      "name": "normalize_patient_search_text",
+      "schema": "public",
+      "returns": "text",
+      "arguments": "p_value text",
+      "security_definer": false
+    },
+    {
+      "name": "normalize_phone_e164",
+      "schema": "public",
+      "returns": "text",
+      "arguments": "value text",
+      "security_definer": false
+    },
+    {
+      "name": "normalized_patient_name",
+      "schema": "public",
+      "returns": "text",
+      "arguments": "value text",
+      "security_definer": false
+    },
+    {
+      "name": "oid_dist",
+      "schema": "public",
+      "returns": "oid",
+      "arguments": "oid, oid",
+      "security_definer": false
+    },
+    {
+      "name": "patient_document_in_appointment_scope",
+      "schema": "public",
+      "returns": "boolean",
+      "arguments": "p_business_id uuid, p_appointment_id uuid, p_actor_id uuid",
+      "security_definer": true
+    },
+    {
+      "name": "patients_counts_by_business",
+      "schema": "public",
+      "returns": "TABLE(total_count bigint, active_count bigint, archived_count bigint)",
+      "arguments": "p_business uuid",
+      "security_definer": false
+    },
+    {
+      "name": "patients_counts_by_owner",
+      "schema": "public",
+      "returns": "TABLE(total_count bigint, active_count bigint, archived_count bigint)",
+      "arguments": "p_owner uuid",
+      "security_definer": false
+    },
+    {
+      "name": "prepare_appointment_professional",
+      "schema": "public",
+      "returns": "trigger",
+      "arguments": "",
+      "security_definer": true
+    },
+    {
+      "name": "prepare_google_review_request_delivery",
+      "schema": "public",
+      "returns": "TABLE(review_url text, notification_title text, notification_body text, notification_action_label text)",
+      "arguments": "target_request_id uuid, target_claim_token uuid, target_subscription_id uuid, target_click_token_hash text, prepare_time timestamp with time zone",
+      "security_definer": true
+    },
+    {
+      "name": "prevent_access_grants_mutation",
+      "schema": "public",
+      "returns": "trigger",
+      "arguments": "",
+      "security_definer": false
+    },
+    {
+      "name": "prevent_cross_business_invite_email_association",
+      "schema": "public",
+      "returns": "trigger",
+      "arguments": "",
+      "security_definer": true
+    },
+    {
+      "name": "prevent_cross_business_user_email_association",
+      "schema": "public",
+      "returns": "trigger",
+      "arguments": "",
+      "security_definer": true
+    },
+    {
+      "name": "prevent_duplicate_patient_identity",
+      "schema": "public",
+      "returns": "trigger",
+      "arguments": "",
+      "security_definer": true
+    },
+    {
+      "name": "prevent_duplicate_professional_email",
+      "schema": "public",
+      "returns": "trigger",
+      "arguments": "",
+      "security_definer": true
+    },
+    {
+      "name": "professional_break_minutes_at",
+      "schema": "public",
+      "returns": "integer",
+      "arguments": "target_business_id uuid, target_professional_id uuid, target_starts_at timestamp with time zone",
+      "security_definer": true
+    },
+    {
+      "name": "queue_google_calendar_sync_on_appointment_change",
+      "schema": "public",
+      "returns": "trigger",
+      "arguments": "",
+      "security_definer": true
+    },
+    {
+      "name": "read_patient_export_page",
+      "schema": "public",
+      "returns": "jsonb",
+      "arguments": "p_actor_user_id uuid, p_export_id uuid, p_dataset text, p_cursor jsonb, p_limit integer",
+      "security_definer": true
+    },
+    {
+      "name": "reassign_appointment_patient_safely",
+      "schema": "public",
+      "returns": "TABLE(appointment_id uuid, old_patient_id uuid, new_patient_id uuid, cancelled_dispatches integer, superseded_dispatches integer, detached_push_subscriptions integer, superseded_push_attempts integer, invalidated_calendar_attempts integer, queued_calendar_deletions integer)",
+      "arguments": "p_business_id uuid, p_appointment_id uuid, p_new_patient_id uuid, p_actor_user_id uuid, p_reason text",
+      "security_definer": true
+    },
+    {
+      "name": "record_calendar_action",
+      "schema": "public",
+      "returns": "void",
+      "arguments": "p_appointment_id uuid, p_action text, p_provider text",
+      "security_definer": true
+    },
+    {
+      "name": "record_google_review_click",
+      "schema": "public",
+      "returns": "TABLE(review_url text)",
+      "arguments": "target_click_token_hash text, click_time timestamp with time zone",
+      "security_definer": true
+    },
+    {
+      "name": "record_push_notification_click",
+      "schema": "public",
+      "returns": "boolean",
+      "arguments": "target_appointment_id uuid, target_delivery_id uuid, target_receipt_token_hash text, click_time timestamp with time zone",
+      "security_definer": true
+    },
+    {
+      "name": "record_push_test_feedback",
+      "schema": "public",
+      "returns": "boolean",
+      "arguments": "target_appointment_id uuid, target_delivery_id uuid, feedback_visible boolean, feedback_time timestamp with time zone",
+      "security_definer": true
+    },
+    {
+      "name": "recover_expired_google_review_request_claims",
+      "schema": "public",
+      "returns": "integer",
+      "arguments": "recover_time timestamp with time zone",
+      "security_definer": true
+    },
+    {
+      "name": "release_google_review_request",
+      "schema": "public",
+      "returns": "boolean",
+      "arguments": "target_request_id uuid, target_claim_token uuid, target_error_kind text, release_time timestamp with time zone",
+      "security_definer": true
+    },
+    {
+      "name": "remove_business_role_access",
+      "schema": "public",
+      "returns": "void",
+      "arguments": "target_access_id uuid",
+      "security_definer": true
+    },
+    {
+      "name": "replace_professional_availability_rules",
+      "schema": "public",
+      "returns": "SETOF availability_rules",
+      "arguments": "p_business_id uuid, p_professional_id uuid, p_weekdays integer[], p_ranges jsonb, p_slot_interval_minutes integer",
+      "security_definer": false
+    },
+    {
+      "name": "replace_professional_schedule_blocks",
+      "schema": "public",
+      "returns": "void",
+      "arguments": "p_business_id uuid, p_professional_id uuid, p_expected_revision bigint, p_blocks jsonb",
+      "security_definer": true
+    },
+    {
+      "name": "request_google_calendar_event_deletion",
+      "schema": "public",
+      "returns": "uuid",
+      "arguments": "p_appointment_id uuid, p_now timestamp with time zone",
+      "security_definer": true
+    },
+    {
+      "name": "reset_push_reminders_on_reschedule",
+      "schema": "public",
+      "returns": "trigger",
+      "arguments": "",
+      "security_definer": true
+    },
+    {
+      "name": "restore_patient_radiograph",
+      "schema": "public",
+      "returns": "uuid",
+      "arguments": "p_actor_id uuid, p_business_id uuid, p_radiograph_id uuid",
+      "security_definer": true
+    },
+    {
+      "name": "revoke_account_assistance",
+      "schema": "public",
+      "returns": "TABLE(id uuid, business_id uuid, requested_by_user_id uuid, support_user_id uuid, status text, starts_at timestamp with time zone, expires_at timestamp with time zone, revoked_at timestamp with time zone, dismissed_at timestamp with time zone, created_at timestamp with time zone, updated_at timestamp with time zone)",
+      "arguments": "target_business_id uuid",
+      "security_definer": true
+    },
+    {
+      "name": "save_appointment_patient_instructions",
+      "schema": "public",
+      "returns": "void",
+      "arguments": "p_business_id uuid, p_appointment_id uuid, p_expected_updated_at timestamp with time zone, p_instructions text, p_public_description text",
+      "security_definer": true
+    },
+    {
+      "name": "save_appointment_push_subscription",
+      "schema": "public",
+      "returns": "TABLE(subscription_id uuid, device_id uuid, endpoint text, verification_confirmed_at timestamp with time zone, test_suppressed boolean, provider_gone boolean)",
+      "arguments": "target_business_id uuid, target_appointment_id uuid, target_endpoint text, target_p256dh text, target_auth text, target_user_agent text, save_time timestamp with time zone",
+      "security_definer": true
+    },
+    {
+      "name": "save_booking_integration",
+      "schema": "public",
+      "returns": "jsonb",
+      "arguments": "p_business_id uuid, p_integration_id uuid, p_expected_revision bigint, p_config jsonb",
+      "security_definer": true
+    },
+    {
+      "name": "save_professional_booking_form",
+      "schema": "public",
+      "returns": "bigint",
+      "arguments": "p_business_id uuid, p_professional_id uuid, p_expected_revision bigint, p_fields jsonb",
+      "security_definer": true
+    },
+    {
+      "name": "save_professional_editor",
+      "schema": "public",
+      "returns": "void",
+      "arguments": "p_business_id uuid, p_professional_id uuid, p_expected_revision bigint, p_profile jsonb, p_service_ids uuid[], p_blocks jsonb, p_exception_request_id uuid, p_exception_items jsonb, p_ack_existing boolean",
+      "security_definer": true
+    },
+    {
+      "name": "save_public_practice_settings",
+      "schema": "public",
+      "returns": "void",
+      "arguments": "p_business_id uuid, p_settings jsonb, p_expected_updated_at timestamp with time zone",
+      "security_definer": true
+    },
+    {
+      "name": "save_service_patient_instructions",
+      "schema": "public",
+      "returns": "void",
+      "arguments": "p_business_id uuid, p_service_id uuid, p_instructions text, p_public_description text, p_expected_updated_at timestamp with time zone",
+      "security_definer": true
+    },
+    {
+      "name": "save_service_price_policy",
+      "schema": "public",
+      "returns": "jsonb",
+      "arguments": "p_business_id uuid, p_service_id uuid, p_professional_id uuid, p_expected_revision bigint, p_configuration jsonb",
+      "security_definer": true
+    },
+    {
+      "name": "search_upcoming_active_appointments",
+      "schema": "public",
+      "returns": "jsonb",
+      "arguments": "p_business_id uuid, p_query text, p_limit integer",
+      "security_definer": true
+    },
+    {
+      "name": "set_appointment_patient_snapshot_on_insert",
+      "schema": "public",
+      "returns": "trigger",
+      "arguments": "",
+      "security_definer": true
+    },
+    {
+      "name": "set_appointment_snapshots_and_blocking_range",
+      "schema": "public",
+      "returns": "trigger",
+      "arguments": "",
+      "security_definer": true
+    },
+    {
+      "name": "set_clinical_entry_actor_fields",
+      "schema": "public",
+      "returns": "trigger",
+      "arguments": "",
+      "security_definer": true
+    },
+    {
+      "name": "set_patient_archive_state_safely",
+      "schema": "public",
+      "returns": "void",
+      "arguments": "p_business_id uuid, p_patient_id uuid, p_archived boolean",
+      "security_definer": true
+    },
+    {
+      "name": "set_patient_drive_folder_safely",
+      "schema": "public",
+      "returns": "void",
+      "arguments": "p_business_id uuid, p_patient_id uuid, p_drive_folder_id text",
+      "security_definer": true
+    },
+    {
+      "name": "set_patients_updated_at",
+      "schema": "public",
+      "returns": "trigger",
+      "arguments": "",
+      "security_definer": true
+    },
+    {
+      "name": "set_updated_at",
+      "schema": "public",
+      "returns": "trigger",
+      "arguments": "",
+      "security_definer": false
+    },
+    {
+      "name": "slugify_business_slug",
+      "schema": "public",
+      "returns": "text",
+      "arguments": "value text",
+      "security_definer": false
+    },
+    {
+      "name": "submit_public_booking_information",
+      "schema": "public",
+      "returns": "uuid",
+      "arguments": "p_token text, p_request_key uuid, p_schema_hash text, p_expected_version text, p_answers jsonb, p_comment text",
+      "security_definer": true
+    },
+    {
+      "name": "sync_appointment_professionals",
+      "schema": "public",
+      "returns": "trigger",
+      "arguments": "",
+      "security_definer": true
+    },
+    {
+      "name": "sync_invited_professional_account",
+      "schema": "public",
+      "returns": "trigger",
+      "arguments": "",
+      "security_definer": true
+    },
+    {
+      "name": "time_dist",
+      "schema": "public",
+      "returns": "interval",
+      "arguments": "time without time zone, time without time zone",
+      "security_definer": false
+    },
+    {
+      "name": "touch_updated_at",
+      "schema": "public",
+      "returns": "trigger",
+      "arguments": "",
+      "security_definer": false
+    },
+    {
+      "name": "trash_patient_radiograph",
+      "schema": "public",
+      "returns": "uuid",
+      "arguments": "p_actor_id uuid, p_business_id uuid, p_patient_id uuid, p_radiograph_id uuid",
+      "security_definer": true
+    },
+    {
+      "name": "ts_dist",
+      "schema": "public",
+      "returns": "interval",
+      "arguments": "timestamp without time zone, timestamp without time zone",
+      "security_definer": false
+    },
+    {
+      "name": "tstz_dist",
+      "schema": "public",
+      "returns": "interval",
+      "arguments": "timestamp with time zone, timestamp with time zone",
+      "security_definer": false
+    },
+    {
+      "name": "update_business_role_access",
+      "schema": "public",
+      "returns": "void",
+      "arguments": "target_access_id uuid, target_role text",
+      "security_definer": true
+    },
+    {
+      "name": "update_clinical_entry_safely",
+      "schema": "public",
+      "returns": "void",
+      "arguments": "p_business_id uuid, p_patient_id uuid, p_entry_id uuid, p_entry_type text, p_description text, p_teeth text, p_internal_note text, p_amount numeric",
+      "security_definer": true
+    },
+    {
+      "name": "update_patient_with_clinical_profile_safely",
+      "schema": "public",
+      "returns": "TABLE(patient_id uuid, patient_updated_at timestamp with time zone, clinical_profile_id uuid, clinical_profile_updated_at timestamp with time zone)",
+      "arguments": "p_actor_id uuid, p_business_id uuid, p_patient_id uuid, p_full_name text, p_dni text, p_phone text, p_phone_raw text, p_phone_e164 text, p_email text, p_birth_date date, p_address text, p_insurance text, p_insurance_plan text, p_update_clinical_profile boolean, p_allergies text, p_medication text, p_background text, p_expected_patient_updated_at timestamp with time zone, p_expected_clinical_profile_updated_at timestamp with time zone",
+      "security_definer": true
+    },
+    {
+      "name": "upsert_business_role_access",
+      "schema": "public",
+      "returns": "TABLE(status text, membership_id uuid, invite_id uuid, user_id uuid)",
+      "arguments": "target_business_id uuid, target_email text, target_role text, target_professional_id uuid",
+      "security_definer": true
+    },
+    {
+      "name": "upsert_patient_clinical_profile_safely",
+      "schema": "public",
+      "returns": "uuid",
+      "arguments": "p_business_id uuid, p_patient_id uuid, p_allergies text, p_medication text, p_background text, p_clinical_alert_note text, p_notes text, p_custom_fields jsonb",
+      "security_definer": true
+    },
+    {
+      "name": "user_business_role",
+      "schema": "public",
+      "returns": "text",
+      "arguments": "target_business_id uuid",
+      "security_definer": true
+    },
+    {
+      "name": "user_can_configure_business",
+      "schema": "public",
+      "returns": "boolean",
+      "arguments": "target_business_id uuid",
+      "security_definer": true
+    },
+    {
+      "name": "user_can_configure_price",
+      "schema": "public",
+      "returns": "boolean",
+      "arguments": "p_business_id uuid, p_professional_id uuid",
+      "security_definer": true
+    },
+    {
+      "name": "user_can_manage_business",
+      "schema": "public",
+      "returns": "boolean",
+      "arguments": "target_business_id uuid",
+      "security_definer": true
+    },
+    {
+      "name": "user_can_manage_users",
+      "schema": "public",
+      "returns": "boolean",
+      "arguments": "target_business_id uuid",
+      "security_definer": true
+    },
+    {
+      "name": "user_can_operate_business",
+      "schema": "public",
+      "returns": "boolean",
+      "arguments": "target_business_id uuid",
+      "security_definer": true
+    },
+    {
+      "name": "user_can_read_appointment",
+      "schema": "public",
+      "returns": "boolean",
+      "arguments": "target_business_id uuid, target_appointment_id uuid",
+      "security_definer": true
+    },
+    {
+      "name": "user_can_read_basic_patient",
+      "schema": "public",
+      "returns": "boolean",
+      "arguments": "target_business_id uuid, target_patient_id uuid",
+      "security_definer": true
+    },
+    {
+      "name": "user_can_read_clinical_patient",
+      "schema": "public",
+      "returns": "boolean",
+      "arguments": "target_business_id uuid, target_patient_id uuid",
+      "security_definer": true
+    },
+    {
+      "name": "user_can_read_patient",
+      "schema": "public",
+      "returns": "boolean",
+      "arguments": "target_business_id uuid, target_patient_id uuid",
+      "security_definer": true
+    },
+    {
+      "name": "user_can_read_professional_schedule",
+      "schema": "public",
+      "returns": "boolean",
+      "arguments": "target_business_id uuid, target_professional_id uuid",
+      "security_definer": true
+    },
+    {
+      "name": "user_can_read_radiology_reference",
+      "schema": "public",
+      "returns": "boolean",
+      "arguments": "target_business_id uuid, target_patient_id uuid",
+      "security_definer": true
+    },
+    {
+      "name": "user_can_view_costs",
+      "schema": "public",
+      "returns": "boolean",
+      "arguments": "target_business_id uuid",
+      "security_definer": true
+    },
+    {
+      "name": "user_has_active_account_assistance",
+      "schema": "public",
+      "returns": "boolean",
+      "arguments": "target_business_id uuid",
+      "security_definer": true
+    },
+    {
+      "name": "user_has_active_professional_patient_link",
+      "schema": "public",
+      "returns": "boolean",
+      "arguments": "target_business_id uuid, target_patient_id uuid",
+      "security_definer": true
+    },
+    {
+      "name": "user_has_business_access",
+      "schema": "public",
+      "returns": "boolean",
+      "arguments": "target_business_id uuid",
+      "security_definer": true
+    },
+    {
+      "name": "user_is_professional_for",
+      "schema": "public",
+      "returns": "boolean",
+      "arguments": "target_professional_id uuid",
+      "security_definer": true
+    },
+    {
+      "name": "validate_patient_export",
+      "schema": "public",
+      "returns": "jsonb",
+      "arguments": "p_actor_user_id uuid, p_export_id uuid, p_received_counts jsonb",
+      "security_definer": true
+    }
+  ],
+  "provenance_note": "Public/private catalog after local migration reconstruction and SQL contracts. Platform, extension and test helper functions may be present; this is not a production-schema inspection or a count of independent business rules."
+}

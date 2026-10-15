@@ -5,6 +5,8 @@ export default defineConfig({
 	envDir: '../..',
 	plugins: [sveltekit()],
 	test: {
+		maxWorkers: 1,
+		fileParallelism: false,
 		exclude: ['e2e/**', 'node_modules/**', '.svelte-kit/**', 'build/**', '**/*.client.test.ts']
 	}
 });

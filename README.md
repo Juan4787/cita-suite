@@ -1,14 +1,16 @@
-# Turnos SaaS
+# Cita Suite
 
-Monorepo SvelteKit + Supabase preparado para evolucionar el panel actual hacia el SaaS de turnos, agenda, WhatsApp oficial, recordatorios, confirmaciones y ficha de pacientes/clientes.
+Monorepo con el panel multiempresa SvelteKit/Supabase y el sitio público de Natalia en Astro. El mapa vigente de funciones, reglas y fronteras está en [arquitectura actual](docs/architecture/current-system.md). Los documentos de auditorías anteriores conservan su contexto histórico y no sustituyen ese punto de entrada.
 
 ## Estructura
 
 ```text
 apps/web              App SvelteKit existente
+apps/natalia          Sitio público Astro y enlaces nativos a Cita Suite
 packages/shared       Tipos, constantes y helpers compartidos
 supabase/migrations   SQL versionado
-supabase/functions    Edge Functions futuras
+supabase/tests        Contratos SQL y concurrencia
+docs/architecture     Mapa vigente y verificación reproducible
 ```
 
 ## Comandos
@@ -20,7 +22,10 @@ pnpm check
 pnpm test
 pnpm test:e2e
 pnpm build
+pnpm verify:baseline
 ```
+
+`pnpm check` comprueba tipos de shared, web y Natalia. `pnpm test` ejecuta servidor y componentes secuencialmente. La [baseline local completa](docs/architecture/baseline.md) agrega builds, contratos SQL y recorridos públicos en navegador con fixtures aislados; requiere las imágenes y Chromium instalados. Ninguno de esos comandos publica la aplicación.
 
 ## Supabase
 
