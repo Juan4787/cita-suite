@@ -5,7 +5,7 @@ import BookingLink from './BookingLink.astro';
 <div class="services-commercial-grid" id="publicServicesList">
   {referenceServices.map(s => <article class="service-card">
     <div class="service-card-header">
-      <div class="service-card-meta-line"><span class="service-modality-badge">{s.modality}</span><span class="service-duration-badge"><svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 16 14"/></svg>{s.duration}</span></div>
+      <div class="service-card-meta-line"><span class="service-modality-badge">{s.modality}</span><span class="service-duration-badge"><svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>{s.duration}</span></div>
       <h3 class="service-card-title">{s.title}</h3><p class="service-card-desc">{s.description}</p>
       <div class="service-card-tags">{s.tags.map(tag => <span class="service-pill">{tag}</span>)}</div>
     </div>

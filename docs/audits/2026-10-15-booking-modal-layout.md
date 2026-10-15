@@ -23,6 +23,8 @@ La reproducción adicional de lectura sobre la web publicada, con los dos archiv
 
 Pasaron las 65 pruebas focalizadas, los ocho escenarios públicos de Natalia con la nueva regresión en seis tamaños y Svelte/TypeScript sin errores ni advertencias. Se ejecutaron secuencialmente.
 
+La comprobación final de producción confirmó los seis tamaños y la agenda integrada de `/turnos`. La revisión de consola detectó además una polilínea del icono de reloj con cinco coordenadas numéricas en `ServiceCards.astro`; se completó el par faltante, sin cambiar contenido ni diseño de las tarjetas. Esa corrección de la portada requiere una publicación estática de Natalia independiente del SDK. La advertencia genérica del navegador sobre `allow-scripts` y `allow-same-origin` se conserva en el recibo; no es un error de JavaScript ni un bloqueo de carga. El motor y la web de Natalia se sirven desde orígenes distintos.
+
 Las capturas y mediciones antes/después están en `/tmp/cita-modal-layout-before/` y `/tmp/cita-modal-layout-after/`. No incluyen datos de pacientes. La revisión de capturas se hizo en una ronda conjunta de escritorio y móvil; no se cambió la identidad visual.
 
 ## Reproducir y publicar
