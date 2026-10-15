@@ -16,13 +16,12 @@ const origin = "https://app.cita-suite.workers.dev";
 const key = "a".repeat(32);
 const serviceId = "11111111-1111-4111-8111-111111111111";
 const phone = "+54 342 1234567";
-const sdk = fileURLToPath(
-  new URL("../../web/static/booking/", import.meta.url),
-);
 assert(
   existsSync(dist + "index.html"),
   "Build Natalia before running browser contracts.",
 );
+const compiledKey = readFileSync(dist + "index.html", "utf8").match(/data-booking-key="([a-f0-9]{32})"/)?.[1];
+assert(compiledKey, "Build with the public booking identifier configured.");
 const mime = {
   ".html": "text/html",
   ".js": "text/javascript",
@@ -31,27 +30,6 @@ const mime = {
   ".woff2": "font/woff2",
   ".json": "application/json",
 };
-async function assertModalLayout(page) {
-  const geometry = await page.locator('dialog.cita-booking-host').evaluate(async (host) => {
-    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-    const rect = host.getBoundingClientRect();
-    const frame = host.querySelector('iframe').getBoundingClientRect();
-    const toolbar = host.querySelector('.cita-booking-toolbar').getBoundingClientRect();
-    return {
-      x: rect.x, y: rect.y, right: rect.right, bottom: rect.bottom,
-      center: rect.x + rect.width / 2, width: innerWidth, height: innerHeight,
-      scrollWidth: host.scrollWidth, clientWidth: host.clientWidth,
-      frameRight: frame.right, frameBottom: frame.bottom, frameTop: frame.top,
-      toolbarBottom: toolbar.bottom,
-    };
-  });
-  assert(Math.abs(geometry.center - geometry.width / 2) <= 1, 'The booking modal must stay centered despite the host CSS reset.');
-  assert(geometry.x >= 0 && geometry.right <= geometry.width, 'The modal must fit the viewport width.');
-  assert(geometry.y >= 0 && geometry.bottom <= geometry.height, 'The modal must fit the viewport height.');
-  assert(geometry.scrollWidth <= geometry.clientWidth, 'The modal must not scroll horizontally.');
-  assert(geometry.frameRight <= geometry.right && geometry.frameBottom <= geometry.bottom, 'The iframe must fit inside the modal without clipping.');
-  assert(geometry.frameTop >= geometry.toolbarBottom, 'The close toolbar must remain outside the scrollable iframe.');
-}
 const server = createServer((request, response) => {
   let pathname;
   try {
@@ -78,6 +56,7 @@ const server = createServer((request, response) => {
     body = Buffer.from(
       body
         .toString()
+        .replaceAll(compiledKey, key)
         .replace(
           /data-booking-key(?:="[^"]*")?(?=\s|>)/,
           `data-booking-key="${key}"`,
@@ -103,12 +82,13 @@ try {
     "empty-services",
     "absent-contact",
     "invalid-phone",
-    "failed-sdk",
-    "inline-page",
-    "inline-failed-sdk",
+    "without-js",
+    "turnos-redirect",
+    "turnos-without-js",
   ]) {
     const context = await browser.newContext({
       viewport: { width: 390, height: 844 },
+      javaScriptEnabled: !scenario.endsWith("without-js"),
     });
     let sdkLoads = 0;
     const unexpected = [];
@@ -119,21 +99,10 @@ try {
         "GET",
         "Public fixture must never write to a remote service.",
       );
-      if (url.pathname === "/booking/embed-v1.js") {
+      if (url.pathname.startsWith("/booking/")) {
         sdkLoads++;
-        await route.fulfill(
-          ["failed-sdk", "inline-failed-sdk"].includes(scenario)
-            ? { status: 503, body: "Unavailable" }
-            : {
-                contentType: "text/javascript",
-                body: readFileSync(sdk + "embed-v1.js", "utf8"),
-              },
-        );
-      } else if (url.pathname === "/booking/embed-v1.css") {
-        await route.fulfill({
-          contentType: "text/css",
-          body: readFileSync(sdk + "embed-v1.css", "utf8"),
-        });
+        unexpected.push(url.pathname);
+        await route.abort();
       } else if (url.pathname.startsWith("/api/public/contacto/")) {
         const contact =
           scenario === "absent-contact"
@@ -176,7 +145,7 @@ try {
       } else if (url.pathname.startsWith("/embed/v1/")) {
         await route.fulfill({
           contentType: "text/html",
-          body: `<!doctype html><html lang="es"><body><h1>Agenda de prueba</h1><script>const q=new URLSearchParams(location.search);if(q.has('instance_id'))parent.postMessage({protocol:'cita-suite.booking',version:1,instanceId:q.get('instance_id'),type:'ready'},q.get('parent_origin'))</script></body></html>`,
+          body: '<!doctype html><html lang="es"><body><h1>Agenda de prueba</h1></body></html>',
         });
       } else {
         unexpected.push(url.pathname);
@@ -188,29 +157,23 @@ try {
     page.on("pageerror", (error) => errors.push(error.message));
     await page.goto(
       local +
-        (scenario.startsWith('inline-') ? '/turnos/' : ["configured", "contact-before-catalogue", "failed-sdk"].includes(
+        (scenario.startsWith('turnos-') ? '/turnos/' : ["configured", "contact-before-catalogue", "without-js"].includes(
           scenario,
         )
           ? "/"
           : "/contacto/"),
     );
-    if (!scenario.startsWith('inline-')) {
-      assert.equal(sdkLoads, 0, "SDK must wait for booking intent.");
-      assert.equal(await page.locator("iframe").count(), 0);
-    }
-    if (scenario === 'inline-page') {
-      await page.locator('#public-booking iframe:visible').waitFor();
-      assert.equal(sdkLoads, 1);
-      assert.equal(await page.locator('#public-booking > section').count(), 1);
-      assert.equal(await page.locator('dialog.cita-booking-host').count(), 0);
-      assert(await page.frameLocator('#public-booking iframe').getByRole('heading', {name:'Agenda de prueba',exact:true}).isVisible());
-      assert(await page.getByRole('link',{name:'Abrir la agenda en otra página',exact:true}).isVisible());
-    } else if (scenario === 'inline-failed-sdk') {
-      await page.getByText('No pudimos cargar la agenda. Podés abrirla en otra página.',{exact:true}).waitFor();
-      assert.equal(await page.locator('iframe').count(),0);
-      await page.getByRole('link',{name:'Abrir la agenda en otra página',exact:true}).click();
-      await page.waitForURL(origin+'/embed/v1/'+key);
-      assert(await page.getByText('Agenda de prueba').isVisible());
+    assert.equal(sdkLoads, 0, "Natalia must not load an embedded booking SDK.");
+    assert.equal(await page.locator("iframe").count(), 0);
+    if (scenario.startsWith('turnos-')) {
+      await page.waitForURL(origin + '/embed/v1/' + key);
+      assert(await page.getByRole('heading', {name:'Agenda de prueba',exact:true}).isVisible());
+      assert(await page.evaluate(() => window.top === window));
+    } else if (scenario === 'without-js') {
+      await page.locator('a[data-booking]:visible').first().click();
+      await page.waitForURL(origin + '/embed/v1/' + key);
+      assert(await page.getByRole('heading', {name:'Agenda de prueba',exact:true}).isVisible());
+      assert(await page.evaluate(() => window.top === window));
     } else if (scenario === "configured") {
       await page.locator("#areas").scrollIntoViewIfNeeded();
       await page
@@ -230,47 +193,22 @@ try {
       assert.equal(
         await serviceLink.getAttribute("data-booking"),
         null,
-        "Generic SDK must not discard a selected service.",
+        "Direct booking must preserve the selected service.",
       );
-      await page.locator("a[data-booking]:visible").first().click();
-      await page.locator(".cita-booking-host iframe:visible").waitFor();
-      // Real host CSS + SDK: exercise the reset that previously pinned the dialog
-      // to the left, the browser's default mobile width cap, and a long form.
-      const bookingFrame = page.frameLocator('.cita-booking-host iframe');
-      await bookingFrame.locator('body').evaluate(() => {
-        document.body.style.minHeight = '2200px';
-        const end = document.createElement('button');
-        end.textContent = 'Fin del formulario de prueba';
-        end.style.marginTop = '2000px';
-        document.body.append(end);
-        const q = new URLSearchParams(location.search);
-        parent.postMessage({protocol:'cita-suite.booking',version:1,instanceId:q.get('instance_id'),type:'resize',height:2200},q.get('parent_origin'));
-      });
-      for (const viewport of [
-        {width:1440,height:900}, {width:2557,height:1079},
-        {width:390,height:844}, {width:320,height:568},
-        {width:768,height:1024}, {width:844,height:390},
-      ]) {
-        await page.setViewportSize(viewport);
-        await assertModalLayout(page);
-        await bookingFrame.getByRole('button', {name:'Fin del formulario de prueba',exact:true}).scrollIntoViewIfNeeded();
-        assert(await bookingFrame.getByRole('button', {name:'Fin del formulario de prueba',exact:true}).isVisible());
-      }
-      await page.setViewportSize({width:390,height:844});
-      await page.keyboard.press("Escape");
-      await page.locator("a[data-booking]:visible").first().click();
-      assert.equal(sdkLoads, 1);
-      assert.equal(await page.locator(".cita-booking-host iframe").count(), 1);
-      await page.keyboard.press("Escape");
-      await page.locator("#theme-toggle").click();
-      await page.locator("a[data-booking]:visible").first().click();
-      assert.equal(
-        await page
-          .locator(".cita-booking-host")
-          .getAttribute("data-color-mode"),
-        "dark",
-      );
-      await page.keyboard.press("Escape");
+      await serviceLink.click();
+      await page.waitForURL(url => url.origin === origin && url.searchParams.get('service_id') === serviceId);
+      assert(await page.evaluate(() => window.top === window));
+      await page.goto(local + '/');
+      await page.locator('#theme-toggle').click();
+      const booking = page.locator('a[data-booking]:visible').first();
+      assert.equal(await booking.getAttribute('href'), origin + '/embed/v1/' + key);
+      assert.equal(await booking.getAttribute('target'), null);
+      await booking.click();
+      await page.waitForURL(origin + '/embed/v1/' + key);
+      assert(await page.getByRole('heading', {name:'Agenda de prueba',exact:true}).isVisible());
+      assert(await page.evaluate(() => window.top === window));
+      assert.equal(sdkLoads, 0);
+      assert.equal(await page.locator('iframe').count(), 0);
       await page.goto(local + "/contacto/");
       await page.locator('a[href="tel:+543421234567"]').waitFor();
     } else if (scenario === "contact-before-catalogue") {
@@ -281,10 +219,6 @@ try {
       await page
         .locator('#contact-dialog a[href="tel:+543421234567"]')
         .waitFor();
-    } else if (scenario === "failed-sdk") {
-      await page.locator("a[data-booking]:visible").first().click();
-      await page.waitForURL(origin + "/embed/v1/" + key);
-      assert(await page.getByText("Agenda de prueba").isVisible());
     } else if (scenario === "empty-services") {
       await page.locator('a[href="tel:+543421234567"]').waitFor();
       assert(
@@ -313,6 +247,7 @@ try {
           .isVisible(),
       );
     }
+    assert.equal(sdkLoads, 0);
     assert.equal(errors.length, 0);
     assert.equal(unexpected.length, 0);
     results.push({ scenario, passed: true, databaseWrites: 0 });
@@ -321,7 +256,8 @@ try {
   console.log(
     JSON.stringify({
       fixtureOnly: true,
-      actualSDK: true,
+      actualSDK: false,
+      directSamePageBooking: true,
       sequential: true,
       results,
     }),

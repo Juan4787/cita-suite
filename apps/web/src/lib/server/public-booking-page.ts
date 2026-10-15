@@ -39,13 +39,14 @@ async function recoverIntegratedBooking(supabase: SupabaseClient, url: URL, inte
 	if (error) throw error;
 	if (data) {
 		const query = new URLSearchParams({ recuperado: '1' });
-		if (entryPoint === 'embedded') {
+		const framed = entryPoint === 'embedded' && url.searchParams.has('parent_origin') && url.searchParams.has('instance_id');
+		if (framed) {
 			for (const key of ['parent_origin', 'instance_id']) {
 				const value = url.searchParams.get(key);
 				if (value) query.set(key, value);
 			}
 		}
-		redirect(303, (entryPoint === 'embedded' ? '/embed/v1/' + integration.publicKey : '') + '/turno/' + data.confirmation_token + '?' + query);
+		redirect(303, (framed ? '/embed/v1/' + integration.publicKey : '') + '/turno/' + data.confirmation_token + '?' + query);
 	}
 	return randomUUID();
 }
@@ -54,6 +55,7 @@ async function recoverIntegratedBooking(supabase: SupabaseClient, url: URL, inte
 // trackea los search params accedidos: al no leerlo, elegir horario no re-ejecuta
 // el load (la página lo resuelve client-side desde page.url) y es instantáneo.
 export const loadPublicBookingPage = async ({ params, fetch, url, setHeaders }: RequestEvent, integration?: BookingIntegration, entryPoint: 'embedded' | 'public_page' = 'embedded') => {
+	const framed = entryPoint === 'embedded' && url.searchParams.has('parent_origin') && url.searchParams.has('instance_id');
 	const suppliedRequestId = url.searchParams.get('request_id') ?? '';
 	const bookingRequestId = integration && /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i.test(suppliedRequestId) ? suppliedRequestId : randomUUID();
 	const requestedProfessionalIds = [
@@ -138,7 +140,7 @@ export const loadPublicBookingPage = async ({ params, fetch, url, setHeaders }: 
 			scope: integration ? { serviceIds: integration.serviceIds, professionalIds: integration.professionalIds } : undefined
 		});
 
-		if (integration && entryPoint === 'embedded' && integration.theme === 'natalia' && integration.professionalIds.length === 1 && selected.serviceId && selected.bookingMode === 'individual' && !selected.professionalId && state.professionals.length === 1) {
+		if (integration && framed && integration.theme === 'natalia' && integration.professionalIds.length === 1 && selected.serviceId && selected.bookingMode === 'individual' && !selected.professionalId && state.professionals.length === 1) {
             const next = new URL(url);
             next.searchParams.set('professional_id', state.professionals[0].id);
             next.searchParams.set('request_id', bookingRequestId);
@@ -170,7 +172,7 @@ export const loadPublicBookingPage = async ({ params, fetch, url, setHeaders }: 
 			bookingRequestId,
 			recoveryCheckId,
 			integration: integration ? { publicKey: integration.publicKey, revision: integration.revision } : null,
-			presentation: integration ? { ...bookingPresentation(integration), compact: entryPoint === 'embedded' && integration.theme === 'natalia' && integration.professionalIds.length === 1 } : null,
+			presentation: integration ? { ...bookingPresentation(integration), compact: framed && integration.theme === 'natalia' && integration.professionalIds.length === 1 } : null,
 			demo: false
 		};
 	} catch (error: any) {
@@ -196,7 +198,7 @@ export const loadPublicBookingPage = async ({ params, fetch, url, setHeaders }: 
 			turnstileSiteKey: null,
 			bookingRequestId,
 			integration: integration ? { publicKey: integration.publicKey, revision: integration.revision } : null,
-			presentation: integration ? { ...bookingPresentation(integration), compact: entryPoint === 'embedded' && integration.theme === 'natalia' && integration.professionalIds.length === 1 } : null,
+			presentation: integration ? { ...bookingPresentation(integration), compact: framed && integration.theme === 'natalia' && integration.professionalIds.length === 1 } : null,
 			demo: false
 		};
 	}
@@ -350,7 +352,7 @@ export const submitPublicBookingPage = async ({ request, params, fetch, url, get
 					intakeAnswers: intakeAnswers!
 				} : undefined
 			});
-			if (integration && entryPoint === 'embedded') {
+			if (integration && entryPoint === 'embedded' && url.searchParams.has('parent_origin') && url.searchParams.has('instance_id')) {
 				const context = new URLSearchParams();
 				for (const key of ['parent_origin', 'instance_id']) {
 					const value = url.searchParams.get(key);

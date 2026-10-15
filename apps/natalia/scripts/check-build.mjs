@@ -5,11 +5,17 @@ const dist=fileURLToPath(new URL('../dist/',import.meta.url));
 const html=readFileSync(dist+'index.html','utf8');
 const configuredKey=html.match(/data-booking-key="([a-f0-9]{32})"/)?.[1];
 assert(configuredKey,'A production site cannot ship without its public booking identifier.');
+const configuredBase=html.match(/data-booking-base="([^"]+)"/)?.[1];
+assert(configuredBase,'A production site cannot ship without its Cita Suite origin.');
 const bookingPage=readFileSync(dist+'turnos/index.html','utf8');
-assert(bookingPage.includes(`data-booking-key="${configuredKey}"`),'Booking page identifier differs from the main site.');
+assert(bookingPage.includes(`${configuredBase}/embed/v1/${configuredKey}`),'Booking redirect differs from the shared Cita Suite link.');
+assert(/http-equiv=["']refresh["']/i.test(bookingPage),'Legacy /turnos must redirect without depending on JavaScript.');
+assert(bookingPage.includes(`content="0;url=${configuredBase}/embed/v1/${configuredKey}"`),'The legacy booking redirect must not add a delay.');
 assert(!bookingPage.includes('La reserva online todavía no está habilitada'),'The published booking page is still unconfigured.');
 const scripts=[...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g)].reduce((n,match)=>n+Buffer.byteLength(match[1]),0);
 const javascriptBytes=scripts+readdirSync(dist+'_astro').filter(name=>name.endsWith('.js')).reduce((n,name)=>n+statSync(dist+'_astro/'+name).size,0);
+const javascript=readdirSync(dist+'_astro').filter(name=>name.endsWith('.js')).map(name=>readFileSync(dist+'_astro/'+name,'utf8')).join('\n');
+assert(!/CitaSuiteBooking|\/booking\/embed-v1\.js/.test(javascript),'Natalia must navigate to Cita Suite instead of mounting a separate booking view.');
 const cssFiles=readdirSync(dist+'_astro').filter(name=>name.endsWith('.css'));
 const css=cssFiles.map(name=>readFileSync(dist+'_astro/'+name,'utf8')).join('\n');
 // Full reference content and native dialog readers are server-rendered, with no framework hydration.

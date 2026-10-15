@@ -1,12 +1,8 @@
-type BookingWidget = { open(): void; setTheme(theme: 'light' | 'dark'): void };
-declare global { interface Window { CitaSuiteBooking?: { mount(options: { integrationKey: string; baseURL: string; theme: 'light' | 'dark'; container?: HTMLElement; mode?: 'inline' }): BookingWidget } } }
 const themeButton = document.querySelector<HTMLButtonElement>('#theme-toggle');
-let widget: BookingWidget | undefined;
 const theme = () => document.documentElement.classList.contains('dark') ? 'dark' : 'light';
 themeButton?.addEventListener('click', () => {
   document.documentElement.classList.toggle('dark');
   try { localStorage.setItem('nf_theme', theme()); } catch { /* The theme still works without storage. */ }
-  widget?.setTheme(theme());
 });
 const menuButton = document.querySelector<HTMLButtonElement>('#menu-toggle');
 const menu = document.querySelector<HTMLElement>('#mobile-menu');
@@ -48,33 +44,8 @@ document.querySelectorAll<HTMLDialogElement>('dialog.public-dialog').forEach(dia
 
 const base = document.body.dataset.bookingBase!;
 const integrationKey = document.body.dataset.bookingKey;
-const bookingContainer = document.querySelector<HTMLElement>('#public-booking');
-let sdk: Promise<BookingWidget> | undefined;
-function getWidget() {
-  if (!sdk) sdk = new Promise<void>((resolve, reject) => {
-    const script = document.createElement('script'); script.src = base + '/booking/embed-v1.js'; script.async = true;
-    const timeout = setTimeout(() => { script.remove(); reject(new Error('El turnero no respondió.')); }, 10000);
-    script.onload = () => { clearTimeout(timeout); resolve(); }; script.onerror = () => { clearTimeout(timeout); reject(new Error('No se pudo abrir el turnero.')); }; document.head.append(script);
-  }).then(() => {
-    if (!window.CitaSuiteBooking || !integrationKey) throw new Error('La reserva todavía no está habilitada.');
-    widget = window.CitaSuiteBooking.mount({ baseURL: base, integrationKey, theme: theme(), ...(bookingContainer ? { container: bookingContainer, mode: 'inline' as const } : {}) }); return widget;
-  }).catch(cause => { sdk = undefined; throw cause; });
-  return sdk;
-}
-if (integrationKey && bookingContainer) {
-  const feedback = document.querySelector<HTMLElement>('[data-booking-load-state]');
-  void getWidget().then(() => { if (feedback) feedback.hidden = true; }).catch(() => {
-    if (feedback) feedback.textContent = 'No pudimos cargar la agenda. Podés abrirla en otra página.';
-  });
-}
-if (integrationKey) document.addEventListener('click', async event => {
-  const anchor = (event.target as HTMLElement).closest<HTMLAnchorElement>('a[data-booking]');
-  if (!anchor || event instanceof MouseEvent && (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)) return;
-  event.preventDefault(); closeMenu(); closeDialogs(); anchor.setAttribute('aria-busy', 'true');
-  try { (await getWidget()).open(); }
-  catch { window.location.assign(anchor.href); }
-  finally { anchor.removeAttribute('aria-busy'); }
-});
+// Booking links use native navigation to the same Cita Suite page patients share.
+// No iframe, booking SDK or separate confirmation flow lives on this website.
 
 const catalogue = document.querySelector<HTMLElement>('#public-catalogue');
 const contactSinks = [...document.querySelectorAll<HTMLElement>('[data-public-contact]')];

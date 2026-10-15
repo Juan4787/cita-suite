@@ -426,11 +426,11 @@ Los retratos y la imagen del consultorio proceden de los assets suministrados. A
 
 ### Booking Continuity
 
-El SDK se carga después de pulsar una reserva configurada y recibe el tema vigente; el `href` sigue disponible sin JavaScript, para apertura alternativa y ante fallo de carga. No hay iframe ni SDK previo a esa intención. El catálogo puede cargarse cerca de su entrada en viewport cuando existe integración; esta petición de datos no debe describirse como carga del SDK.
+Las acciones de reserva navegan en la misma pestaña al enlace configurado de Cita Suite. La página completa usa el mismo `PublicBookingFlow` que el turnero compartido y conserva las prestaciones, profesionales y preguntas del enlace. Natalia no monta un SDK ni un iframe. `/turnos` conserva los enlaces anteriores mediante una redirección inmediata sin JavaScript y una acción de apertura con el estilo público si el navegador no sigue esa redirección. El catálogo puede cargarse cerca de su entrada en viewport cuando existe integración.
 
-Las prestaciones del catálogo conservan su ID autorizado en `service_id` sobre la ruta directa del motor compartido. Ese enlace no pasa por la apertura genérica del SDK que perdería la selección. Los IDs editoriales de la referencia identifican detalles estáticos y nunca se usan para escoger una prestación operativa. Honorarios, duraciones y contenidos de referencia no son disponibilidad ni aranceles confirmados; inscripción, pago y acceso de estudiantes de cursos permanecen pendientes.
+Las prestaciones del catálogo conservan su ID autorizado en `service_id` sobre esa misma ruta directa. Los IDs editoriales de la referencia identifican detalles estáticos y nunca se usan para escoger una prestación operativa. Honorarios, duraciones y contenidos de referencia no son disponibilidad ni aranceles confirmados; inscripción, pago y acceso de estudiantes de cursos permanecen pendientes.
 
-El comprobante usa el tema guardado con la reserva y el formulario público de información recibe ese tema histórico. En acceso directo, el adaptador Natalia sigue la preferencia del sistema; embebido, recibe claro/oscuro mediante el puente del SDK. Esto distingue identidad guardada (`natalia` / `cita-suite`) de modo claro/oscuro. La identidad histórica no significa que se conserve una elección clara/oscura del navegador de origen.
+Al confirmar o recuperar, el acceso directo abre la gestión completa de `/turno/[token]`, con las mismas funciones de calendario, recordatorios, información y cancelación de Cita Suite. El tema guardado con la reserva mantiene el diseño de Natalia en esa página y en la información posterior. El modo claro/oscuro sigue la preferencia del sistema en el dominio de Cita Suite; no copia la elección manual del dominio de Natalia. La compatibilidad del SDK v1 queda disponible para otros sitios que aún usen una integración embebida.
 
 ## Do's and Don'ts
 
