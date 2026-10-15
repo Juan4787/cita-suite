@@ -85,11 +85,18 @@ try {
     "without-js",
     "turnos-redirect",
     "turnos-without-js",
+    "light-with-dark-system",
+    "dark-with-light-system",
+    "turnos-dark",
   ]) {
     const context = await browser.newContext({
       viewport: { width: 390, height: 844 },
       javaScriptEnabled: !scenario.endsWith("without-js"),
+      colorScheme: scenario === 'light-with-dark-system' || scenario.endsWith('without-js') ? 'dark' : 'light',
     });
+    if (scenario === 'dark-with-light-system' || scenario === 'turnos-dark') {
+      await context.addInitScript(() => localStorage.setItem('nf_theme', 'dark'));
+    }
     let sdkLoads = 0;
     const unexpected = [];
     await context.route(origin + "/**", async (route) => {
@@ -166,12 +173,12 @@ try {
     assert.equal(sdkLoads, 0, "Natalia must not load an embedded booking SDK.");
     assert.equal(await page.locator("iframe").count(), 0);
     if (scenario.startsWith('turnos-')) {
-      await page.waitForURL(origin + '/embed/v1/' + key);
+      await page.waitForURL(origin + '/embed/v1/' + key + '?color_mode=' + (scenario === 'turnos-dark' ? 'dark' : 'light'));
       assert(await page.getByRole('heading', {name:'Agenda de prueba',exact:true}).isVisible());
       assert(await page.evaluate(() => window.top === window));
     } else if (scenario === 'without-js') {
       await page.locator('a[data-booking]:visible').first().click();
-      await page.waitForURL(origin + '/embed/v1/' + key);
+      await page.waitForURL(origin + '/embed/v1/' + key + '?color_mode=light');
       assert(await page.getByRole('heading', {name:'Agenda de prueba',exact:true}).isVisible());
       assert(await page.evaluate(() => window.top === window));
     } else if (scenario === "configured") {
@@ -195,22 +202,31 @@ try {
         null,
         "Direct booking must preserve the selected service.",
       );
+      assert.equal(new URL(await serviceLink.getAttribute('href')).searchParams.get('color_mode'), 'light');
       await serviceLink.click();
       await page.waitForURL(url => url.origin === origin && url.searchParams.get('service_id') === serviceId);
       assert(await page.evaluate(() => window.top === window));
       await page.goto(local + '/');
       await page.locator('#theme-toggle').click();
+      await page.locator('#areas').scrollIntoViewIfNeeded();
+      await page.locator('#public-catalogue .service-commercial-card').waitFor();
+      assert.equal(new URL(await page.locator('#public-catalogue a').first().getAttribute('href')).searchParams.get('color_mode'), 'dark');
       const booking = page.locator('a[data-booking]:visible').first();
-      assert.equal(await booking.getAttribute('href'), origin + '/embed/v1/' + key);
+      assert.equal(await booking.getAttribute('href'), origin + '/embed/v1/' + key + '?color_mode=dark');
       assert.equal(await booking.getAttribute('target'), null);
       await booking.click();
-      await page.waitForURL(origin + '/embed/v1/' + key);
+      await page.waitForURL(origin + '/embed/v1/' + key + '?color_mode=dark');
       assert(await page.getByRole('heading', {name:'Agenda de prueba',exact:true}).isVisible());
       assert(await page.evaluate(() => window.top === window));
       assert.equal(sdkLoads, 0);
       assert.equal(await page.locator('iframe').count(), 0);
       await page.goto(local + "/contacto/");
       await page.locator('a[href="tel:+543421234567"]').waitFor();
+    } else if (scenario === 'light-with-dark-system' || scenario === 'dark-with-light-system') {
+      const mode = scenario === 'dark-with-light-system' ? 'dark' : 'light';
+      await page.locator('a[data-booking]:visible').first().click();
+      await page.waitForURL(origin + '/embed/v1/' + key + '?color_mode=' + mode);
+      assert(await page.evaluate(() => window.top === window));
     } else if (scenario === "contact-before-catalogue") {
       // Programmatic dispatch isolates contact intent from the viewport observer.
       await page.evaluate(() =>

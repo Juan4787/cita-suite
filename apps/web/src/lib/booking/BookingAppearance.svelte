@@ -1,14 +1,15 @@
 <script lang="ts">
-    import { onMount, type Snippet } from 'svelte';
+    import { page } from '$app/state';
+    import type { Snippet } from 'svelte';
     import type { BookingTheme } from '@turnos-saas/shared/booking-integration';
     let { theme = 'cita-suite', children } = $props<{ theme?: BookingTheme; children: Snippet }>();
-    onMount(() => {
-        if (theme !== 'natalia' || window.parent !== window || typeof window.matchMedia !== 'function') return;
-        const media = window.matchMedia('(prefers-color-scheme: dark)');
+    const framed = $derived(page.url.searchParams.has('parent_origin') && page.url.searchParams.has('instance_id'));
+    const colorMode = $derived(page.data?.bookingColorMode === 'dark' ? 'dark' : 'light');
+    $effect(() => {
+        if (theme !== 'natalia' || window.parent !== window) return;
         const prior = document.documentElement.dataset.bookingColorMode;
-        const apply = () => { document.documentElement.dataset.bookingColorMode = media.matches ? 'dark' : 'light'; };
-        apply(); media.addEventListener('change', apply);
-        return () => { media.removeEventListener('change', apply); if (prior) document.documentElement.dataset.bookingColorMode = prior; else delete document.documentElement.dataset.bookingColorMode; };
+        document.documentElement.dataset.bookingColorMode = colorMode;
+        return () => { if (prior) document.documentElement.dataset.bookingColorMode = prior; else delete document.documentElement.dataset.bookingColorMode; };
     });
 </script>
 
@@ -18,7 +19,7 @@
     {/if}
 </svelte:head>
 
-<div class:booking-natalia={theme === 'natalia'} class="booking-surface" data-booking-theme={theme}>
+<div class:booking-natalia={theme === 'natalia'} class="booking-surface" data-booking-theme={theme} data-booking-color-mode={theme === 'natalia' && !framed ? colorMode : undefined}>
     {@render children()}
 </div>
 
@@ -39,7 +40,7 @@
         font-family: 'Hanken Grotesk', system-ui, sans-serif;
         caret-color: var(--accent);
     }
-    :global(html[data-booking-color-mode='dark'] .booking-natalia), :global(html[data-booking-color-mode='dark'] .booking-control-menu-natalia) {
+    :global(.booking-natalia[data-booking-color-mode='dark']), :global(html[data-booking-color-mode='dark'] .booking-natalia:not([data-booking-color-mode])), :global(html[data-booking-color-mode='dark'] .booking-control-menu-natalia) {
         --paper: #1a1612; --surface: #211c17; --text: #efe8dc;
         --text-muted: #cfc5b6; --text-subtle: #a39888;
         --accent: #e07a4f; --accent-strong: #ec9068;

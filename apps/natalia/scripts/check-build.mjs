@@ -10,7 +10,7 @@ assert(configuredBase,'A production site cannot ship without its Cita Suite orig
 const bookingPage=readFileSync(dist+'turnos/index.html','utf8');
 assert(bookingPage.includes(`${configuredBase}/embed/v1/${configuredKey}`),'Booking redirect differs from the shared Cita Suite link.');
 assert(/http-equiv=["']refresh["']/i.test(bookingPage),'Legacy /turnos must redirect without depending on JavaScript.');
-assert(bookingPage.includes(`content="0;url=${configuredBase}/embed/v1/${configuredKey}"`),'The legacy booking redirect must not add a delay.');
+assert(bookingPage.includes(`content="0;url=${configuredBase}/embed/v1/${configuredKey}?color_mode=light"`),'The no-JS booking redirect must be immediate and match Natalia’s default light appearance.');
 assert(!bookingPage.includes('La reserva online todavía no está habilitada'),'The published booking page is still unconfigured.');
 const scripts=[...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g)].reduce((n,match)=>n+Buffer.byteLength(match[1]),0);
 const javascriptBytes=scripts+readdirSync(dist+'_astro').filter(name=>name.endsWith('.js')).reduce((n,name)=>n+statSync(dist+'_astro/'+name).size,0);

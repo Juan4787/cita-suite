@@ -639,7 +639,7 @@
         },
         {
           "path": "src/lib/booking/BookingAppearance.svelte",
-          "sha256": "46f8be279b032a01464065939e8e8bf3b2d0825370e3c7ba5e0f6417ac34523f"
+          "sha256": "083d9530ee9c08fea79d3ba58535708a454968dbb4c19f5457667170ccb863f2"
         },
         {
           "path": "src/lib/booking/PublicBookingFlow.svelte",

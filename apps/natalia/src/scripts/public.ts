@@ -1,8 +1,18 @@
 const themeButton = document.querySelector<HTMLButtonElement>('#theme-toggle');
 const theme = () => document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+function syncBookingMode() {
+  for (const link of document.querySelectorAll<HTMLAnchorElement>('a[data-booking], #public-catalogue a')) {
+    const url = new URL(link.href);
+    if (url.origin !== document.body.dataset.bookingBase || !url.pathname.startsWith('/embed/v1/')) continue;
+    url.searchParams.set('color_mode', theme());
+    link.href = url.href;
+  }
+}
+syncBookingMode();
 themeButton?.addEventListener('click', () => {
   document.documentElement.classList.toggle('dark');
   try { localStorage.setItem('nf_theme', theme()); } catch { /* The theme still works without storage. */ }
+  syncBookingMode();
 });
 const menuButton = document.querySelector<HTMLButtonElement>('#menu-toggle');
 const menu = document.querySelector<HTMLElement>('#mobile-menu');
@@ -91,7 +101,7 @@ function loadCatalogue(): Promise<void> {
       const title = document.createElement('h3'); title.textContent = service.name;
       const detail = document.createElement('p'); detail.textContent = `${service.duration_minutes} minutos${service.price_label ? ' · ' + service.price_label : ''}`;
       // The supported direct route preserves selection; the generic SDK cannot select a service.
-      const link = document.createElement('a'); link.className = 'btn btn-secondary'; link.href = `${base}/embed/v1/${integrationKey}?service_id=${encodeURIComponent(service.id)}`; link.textContent = 'Reservar consulta';
+      const link = document.createElement('a'); link.className = 'btn btn-secondary'; link.href = `${base}/embed/v1/${integrationKey}?service_id=${encodeURIComponent(service.id)}&color_mode=${theme()}`; link.textContent = 'Reservar consulta';
       article.append(title, detail, link); list.append(article);
     }
     if (list.children.length) catalogue.replaceChildren(heading, list);

@@ -10,6 +10,6 @@ if (import.meta.env.PROD && !key) throw new Error('PUBLIC_NATALIA_INTEGRATION_KE
 export const bookingConfig = {
   baseURL: base.origin,
   integrationKey: key,
-  href: key ? `${base.origin}/embed/v1/${key}` : '/turnos',
+  href: key ? `${base.origin}/embed/v1/${key}?color_mode=light` : '/turnos',
   configured: Boolean(key)
 };
