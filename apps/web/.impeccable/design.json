@@ -571,7 +571,7 @@
     ],
     "sources": {
       "designMd": "DESIGN.md",
-      "designMdSha256": "853c4ee5f132dc34c0d92001a62d9d498236e8a0372e910494cd66ca2b46d2bd",
+      "designMdSha256": "6ca7b3c6e061fdf88317b07fc0be8be20e6614967f205ee9cde1fec7038a599d",
       "files": [
         {
           "path": "src/app.css",
@@ -671,7 +671,11 @@
         },
         {
           "path": "static/booking/embed-v1.js",
-          "sha256": "981ce327b701eaeccf39a695110e38793530e78962ee3388d7effc162d6df9c9"
+          "sha256": "86cd3ecd341a1aea5145bdf7934c378a41302388caa8002c0d774124f0663203"
+        },
+        {
+          "path": "static/booking/embed-v1.css",
+          "sha256": "b1e34abf3b46f15e9cd85fad8304b0577d5017ecb5c3d054408bf6315a9ea165"
         }
       ],
       "rampNote": "Las rampas OKLCH son previsualizaciones sintéticas de oscuro a claro; no sustituyen los colores normativos del frontmatter.",

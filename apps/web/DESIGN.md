@@ -271,6 +271,8 @@ La instalación es un patrón compuesto de los controles administrativos existen
 
 El bloque usa las tarjetas, botones, campos, bordes y foco existentes. Las elecciones pasan de dos columnas a una hasta (640px), y la acción de copia ocupa todo el ancho en móvil. Los enlaces de prueba abren los dominios autorizados y permiten una comprobación manual; no generan una marca automática de conexión. El contrato declarativo y los estados concretos se registran en [.impeccable/surfaces/conectar-sitio.md](.impeccable/surfaces/conectar-sitio.md).
 
+El diálogo del SDK v1 define su propio centrado y límite de ancho, sin depender de los márgenes del navegador ni del reset del sitio que lo integra. Conserva un ancho máximo de 760px y separación del borde de 16px, reducida a 8px hasta 480px. La altura disponible descuenta esa separación, el encabezado de cierre y los bordes; el contenido se desplaza dentro del iframe. La variante integrada mantiene el ancho del contenedor y la altura de su contenido, sin adoptar los límites del diálogo.
+
 ## Do's and Don'ts
 
 ### Do:

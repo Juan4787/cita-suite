@@ -124,8 +124,21 @@
             if (ready)
                 emitTheme();
         }
-        function resize(height) { lastHeight = height; var viewport = window.visualViewport ? window.visualViewport.height : window.innerHeight; var available = Math.max(120, viewport - toolbar.getBoundingClientRect().height - 32); iframe.style.height = (inline ? height : Math.min(height, available)) + 'px'; if (!inline)
-            host.style.maxHeight = Math.max(160, viewport - 16) + 'px'; }
+        function resize(height) {
+            lastHeight = height;
+            if (inline) {
+                iframe.style.height = height + 'px';
+                return;
+            }
+            var viewport = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+            var style = getComputedStyle(host);
+            var gutter = parseFloat(style.getPropertyValue('--cita-booking-gutter')) || 16;
+            var border = (parseFloat(style.borderTopWidth) || 0) + (parseFloat(style.borderBottomWidth) || 0);
+            var maximum = Math.max(0, viewport - 2 * gutter);
+            var available = Math.max(0, maximum - toolbar.getBoundingClientRect().height - border);
+            host.style.maxHeight = maximum + 'px';
+            iframe.style.height = Math.min(height, available) + 'px';
+        }
         function viewportChanged() { resize(lastHeight); }
         function showFailure() {
             if (disposed || ready)
@@ -192,6 +205,7 @@
                 clearTimeout(timer);
                 feedback.hidden = true;
                 iframe.hidden = false;
+                resize(lastHeight);
                 emitTheme();
             }
             else if (data.type === 'resize')

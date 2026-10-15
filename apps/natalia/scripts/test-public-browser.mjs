@@ -31,6 +31,27 @@ const mime = {
   ".woff2": "font/woff2",
   ".json": "application/json",
 };
+async function assertModalLayout(page) {
+  const geometry = await page.locator('dialog.cita-booking-host').evaluate(async (host) => {
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    const rect = host.getBoundingClientRect();
+    const frame = host.querySelector('iframe').getBoundingClientRect();
+    const toolbar = host.querySelector('.cita-booking-toolbar').getBoundingClientRect();
+    return {
+      x: rect.x, y: rect.y, right: rect.right, bottom: rect.bottom,
+      center: rect.x + rect.width / 2, width: innerWidth, height: innerHeight,
+      scrollWidth: host.scrollWidth, clientWidth: host.clientWidth,
+      frameRight: frame.right, frameBottom: frame.bottom, frameTop: frame.top,
+      toolbarBottom: toolbar.bottom,
+    };
+  });
+  assert(Math.abs(geometry.center - geometry.width / 2) <= 1, 'The booking modal must stay centered despite the host CSS reset.');
+  assert(geometry.x >= 0 && geometry.right <= geometry.width, 'The modal must fit the viewport width.');
+  assert(geometry.y >= 0 && geometry.bottom <= geometry.height, 'The modal must fit the viewport height.');
+  assert(geometry.scrollWidth <= geometry.clientWidth, 'The modal must not scroll horizontally.');
+  assert(geometry.frameRight <= geometry.right && geometry.frameBottom <= geometry.bottom, 'The iframe must fit inside the modal without clipping.');
+  assert(geometry.frameTop >= geometry.toolbarBottom, 'The close toolbar must remain outside the scrollable iframe.');
+}
 const server = createServer((request, response) => {
   let pathname;
   try {
@@ -213,6 +234,29 @@ try {
       );
       await page.locator("a[data-booking]:visible").first().click();
       await page.locator(".cita-booking-host iframe:visible").waitFor();
+      // Real host CSS + SDK: exercise the reset that previously pinned the dialog
+      // to the left, the browser's default mobile width cap, and a long form.
+      const bookingFrame = page.frameLocator('.cita-booking-host iframe');
+      await bookingFrame.locator('body').evaluate(() => {
+        document.body.style.minHeight = '2200px';
+        const end = document.createElement('button');
+        end.textContent = 'Fin del formulario de prueba';
+        end.style.marginTop = '2000px';
+        document.body.append(end);
+        const q = new URLSearchParams(location.search);
+        parent.postMessage({protocol:'cita-suite.booking',version:1,instanceId:q.get('instance_id'),type:'resize',height:2200},q.get('parent_origin'));
+      });
+      for (const viewport of [
+        {width:1440,height:900}, {width:2557,height:1079},
+        {width:390,height:844}, {width:320,height:568},
+        {width:768,height:1024}, {width:844,height:390},
+      ]) {
+        await page.setViewportSize(viewport);
+        await assertModalLayout(page);
+        await bookingFrame.getByRole('button', {name:'Fin del formulario de prueba',exact:true}).scrollIntoViewIfNeeded();
+        assert(await bookingFrame.getByRole('button', {name:'Fin del formulario de prueba',exact:true}).isVisible());
+      }
+      await page.setViewportSize({width:390,height:844});
       await page.keyboard.press("Escape");
       await page.locator("a[data-booking]:visible").first().click();
       assert.equal(sdkLoads, 1);
