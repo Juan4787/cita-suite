@@ -13,8 +13,8 @@ Después de cada compactación y antes de cada etapa: releer íntegramente el pl
 | Etapa | Estado y condiciones pendientes |
 |---|---|
 | 0. Base real y preservación | Cerrada localmente: rama, estado previo, inventario efectivo, matriz funcional, proveedores y destinos documentados. Accesos pendientes se mantienen como bloqueos explícitos de las etapas remotas. |
-| 1. Verificación confiable | En ejecución: tipos, 1.108 pruebas unitarias, fronteras, 24 suites SQL y siete carreras aprobadas. Auth/Storage reales ya comprobados. Falta cerrar el recorrido completo de navegador, Natalia, demo y la validación de release. |
-| 2. Tipos, contexto y aislamiento | No iniciada. |
+| 1. Verificación confiable | Base completa aprobada en CI `38825775890`: tipos, 1.108 unidades, fronteras/guardas, 24 suites SQL, siete carreras, Auth/Storage, 25 casos de navegador, dos de demo y Natalia nativa escritorio/móvil. Mecanismos de fallo deliberado y rechazo de omisiones comprobados. Release remoto permanece pendiente del staging separado y los accesos; no se lo considera aprobado por esta corrida. |
+| 2. Tipos, contexto y aislamiento | En ejecución: comienza por generación reproducible desde la reconstrucción descartable. |
 | 3. Capacidades y cuotas | No iniciada. |
 | 4. Disponibilidad, reservas y aranceles | No iniciada. |
 | 5. Áreas e interfaz | No iniciada. |
@@ -98,10 +98,9 @@ Corrección preparada: asignar las funciones del fixture al propietario correcto
 
 ## Próximo trabajo, en orden
 
-1. Trasladar la verificación de integración pesada a CI aislado: la medición local mostró agotamiento de RAM/swap. No reiniciarla en esta máquina.
-2. Corregir cualquier falla restante de navegador, Natalia o demo antes de cerrar la base de verificación.
-3. Completar las comprobaciones de fallo deliberado y de release sin confundir preparación con evidencia remota.
-4. Releer el plan y sólo entonces iniciar la etapa 2. Continuar todas las etapas restantes, capacidad y auditoría final sin declarar cierres parciales como campaña terminada.
+1. Completar la etapa 2: generación de tipos desde la base reconstruida, clientes activos, validación JSON y contexto/autorización por petición.
+2. Continuar capacidades/cuotas, disponibilidad/aranceles, áreas/interfaz y tareas según el plan íntegro.
+3. Completar staging, capacidad, release y auditoría transversal. Los bloqueos de acceso no convierten esas pruebas en aprobadas.
 
 ## Actualización del 15 de octubre — continuación verificada
 
@@ -132,4 +131,38 @@ Corrección preparada: asignar las funciones del fixture al propietario correcto
 
 ## Comprobación final obligatoria
 
+### Etapa 2: generación y contexto en curso
+
+- Generador preparado con el mismo motor oficial de la CLI fijada: `postgres-meta:v0.98.0`. Comprueba propiedad/red del contenedor, no acepta destinos remotos, genera dos veces y compara antes de exportar/comprobar/escribir atómicamente. La primera exportación se incorpora al archivo compartido y luego el nivel completo exigirá `--check`; responsable: campaña, vencimiento: antes del cierre de etapa 2. Todavía no se considera generada ni reproducible hasta obtener el recibo real.
+- La corrida `38826733120`, fuente `215b1feadb7fbc15b859784c28e87cf952200134`, agotó correctamente cinco intentos de descarga porque ECR respondió `Data limit exceeded`. No ejecutó pruebas de aplicación. Se comprobó por las APIs OCI que los cuatro manifiestos de Docker Hub oficial son idénticos a las imágenes ECR de la corrida aprobada; se fijaron esos digest. La imagen nueva del generador también queda fijada por digest. No cambian versiones ni contratos del fixture.
+- Se eliminó la caché global de membresías. La reutilización queda limitada al objeto de cookies de una petición y a la misma identidad/token. El modo `fresh` fuerza una lectura nueva. Dos pruebas adicionales verifican cambio de rol/revocación entre peticiones e identidad/token cambiados; las pruebas originales se adaptaron al contrato aprobado conservando sus comprobaciones de coalescencia y expiración. Los 18 casos iniciales aprobaron y, después de añadir validación JSON negativa, aprobaron los 25 casos del archivo `business.test.ts`. Evidencia local: `.verification/stage2-business-tests.log`.
+- Contextos JSON inválidos y suscripciones de otro consultorio se rechazan explícitamente antes de intentar un alta. Los mensajes no incluyen los datos recibidos. La comprobación de tipos encontró una incompatibilidad en la guarda inicial de objetos; se corrigió con una guarda que comprueba la estructura y permite el estrechamiento de TypeScript, sin conversiones ciegas. Repetición de tipos en curso.
+- Se corrigió el directorio de salida de Playwright por perfil/corrida para que la demo no borre capturas del perfil previo. Pendiente comprobar su preservación en la próxima ejecución externa.
+
+### CI externo: primera ejecución y corrección de preparación
+
+- Workflow manual registrado y ejecutado en el repositorio auxiliar: [corrida 38825130254](https://github.com/Juan4787/cita-suite-verificacion/actions/runs/38825130254), fuente `6015b87c6e0020a1137584ada7e9ba15f5467df6`. Instalación y comprobación de recursos aprobadas. La descarga de PostgreSQL terminó, pero ECR rechazó la de Storage con `toomanyrequests: Rate exceeded`. **No se ejecutaron pruebas de aplicación.** Registro conservado en `.verification/remote-first-failure.log`.
+- Se incorporaron reintentos secuenciales acotados para errores transitorios de transporte/registro, con esperas de 15, 30, 60 y 120 segundos. No se cambian las imágenes ni se reintentan errores permanentes. La preparación deja recibo fallido desde el comienzo, aun si no puede iniciar pruebas. Dos pruebas unitarias comprobaron recuperación, límite de cinco intentos y rechazo inmediato de un tag inexistente; ambas aprobaron. Integridad del plan comprobada nuevamente.
+- El guardado de evidencias de la primera corrida también falló porque no se había generado ningún recibo antes del rechazo del registro; esto no constituye un segundo defecto de la aplicación. El nuevo recibo de preparación permite conservar esa distinción en futuros fallos.
+- Segunda corrida externa iniciada: [38825775890](https://github.com/Juan4787/cita-suite-verificacion/actions/runs/38825775890), fuente `ccb30d4a0f03315128085da3a350392907da5850`. Preparación de imágenes/navegador aprobada; pruebas secuenciales en ejecución. Tres pruebas adicionales del empaquetado/recuperación aprobaron localmente con archivos descartables: conservación del fallo y redacción de credenciales, rechazo de alteración/rutas inseguras y rechazo de evidencia ausente. Se incorporaron al comando rápido para la próxima copia de CI; no se atribuyen a esta fuente anterior.
+- Resultado definitivo de esa corrida: **aprobado**, recibo `df638b05-e5e8-45a1-9fb0-f02cbefd3f5f`, 23:50:40–23:54:22 UTC. Los 25 casos productivos locales y dos de demo aprobaron sin omisiones, fallos ni reintentos. Natalia aprobó navegación nativa en escritorio/móvil, gestión en Cita Suite, tema Natalia, recuperación sin duplicación y compatibilidad del recibo anterior. Evidencia recuperada en `.verification/remote-38825775890/`; paquete SHA-256 `b3e8ccf676cd9008f47dba664eeb51e8a3bbd1e99845c6494e8df23f387ddc46`. ZIP de logs y revisión remota comprobados. No es un despliegue real ni prueba de capacidad alojada.
+- Antes de iniciar la etapa 2 se releyó el plan íntegro y se contrastó este registro. No se modifica ni reduce su alcance: la validación de release/staging remoto sigue exigida para el cierre final y requiere el entorno separado pendiente.
+
 Antes de finalizar, transformar cada condición del plan original en una fila con resultado, evidencia y limitación. Ninguna fila pendiente equivale a aprobada. Este apartado todavía no constituye esa auditoría final.
+
+## Ampliación explícita del 16 de octubre: identidad Cita Suite
+
+- Se añadió al plan original, sin alterar ni resumir su contenido, el pedido íntegro de unificar nombres y sus criterios adicionales: inventario inmediato, preparación compatible en etapas 2–6, consolidación en etapa 5, ensayo en staging y aplicación externa en la puerta de publicación. Las huellas del plan original y de la instrucción de ejecución permanecen intactas; se preservó también la huella del documento anterior y se agregó la de la ampliación. `node scripts/check-refactoring-plan.mjs`: aprobado.
+- Inventario inicial en `docs/architecture/identidad-cita-suite.md`. Objetivos de producto visibles: «Cita Suite»; slugs sin espacios `cita-suite` y sufijos explícitos por función/entorno. Supabase conserva project ref/datos/API; los nombres de consultorios y Natalia se conservan. No se hizo ningún cambio externo ni movimiento del directorio activo.
+- Adjunto revisado: login GitHub correcto y Actions habilitado; Wrangler sigue mostrando otra cuenta. Los intentos de listar migraciones Supabase fallaron: un TCP abierto no acredita autenticación/consulta SQL. Se comprobó actualmente por lectura API `Juan4787`, repositorio `Juan4787/dashboard`, Actions habilitado y permisos predeterminados `write` sin aprobación de PR; el workflow propio conserva `contents: read`. No se alteraron permisos de la cuenta/repositorio.
+
+## Etapa 2: evidencia acumulada y punto de continuación
+
+- Generación real desde reconstrucción descartable en CI `38827616358`: dos resultados idénticos de postgres-meta; archivo compartido actualizado desde esa salida. Adaptador de nulabilidad de argumentos SQL contenido en `lib/types/database.ts`; conserva nombres/llaves/retornos y diferencia NULL de omisión. Clientes activos centrales y firmas de consumidores tipados, con pruebas de compilación negativas; quedan escapes y contratos JSON por completar antes de cerrar etapa.
+- Se retiraron 52 supresiones `as never` en RPC activas. La comprobación TypeScript secuencial, con heap de 768 MB, terminó con cero errores (`.verification/stage2-tsc-errors-4.log`). No reemplaza la comprobación Svelte: CI `38830529157`, fuente `dddd637388e0412ef0f96ad1e7cb973aa9fb3058`, detectó un error en el cuestionario profesional: JSON de campos sin convertir al contrato validado. Evidencia recuperada en `.verification/remote-38830529157/`, paquete SHA-256 `9b9e5897ee761b0dce07ee826dcb9b17f9efab0d65958d4c29d7435586608d2a`. Se corrige antes de avanzar.
+- Hooks publica identidad sólo después de validación Auth; el contexto reutiliza esa identidad dentro de la petición. Pruebas de servidor acumuladas anteriores a los últimos ajustes: 135 archivos, 1.021 pruebas aprobadas (`.verification/stage2-server-tests.log`). Nuevos contratos JSON y archivado administrativo aún requieren corrida completa sobre la fuente actual.
+- Módulo administrativo ya era inaccesible por hooks para GET/POST y no tiene esquema en las migraciones. Se preservó su código original byte a byte en `docs/archive/administrativo-inactivo/` con manifiesto de integridad; las rutas quedan como redirecciones y se retira del compilador la interfaz inaccesible. Se evita inventar tablas o reactivarlo para satisfacer tipos. Cierre pendiente de pruebas de hooks/build y revisión de la fábrica de datos para que no atribuya a ese módulo el esquema Cita Suite.
+- Prueba SQL negativa: 17 aserciones nuevas aprobadas en la corrida diagnóstica `38828925860` sobre fuente `497f7d610ae106b76e719da904683ad399ce462c`; 25 suites SQL y siete carreras, 25 recorridos de navegador y dos de demo aprobados. Esa fuente excluyó expresamente los cambios SDK aún en desarrollo: **no demuestra que la aplicación tipada actual apruebe**. Evidencia `.verification/remote-38828925860/`, paquete SHA-256 `8a7c9fb78092ad739bb078cf28735477359230de3759ee2b6b80abad6c47e52d`.
+- El catálogo efectivo demostró que la autorización nullable candidata ya estaba endurecida por una migración posterior; no se añadió una corrección redundante. Quedan relaciones entre entidades con FK sólo por id que requieren revisar garantías efectivas y compatibilidad de embeds PostgREST antes de completar restricciones compuestas.
+- Fallo intermitente pendiente de causa raíz: CI `38827616358` llegó a 18 casos de navegador y encontró identidad/vista profesional cuando el recorrido esperaba dueño en Equipo. Se añadieron comprobaciones Auth/membresía en puntos del flujo; no se aumentaron esperas ni se declara resuelto porque otra fuente haya aprobado. Evidencia preservada con capturas en `.verification/remote-38827616358/`.
+- Próximo punto: corregir el contrato de preguntas detectado en Svelte, completar los consumidores/JSON y aislamiento de etapa 2 y verificar la revisión exacta en CI secuencial. Etapas 3–6, carga, staging y auditoría final siguen pendientes; esta actualización no las da por terminadas.
