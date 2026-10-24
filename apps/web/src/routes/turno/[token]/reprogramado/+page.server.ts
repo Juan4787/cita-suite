@@ -1,11 +1,12 @@
+import { logServerFailure } from '$lib/server/platform/logging';
 // Vista pública MINIMAL de reprogramación: muestra SOLO el aviso de que el turno
 // cambió, el resumen del nuevo turno (servicio · profesional · nueva fecha y hora ·
 // ubicación) y dos recordatorios (push / calendario). No expone acciones ni la página
 // de gestión completa. Detrás del token → nunca cachear.
 
 import { env } from '$env/dynamic/private';
-import { createSupabaseAdminClient } from '$lib/server/supabase';
-import { demoPublicAppointment, loadPublicAppointmentByToken } from '$lib/server/public-appointments';
+import { createSupabaseAdminClient } from '$lib/server/platform/supabase';
+import { demoPublicAppointment, loadPublicAppointmentByToken } from '$lib/server/scheduling/public/public-appointments';
 import { isActiveAppointmentStatus } from '$lib/utils/appointment-visibility';
 import type { PageServerLoad } from './$types';
 
@@ -26,7 +27,7 @@ export const load: PageServerLoad = async ({ params, fetch, setHeaders }) => {
 		);
 		return { appointment, active, demo: false };
 	} catch (error) {
-		console.error('Error cargando vista de reprogramación', error);
+		logServerFailure('Error cargando vista de reprogramación', error);
 		return { appointment: null, active: false, demo: false };
 	}
 };

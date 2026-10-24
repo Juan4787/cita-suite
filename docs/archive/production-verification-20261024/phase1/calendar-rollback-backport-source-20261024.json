@@ -1,0 +1,15 @@
+{
+  "at": "2026-10-24T07:17:50.263591+00:00",
+  "base": "dfb487faa74b8117c46c180c70f368f77f3dbcd2",
+  "commit": "5ee3fa5a19bcdda49697692fc4c9c3b3702c9eca",
+  "tree": "082772deb37d5d40469cf6aaf78cc83427a8523c",
+  "exactBackportPaths": [
+    "apps/web/src/lib/server/integrations/public/google-calendar.ts",
+    "apps/web/src/lib/server/integrations/public/google-calendar.test.ts",
+    "apps/web/src/lib/server/sites/public/booking-integrations.ts"
+  ],
+  "allActiveApplicationSourceMatchesCandidate": "cb8a9bafdf9a07a6b8977e841fa3f401061fda4f",
+  "userIndexAndHeadPreserved": true,
+  "status": "prepared-not-packaged-or-deployed",
+  "reason": "The historical compatible baseline contains the same reproduced Calendar batch defect; repair it explicitly before claiming functional recovery."
+}

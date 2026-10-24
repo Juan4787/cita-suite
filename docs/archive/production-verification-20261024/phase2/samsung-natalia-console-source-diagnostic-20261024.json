@@ -1,0 +1,14 @@
+{
+  "at": "2026-10-24T12:44:59.215Z",
+  "scope": "Buffered Log entries; route/query sanitized before persistence",
+  "events": [
+    {
+      "level": "error",
+      "source": "network",
+      "text": "Failed to load resource: the server responded with a status of 404 ()",
+      "origin": "https://app.cita-suite.workers.dev",
+      "path": "/turno/[token]/push",
+      "timestamp": 1792845836320.549
+    }
+  ]
+}

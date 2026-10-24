@@ -1,0 +1,41 @@
+{
+  "at": "2026-10-24T09:27:29.076Z",
+  "runId": "commercial-manual-production-proof-20261024",
+  "revision": "cb8a9bafdf9a07a6b8977e841fa3f401061fda4f",
+  "scope": "Explicitly manual protected maintenance run after the load ended, with no scheduled-time header. Reuses the real reconciler: provider GET only, no creation/cancellation of subscription or payment, local reconciliation of existing pending rows. Not a native cron receipt or test of an approved-payment credit case.",
+  "before": {
+    "eligible": 4,
+    "pending": 4,
+    "latestSynchronization": "2026-10-24T06:17:16.68+00:00",
+    "legacyEnabled": false
+  },
+  "status": "passed-existing-pending-reconciliation-manual",
+  "httpStatus": 200,
+  "receipt": {
+    "ok": true,
+    "kind": "commercial",
+    "scheduledFor": null,
+    "budget": {
+      "profile": "free",
+      "maxCalls": 40,
+      "usedCalls": 14,
+      "databaseRequests": 9,
+      "providerRequests": 4,
+      "elapsedMs": 3561
+    },
+    "result": {
+      "scanned": 4,
+      "credited": 0,
+      "attention": 0,
+      "errors": 0
+    }
+  },
+  "after": {
+    "eligible": 4,
+    "pending": 4,
+    "latestSynchronization": "2026-10-24T09:27:32.58+00:00",
+    "legacyEnabled": false
+  },
+  "passed": true,
+  "finishedAt": "2026-10-24T09:27:33.236Z"
+}

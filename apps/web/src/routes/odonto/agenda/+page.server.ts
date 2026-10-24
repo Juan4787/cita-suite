@@ -1,48 +1,41 @@
+import { logServerFailure } from '$lib/server/platform/logging';
 import { env } from '$env/dynamic/private';
 import { randomUUID } from 'crypto';
-import { demoBusinessContext } from '$lib/server/business';
-import { getAvailabilitySlots, zonedDateTimeToUtc } from '$lib/server/availability';
+import { demoBusinessContext } from '$lib/server/access/public/business';
+import { getAvailabilitySlots, zonedDateTimeToUtc } from '$lib/server/scheduling/public/availability';
 import {
 	defaultInternalAvailabilitySnapshotRange,
 	loadInternalAvailabilitySnapshot
-} from '$lib/server/availability-snapshot';
+} from '$lib/server/scheduling/public/availability-snapshot';
 import {
 	APPOINTMENT_STATUSES,
 	createJointAppointment,
 	createManualAppointment,
 	findAppointmentCreationReplay,
 	getHumanAppointmentErrorMessage,
+	getAppointmentCreationErrorStatus,
 	isAppointmentStatus,
 	updateAppointmentStatus
-} from '$lib/server/appointments';
-import { getOdontoContext } from '$lib/server/odonto-context';
-import { countTomorrowUncovered } from '$lib/server/reminders';
-import { createSupabaseAdminClient } from '$lib/server/supabase';
-import { processAppointmentGoogleCalendarSync } from '$lib/server/google-calendar';
-import { createdAppointmentDetailUrl } from '$lib/server/agenda-navigation';
+} from '$lib/server/scheduling/public/appointments';
+import { getOdontoContext } from '$lib/server/access/public/odonto-context';
+import { countTomorrowUncovered } from '$lib/server/scheduling/public/reminders';
+import { createSupabaseAdminClient } from '$lib/server/platform/supabase';
+import { processAppointmentGoogleCalendarSync } from '$lib/server/integrations/public/google-calendar';
+import { createdAppointmentDetailUrl } from '$lib/scheduling/agenda-navigation';
+import { todayInTimeZone } from '$lib/availability/calculate';
+import { isAvailabilityDate } from '$lib/availability/windows';
+import { isUuid } from '@cita-suite/shared/uuid';
 import {
 	ACTIVE_APPOINTMENT_STATUSES,
 	isActiveAppointmentStatus
 } from '$lib/utils/appointment-visibility';
 import { resolveCommunicationPhoneDecision } from '$lib/utils/communication-phone';
-import { fail, redirect } from '@sveltejs/kit';
+import { isRecord } from '$lib/contracts/json';
+import type { CitaRow } from '$lib/types/database';
+import type { AvailabilitySnapshot } from '$lib/availability/snapshot';
+import { error, fail, redirect, isRedirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 
-const today = () => new Date().toISOString().slice(0, 10);
-
-const todayForTimezone = (timeZone: string) => {
-	const parts = Object.fromEntries(
-		new Intl.DateTimeFormat('en-CA', {
-			timeZone,
-			year: 'numeric',
-			month: '2-digit',
-			day: '2-digit'
-		})
-			.formatToParts(new Date())
-			.map((part) => [part.type, part.value])
-	);
-	return `${parts.year}-${parts.month}-${parts.day}`;
-};
 
 const APPOINTMENT_COLUMNS =
 	'id, patient_id, service_id, professional_id, starts_at, ends_at, status, source, service_name_snapshot, professional_name_snapshot, internal_note, cancelled_reason, patients(full_name, phone_e164, dni, email)';
@@ -50,7 +43,6 @@ const APPOINTMENT_COLUMNS =
 // Tope de próximos turnos al buscar con "Cualquier día".
 const ANY_DAY_LIMIT = 100;
 
-const isIsoDate = (value: string) => /^\d{4}-\d{2}-\d{2}$/.test(value);
 
 export const load: PageServerLoad = async ({ locals, fetch, cookies, url }) => {
 	if (!locals.auth) throw redirect(303, '/login');
@@ -58,7 +50,7 @@ export const load: PageServerLoad = async ({ locals, fetch, cookies, url }) => {
 	if (env.DEMO_MODE === 'true') {
 		return {
 			context: demoBusinessContext(),
-			date: today(),
+			date: todayInTimeZone(demoBusinessContext().business.timezone),
 			anyDay: false,
 			anyDayLimited: false,
 			selectedProfessionalId: '',
@@ -90,8 +82,9 @@ export const load: PageServerLoad = async ({ locals, fetch, cookies, url }) => {
 	if (business.role === 'professional') throw redirect(303, '/odonto/mis-turnos');
 	const dateParam = String(url.searchParams.get('date') ?? '').trim();
 	const anyDay = dateParam === 'any';
-	// Las fechas malformadas caen en "hoy" (antes rompían zonedDateTimeToUtc).
-	const date = !anyDay && isIsoDate(dateParam) ? dateParam : todayForTimezone(business.business.timezone);
+	// A date that does not exist falls back to the practice's today: JavaScript would
+	// silently move "2026-02-31" to March, listing another day under its label.
+	const date = !anyDay && isAvailabilityDate(dateParam) ? dateParam : todayInTimeZone(business.business.timezone);
 	const professionalId = url.searchParams.get('professional_id') ?? '';
 	const requestedStatus = url.searchParams.get('status') ?? '';
 	const status = anyDay && !isActiveAppointmentStatus(requestedStatus) ? '' : requestedStatus;
@@ -106,32 +99,28 @@ export const load: PageServerLoad = async ({ locals, fetch, cookies, url }) => {
 				pushSubscriptionsSupabase
 			});
 		} catch (reminderError) {
-			console.error('Error contando recordatorios pendientes', reminderError);
-			return 0;
+			// Unknown, not zero: the page says it could not check them.
+			logServerFailure('Error contando recordatorios pendientes', reminderError);
+			return null;
 		}
 	})();
 
-	let dayAppointments: any[] | null = null;
+	const appointmentQuery = () => {
+		const selected = professionalId
+			? supabase.from('appointments').select(`${APPOINTMENT_COLUMNS}, appointment_professionals!inner(professional_id)` as const)
+				.eq('appointment_professionals.professional_id', professionalId)
+			: supabase.from('appointments').select(APPOINTMENT_COLUMNS);
+		return selected.eq('business_id', business.business.id);
+	};
+	type AgendaAppointment = NonNullable<Awaited<ReturnType<typeof appointmentQuery>>['data']>[number];
+	let dayAppointments: AgendaAppointment[] | null = null;
 	let appointmentsError: unknown = null;
 	let anyDayLimited = false;
 	if (anyDay) {
 		// "Cualquier día" es una vista operativa: sólo devuelve próximos turnos activos.
 		// Los registros históricos siguen disponibles al elegir explícitamente una fecha pasada.
 		const baseQuery = () => {
-			let builder = supabase
-				.from('appointments')
-				.select(
-					professionalId
-						? `${APPOINTMENT_COLUMNS}, appointment_professionals!inner(professional_id)`
-						: APPOINTMENT_COLUMNS
-				)
-				.eq('business_id', business.business.id);
-			if (professionalId) {
-				builder = builder.eq(
-					'appointment_professionals.professional_id',
-					professionalId
-				);
-			}
+			let builder = appointmentQuery();
 			if (serviceId) builder = builder.eq('service_id', serviceId);
 			if (patientId) builder = builder.eq('patient_id', patientId);
 			if (status) builder = builder.eq('status', status);
@@ -150,28 +139,20 @@ export const load: PageServerLoad = async ({ locals, fetch, cookies, url }) => {
 	} else {
 		const dayStart = zonedDateTimeToUtc(date, '00:00', business.business.timezone);
 		const dayEnd = zonedDateTimeToUtc(date, '23:59', business.business.timezone);
-		({ data: dayAppointments, error: appointmentsError } = await supabase
-			.from('appointments')
-			.select(
-				professionalId
-					? `${APPOINTMENT_COLUMNS}, appointment_professionals!inner(professional_id)`
-					: APPOINTMENT_COLUMNS
-			)
-			.eq('business_id', business.business.id)
-			.match(
-				professionalId
-					? { 'appointment_professionals.professional_id': professionalId }
-					: {}
-			)
+		({ data: dayAppointments, error: appointmentsError } = await appointmentQuery()
 			.gte('starts_at', dayStart.toISOString())
 			.lte('starts_at', dayEnd.toISOString())
 			.order('starts_at'));
 	}
-	if (appointmentsError) {
-		console.error('Error cargando agenda diaria', appointmentsError);
-	}
+	// An unreadable day, or references that cannot be read, is an error: never an empty
+	// day or a practice that looks as if it had no professionals or services yet.
+	const unavailable = (cause: unknown): never => {
+		logServerFailure('agenda.day_unavailable', cause);
+		error(503, 'No pudimos cargar la agenda. Volvé a intentar.');
+	};
+	if (appointmentsError) unavailable(appointmentsError);
 
-	const filteredAppointments = (dayAppointments ?? []).filter((appointment: any) => {
+	const filteredAppointments = (dayAppointments ?? []).filter((appointment) => {
 		if (serviceId && appointment.service_id !== serviceId) return false;
 		if (patientId && appointment.patient_id !== patientId) return false;
 		if (status && appointment.status !== status) return false;
@@ -180,14 +161,14 @@ export const load: PageServerLoad = async ({ locals, fetch, cookies, url }) => {
 
 	const stats = APPOINTMENT_STATUSES.map((appointmentStatus) => ({
 		status: appointmentStatus,
-		count: filteredAppointments.filter((appointment: any) => appointment.status === appointmentStatus).length
+		count: filteredAppointments.filter((appointment) => appointment.status === appointmentStatus).length
 	}));
 
 	const shouldLoadReferences = Boolean(professionalId || serviceId || patientId);
-	let professionals: any[] = [];
-	let services: any[] = [];
-	let patients: any[] = [];
-	let assignments: any[] = [];
+	let professionals: AvailabilitySnapshot['professionals'] = [];
+	let services: AvailabilitySnapshot['services'] = [];
+	let patients: Pick<CitaRow<'patients'>, 'id' | 'full_name' | 'phone' | 'phone_raw' | 'phone_e164' | 'dni' | 'birth_date' | 'activity_at' | 'blocked'>[] = [];
+	let assignments: AvailabilitySnapshot['assignments'] = [];
 	let availabilitySnapshot = null;
 	if (shouldLoadReferences) {
 		try {
@@ -199,13 +180,13 @@ export const load: PageServerLoad = async ({ locals, fetch, cookies, url }) => {
 			professionals = availabilitySnapshot.professionals;
 			services = availabilitySnapshot.services;
 			assignments = availabilitySnapshot.assignments;
-		} catch (error) {
-			console.error('Error cargando referencias y disponibilidad de agenda', error);
+		} catch (cause) {
+			unavailable(cause);
 		}
 	}
 	const appointments = filteredAppointments;
 
-	const serviceProfessionalIds = (assignments ?? []).reduce<Record<string, string[]>>((acc, assignment: any) => {
+	const serviceProfessionalIds = (assignments ?? []).reduce<Record<string, string[]>>((acc, assignment) => {
 		const service = String(assignment.service_id);
 		acc[service] = acc[service] ?? [];
 		acc[service].push(String(assignment.professional_id));
@@ -217,12 +198,13 @@ export const load: PageServerLoad = async ({ locals, fetch, cookies, url }) => {
 	const reminderCount = await reminderCountPromise;
 
 	if (patientId) {
-		const { data: selectedPatient } = await supabase
+		const { data: selectedPatient, error: patientError } = await supabase
 			.from('patients')
 			.select('id, full_name, phone, phone_raw, phone_e164, dni, birth_date, activity_at, blocked')
 			.eq('business_id', business.business.id)
 			.eq('id', patientId)
 			.maybeSingle();
+		if (patientError) unavailable(patientError);
 		if (selectedPatient) patients = [selectedPatient];
 	}
 
@@ -340,11 +322,7 @@ export const actions: Actions = {
 				values
 			});
 		}
-		if (
-			!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-				idempotencyKey
-			)
-		) {
+		if (!isUuid(idempotencyKey)) {
 			return fail(400, {
 				message:
 					'La sesión para crear el turno venció. Cerrá el asistente, abrilo nuevamente y volvé a confirmar.',
@@ -356,7 +334,7 @@ export const actions: Actions = {
 		try {
 			admin = await createSupabaseAdminClient('odonto', fetch);
 		} catch (adminError) {
-			console.error('Error preparando la creación del turno', adminError);
+			logServerFailure('Error preparando la creación del turno', adminError);
 			return fail(500, { message: 'No pudimos preparar el turno. Intentá de nuevo.', values });
 		}
 
@@ -371,7 +349,7 @@ export const actions: Actions = {
 				.eq('id', patientId)
 				.maybeSingle();
 			if (selectedPatientError) {
-				console.error('Error validando el teléfono del paciente', selectedPatientError);
+				logServerFailure('Error validando el teléfono del paciente', selectedPatientError);
 				return fail(500, { message: 'No pudimos comprobar el teléfono. Intentá de nuevo.', values });
 			}
 			if (!selectedPatient) {
@@ -434,10 +412,10 @@ export const actions: Actions = {
 			try {
 				const replay = await findAppointmentCreationReplay(admin, commonInput);
 				if (replay) throw redirect(303, createdAppointmentDetailUrl(replay.id, date));
-			} catch (error: any) {
-				if (error?.status && error?.location) throw error;
-				console.error('Error recuperando un turno ya creado', error);
-				return fail(500, { message: getHumanAppointmentErrorMessage(error), values });
+			} catch (error) {
+				if (isRedirect(error)) throw error;
+				logServerFailure('Error recuperando un turno ya creado', error);
+				return fail(getAppointmentCreationErrorStatus(error), { message: getHumanAppointmentErrorMessage(error), values });
 			}
 			if (selectedPatientBlocked) {
 				return fail(400, { message: 'Ese paciente está bloqueado.', values });
@@ -463,7 +441,7 @@ export const actions: Actions = {
 				ignoreBreak
 			});
 		} catch (availabilityError) {
-			console.error('Error revalidando disponibilidad antes de crear turno', availabilityError);
+			logServerFailure('Error revalidando disponibilidad antes de crear turno', availabilityError);
 			return fail(500, {
 				message:
 					'No pudimos volver a comprobar la disponibilidad y, por seguridad, no reservamos a ningún profesional. Recargá la agenda y elegí el horario otra vez.',
@@ -500,11 +478,11 @@ export const actions: Actions = {
 								professionalId
 							});
 			throw redirect(303, createdAppointmentDetailUrl(created.id, date));
-		} catch (error: any) {
-			if (error?.status && error?.location) throw error;
-			console.error('Error creando turno', error);
+		} catch (error) {
+			if (isRedirect(error)) throw error;
+			logServerFailure('Error creando turno', error);
 			const message = getHumanAppointmentErrorMessage(error);
-			return fail(error?.code === '23P01' ? 409 : 500, { message, values });
+			return fail(getAppointmentCreationErrorStatus(error), { message, values });
 		}
 	},
 	update_status: async ({ request, locals, fetch, cookies }) => {
@@ -516,7 +494,8 @@ export const actions: Actions = {
 		const form = await request.formData();
 		const appointmentId = String(form.get('appointment_id') ?? '').trim();
 		const status = String(form.get('status') ?? '').trim();
-		const date = String(form.get('date') ?? today()).trim();
+		const requestedDate = String(form.get('date') ?? '').trim();
+		const date = isAvailabilityDate(requestedDate) ? requestedDate : todayInTimeZone(business.business.timezone);
 		const professionalId = String(form.get('professional_id') ?? '').trim();
 		const selectedStatus = String(form.get('selected_status') ?? '').trim();
 		const serviceId = String(form.get('service_id') ?? '').trim();
@@ -538,8 +517,8 @@ export const actions: Actions = {
 				userId,
 				reason: String(form.get('reason') ?? '').trim() || null
 			});
-		} catch (error: any) {
-			console.error('Error actualizando turno', error);
+		} catch (error) {
+			logServerFailure('Error actualizando turno', error);
 			return fail(400, { message: getHumanAppointmentErrorMessage(error) });
 		}
 
@@ -549,7 +528,7 @@ export const actions: Actions = {
 				await processAppointmentGoogleCalendarSync(admin, appointmentId, fetch);
 			} catch (calendarError) {
 				// El borrado remoto ya quedó encolado por el trigger transaccional.
-				console.error('Error sincronizando Google Calendar tras cancelar desde agenda', {
+				logServerFailure('Error sincronizando Google Calendar tras cancelar desde agenda', {
 					appointmentId,
 					code:
 						calendarError instanceof Error

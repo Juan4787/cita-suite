@@ -1,5 +1,6 @@
+import { isUuid } from '@cita-suite/shared/uuid';
 import { json } from "@sveltejs/kit";
-import { informationContext } from "$lib/server/booking-information";
+import { informationContext } from "$lib/server/patients/public/booking-information";
 import {
   clinicalFileCacheHeaders,
   clinicalFileError,
@@ -10,8 +11,8 @@ import {
   normalizeClinicalFilename,
   normalizeClinicalNote,
   readClinicalJson,
-} from "$lib/server/clinical-files";
-import { enforceRateLimits } from "$lib/server/rate-limits";
+} from "$lib/server/patients/public/clinical-files";
+import { enforceRateLimits } from "$lib/server/platform/rate-limits";
 import type { RequestHandler } from "./$types";
 export const POST: RequestHandler = async (event) => {
   try {
@@ -46,12 +47,12 @@ export const POST: RequestHandler = async (event) => {
       !Number.isSafeInteger(bytes) ||
       bytes < 1 ||
       bytes > CLINICAL_FILE_MAX_BYTES ||
-      !/^[a-f0-9]{64}$/.test(String(body.sha256 ?? "")) ||
-      !/^[a-f0-9]{8}-[a-f0-9]{4}-[1-5][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i.test(String(body.requestId ?? ""))
+      typeof body.sha256 !== 'string' || !/^[a-f0-9]{64}$/.test(body.sha256) ||
+      typeof body.requestId !== 'string' || !isUuid(body.requestId)
     )
       throw new Error("RADIOGRAPH_UPLOAD_INVALID");
     const { data, error } = await admin.rpc(
-      "begin_public_patient_document_upload" as never,
+      "begin_public_patient_document_upload",
       {
         p_token: token,
         p_request_id: body.requestId,
@@ -60,13 +61,15 @@ export const POST: RequestHandler = async (event) => {
         p_bytes: bytes,
         p_sha256: body.sha256,
         p_note: note,
-      } as never,
+      },
     );
     if (error) throw error;
-    const file = data as any;
+    const file = data;
+    if (!file) throw new Error("RADIOGRAPH_NOT_FOUND");
     if (file.status === "ready")
       return json({ id: file.id, already_complete: true });
     if (file.status !== "uploading") throw new Error("RADIOGRAPH_UPLOAD_EXPIRED");
+    if (!file.storage_bucket || !file.storage_path) throw new Error("RADIOGRAPH_UPLOAD_INVALID");
     const existing = await admin.storage
       .from(file.storage_bucket)
       .info(file.storage_path);

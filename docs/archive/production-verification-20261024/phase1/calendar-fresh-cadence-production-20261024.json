@@ -1,0 +1,40 @@
+{
+  "at": "2026-10-24T07:23:31.972936+00:00",
+  "revision": "cb8a9bafdf9a07a6b8977e841fa3f401061fda4f",
+  "version": "f35abec7-bcce-4c5f-b08a-017bb58fe8c9",
+  "queuedAt": "2026-10-24 07:17:49.46+00",
+  "providerAcknowledgedAndPersistedAt": "2026-10-24T07:21:55.863+00:00",
+  "completionLatencyMs": 246403,
+  "completionUnderTenMinutes": true,
+  "sameEventIdSha256": "7e49d6966b512594ce809363d994c5632cd6b4decf4fa672f971a6f82c7fc8a5",
+  "sequence": 2,
+  "job": {
+    "at": 1792826515863,
+    "path": "/internal/jobs/calendar",
+    "outcome": "ok",
+    "status": 200,
+    "cpuTimeMs": 9,
+    "wallTimeMs": 1290,
+    "exceptions": [],
+    "job": {
+      "kind": "calendar",
+      "ok": true,
+      "scheduledFor": "2026-10-24T07:21:54.405Z",
+      "profile": "free",
+      "maxCalls": 40,
+      "usedCalls": 6,
+      "databaseRequests": 3,
+      "providerRequests": 2,
+      "elapsedMs": 1286,
+      "configured": true,
+      "claimed": 1,
+      "active": 1,
+      "deleted": 0,
+      "retrying": 0,
+      "attention": 0,
+      "stale": 0,
+      "released": 0
+    }
+  },
+  "scope": "Fresh synthetic update after the fix, via real scheduler and provider, normal DB triggers. Completion within ten minutes implies work started within ten. The earlier sequence1 delay and three500 responses remain failed historical evidence. One CPU9ms result does not approve the overall Free deployment. Google UI and deletion still separate."
+}

@@ -1,0 +1,90 @@
+{
+  "runId": "samsung-natalia-production-journey-v2-20261024",
+  "at": "2026-10-24T12:43:41.865Z",
+  "revision": "cb8a9bafdf9a07a6b8977e841fa3f401061fda4f",
+  "presentation": "RealSamsungA71/Android13/Chrome155 native mobile viewport; no desktop-device claim",
+  "scope": "One new explicitly synthetic booking through the actual published Natalia link and public UI. Readonly DB confirms the exact idempotency key, context, recovery without duplicate and cancellation. No production key in CI, no transport interception, no management capability persisted.",
+  "steps": [
+    {
+      "action": "native-Natalia-booking-link",
+      "at": "2026-10-24T12:43:43.409Z"
+    },
+    {
+      "action": "public-booking-step",
+      "at": "2026-10-24T12:43:44.698Z"
+    },
+    {
+      "action": "public-booking-step",
+      "at": "2026-10-24T12:43:45.707Z"
+    },
+    {
+      "action": "public-booking-step",
+      "at": "2026-10-24T12:43:46.660Z"
+    },
+    {
+      "action": "public-booking-step",
+      "at": "2026-10-24T12:43:47.156Z"
+    },
+    {
+      "action": "confirm-one-synthetic-booking",
+      "at": "2026-10-24T12:43:48.597Z"
+    },
+    {
+      "action": "open-public-cancellation",
+      "at": "2026-10-24T12:43:53.507Z"
+    },
+    {
+      "action": "confirm-cancellation-intent",
+      "at": "2026-10-24T12:43:53.547Z"
+    },
+    {
+      "action": "cancel-own-booking",
+      "at": "2026-10-24T12:43:53.692Z"
+    }
+  ],
+  "status": "failed-inspect-owned-state-before-retry",
+  "phoneViewport": {
+    "width": 411,
+    "height": 775,
+    "secure": true
+  },
+  "expectedBookingColorMode": "light",
+  "nataliaSdkResources": 0,
+  "nativeSameTab": true,
+  "creationRequestKeySha256": "623177cb9aa10829456b0a45c14d1c101fc0371c066eccca0a054b3f0adfe9b6",
+  "form": {
+    "requiredFilled": 4,
+    "valid": true,
+    "invalidFields": []
+  },
+  "persisted": {
+    "id": "f1372fc0-d801-4aba-b34d-1c3761516bc8",
+    "patientId": "8823fa9d-0963-405a-8af8-987db6ec01e0",
+    "status": "reserved",
+    "source": "public_booking",
+    "theme": "natalia",
+    "integrationId": "89b2ad66-845b-41e2-87e7-cd99abc1c168",
+    "count": 1
+  },
+  "bookingColorMode": "light",
+  "recoveryWithoutDuplicate": true,
+  "oldReceiptCompatible": true,
+  "cancelled": true,
+  "patientId": "8823fa9d-0963-405a-8af8-987db6ec01e0",
+  "appointmentId": "f1372fc0-d801-4aba-b34d-1c3761516bc8",
+  "consoleErrorCount": 1,
+  "safeFailure": "UNEXPECTED_BROWSER_ERROR",
+  "ownedRowsAfterFailure": [
+    {
+      "id": "f1372fc0-d801-4aba-b34d-1c3761516bc8",
+      "patientId": "8823fa9d-0963-405a-8af8-987db6ec01e0",
+      "status": "cancelled",
+      "source": "public_booking",
+      "theme": "natalia",
+      "integrationId": "89b2ad66-845b-41e2-87e7-cd99abc1c168"
+    }
+  ],
+  "passed": false,
+  "originalOwnedPageRestored": true,
+  "finishedAt": "2026-10-24T12:43:55.996Z"
+}

@@ -7,31 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
       access_grants: {
@@ -311,6 +286,7 @@ export type Database = {
           attempt_count: number
           business_id: string
           calendar_id: string
+          claim_token: string | null
           claimed_at: string | null
           connection_id: string
           created_at: string
@@ -330,6 +306,7 @@ export type Database = {
           attempt_count?: number
           business_id: string
           calendar_id?: string
+          claim_token?: string | null
           claimed_at?: string | null
           connection_id: string
           created_at?: string
@@ -349,6 +326,7 @@ export type Database = {
           attempt_count?: number
           business_id?: string
           calendar_id?: string
+          claim_token?: string | null
           claimed_at?: string | null
           connection_id?: string
           created_at?: string
@@ -1446,6 +1424,44 @@ export type Database = {
         }
         Relationships: []
       }
+      clinical_business_storage_budget: {
+        Row: {
+          business_id: string
+          max_bytes: number
+          policy_revision: number
+          reserved_bytes: number
+          updated_at: string
+          uploads_enabled: boolean
+          used_bytes: number
+        }
+        Insert: {
+          business_id: string
+          max_bytes: number
+          policy_revision?: number
+          reserved_bytes?: number
+          updated_at?: string
+          uploads_enabled?: boolean
+          used_bytes?: number
+        }
+        Update: {
+          business_id?: string
+          max_bytes?: number
+          policy_revision?: number
+          reserved_bytes?: number
+          updated_at?: string
+          uploads_enabled?: boolean
+          used_bytes?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clinical_business_storage_budget_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: true
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clinical_entries: {
         Row: {
           amount: number | null
@@ -1511,10 +1527,10 @@ export type Database = {
           },
           {
             foreignKeyName: "clinical_entries_patient_id_fkey"
-            columns: ["patient_id"]
+            columns: ["business_id", "patient_id"]
             isOneToOne: false
             referencedRelation: "patients"
-            referencedColumns: ["id"]
+            referencedColumns: ["business_id", "id"]
           },
         ]
       }
@@ -1559,33 +1575,42 @@ export type Database = {
           },
           {
             foreignKeyName: "clinical_entry_costs_clinical_entry_id_fkey"
-            columns: ["clinical_entry_id"]
-            isOneToOne: false
+            columns: ["business_id", "clinical_entry_id"]
+            isOneToOne: true
             referencedRelation: "clinical_entries"
-            referencedColumns: ["id"]
+            referencedColumns: ["business_id", "id"]
           },
         ]
       }
       clinical_storage_budget: {
         Row: {
+          default_business_max_bytes: number
           max_bytes: number
+          policy_revision: number
           reserved_bytes: number
           singleton: boolean
           updated_at: string
+          uploads_enabled: boolean
           used_bytes: number
         }
         Insert: {
+          default_business_max_bytes?: number
           max_bytes?: number
+          policy_revision?: number
           reserved_bytes?: number
           singleton?: boolean
           updated_at?: string
+          uploads_enabled?: boolean
           used_bytes: number
         }
         Update: {
+          default_business_max_bytes?: number
           max_bytes?: number
+          policy_revision?: number
           reserved_bytes?: number
           singleton?: boolean
           updated_at?: string
+          uploads_enabled?: boolean
           used_bytes?: number
         }
         Relationships: []
@@ -1593,6 +1618,7 @@ export type Database = {
       clinical_upload_slots: {
         Row: {
           bucket: string
+          business_id: string
           expires_at: string
           file_id: string
           path: string
@@ -1600,6 +1626,7 @@ export type Database = {
         }
         Insert: {
           bucket: string
+          business_id: string
           expires_at: string
           file_id: string
           path: string
@@ -1607,12 +1634,20 @@ export type Database = {
         }
         Update: {
           bucket?: string
+          business_id?: string
           expires_at?: string
           file_id?: string
           path?: string
           reserved_bytes?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "clinical_upload_slots_business_file_fkey"
+            columns: ["business_id", "file_id"]
+            isOneToOne: false
+            referencedRelation: "patient_radiographs"
+            referencedColumns: ["business_id", "id"]
+          },
           {
             foreignKeyName: "clinical_upload_slots_file_id_fkey"
             columns: ["file_id"]
@@ -1692,10 +1727,10 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "follow_ups_assigned_professional_id_fkey"
-            columns: ["assigned_professional_id"]
+            columns: ["business_id", "assigned_professional_id"]
             isOneToOne: false
             referencedRelation: "professionals"
-            referencedColumns: ["id"]
+            referencedColumns: ["business_id", "id"]
           },
           {
             foreignKeyName: "follow_ups_business_id_fkey"
@@ -1706,10 +1741,10 @@ export type Database = {
           },
           {
             foreignKeyName: "follow_ups_patient_id_fkey"
-            columns: ["patient_id"]
+            columns: ["business_id", "patient_id"]
             isOneToOne: false
             referencedRelation: "patients"
-            referencedColumns: ["id"]
+            referencedColumns: ["business_id", "id"]
           },
         ]
       }
@@ -1946,17 +1981,17 @@ export type Database = {
           },
           {
             foreignKeyName: "google_review_requests_push_delivery_id_fkey"
-            columns: ["push_delivery_id"]
+            columns: ["business_id", "push_delivery_id"]
             isOneToOne: false
             referencedRelation: "push_delivery_attempts"
-            referencedColumns: ["id"]
+            referencedColumns: ["business_id", "id"]
           },
           {
             foreignKeyName: "google_review_requests_push_subscription_id_fkey"
-            columns: ["push_subscription_id"]
+            columns: ["business_id", "push_subscription_id"]
             isOneToOne: false
             referencedRelation: "push_subscriptions"
-            referencedColumns: ["id"]
+            referencedColumns: ["business_id", "id"]
           },
         ]
       }
@@ -2425,10 +2460,10 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "mp_webhook_events_credited_grant_id_fkey"
-            columns: ["credited_grant_id"]
+            columns: ["business_id", "credited_grant_id"]
             isOneToOne: false
             referencedRelation: "access_grants"
-            referencedColumns: ["id"]
+            referencedColumns: ["business_id", "id"]
           },
         ]
       }
@@ -2488,10 +2523,10 @@ export type Database = {
           },
           {
             foreignKeyName: "patient_clinical_profiles_patient_id_fkey"
-            columns: ["patient_id"]
-            isOneToOne: false
+            columns: ["business_id", "patient_id"]
+            isOneToOne: true
             referencedRelation: "patients"
-            referencedColumns: ["id"]
+            referencedColumns: ["business_id", "id"]
           },
         ]
       }
@@ -2604,17 +2639,17 @@ export type Database = {
           },
           {
             foreignKeyName: "patient_profile_change_events_changed_by_professional_id_fkey"
-            columns: ["changed_by_professional_id"]
+            columns: ["business_id", "changed_by_professional_id"]
             isOneToOne: false
             referencedRelation: "professionals"
-            referencedColumns: ["id"]
+            referencedColumns: ["business_id", "id"]
           },
           {
             foreignKeyName: "patient_profile_change_events_patient_id_fkey"
-            columns: ["patient_id"]
+            columns: ["business_id", "patient_id"]
             isOneToOne: false
             referencedRelation: "patients"
-            referencedColumns: ["id"]
+            referencedColumns: ["business_id", "id"]
           },
         ]
       }
@@ -2729,10 +2764,10 @@ export type Database = {
           },
           {
             foreignKeyName: "patient_radiographs_patient_id_fkey"
-            columns: ["patient_id"]
+            columns: ["business_id", "patient_id"]
             isOneToOne: false
             referencedRelation: "patients"
-            referencedColumns: ["id"]
+            referencedColumns: ["business_id", "id"]
           },
         ]
       }
@@ -2934,17 +2969,17 @@ export type Database = {
           },
           {
             foreignKeyName: "professional_patient_links_patient_id_fkey"
-            columns: ["patient_id"]
+            columns: ["business_id", "patient_id"]
             isOneToOne: false
             referencedRelation: "patients"
-            referencedColumns: ["id"]
+            referencedColumns: ["business_id", "id"]
           },
           {
             foreignKeyName: "professional_patient_links_professional_id_fkey"
-            columns: ["professional_id"]
+            columns: ["business_id", "professional_id"]
             isOneToOne: false
             referencedRelation: "professionals"
-            referencedColumns: ["id"]
+            referencedColumns: ["business_id", "id"]
           },
         ]
       }
@@ -3220,17 +3255,17 @@ export type Database = {
           },
           {
             foreignKeyName: "push_delivery_attempts_google_review_request_id_fkey"
-            columns: ["google_review_request_id"]
+            columns: ["business_id", "google_review_request_id"]
             isOneToOne: false
             referencedRelation: "google_review_requests"
-            referencedColumns: ["id"]
+            referencedColumns: ["business_id", "id"]
           },
           {
             foreignKeyName: "push_delivery_attempts_subscription_id_fkey"
-            columns: ["subscription_id"]
+            columns: ["business_id", "subscription_id"]
             isOneToOne: false
             referencedRelation: "push_subscriptions"
-            referencedColumns: ["id"]
+            referencedColumns: ["business_id", "id"]
           },
         ]
       }
@@ -3289,9 +3324,15 @@ export type Database = {
           device_id: string
           failed_count: number
           id: string
+          push_24h_claim_token: string | null
           push_24h_claimed_at: string | null
+          push_24h_failures: number
+          push_24h_retry_at: string | null
           push_24h_sent_at: string | null
+          push_2h_claim_token: string | null
           push_2h_claimed_at: string | null
+          push_2h_failures: number
+          push_2h_retry_at: string | null
           push_2h_sent_at: string | null
           updated_at: string
         }
@@ -3304,9 +3345,15 @@ export type Database = {
           device_id: string
           failed_count?: number
           id?: string
+          push_24h_claim_token?: string | null
           push_24h_claimed_at?: string | null
+          push_24h_failures?: number
+          push_24h_retry_at?: string | null
           push_24h_sent_at?: string | null
+          push_2h_claim_token?: string | null
           push_2h_claimed_at?: string | null
+          push_2h_failures?: number
+          push_2h_retry_at?: string | null
           push_2h_sent_at?: string | null
           updated_at?: string
         }
@@ -3319,19 +3366,25 @@ export type Database = {
           device_id?: string
           failed_count?: number
           id?: string
+          push_24h_claim_token?: string | null
           push_24h_claimed_at?: string | null
+          push_24h_failures?: number
+          push_24h_retry_at?: string | null
           push_24h_sent_at?: string | null
+          push_2h_claim_token?: string | null
           push_2h_claimed_at?: string | null
+          push_2h_failures?: number
+          push_2h_retry_at?: string | null
           push_2h_sent_at?: string | null
           updated_at?: string
         }
         Relationships: [
           {
             foreignKeyName: "push_subscriptions_appointment_id_fkey"
-            columns: ["appointment_id"]
+            columns: ["business_id", "appointment_id"]
             isOneToOne: false
             referencedRelation: "appointments"
-            referencedColumns: ["id"]
+            referencedColumns: ["business_id", "id"]
           },
           {
             foreignKeyName: "push_subscriptions_business_id_fkey"
@@ -3656,6 +3709,30 @@ export type Database = {
         }
         Returns: string
       }
+      advance_push_reminder_batch: {
+        Args: {
+          p_claim_token: string
+          p_finish?: boolean
+          p_next: Json
+          p_now: string
+          p_results: Json
+        }
+        Returns: Json
+      }
+      agenda_week_counts: {
+        Args: {
+          p_business_id: string
+          p_from: string
+          p_professional_id?: string
+          p_time_zone: string
+          p_to: string
+        }
+        Returns: {
+          appointments: number
+          local_date: string
+          status: string
+        }[]
+      }
       assert_email_available_for_business: {
         Args: { target_business_id: string; target_email: string }
         Returns: undefined
@@ -3783,6 +3860,10 @@ export type Database = {
         Args: { p_actor_user_id: string; p_export_id: string }
         Returns: Json
       }
+      claim_abandoned_clinical_uploads: {
+        Args: { p_limit: number }
+        Returns: Json
+      }
       claim_due_google_review_requests: {
         Args: { claim_limit?: number; claim_now: string }
         Returns: {
@@ -3816,10 +3897,40 @@ export type Database = {
         Args: { p_actor_id: string; p_business_id: string }
         Returns: Json
       }
+      claim_google_calendar_sync_batch: {
+        Args: { p_claim_token: string; p_limit: number; p_now: string }
+        Returns: Json
+      }
       claim_google_calendar_sync_jobs: {
         Args: { claim_limit?: number; claim_now: string }
         Returns: {
           event_row_id: string
+        }[]
+      }
+      claim_google_review_request_batch: {
+        Args: { claim_limit: number; claim_now: string }
+        Returns: {
+          appointment_ends_at: string
+          appointment_id: string
+          auth: string
+          business_id: string
+          claim_token: string
+          confirmation_token: string
+          endpoint: string
+          p256dh: string
+          patient_id: string
+          request_id: string
+          scheduled_for: string
+          subscription_id: string
+        }[]
+      }
+      claim_push_reminder_batch: {
+        Args: { p_claim_token: string; p_limit: number; p_now: string }
+        Returns: {
+          business_id: string
+          business_turn: number
+          reminder_kind: string
+          subscription_id: string
         }[]
       }
       claim_queued_message_dispatches: {
@@ -3872,6 +3983,18 @@ export type Database = {
         Args: { p_business_id: string }
         Returns: undefined
       }
+      clinical_document_uploads_enabled: {
+        Args: { p_business_id: string }
+        Returns: boolean
+      }
+      complete_follow_up: {
+        Args: {
+          p_business_id: string
+          p_expected_updated_at: string
+          p_follow_up_id: string
+        }
+        Returns: undefined
+      }
       complete_google_calendar_event_delete: {
         Args: { p_event_row_id: string; p_now?: string }
         Returns: string
@@ -3884,6 +4007,15 @@ export type Database = {
           p_synced_sequence: number
         }
         Returns: string
+      }
+      complete_google_calendar_sync_batch: {
+        Args: {
+          p_claim_token: string
+          p_finish?: boolean
+          p_now: string
+          p_results: Json
+        }
+        Returns: Json
       }
       complete_google_review_request: {
         Args: {
@@ -4048,6 +4180,25 @@ export type Database = {
         }
         Returns: Json
       }
+      create_business_with_owner: {
+        Args: {
+          p_access_note: string
+          p_admin_email: string
+          p_admin_id: string
+          p_duration_seconds: number
+          p_duration_unit: string
+          p_idempotency_key: string
+          p_is_permanent: boolean
+          p_name: string
+          p_note: string
+          p_owner_email: string
+          p_slug_base: string
+        }
+        Returns: {
+          business_id: string
+          owner_linked: boolean
+        }[]
+      }
       create_clinical_entry_safely: {
         Args: {
           p_amount?: number
@@ -4073,6 +4224,16 @@ export type Database = {
           p_teeth?: string
         }
         Returns: Json
+      }
+      create_follow_up: {
+        Args: {
+          p_assigned_professional_id?: string
+          p_business_id: string
+          p_message: string
+          p_patient_id: string
+          p_remind_on: string
+        }
+        Returns: string
       }
       create_integrated_public_appointment: {
         Args: {
@@ -4182,6 +4343,17 @@ export type Database = {
         }
         Returns: string
       }
+      create_professional_service_safely: {
+        Args: {
+          p_business_id: string
+          p_duration_minutes: number
+          p_name: string
+          p_price_label: string
+          p_professional_id: string
+          p_service_id: string
+        }
+        Returns: string
+      }
       create_public_booking_with_information: {
         Args: { p_input: Json; p_replay_only?: boolean }
         Returns: {
@@ -4197,9 +4369,17 @@ export type Database = {
           starts_at: string
         }[]
       }
+      create_team_member_profile: {
+        Args: { p_business_id: string; p_configuration: Json }
+        Returns: Json
+      }
       current_user_professional_id: {
         Args: { target_business_id: string }
         Returns: string
+      }
+      delete_professional_safely: {
+        Args: { p_business_id: string; p_professional_id: string }
+        Returns: undefined
       }
       delete_professional_schedule_rule: {
         Args: {
@@ -4241,8 +4421,24 @@ export type Database = {
         }
         Returns: string
       }
+      get_availability_catalog: {
+        Args: { p_business_id: string; p_public: boolean }
+        Returns: Json
+      }
       get_availability_snapshot: {
         Args: { p_business_id: string; p_from: string; p_to: string }
+        Returns: Json
+      }
+      get_availability_window: {
+        Args: {
+          p_business_id: string
+          p_configuration_revision: number
+          p_from_date: string
+          p_professional_ids: string[]
+          p_public: boolean
+          p_service_id: string
+          p_to_date: string
+        }
         Returns: Json
       }
       get_clinical_file_daily_transfer_estimates: {
@@ -4285,6 +4481,14 @@ export type Database = {
       get_patient_drive_folder_safely: {
         Args: { p_business_id: string; p_patient_id: string }
         Returns: string
+      }
+      get_professional_dependency_counts: {
+        Args: { p_business_id: string; p_professional_id: string }
+        Returns: {
+          appointment_count: number
+          clinical_entry_count: number
+          follow_up_count: number
+        }[]
       }
       get_public_booking_active_future_count_for_request: {
         Args: {
@@ -4424,6 +4628,7 @@ export type Database = {
         }[]
       }
       is_email_enabled: { Args: { p_email: string }; Returns: boolean }
+      legacy_job_entrypoints_enabled: { Args: never; Returns: boolean }
       list_accessible_patients_page: {
         Args: {
           p_business_id: string
@@ -4472,6 +4677,14 @@ export type Database = {
           user_id: string
         }[]
       }
+      list_follow_up_assignable_professionals: {
+        Args: { p_business_id: string; p_patient_id: string }
+        Returns: {
+          id: string
+          name: string
+          source: string
+        }[]
+      }
       list_trashed_patient_radiographs_page: {
         Args: {
           p_business_id: string
@@ -4507,6 +4720,10 @@ export type Database = {
           role: string
           subscription: Json
         }[]
+      }
+      make_team_member_attending: {
+        Args: { p_access_id: string; p_business_id: string; p_name: string }
+        Returns: string
       }
       mark_push_device_gone: {
         Args: { gone_time?: string; target_endpoint: string }
@@ -4569,6 +4786,10 @@ export type Database = {
         }
         Returns: number
       }
+      protect_clinical_upload_urls: {
+        Args: { p_bucket: string; p_expires_at: string; p_paths: string[] }
+        Returns: undefined
+      }
       read_patient_export_page: {
         Args: {
           p_actor_user_id: string
@@ -4598,6 +4819,10 @@ export type Database = {
           superseded_dispatches: number
           superseded_push_attempts: number
         }[]
+      }
+      reconcile_clinical_storage_budget: {
+        Args: { p_max_businesses?: number }
+        Returns: Json
       }
       record_calendar_action: {
         Args: { p_action: string; p_appointment_id: string; p_provider: string }
@@ -4630,6 +4855,18 @@ export type Database = {
       recover_expired_google_review_request_claims: {
         Args: { recover_time?: string }
         Returns: number
+      }
+      register_patient_safely: {
+        Args: {
+          p_business_id: string
+          p_dni: string
+          p_full_name: string
+          p_patient_id: string
+          p_phone: string
+          p_phone_e164: string
+          p_phone_raw: string
+        }
+        Returns: Json
       }
       release_google_review_request: {
         Args: {
@@ -4802,6 +5039,29 @@ export type Database = {
         Args: { p_business_id: string; p_limit?: number; p_query: string }
         Returns: Json
       }
+      set_business_clinical_storage_policy: {
+        Args: {
+          p_actor_id: string
+          p_business_id: string
+          p_expected_revision?: number
+          p_max_bytes: number
+          p_uploads_enabled: boolean
+        }
+        Returns: undefined
+      }
+      set_clinical_storage_defaults: {
+        Args: {
+          p_actor_id: string
+          p_default_business_max_bytes: number
+          p_expected_revision?: number
+          p_uploads_enabled: boolean
+        }
+        Returns: undefined
+      }
+      set_legacy_job_entrypoints: {
+        Args: { p_enabled: boolean }
+        Returns: boolean
+      }
       set_patient_archive_state_safely: {
         Args: {
           p_archived: boolean
@@ -4819,6 +5079,15 @@ export type Database = {
         Returns: undefined
       }
       slugify_business_slug: { Args: { value: string }; Returns: string }
+      snooze_follow_up: {
+        Args: {
+          p_business_id: string
+          p_expected_updated_at: string
+          p_follow_up_id: string
+          p_remind_on: string
+        }
+        Returns: undefined
+      }
       submit_public_booking_information: {
         Args: {
           p_answers: Json
@@ -4856,35 +5125,94 @@ export type Database = {
         }
         Returns: undefined
       }
-      update_patient_with_clinical_profile_safely: {
+      update_clinical_entry_with_date_safely: {
         Args: {
-          p_actor_id: string
-          p_address: string
-          p_allergies?: string
-          p_background?: string
-          p_birth_date: string
+          p_amount?: number
           p_business_id: string
-          p_dni: string
-          p_email: string
-          p_expected_clinical_profile_updated_at?: string
-          p_expected_patient_updated_at?: string
-          p_full_name: string
-          p_insurance: string
-          p_insurance_plan: string
-          p_medication?: string
+          p_created_at: string
+          p_description: string
+          p_entry_id: string
+          p_entry_type: string
+          p_internal_note?: string
           p_patient_id: string
-          p_phone: string
-          p_phone_e164: string
-          p_phone_raw: string
-          p_update_clinical_profile?: boolean
+          p_teeth?: string
         }
-        Returns: {
-          clinical_profile_id: string
-          clinical_profile_updated_at: string
-          patient_id: string
-          patient_updated_at: string
-        }[]
+        Returns: undefined
       }
+      update_follow_up: {
+        Args: {
+          p_assigned_professional_id?: string
+          p_business_id: string
+          p_expected_updated_at: string
+          p_follow_up_id: string
+          p_message: string
+          p_remind_on: string
+        }
+        Returns: undefined
+      }
+      update_patient_with_clinical_profile_safely:
+        | {
+            Args: {
+              p_actor_id: string
+              p_address: string
+              p_allergies?: string
+              p_background?: string
+              p_birth_date: string
+              p_business_id: string
+              p_change_summary: string
+              p_changed_by_name: string
+              p_changed_by_professional_id: string
+              p_changed_fields: string[]
+              p_dni: string
+              p_email: string
+              p_expected_clinical_profile_updated_at?: string
+              p_expected_patient_updated_at?: string
+              p_full_name: string
+              p_insurance: string
+              p_insurance_plan: string
+              p_medication?: string
+              p_patient_id: string
+              p_phone: string
+              p_phone_e164: string
+              p_phone_raw: string
+              p_update_clinical_profile?: boolean
+            }
+            Returns: {
+              clinical_profile_id: string
+              clinical_profile_updated_at: string
+              patient_id: string
+              patient_updated_at: string
+            }[]
+          }
+        | {
+            Args: {
+              p_actor_id: string
+              p_address: string
+              p_allergies?: string
+              p_background?: string
+              p_birth_date: string
+              p_business_id: string
+              p_dni: string
+              p_email: string
+              p_expected_clinical_profile_updated_at?: string
+              p_expected_patient_updated_at?: string
+              p_full_name: string
+              p_insurance: string
+              p_insurance_plan: string
+              p_medication?: string
+              p_patient_id: string
+              p_phone: string
+              p_phone_e164: string
+              p_phone_raw: string
+              p_update_clinical_profile?: boolean
+            }
+            Returns: {
+              clinical_profile_id: string
+              clinical_profile_updated_at: string
+              patient_id: string
+              patient_updated_at: string
+            }[]
+          }
       upsert_business_role_access: {
         Args: {
           target_business_id: string
@@ -4912,6 +5240,14 @@ export type Database = {
         }
         Returns: string
       }
+      user_allocated_appointment_ids: {
+        Args: never
+        Returns: {
+          appointment_id: string
+          business_id: string
+        }[]
+      }
+      user_appointment_reader_business_ids: { Args: never; Returns: string[] }
       user_business_role: {
         Args: { target_business_id: string }
         Returns: string
@@ -4964,6 +5300,15 @@ export type Database = {
         Args: { target_business_id: string }
         Returns: boolean
       }
+      user_follow_up_assignments: {
+        Args: never
+        Returns: {
+          business_id: string
+          patient_id: string
+          professional_id: string
+        }[]
+      }
+      user_follow_up_reader_business_ids: { Args: never; Returns: string[] }
       user_has_active_account_assistance: {
         Args: { target_business_id: string }
         Returns: boolean
@@ -4980,6 +5325,14 @@ export type Database = {
         Args: { target_professional_id: string }
         Returns: boolean
       }
+      user_linked_patient_ids: {
+        Args: never
+        Returns: {
+          business_id: string
+          patient_id: string
+        }[]
+      }
+      user_patient_reader_business_ids: { Args: never; Returns: string[] }
       validate_patient_export: {
         Args: {
           p_actor_user_id: string
@@ -4991,551 +5344,6 @@ export type Database = {
     }
     Enums: {
       [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
-  storage: {
-    Tables: {
-      buckets: {
-        Row: {
-          allowed_mime_types: string[] | null
-          avif_autodetection: boolean | null
-          created_at: string | null
-          file_size_limit: number | null
-          id: string
-          name: string
-          owner: string | null
-          owner_id: string | null
-          public: boolean | null
-          type: Database["storage"]["Enums"]["buckettype"]
-          updated_at: string | null
-        }
-        Insert: {
-          allowed_mime_types?: string[] | null
-          avif_autodetection?: boolean | null
-          created_at?: string | null
-          file_size_limit?: number | null
-          id: string
-          name: string
-          owner?: string | null
-          owner_id?: string | null
-          public?: boolean | null
-          type?: Database["storage"]["Enums"]["buckettype"]
-          updated_at?: string | null
-        }
-        Update: {
-          allowed_mime_types?: string[] | null
-          avif_autodetection?: boolean | null
-          created_at?: string | null
-          file_size_limit?: number | null
-          id?: string
-          name?: string
-          owner?: string | null
-          owner_id?: string | null
-          public?: boolean | null
-          type?: Database["storage"]["Enums"]["buckettype"]
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      buckets_analytics: {
-        Row: {
-          created_at: string
-          deleted_at: string | null
-          format: string
-          id: string
-          name: string
-          type: Database["storage"]["Enums"]["buckettype"]
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          deleted_at?: string | null
-          format?: string
-          id?: string
-          name: string
-          type?: Database["storage"]["Enums"]["buckettype"]
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          deleted_at?: string | null
-          format?: string
-          id?: string
-          name?: string
-          type?: Database["storage"]["Enums"]["buckettype"]
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      buckets_vectors: {
-        Row: {
-          created_at: string
-          id: string
-          type: Database["storage"]["Enums"]["buckettype"]
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          id: string
-          type?: Database["storage"]["Enums"]["buckettype"]
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          type?: Database["storage"]["Enums"]["buckettype"]
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      iceberg_namespaces: {
-        Row: {
-          bucket_name: string
-          catalog_id: string
-          created_at: string
-          id: string
-          metadata: Json
-          name: string
-          updated_at: string
-        }
-        Insert: {
-          bucket_name: string
-          catalog_id: string
-          created_at?: string
-          id?: string
-          metadata?: Json
-          name: string
-          updated_at?: string
-        }
-        Update: {
-          bucket_name?: string
-          catalog_id?: string
-          created_at?: string
-          id?: string
-          metadata?: Json
-          name?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "iceberg_namespaces_catalog_id_fkey"
-            columns: ["catalog_id"]
-            isOneToOne: false
-            referencedRelation: "buckets_analytics"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      iceberg_tables: {
-        Row: {
-          bucket_name: string
-          catalog_id: string
-          created_at: string
-          id: string
-          location: string
-          name: string
-          namespace_id: string
-          remote_table_id: string | null
-          shard_id: string | null
-          shard_key: string | null
-          updated_at: string
-        }
-        Insert: {
-          bucket_name: string
-          catalog_id: string
-          created_at?: string
-          id?: string
-          location: string
-          name: string
-          namespace_id: string
-          remote_table_id?: string | null
-          shard_id?: string | null
-          shard_key?: string | null
-          updated_at?: string
-        }
-        Update: {
-          bucket_name?: string
-          catalog_id?: string
-          created_at?: string
-          id?: string
-          location?: string
-          name?: string
-          namespace_id?: string
-          remote_table_id?: string | null
-          shard_id?: string | null
-          shard_key?: string | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "iceberg_tables_catalog_id_fkey"
-            columns: ["catalog_id"]
-            isOneToOne: false
-            referencedRelation: "buckets_analytics"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "iceberg_tables_namespace_id_fkey"
-            columns: ["namespace_id"]
-            isOneToOne: false
-            referencedRelation: "iceberg_namespaces"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      migrations: {
-        Row: {
-          executed_at: string | null
-          hash: string
-          id: number
-          name: string
-        }
-        Insert: {
-          executed_at?: string | null
-          hash: string
-          id: number
-          name: string
-        }
-        Update: {
-          executed_at?: string | null
-          hash?: string
-          id?: number
-          name?: string
-        }
-        Relationships: []
-      }
-      objects: {
-        Row: {
-          bucket_id: string | null
-          created_at: string | null
-          id: string
-          last_accessed_at: string | null
-          metadata: Json | null
-          name: string | null
-          owner: string | null
-          owner_id: string | null
-          path_tokens: string[] | null
-          updated_at: string | null
-          user_metadata: Json | null
-          version: string | null
-        }
-        Insert: {
-          bucket_id?: string | null
-          created_at?: string | null
-          id?: string
-          last_accessed_at?: string | null
-          metadata?: Json | null
-          name?: string | null
-          owner?: string | null
-          owner_id?: string | null
-          path_tokens?: string[] | null
-          updated_at?: string | null
-          user_metadata?: Json | null
-          version?: string | null
-        }
-        Update: {
-          bucket_id?: string | null
-          created_at?: string | null
-          id?: string
-          last_accessed_at?: string | null
-          metadata?: Json | null
-          name?: string | null
-          owner?: string | null
-          owner_id?: string | null
-          path_tokens?: string[] | null
-          updated_at?: string | null
-          user_metadata?: Json | null
-          version?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "objects_bucketId_fkey"
-            columns: ["bucket_id"]
-            isOneToOne: false
-            referencedRelation: "buckets"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      s3_multipart_uploads: {
-        Row: {
-          bucket_id: string
-          created_at: string
-          id: string
-          in_progress_size: number
-          key: string
-          metadata: Json | null
-          owner_id: string | null
-          upload_signature: string
-          user_metadata: Json | null
-          version: string
-        }
-        Insert: {
-          bucket_id: string
-          created_at?: string
-          id: string
-          in_progress_size?: number
-          key: string
-          metadata?: Json | null
-          owner_id?: string | null
-          upload_signature: string
-          user_metadata?: Json | null
-          version: string
-        }
-        Update: {
-          bucket_id?: string
-          created_at?: string
-          id?: string
-          in_progress_size?: number
-          key?: string
-          metadata?: Json | null
-          owner_id?: string | null
-          upload_signature?: string
-          user_metadata?: Json | null
-          version?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "s3_multipart_uploads_bucket_id_fkey"
-            columns: ["bucket_id"]
-            isOneToOne: false
-            referencedRelation: "buckets"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      s3_multipart_uploads_parts: {
-        Row: {
-          bucket_id: string
-          created_at: string
-          etag: string
-          id: string
-          key: string
-          owner_id: string | null
-          part_number: number
-          size: number
-          upload_id: string
-          version: string
-        }
-        Insert: {
-          bucket_id: string
-          created_at?: string
-          etag: string
-          id?: string
-          key: string
-          owner_id?: string | null
-          part_number: number
-          size?: number
-          upload_id: string
-          version: string
-        }
-        Update: {
-          bucket_id?: string
-          created_at?: string
-          etag?: string
-          id?: string
-          key?: string
-          owner_id?: string | null
-          part_number?: number
-          size?: number
-          upload_id?: string
-          version?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "s3_multipart_uploads_parts_bucket_id_fkey"
-            columns: ["bucket_id"]
-            isOneToOne: false
-            referencedRelation: "buckets"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "s3_multipart_uploads_parts_upload_id_fkey"
-            columns: ["upload_id"]
-            isOneToOne: false
-            referencedRelation: "s3_multipart_uploads"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      vector_indexes: {
-        Row: {
-          bucket_id: string
-          created_at: string
-          data_type: string
-          dimension: number
-          distance_metric: string
-          id: string
-          metadata_configuration: Json | null
-          name: string
-          updated_at: string
-        }
-        Insert: {
-          bucket_id: string
-          created_at?: string
-          data_type: string
-          dimension: number
-          distance_metric: string
-          id?: string
-          metadata_configuration?: Json | null
-          name: string
-          updated_at?: string
-        }
-        Update: {
-          bucket_id?: string
-          created_at?: string
-          data_type?: string
-          dimension?: number
-          distance_metric?: string
-          id?: string
-          metadata_configuration?: Json | null
-          name?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "vector_indexes_bucket_id_fkey"
-            columns: ["bucket_id"]
-            isOneToOne: false
-            referencedRelation: "buckets_vectors"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      allow_any_operation: {
-        Args: { expected_operations: string[] }
-        Returns: boolean
-      }
-      allow_only_operation: {
-        Args: { expected_operation: string }
-        Returns: boolean
-      }
-      can_insert_object: {
-        Args: { bucketid: string; metadata: Json; name: string; owner: string }
-        Returns: undefined
-      }
-      extension: { Args: { name: string }; Returns: string }
-      filename: { Args: { name: string }; Returns: string }
-      foldername: { Args: { name: string }; Returns: string[] }
-      get_common_prefix: {
-        Args: { p_delimiter: string; p_key: string; p_prefix: string }
-        Returns: string
-      }
-      get_size_by_bucket: {
-        Args: never
-        Returns: {
-          bucket_id: string
-          size: number
-        }[]
-      }
-      list_multipart_uploads_with_delimiter: {
-        Args: {
-          bucket_id: string
-          delimiter_param: string
-          max_keys?: number
-          next_key_token?: string
-          next_upload_token?: string
-          prefix_param: string
-        }
-        Returns: {
-          created_at: string
-          id: string
-          key: string
-        }[]
-      }
-      list_objects_with_delimiter: {
-        Args: {
-          _bucket_id: string
-          delimiter_param: string
-          max_keys?: number
-          next_token?: string
-          prefix_param: string
-          sort_order?: string
-          start_after?: string
-        }
-        Returns: {
-          created_at: string
-          id: string
-          last_accessed_at: string
-          metadata: Json
-          name: string
-          updated_at: string
-        }[]
-      }
-      operation: { Args: never; Returns: string }
-      search: {
-        Args: {
-          bucketname: string
-          levels?: number
-          limits?: number
-          offsets?: number
-          prefix: string
-          search?: string
-          sortcolumn?: string
-          sortorder?: string
-        }
-        Returns: {
-          created_at: string
-          id: string
-          last_accessed_at: string
-          metadata: Json
-          name: string
-          updated_at: string
-        }[]
-      }
-      search_by_timestamp: {
-        Args: {
-          p_bucket_id: string
-          p_level: number
-          p_limit: number
-          p_prefix: string
-          p_sort_column: string
-          p_sort_column_after: string
-          p_sort_order: string
-          p_start_after: string
-        }
-        Returns: {
-          created_at: string
-          id: string
-          key: string
-          last_accessed_at: string
-          metadata: Json
-          name: string
-          updated_at: string
-        }[]
-      }
-      search_v2: {
-        Args: {
-          bucket_name: string
-          levels?: number
-          limits?: number
-          prefix: string
-          sort_column?: string
-          sort_column_after?: string
-          sort_order?: string
-          start_after?: string
-        }
-        Returns: {
-          created_at: string
-          id: string
-          key: string
-          last_accessed_at: string
-          metadata: Json
-          name: string
-          updated_at: string
-        }[]
-      }
-    }
-    Enums: {
-      buckettype: "STANDARD" | "ANALYTICS" | "VECTOR"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -5661,15 +5469,7 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {},
-  },
-  storage: {
-    Enums: {
-      buckettype: ["STANDARD", "ANALYTICS", "VECTOR"],
-    },
   },
 } as const

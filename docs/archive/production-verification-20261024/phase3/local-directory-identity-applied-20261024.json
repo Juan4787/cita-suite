@@ -1,0 +1,17 @@
+{
+  "at": "2026-10-24T13:24:07.836713+00:00",
+  "previousPhysicalRoot": "/home/usuario/CascadeProjects/Base de Datos Sabrina",
+  "physicalRoot": "/home/usuario/CascadeProjects/Cita Suite",
+  "compatibilitySymlink": "/home/usuario/CascadeProjects/Base de Datos Sabrina",
+  "linkTarget": "Cita Suite",
+  "method": "Atomic Linux renameat2 RENAME_EXCHANGE, same filesystem and directory inode",
+  "userHead": "80268e2a501198243996e1bdb0048ce066434727",
+  "userIndexSha256": "55cd8f7975542b806308d3e067f81660fe107ed1c5cdbed88962dbe614a1faba",
+  "originalPlanSha256": "796853d3fca1d82dfe3a8c0129d80f937180948cb0a75a24518c1721d20e60b9",
+  "privateGoogleFileAndDirectoryModesPreserved": true,
+  "ownedLocalHeavyJobsAndPhoneForwardCompleted": true,
+  "otherApplicationsOrEditorProcessesStopped": false,
+  "oldSessionPathStillResolves": true,
+  "passed": true,
+  "scope": "Physical directory unified without a broken interval for the current session/editor paths. Old absolute evidence roots remain historical; the compatibility symlink preserves their resolution. No copy, checkout, reset, cleanup or credential modification."
+}

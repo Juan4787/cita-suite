@@ -6,21 +6,21 @@ const mocks = vi.hoisted(() => ({
 }));
 vi.mock('$env/dynamic/private', () => ({ env: { DEMO_MODE: 'false' } }));
 vi.mock('$env/dynamic/public', () => ({ env: {} }));
-vi.mock('./supabase', () => ({ createSupabaseAdminClient: mocks.admin }));
-vi.mock('./booking-information', () => ({
+vi.mock('$lib/server/platform/supabase', () => ({ createSupabaseAdminClient: mocks.admin }));
+vi.mock('$lib/server/patients/public/booking-information', () => ({
   bookingInformationEnabled: () => false,
   loadProfessionalBookingSchema: vi.fn(), informationErrorMessage: () => null,
 }));
-vi.mock('./public-booking', () => ({
+vi.mock('$lib/server/scheduling/public/public-booking', () => ({
   loadPublicBookingState: mocks.state, createPublicBooking: mocks.create,
   verifyTurnstileIfConfigured: mocks.verify, publicHash: () => 'safe-hash',
   getPublicBookingErrorMessage: () => 'No pudimos reservar.', getPublicBookingErrorCode: () => 'unknown',
 }));
-vi.mock('./booking-integration-request', () => ({ resolveBookingIntegrationRequest: mocks.resolve }));
-vi.mock('./public-appointments', () => ({ loadPublicAppointmentByToken: mocks.appointment }));
+vi.mock('$lib/server/sites/public/booking-integration-request', () => ({ resolveBookingIntegrationRequest: mocks.resolve }));
+vi.mock('$lib/server/scheduling/public/public-appointments', () => ({ loadPublicAppointmentByToken: mocks.appointment }));
 
-import { loadPublicBookingPage, submitPublicBookingPage } from './public-booking-page';
-import { parseBookingIntegration } from './booking-integrations';
+import { loadPublicBookingPage, submitPublicBookingPage } from '$lib/server/scheduling/public/public-booking-page';
+import { parseBookingIntegration } from '$lib/server/sites/public/booking-integrations';
 import { load as receiptLoad } from '../../routes/embed/v1/[integrationKey]/turno/[token]/+page.server';
 
 const businessId = '10000000-0000-4000-8000-000000000001';
@@ -69,7 +69,7 @@ beforeEach(() => {
   mocks.state.mockImplementation(async () => structuredClone(state));
   mocks.create.mockResolvedValue({ appointment: { confirmation_token: token } });
   mocks.verify.mockResolvedValue(undefined);
-  mocks.resolve.mockResolvedValue({ supabase: {}, integration, embed: null });
+  mocks.resolve.mockResolvedValue({ integration, embed: null });
   mocks.appointment.mockResolvedValue({ booking_context: { theme: 'natalia' } });
 });
 
@@ -116,6 +116,7 @@ describe('one Cita Suite flow for shared and Natalia links', () => {
   it('redirects old standalone receipt links only after validating the integration and appointment', async () => {
     await expect(receiptLoad(event('&creado=1&recuperado=1'))).rejects.toMatchObject({ status: 303, location: '/turno/' + token + '?creado=1&recuperado=1' });
     expect(mocks.appointment).toHaveBeenCalledWith(expect.anything(), token, expect.any(Date), integrationId);
+    expect(mocks.admin).toHaveBeenCalledWith('odonto', expect.any(Function));
     mocks.appointment.mockResolvedValue(null);
     await expect(receiptLoad(event())).rejects.toMatchObject({ status: 404 });
   });

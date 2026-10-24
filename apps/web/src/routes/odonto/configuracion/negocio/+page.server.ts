@@ -1,12 +1,14 @@
+import { isUuid } from '@cita-suite/shared/uuid';
+import { logServerFailure } from '$lib/server/platform/logging';
 import {
 	BUSINESS_INDUSTRIES,
 	isBusinessIndustry,
 	normalizeSlug,
 	resolveActiveBusiness
-} from '$lib/server/business';
-import { createSupabaseAdminClient, createSupabaseServerClient } from '$lib/server/supabase';
-import { isValidMapsUrl } from '$lib/server/location';
-import { isAllowedPublicImageUrl } from '$lib/server/public-image';
+} from '$lib/server/access/public/business';
+import { createSupabaseServerClient } from '$lib/server/platform/supabase';
+import { isValidMapsUrl } from '$lib/sites/location';
+import { isAllowedPublicImageUrl } from '$lib/server/sites/public/public-image';
 import { env } from '$env/dynamic/private';
 import { error as kitError, fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
@@ -15,11 +17,10 @@ export const load: PageServerLoad = async ({ locals, fetch, cookies }) => {
 	if (!locals.auth) throw redirect(303, '/login');
 
 	if (env.DEMO_MODE === 'true') {
-		const { demoBusinessContext } = await import('$lib/server/business');
+		const { demoBusinessContext } = await import('$lib/server/access/public/business');
 		return {
 			context: demoBusinessContext(),
 			industries: BUSINESS_INDUSTRIES,
-			readiness: { services: 1, professionals: 1, availabilityRules: 1, reservableServices: 1, reservableProfessionals: 1 },
 			demo: true
 		};
 	}
@@ -37,62 +38,9 @@ export const load: PageServerLoad = async ({ locals, fetch, cookies }) => {
 	if (context.role === 'professional') throw redirect(303, '/odonto/mis-turnos');
 	if (context.role !== 'owner' && context.role !== 'admin') throw redirect(303, '/odonto/agenda');
 
-	const [
-		{ count: services },
-		{ count: professionals },
-		{ count: availabilityRules },
-		{ data: assignments },
-		{ data: rules }
-	] = await Promise.all([
-		supabase
-			.from('services')
-			.select('id', { count: 'exact', head: true })
-			.eq('business_id', context.business.id)
-			.eq('is_active', true)
-			.eq('is_public', true),
-		supabase
-			.from('professionals')
-			.select('id', { count: 'exact', head: true })
-			.eq('business_id', context.business.id)
-			.eq('is_active', true)
-			.eq('is_public', true),
-		supabase
-			.from('availability_rules')
-			.select('id', { count: 'exact', head: true })
-			.eq('business_id', context.business.id)
-			.eq('is_active', true),
-		supabase
-			.from('professional_services')
-			.select('service_id, professional_id, services!inner(is_active, is_public), professionals!inner(is_active, is_public)')
-			.eq('business_id', context.business.id),
-		supabase
-			.from('availability_rules')
-			.select('professional_id')
-			.eq('business_id', context.business.id)
-			.eq('is_active', true)
-	]);
-	const professionalsWithRules = new Set((rules ?? []).map((rule: any) => String(rule.professional_id)));
-	const readyServices = new Set<string>();
-	const readyProfessionals = new Set<string>();
-	for (const assignment of assignments ?? []) {
-		const service = (assignment as any).services;
-		const professional = (assignment as any).professionals;
-		if (!service?.is_active || !service?.is_public) continue;
-		if (!professional?.is_active || !professional?.is_public) continue;
-		if (!professionalsWithRules.has(String((assignment as any).professional_id))) continue;
-		readyServices.add(String((assignment as any).service_id));
-		readyProfessionals.add(String((assignment as any).professional_id));
-	}
 	return {
 		context,
 		industries: BUSINESS_INDUSTRIES,
-		readiness: {
-			services: services ?? 0,
-			professionals: professionals ?? 0,
-			availabilityRules: availabilityRules ?? 0,
-			reservableServices: readyServices.size,
-			reservableProfessionals: readyProfessionals.size
-		},
 		demo: false
 	};
 };
@@ -135,6 +83,13 @@ export const actions: Actions = {
 		}
 		if (!slug) {
 			return fail(400, { message: 'El nombre del enlace público es obligatorio.', values: Object.fromEntries(form) });
+		}
+		// The booking link reads an identifier-shaped value as the practice id.
+		if (isUuid(slug)) {
+			return fail(400, {
+				message: 'El nombre del enlace público no puede tener forma de código. Usá palabras, como el nombre del consultorio.',
+				values: Object.fromEntries(form)
+			});
 		}
 		if (!isBusinessIndustry(industry)) {
 			return fail(400, { message: 'La industria seleccionada no es válida.', values: Object.fromEntries(form) });
@@ -180,7 +135,8 @@ export const actions: Actions = {
 			});
 		}
 
-		let updateClient = supabase;
+		// The assistance saves under its own rules, as an administrator of the practice;
+		// checking the grant first only gives it a clear message when it expired.
 		if (context.assistance) {
 			const { data: assistanceIsActive, error: assistanceError } = await supabase.rpc(
 				'user_has_active_account_assistance',
@@ -188,17 +144,16 @@ export const actions: Actions = {
 			);
 			if (assistanceError || assistanceIsActive !== true) {
 				if (assistanceError) {
-					console.error('Error revalidando ayuda para guardar el consultorio', assistanceError);
+					logServerFailure('Error revalidando ayuda para guardar el consultorio', assistanceError);
 				}
 				return fail(403, {
 					message: 'La autorización para configurar este consultorio ya no está activa. Volvé al panel maestro y abrilo nuevamente.',
 					values: Object.fromEntries(form)
 				});
 			}
-			updateClient = await createSupabaseAdminClient('odonto', fetch);
 		}
 
-		const { data: updatedBusiness, error } = await updateClient
+		const { data: updatedBusiness, error } = await supabase
 			.from('businesses')
 			.update({
 				name,
@@ -220,7 +175,7 @@ export const actions: Actions = {
 			.maybeSingle();
 
 		if (error || !updatedBusiness) {
-			console.error('Error actualizando negocio', error);
+			logServerFailure('Error actualizando negocio', error);
 			const message =
 				error?.code === '23505'
 					? 'Ese nombre de enlace público ya está en uso. Elegí otro y volvé a guardar.'

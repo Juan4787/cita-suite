@@ -1,0 +1,6 @@
+{
+  "at": "2026-10-24T13:01:02.567Z",
+  "count": 1,
+  "past": true,
+  "scope": "Confirms the owned red probe target was already past; the prior ui.past:false was only a non-matching text regex, not a database determination."
+}

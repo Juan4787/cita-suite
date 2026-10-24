@@ -1,0 +1,41 @@
+{
+  "at": "2026-10-23T14:30:20.319Z",
+  "account": "52b358653379c162b5a07b10ae5e84b3",
+  "workers": [
+    {
+      "worker": "cita-suite-scheduler-staging",
+      "crons": [],
+      "bindings": [
+        {
+          "name": "APP",
+          "service": "cita-suite-staging",
+          "environment": "production"
+        }
+      ],
+      "versions": [
+        {
+          "version_id": "6a5961c3-81f6-4992-849e-835903ff1654",
+          "percentage": 100
+        }
+      ]
+    },
+    {
+      "worker": "cita-suite-scheduler",
+      "crons": [],
+      "bindings": [
+        {
+          "name": "APP",
+          "service": "app",
+          "environment": "production"
+        }
+      ],
+      "versions": [
+        {
+          "version_id": "7561ee67-184c-4c29-ba1a-5380ff159dd4",
+          "percentage": 100
+        }
+      ]
+    }
+  ],
+  "passed": true
+}

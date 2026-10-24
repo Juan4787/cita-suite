@@ -16,7 +16,6 @@ const REQUIRED_ENV = [
 	'PUBLIC_VAPID_PUBLIC_KEY',
 	'VAPID_PRIVATE_KEY',
 	'VAPID_SUBJECT',
-	'WHATSAPP_VERIFY_TOKEN',
 	'DEMO_MODE',
 	'MASTER_EMAIL',
 	'MP_ACCESS_TOKEN',
@@ -30,9 +29,6 @@ const RECOMMENDED_ENV = [
 	'ADMIN_SUPABASE_SERVICE_ROLE_KEY',
 	'PUBLIC_TURNSTILE_SITE_KEY',
 	'TURNSTILE_SECRET_KEY',
-	'WHATSAPP_APP_SECRET',
-	'WHATSAPP_ACCESS_TOKEN',
-	'WHATSAPP_GRAPH_API_VERSION',
 	'MP_SUBSCRIPTION_AMOUNT_ARS'
 ];
 
@@ -72,7 +68,7 @@ const REQUIRED_FILES = [
 	'apps/web/src/routes/reprogramar/[token]/+page.server.ts',
 	'apps/web/src/routes/api/whatsapp/webhook/+server.ts',
 	'apps/web/src/routes/api/mercadopago/webhook/+server.ts',
-	'apps/web/src/lib/server/mercadopago.ts',
+	'apps/web/src/lib/server/integrations/public/mercadopago.ts',
 	'supabase/migrations/20260704120000_mercadopago_billing.sql',
 	'supabase/migrations/20260704130000_mp_billing_hardening.sql',
 	'supabase/migrations/20260710210000_prevent_cross_business_email_association.sql',
@@ -87,7 +83,7 @@ const REQUIRED_FILES = [
 	'apps/web/src/routes/internal/jobs/send-push-reminders/+server.ts',
 	'apps/web/src/routes/turno/[token]/push/+server.ts',
 	'apps/web/src/routes/turno/[token]/push/receipt/+server.ts',
-	'apps/web/src/lib/server/push.ts',
+	'apps/web/src/lib/server/integrations/public/push.ts',
 	'apps/web/static/push-sw.js',
 	'apps/web/src/routes/odonto/configuracion/whatsapp/+page.server.ts',
 	'apps/web/src/routes/odonto/configuracion/whatsapp/+page.svelte',
@@ -97,11 +93,11 @@ const REQUIRED_FILES = [
 	'apps/web/src/routes/odonto/mensajes/+page.svelte',
 	'apps/web/src/routes/odonto/recordatorios/+page.server.ts',
 	'apps/web/src/routes/odonto/recordatorios/+page.svelte',
-	'apps/web/src/lib/server/public-booking.ts',
-	'apps/web/src/lib/server/public-appointments.ts',
-	'apps/web/src/lib/server/commercial-access.ts',
-	'apps/web/src/lib/server/messaging.ts',
-	'apps/web/src/lib/server/internal-jobs.ts'
+	'apps/web/src/lib/server/scheduling/public/public-booking.ts',
+	'apps/web/src/lib/server/scheduling/public/public-appointments.ts',
+	'apps/web/src/lib/access/commercial-access.ts',
+	'apps/web/src/lib/server/integrations/public/messaging.ts',
+	'apps/web/src/lib/server/integrations/public/internal-jobs.ts'
 ];
 
 const REQUIRED_REMOTE_TABLES = [

@@ -1,0 +1,146 @@
+{
+  "capturedAt": "2026-10-23T15:37:21.248156+00:00",
+  "scope": "Filtered provider metadata, sanitized observer evidence and public OAuth negative/actual controls; preserve failed receipts. No secrets, clinical objects, management URLs or raw provider bodies.",
+  "files": [
+    {
+      "path": "docs/archive/production-calendar-20261023/README.md",
+      "source": "New checkpoint guide",
+      "bytes": 2292,
+      "sha256": "db5d36768e82b10f2a4c78ba8270dc87ca835c385057d446e89af3a8c6f8c258"
+    },
+    {
+      "path": "docs/archive/production-calendar-20261023/probe-calendar-authorization-20261023.mjs",
+      "source": ".verification/probe-calendar-authorization-20261023.mjs",
+      "bytes": 2326,
+      "sha256": "85a9e0b3a094a5f283b6b03cc9adef5acec8f3cad49c7ca8afbc1cf06c02b0e3"
+    },
+    {
+      "path": "docs/archive/production-calendar-20261023/probe-google-callback-registration-20261023.mjs",
+      "source": ".verification/probe-google-callback-registration-20261023.mjs",
+      "bytes": 2769,
+      "sha256": "667bb380bfede06f530d99e336ec92a18eae6b20c2a39ee9a394c5926030ebcc"
+    },
+    {
+      "path": "docs/archive/production-calendar-20261023/probe-google-callback-registration-confirmed-20261023.mjs",
+      "source": ".verification/probe-google-callback-registration-confirmed-20261023.mjs",
+      "bytes": 3023,
+      "sha256": "8a3a161267303b0e8d58131512c2998b1e754ec5404e7e83275ff2c5df9a3da5"
+    },
+    {
+      "path": "docs/archive/production-calendar-20261023/probe-google-signin-callback-registration-20261023.mjs",
+      "source": ".verification/probe-google-signin-callback-registration-20261023.mjs",
+      "bytes": 2953,
+      "sha256": "5b722840211d5e9a09ed59ce32ee259f88a0953c0f279125c50b881e8ab32b2f"
+    },
+    {
+      "path": "docs/archive/production-calendar-20261023/production-auth-public-settings-20261023.json",
+      "source": ".verification/production-auth-public-settings-20261023.json",
+      "bytes": 486,
+      "sha256": "83c482533a6be28bc780ef7468aa28b9f358d8327db59a1343a9cdb869b26cdc"
+    },
+    {
+      "path": "docs/archive/production-calendar-20261023/production-calendar-activation-preflight-20261023.json",
+      "source": ".verification/production-calendar-activation-preflight-20261023.json",
+      "bytes": 323,
+      "sha256": "5ff0366bdd0d502cf74f64adcb53e72ef339aa124ff85114ec10a6a3d0cc7e56"
+    },
+    {
+      "path": "docs/archive/production-calendar-20261023/production-calendar-authorization-probe-20261023.json",
+      "source": ".verification/production-calendar-authorization-probe-20261023.json",
+      "bytes": 605,
+      "sha256": "f11949c0123f1fea3e5f9d4bb78e02355f1380e50d8f1e6a6e2e897654c91219"
+    },
+    {
+      "path": "docs/archive/production-calendar-20261023/production-calendar-baseline-release-20261023.log",
+      "source": ".verification/production-calendar-baseline-release-20261023.log",
+      "bytes": 386,
+      "sha256": "a58a74a830e2e5f789a47b4aa7becfcbfea0a1e3912267f05091dcaf11a9c276"
+    },
+    {
+      "path": "docs/archive/production-calendar-20261023/production-calendar-candidate-release-20261023.log",
+      "source": ".verification/production-calendar-candidate-release-20261023.log",
+      "bytes": 386,
+      "sha256": "8837c6d8d54094b969f6b0c52375bb1eb4654bec2224945ffa9b40dba863ea2e"
+    },
+    {
+      "path": "docs/archive/production-calendar-20261023/production-calendar-configured-cron-20261023.json",
+      "source": ".verification/production-calendar-configured-cron-20261023.json",
+      "bytes": 1128,
+      "sha256": "49a8e68890935b16d31d1650a27e3add3b492d2906d3c0264879f4ba6c9f8078"
+    },
+    {
+      "path": "docs/archive/production-calendar-20261023/production-calendar-flag-activation-20261023.json",
+      "source": ".verification/production-calendar-flag-activation-20261023.json",
+      "bytes": 1194,
+      "sha256": "f5944c85edd4e2acb128aa03aec8b83df0d1edaf2f09afbe7f2211deca3ed45a"
+    },
+    {
+      "path": "docs/archive/production-calendar-20261023/production-calendar-historical-bindings-20261023.json",
+      "source": ".verification/production-calendar-historical-bindings-20261023.json",
+      "bytes": 3266,
+      "sha256": "3d210aa8a03dabeb7a17b9d1d06e5e7e6d5e2a3007f02a655f702f858ae35e1b"
+    },
+    {
+      "path": "docs/archive/production-calendar-20261023/production-google-callback-registration-20261023.json",
+      "source": ".verification/production-google-callback-registration-20261023.json",
+      "bytes": 1428,
+      "sha256": "3b6d8f6b4aba927c3f77086470169dae4fad8c1f0b644b9bb6d4e993ca70823f"
+    },
+    {
+      "path": "docs/archive/production-calendar-20261023/production-google-callback-registration-confirmed-20261023.json",
+      "source": ".verification/production-google-callback-registration-confirmed-20261023.json",
+      "bytes": 1566,
+      "sha256": "b390a0d4caf25910681d7311d450abc3b1c6500a54c1b82c6a46d474768d192a"
+    },
+    {
+      "path": "docs/archive/production-calendar-20261023/production-google-signin-callback-registration-20261023.json",
+      "source": ".verification/production-google-signin-callback-registration-20261023.json",
+      "bytes": 1488,
+      "sha256": "922ab68b6db4ec1ebfd0c328c37291a0608197f892e7a147d1ea74e7e304a0ca"
+    },
+    {
+      "path": "docs/archive/production-calendar-20261023/production-google-signin-redirects-20261023.json",
+      "source": ".verification/production-google-signin-redirects-20261023.json",
+      "bytes": 1019,
+      "sha256": "e62ae70e8fed0e7bfaa7b4d7138cf9f9c3dcbb454100d32133d0a69ce951698a"
+    },
+    {
+      "path": "docs/archive/production-calendar-20261023/production-managed-calendar-counts-20261023.json",
+      "source": ".verification/production-managed-calendar-counts-20261023.json",
+      "bytes": 340,
+      "sha256": "670e9f795d586ac1ed503a5524ccc477db9b255c1b4ac2487b07a6f45085e015"
+    },
+    {
+      "path": "docs/archive/production-calendar-20261023/production-observer-ab3c7cc08434-final.json",
+      "source": ".verification/production-observer-ab3c7cc08434-final.json",
+      "bytes": 5183,
+      "sha256": "88efceea3e5e27db5b2aa9e0d06772a5a63f8306cf05f878acc1b5764a48b4cb"
+    },
+    {
+      "path": "docs/archive/production-calendar-20261023/production-observer-ab3c7cc08434-jobs.jsonl",
+      "source": ".verification/production-observer-ab3c7cc08434-jobs.jsonl",
+      "bytes": 8184,
+      "sha256": "c707455f8e104b512cd96052bc061952af337a8fb77bf6ef56466abb3a623c2a"
+    },
+    {
+      "path": "docs/archive/production-calendar-20261023/production-publication-20261023.json",
+      "source": ".verification/production-publication-20261023.json",
+      "bytes": 16650,
+      "sha256": "442a95907e3775f4c97e2eea88ce122fa65585f0ac4549692112376b49e66fc3"
+    },
+    {
+      "path": "docs/archive/production-calendar-20261023/production-step7-aligned-calendar-baseline-20261023.json",
+      "source": ".verification/production-step7-aligned-calendar-baseline-20261023.json",
+      "bytes": 506,
+      "sha256": "e98b42e08fef4a42142b4712c631dc0348c4d324755f3c0ddf18ab6297c77142"
+    },
+    {
+      "path": "docs/archive/production-calendar-20261023/production-step7-aligned-calendar-candidate-20261023.json",
+      "source": ".verification/production-step7-aligned-calendar-candidate-20261023.json",
+      "bytes": 506,
+      "sha256": "c95f03017f6a837cf09b2fd38c255f1d17537cd13fdb5568b3c1e92162924c05"
+    }
+  ],
+  "totalBytes": 58007,
+  "privateValueAndCredentialPatternScanPassed": true
+}

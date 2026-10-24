@@ -1,0 +1,64 @@
+{
+  "reportedAt": "2026-10-23T15:04:25.830Z",
+  "readyAt": "2026-10-23T14:42:27.272Z",
+  "observedSeconds": 1318.558,
+  "events": 12,
+  "counts": {
+    "storage": 0,
+    "calendar": 4,
+    "commercial": 0,
+    "reviews": 2,
+    "push": 4,
+    "uploads": 2
+  },
+  "observationHealthy20Minutes": true,
+  "missingRoutineCounts": [],
+  "cadenceGaps": [],
+  "failures": [],
+  "routinesOperationalPassed": true,
+  "cpuExcess": [
+    {
+      "index": 0,
+      "kind": "push",
+      "cpuTimeMs": 42
+    },
+    {
+      "index": 1,
+      "kind": "calendar",
+      "cpuTimeMs": 48
+    },
+    {
+      "index": 3,
+      "kind": "push",
+      "cpuTimeMs": 34
+    },
+    {
+      "index": 7,
+      "kind": "calendar",
+      "cpuTimeMs": 18
+    },
+    {
+      "index": 8,
+      "kind": "push",
+      "cpuTimeMs": 39
+    }
+  ],
+  "cpuMissing": [],
+  "freeCpuPassed": false,
+  "configuredFlags": {
+    "calendar": [
+      false
+    ],
+    "reviews": [
+      true
+    ],
+    "push": [
+      true
+    ],
+    "uploads": []
+  },
+  "allThreeProvidersConfigured": false,
+  "bothMaintenanceCategoriesObserved": false,
+  "launchSchedulerAccepted": false,
+  "scope": "Sanitized app events plus code/provider schedule evidence; empty queues do not prove delivery, backlog fairness or device receipt. Routine checks do not certify CPU or external providers."
+}

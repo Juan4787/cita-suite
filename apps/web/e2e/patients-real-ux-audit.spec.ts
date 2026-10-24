@@ -1,6 +1,6 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
-import { createClient } from '@supabase/supabase-js';
-import WebSocket from 'ws';
+import { createFixtureClient } from './helpers/fixture-db';
+import { textIssues } from './helpers/layout-usability';
 import { loginWithSharedSession } from './helpers/shared-auth';
 
 const email = process.env.CITA_SUITE_TEST_EMAIL;
@@ -37,10 +37,9 @@ test.describe('Auditoría UX sobre la cuenta de prueba real', () => {
 		page,
 		browser
 	}, testInfo) => {
-		const admin = createClient(supabaseUrl ?? '', serviceRoleKey ?? '', {
-			auth: { autoRefreshToken: false, persistSession: false },
-			realtime: { transport: WebSocket }
-		});
+		if (!supabaseUrl || !serviceRoleKey || !businessId)
+			throw new Error('Requiere CITA_SUITE_TEST_* y ODONTO_SUPABASE_*.');
+		const admin = createFixtureClient(supabaseUrl, serviceRoleKey);
 		const { data: recentPatients, error } = await admin
 			.from('patients')
 			.select('id, full_name')
@@ -49,9 +48,7 @@ test.describe('Auditoría UX sobre la cuenta de prueba real', () => {
 			.order('activity_at', { ascending: false })
 			.limit(30);
 		if (error) throw error;
-		const target = (recentPatients ?? []).find((patient) =>
-			/^[jJ]/.test(String(patient.full_name ?? '').trim())
-		);
+		const target = (recentPatients ?? []).find((patient) => /^[jJ]/.test(patient.full_name.trim()));
 		test.skip(!target, 'La primera página actual no contiene un paciente cuyo nombre empiece con J.');
 
 		await login(page);
@@ -63,7 +60,7 @@ test.describe('Auditoría UX sobre la cuenta de prueba real', () => {
 		await assertTwoLineTab(page.getByRole('link', { name: /^Archivados/ }));
 		expect(await page.getByText(/Hay cambios nuevos|Conservamos tu posición/).count()).toBe(0);
 
-		const search = page.getByPlaceholder('Buscar por nombre, DNI o teléfono');
+		const search = page.getByRole('searchbox', { name: 'Buscar pacientes' });
 		const started = Date.now();
 		await search.fill('J');
 		const targetName = page.getByRole('button', {
@@ -82,7 +79,7 @@ test.describe('Auditoría UX sobre la cuenta de prueba real', () => {
 		const clear = page.getByRole('button', { name: 'Limpiar búsqueda' });
 		await expect(clear).toBeVisible();
 		await page.screenshot({
-			path: testInfo.outputPath('patients-desktop.png'),
+			type: 'jpeg', quality: 65, path: testInfo.outputPath('patients-desktop.jpg'),
 			fullPage: true
 		});
 		await clear.click();
@@ -105,8 +102,14 @@ test.describe('Auditoría UX sobre la cuenta de prueba real', () => {
 			).toBeVisible();
 			await assertTwoLineTab(mobilePage.getByRole('link', { name: /^Activos/ }));
 			await assertTwoLineTab(mobilePage.getByRole('link', { name: /^Archivados/ }));
+			// On a phone the search hint is read whole, not cut by the field's own controls.
+			for (const width of [320, 390]) {
+				await mobilePage.setViewportSize({ width, height: 844 });
+				const hints = (await textIssues(mobilePage, 'main')).filter(({ check }) => check === 'clipped-placeholder');
+				expect(hints, `${width} px`).toEqual([]);
+			}
 			await mobilePage.screenshot({
-				path: testInfo.outputPath('patients-mobile.png'),
+				type: 'jpeg', quality: 65, path: testInfo.outputPath('patients-mobile.jpg'),
 				fullPage: true
 			});
 			const firstCard = mobilePage.locator('article').first();

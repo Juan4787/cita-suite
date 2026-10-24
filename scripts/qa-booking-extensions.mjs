@@ -1,3 +1,4 @@
+import { fixturePath } from './lib/fixture-path.mjs';
 // Own disposable fixture only. Real PostgreSQL, PostgREST and Storage; simulated Auth.
 import assert from 'node:assert/strict';
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
@@ -9,7 +10,7 @@ const root = fileURLToPath(new URL('../', import.meta.url));
 const require = createRequire(new URL('../apps/web/package.json', import.meta.url));
 const { chromium } = require('@playwright/test');
 const { PDFDocument } = require('pdf-lib');
-const runtime = JSON.parse(readFileSync('/tmp/cita-booking-runtime.json', 'utf8'));
+const runtime = JSON.parse(readFileSync(fixturePath('runtime.json'), 'utf8'));
 const { appOrigin, apiOrigin, key, businessId, professionalId, serviceId, container } = runtime;
 assert.match(container, /^cita-booking-test-[a-f0-9]{12}$/);
 assert.equal(

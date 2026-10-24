@@ -1,10 +1,12 @@
 <script lang="ts">
+	import type { PageProps } from './$types';
+
 	import BackLink from '$lib/components/BackLink.svelte';
-	import type { BusinessSubscriptionRow } from '$lib/server/commercial-access';
+	import type { BusinessSubscriptionRow } from '$lib/access/commercial-access';
 	import { visibleCommercialAccessNote } from '$lib/utils/commercial-access-copy';
 	import { formatAccessRemaining } from '$lib/utils/format';
 
-	let { data, form } = $props();
+	let { data, form }: PageProps = $props();
 
 	const access = $derived(data.context.access);
 	const subscription = $derived((access.subscription ?? {}) as Partial<BusinessSubscriptionRow>);
@@ -95,8 +97,7 @@
 		{#if access.canUseBusiness}
 			<BackLink href="/odonto/configuracion" label="Volver" class="mb-5" />
 		{/if}
-		<p class="ux-badge">Cita Suite</p>
-		<h1 class="ux-title mt-4">{mainTitle}</h1>
+		<h1 class="ux-title">{mainTitle}</h1>
 		<p class="ux-subtitle">{mainDescription}</p>
 	</div>
 
@@ -104,7 +105,7 @@
 		<div class="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
 			<div>
 				<span class={statusClass}>{statusLabel}</span>
-				<h2 class="mt-4 text-3xl font-black text-white">{data.context.business.name}</h2>
+				<h2 class="mt-4 text-3xl font-bold text-white">{data.context.business.name}</h2>
 				<p class="mt-2 text-sm text-white/55">
 					{access.isPermanent ? 'Tu cuenta no tiene vencimiento.' : 'Estado de acceso del consultorio.'}
 				</p>
@@ -159,7 +160,7 @@
 			</p>
 			{#if data.mpEnvironment === 'test'}
 				<div class="ux-alert ux-alert-warning mt-4">
-					<p class="font-black">Mercado Pago está en modo de prueba.</p>
+					<p class="font-bold">Mercado Pago está en modo de prueba.</p>
 					<p class="mt-1">
 						Abrí el checkout en una ventana privada e ingresá con un comprador de prueba de
 						Argentina. No uses tu cuenta personal de Mercado Pago: las tarjetas de prueba se
@@ -167,7 +168,7 @@
 					</p>
 				</div>
 			{/if}
-			{#if access.commercialStatus === 'active' && access.paidUntil && mpSub?.status !== 'authorized' && mpSub?.status !== 'paused'}
+			{#if access.commercialStatus === 'active' && access.paidUntil && !data.mpSubscriptionUnavailable && mpSub?.status !== 'authorized' && mpSub?.status !== 'paused'}
 				<p class="ux-alert ux-alert-success mt-4">
 					Tu tiempo vigente se conserva: cuando se acredite el primer pago, se suman 30 días
 					al vencimiento actual.
@@ -220,6 +221,11 @@
 					acá: contactá soporte para regularizar la cuenta.
 				</p>
 				<p class="mt-4 text-sm font-semibold text-white/55">¿Necesitás ayuda? Contactar soporte</p>
+			{:else if data.mpSubscriptionUnavailable}
+				<p class="ux-alert ux-alert-warning mt-5">
+					No pudimos comprobar el estado de tu suscripción en Mercado Pago. Volvé a intentar en
+					unos minutos antes de suscribirte o cancelar.
+				</p>
 			{:else if mpSub?.status === 'authorized' || mpSub?.status === 'paused'}
 				<div class="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
 					<div class="ux-soft-card p-4">
@@ -294,14 +300,16 @@
 		</div>
 
 		<div class="mt-5 space-y-3">
-			{#if data.grants.length === 0}
+			{#if data.grants === null}
+				<p class="ux-alert ux-alert-warning">No pudimos cargar el historial. Volvé a intentar en unos minutos.</p>
+			{:else if data.grants.length === 0}
 				<p class="ux-empty">Sin movimientos registrados.</p>
 			{:else}
 				{#each data.grants as grant}
 					<div class="ux-soft-card p-4">
 						<div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
 							<div>
-								<p class="font-black text-white">
+								<p class="font-bold text-white">
 									{grant.operation === 'set_permanent' ? 'Acceso permanente' : grant.operation === 'grant_access' || grant.operation === 'extend_access' ? 'Acceso actualizado' : 'Cambio registrado'}
 								</p>
 								<p class="mt-1 text-sm text-white/55">

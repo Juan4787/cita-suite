@@ -1,8 +1,8 @@
 <script lang="ts">
     import { page } from '$app/state';
     import type { Snippet } from 'svelte';
-    import type { BookingTheme } from '@turnos-saas/shared/booking-integration';
-    let { theme = 'cita-suite', children } = $props<{ theme?: BookingTheme; children: Snippet }>();
+    import type { BookingTheme } from '@cita-suite/shared/booking-integration';
+    let { theme = 'cita-suite', children }: { theme?: BookingTheme; children: Snippet } = $props();
     const framed = $derived(page.url.searchParams.has('parent_origin') && page.url.searchParams.has('instance_id'));
     const colorMode = $derived(page.data?.bookingColorMode === 'dark' ? 'dark' : 'light');
     $effect(() => {

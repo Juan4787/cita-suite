@@ -1,0 +1,9 @@
+{
+  "at": "2026-10-23T14:32:38.832Z",
+  "legacyEntrypointsDisabled": true,
+  "unauthorizedStatus": 401,
+  "authorizedStatus": 410,
+  "appBundleChanged": false,
+  "noJobsProcessedByProbe": true,
+  "secretPersistedOrPrinted": false
+}

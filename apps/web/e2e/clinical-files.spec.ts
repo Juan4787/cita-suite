@@ -1,7 +1,12 @@
 import { expect, test, type Page } from '@playwright/test';
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-import WebSocket from 'ws';
+import { signInWithPassword } from './helpers/shared-auth';
+import { createFixtureClient, must, write, type FixtureClient } from './helpers/fixture-db';
+import { browserRequest } from './helpers/browser-request';
 import { spawnSync } from 'node:child_process';
+import { createHash, randomUUID } from 'node:crypto';
+import { readFileSync } from 'node:fs';
+import { clinicalPdfFixture } from './helpers/clinical-pdf';
+import { syntheticMasterId } from './helpers/master-identity';
 
 const supabaseUrl = process.env.ODONTO_SUPABASE_URL;
 const serviceRoleKey = process.env.ODONTO_SUPABASE_SERVICE_ROLE_KEY;
@@ -33,16 +38,7 @@ let fixture: Fixture | null = null;
 
 const adminClient = () => {
 	if (!supabaseUrl || !serviceRoleKey) throw new Error('Faltan credenciales Supabase locales.');
-	return createClient(supabaseUrl, serviceRoleKey, {
-		auth: { autoRefreshToken: false, persistSession: false },
-		realtime: { transport: WebSocket }
-	});
-};
-
-const must = async <T>(operation: PromiseLike<{ data: T; error: unknown }>) => {
-	const { data, error } = await operation;
-	if (error) throw error;
-	return data;
+	return createFixtureClient(supabaseUrl, serviceRoleKey);
 };
 
 const psqlEnvironment = (connectionString: string) => {
@@ -54,11 +50,12 @@ const psqlEnvironment = (connectionString: string) => {
 		PGUSER: decodeURIComponent(parsed.username),
 		PGPASSWORD: decodeURIComponent(parsed.password),
 		PGDATABASE: parsed.pathname.replace(/^\//, '') || 'postgres',
-		PGSSLMODE: 'require'
+		PGSSLMODE: isLocalSupabase ? 'disable' : 'require',
+		PGCONNECT_TIMEOUT: '10'
 	};
 };
 
-const createFixture = async (admin: SupabaseClient): Promise<Fixture> => {
+const createFixture = async (admin: FixtureClient): Promise<Fixture> => {
 	const suffix = `${Date.now()}-${Math.floor(Math.random() * 100_000)}`;
 	const ownerEmail = `e2e-clinical-owner-${suffix}@example.com`;
 	const professionalEmail = `e2e-clinical-professional-${suffix}@example.com`;
@@ -113,7 +110,7 @@ const createFixture = async (admin: SupabaseClient): Promise<Fixture> => {
 			.single()
 	);
 
-	await must(
+	await write(
 		admin.from('business_subscriptions').upsert(
 			{
 				business_id: business.id,
@@ -129,7 +126,7 @@ const createFixture = async (admin: SupabaseClient): Promise<Fixture> => {
 			{ onConflict: 'business_id' }
 		)
 	);
-	await must(
+	await write(
 		admin.from('allowed_emails').upsert(
 			[
 				{ email: ownerEmail, enabled: true },
@@ -139,7 +136,7 @@ const createFixture = async (admin: SupabaseClient): Promise<Fixture> => {
 			{ onConflict: 'email' }
 		)
 	);
-	await must(
+	await write(
 		admin.from('business_users').insert([
 			{
 				business_id: business.id,
@@ -178,7 +175,7 @@ const createFixture = async (admin: SupabaseClient): Promise<Fixture> => {
 			.select('id')
 			.single()
 	);
-	await must(
+	await write(
 		admin.from('professional_users').insert({
 			business_id: business.id,
 			professional_id: professional.id,
@@ -198,7 +195,7 @@ const createFixture = async (admin: SupabaseClient): Promise<Fixture> => {
 			.select('id')
 			.single()
 	);
-	await must(
+	await write(
 		admin.from('professional_patient_links').insert({
 			business_id: business.id,
 			professional_id: professional.id,
@@ -210,7 +207,7 @@ const createFixture = async (admin: SupabaseClient): Promise<Fixture> => {
 	);
 
 	const activityBase = Date.now() - 60_000;
-	await must(
+	await write(
 		admin.from('patients').insert([
 			...Array.from({ length: 30 }, (_, index) => ({
 				business_id: business.id,
@@ -249,14 +246,17 @@ const createFixture = async (admin: SupabaseClient): Promise<Fixture> => {
 	};
 };
 
-const cleanupFixture = async (admin: SupabaseClient, target: Fixture | null) => {
+const cleanupFixture = async (admin: FixtureClient, target: Fixture | null) => {
 	if (!target) return;
-	const { data: radiographs } = await admin
-		.from('patient_radiographs')
-		.select('storage_bucket, storage_path, thumbnail_path')
-		.eq('business_id', target.businessId)
-		.eq('storage_provider', 'supabase_storage');
-	for (const row of radiographs ?? []) {
+	// A failed listing must not leave Storage objects (and the clinical budget) behind silently.
+	const radiographs = await must(
+		admin
+			.from('patient_radiographs')
+			.select('storage_bucket, storage_path, thumbnail_path')
+			.eq('business_id', target.businessId)
+			.eq('storage_provider', 'supabase_storage')
+	);
+	for (const row of radiographs) {
 		const paths = [row.storage_path, row.thumbnail_path].filter((path): path is string => Boolean(path));
 		if (row.storage_bucket && paths.length > 0) {
 			const { error } = await admin.storage.from(row.storage_bucket).remove(paths);
@@ -270,11 +270,20 @@ const cleanupFixture = async (admin: SupabaseClient, target: Fixture | null) => 
 	if (!databaseUrl) throw new Error('SUPABASE_DB_URL es necesario para limpiar el fixture de archivos.');
 	const businessId = target.businessId;
 	const sql = `begin;
+select private.clinical_budget_lock();
+with released as (
+ delete from public.clinical_upload_slots
+ where file_id in (select id from public.patient_radiographs where business_id='${businessId}')
+ returning reserved_bytes
+)
+update public.clinical_storage_budget
+set reserved_bytes=reserved_bytes-(select coalesce(sum(reserved_bytes),0) from released),updated_at=clock_timestamp()
+where singleton;
 delete from public.push_delivery_attempts where business_id='${businessId}';
 delete from public.push_subscriptions where business_id='${businessId}';
 delete from public.appointment_google_calendar_events where business_id='${businessId}';
-delete from public.appointments where business_id='${businessId}';
 delete from public.patient_radiographs where business_id='${businessId}';
+delete from public.appointments where business_id='${businessId}';
 delete from public.clinical_entries where business_id='${businessId}';
 delete from public.patient_clinical_profiles where business_id='${businessId}';
 delete from public.professional_patient_links where business_id='${businessId}';
@@ -289,9 +298,7 @@ delete from public.patient_export_sessions where business_id='${businessId}';
 delete from public.business_user_invites where business_id='${businessId}';
 delete from public.business_users where business_id='${businessId}';
 delete from public.business_subscriptions where business_id='${businessId}';
-delete from public.business_limits where business_id='${businessId}';
 delete from public.business_data_revisions where business_id='${businessId}';
-delete from public.audit_event_counters where business_id='${businessId}';
 delete from public.audit_logs where business_id='${businessId}';
 delete from public.businesses where id='${businessId}';
 commit;`;
@@ -304,11 +311,11 @@ commit;`;
 	if (result.status !== 0) {
 		throw new Error(`No se pudo limpiar el fixture en la base aislada: ${result.stderr || 'psql falló.'}`);
 	}
-	await must(admin
+	await write(admin
 		.from('allowed_emails')
 		.delete()
 		.in('email', [target.ownerEmail, target.professionalEmail]));
-	await must(admin.from('allowed_emails').delete().eq('email', target.receptionEmail));
+	await write(admin.from('allowed_emails').delete().eq('email', target.receptionEmail));
 	for (const userId of [target.ownerUserId, target.professionalUserId, target.receptionUserId]) {
 		const { error } = await admin.auth.admin.deleteUser(userId);
 		if (error) throw error;
@@ -316,13 +323,23 @@ commit;`;
 };
 
 const login = async (page: Page, email: string) => {
-	await page.goto('/login');
-	await page.getByLabel('Correo electrónico').fill(email);
-	await page.getByLabel('Contraseña').fill(password);
-	await Promise.all([
-		page.waitForURL((url) => !url.pathname.startsWith('/login')),
-		page.locator('form').first().getByRole('button', { name: 'Ingresar', exact: true }).click()
-	]);
+	await signInWithPassword(page, email, password);
+};
+
+const clinicalExample = {
+	description: 'Panorámica compartida del equipo', filename: 'panoramica-equipo.png',
+	professionalDescription: 'Aporte clínico del profesional', professionalFilename: 'aporte-profesional.png'
+};
+
+const uploadFixtureImage = async (page: Page, filename: string, description: string) => {
+	// Test setup uses the same real upload and finalization path; it never forges
+	// ready clinical rows or bypasses Storage validation and quota accounting.
+	await page.locator('input[type="file"]:not([capture])').setInputFiles({ name: filename, mimeType: 'image/png', buffer: onePixelPng });
+	await expect(page.getByRole('heading', { name: 'Añadir documento clínico' })).toBeVisible();
+	await page.getByLabel('Descripción (opcional)').fill(description);
+	await page.getByRole('button', { name: 'Guardar documento' }).click();
+	await expect(page.getByText('Documento guardado en la ficha del paciente.')).toBeVisible({ timeout: 30_000 });
+	await expect(page.getByRole('heading', { name: description })).toBeVisible();
 };
 
 test.describe('Archivos clínicos privados', () => {
@@ -332,7 +349,7 @@ test.describe('Archivos clínicos privados', () => {
 		'Requiere ODONTO_SUPABASE_URL, ODONTO_SUPABASE_SERVICE_ROLE_KEY y SUPABASE_DB_URL; para Worker real, E2E_ALLOW_PRODUCTION_CLINICAL=true.'
 	);
 
-	test.beforeAll(async () => {
+	test.beforeEach(async () => {
 		const admin = adminClient();
 		// Cada corrida usa correos únicos y permanece debajo del límite por IP.
 		// La tabla de rate limits es deliberadamente inaccesible incluso al cliente
@@ -340,31 +357,49 @@ test.describe('Archivos clínicos privados', () => {
 		fixture = await createFixture(admin);
 	});
 
-	test.afterAll(async () => {
+	test.afterEach(async () => {
 		if (!supabaseUrl || !serviceRoleKey) return;
-		await cleanupFixture(adminClient(), fixture);
+		try { await cleanupFixture(adminClient(), fixture); } finally { fixture = null; }
 	});
 
-	test('el dueño carga, el profesional vinculado ve y el dueño restaura desde papelera', async ({
-		page,
-		browser
-	}) => {
+	test('carga un PDF real, lo guarda en la ficha y descarga los mismos bytes con el nombre del paciente', async ({ page }) => {
 		if (!fixture) throw new Error('Fixture no preparado.');
-		const description = 'Panorámica compartida del equipo';
-		const filename = 'panoramica-equipo.png';
-		const professionalDescription = 'Aporte clínico del profesional';
-		const professionalFilename = 'aporte-profesional.png';
-
+		const pdf = clinicalPdfFixture();
 		await login(page, fixture.ownerEmail);
 		await page.goto(`/odonto/pacientes/${fixture.patientId}?tab=radiografias`);
-		await expect(page.getByRole('heading', { name: 'Imágenes y radiografías' })).toBeVisible();
-		await expect(page.getByText('Todavía no hay imágenes en esta ficha')).toBeVisible();
+		await expect(page.getByRole('heading', { name: 'Estudios y documentos' })).toBeVisible();
+		await page.locator('input[type="file"]:not([capture])').setInputFiles({ name: 'informe-sintetico.pdf', mimeType: 'application/pdf', buffer: pdf });
+		await expect(page.getByRole('heading', { name: 'Añadir documento clínico' })).toBeVisible();
+		await page.getByLabel('Descripción (opcional)').fill('Informe PDF sintético');
+		await page.getByRole('button', { name: 'Guardar documento', exact: true }).click();
+		await expect(page.getByText('Documento guardado en la ficha del paciente.')).toBeVisible();
+		await expect(page.getByRole('heading', { name: 'Informe PDF sintético', exact: true })).toBeVisible();
+		const downloadPromise = page.waitForEvent('download');
+		await page.getByRole('button', { name: 'Descargar PDF', exact: true }).click();
+		const download = await downloadPromise;
+		expect(download.suggestedFilename().startsWith(fixture.patientName.replaceAll(' ', '_') + '_')).toBe(true);
+		expect(download.suggestedFilename().endsWith('.pdf')).toBe(true);
+		const downloaded = await download.path();
+		if (!downloaded) throw new Error('La descarga real no generó archivo verificable.');
+		expect(readFileSync(downloaded).equals(pdf)).toBe(true);
+		const account = await adminClient().from('clinical_business_storage_budget').select('used_bytes,reserved_bytes').eq('business_id', fixture.businessId).single();
+		expect(account.error).toBeNull();
+		expect(account.data).toMatchObject({ used_bytes: pdf.length, reserved_bytes: 0 });
+	});
+
+	test('el dueño carga una imagen privada y la consulta en escritorio y móvil', async ({ page, browser }) => {
+		if (!fixture) throw new Error('Fixture no preparado.');
+		const { description, filename } = clinicalExample;
+		await login(page, fixture.ownerEmail);
+		await page.goto(`/odonto/pacientes/${fixture.patientId}?tab=radiografias`);
+		await expect(page.getByRole('heading', { name: 'Estudios y documentos' })).toBeVisible();
+		await expect(page.getByText('Todavía no hay documentos en esta ficha')).toBeVisible();
 		await page.locator('input[type="file"]:not([capture])').setInputFiles({
 			name: filename,
 			mimeType: 'image/png',
 			buffer: onePixelPng
 		});
-		await expect(page.getByRole('heading', { name: 'Añadir imagen clínica' })).toBeVisible();
+		await expect(page.getByRole('heading', { name: 'Añadir documento clínico' })).toBeVisible();
 		const businessToday = new Intl.DateTimeFormat('en-CA', {
 			timeZone: 'America/Argentina/Buenos_Aires',
 			year: 'numeric',
@@ -376,8 +411,8 @@ test.describe('Archivos clínicos privados', () => {
 			businessToday
 		);
 		await page.getByLabel('Descripción (opcional)').fill(description);
-		await page.getByRole('button', { name: 'Guardar imagen' }).click();
-		await expect(page.getByText('Imagen guardada en la ficha del paciente.')).toBeVisible({
+		await page.getByRole('button', { name: 'Guardar documento' }).click();
+		await expect(page.getByText('Documento guardado en la ficha del paciente.')).toBeVisible({
 			timeout: 30_000
 		});
 		await expect(page.getByRole('heading', { name: description })).toBeVisible();
@@ -464,12 +499,20 @@ test.describe('Archivos clínicos privados', () => {
 			await mobileContext.close();
 		}
 
+	});
+
+	test('el profesional vinculado ve el estudio y su aporte aparece para el dueño', async ({ page, browser }) => {
+		if (!fixture) throw new Error('Fixture no preparado.');
+		const { description, filename, professionalDescription, professionalFilename } = clinicalExample;
+		await login(page, fixture.ownerEmail);
+		await page.goto(`/odonto/pacientes/${fixture.patientId}?tab=radiografias`);
+		await uploadFixtureImage(page, filename, description);
 		const professionalContext = await browser.newContext();
 		const professionalPage = await professionalContext.newPage();
 		await login(professionalPage, fixture.professionalEmail);
 		await professionalPage.goto(`/odonto/pacientes/${fixture.patientId}?tab=radiografias`);
 		await expect(professionalPage.getByRole('heading', { name: description })).toBeVisible();
-		await expect(professionalPage.getByRole('button', { name: 'Añadir imagen' })).toBeVisible();
+		await expect(professionalPage.getByRole('button', { name: 'Añadir documento' })).toBeVisible();
 		await expect(professionalPage.getByRole('button', { name: 'Mover a papelera' })).toHaveCount(0);
 		await professionalPage.getByRole('button', { name: 'Ver imagen' }).click();
 		const professionalViewer = professionalPage.getByRole('img', { name: description });
@@ -488,9 +531,9 @@ test.describe('Archivos clínicos privados', () => {
 			buffer: onePixelPng
 		});
 		await professionalPage.getByLabel('Descripción (opcional)').fill(professionalDescription);
-		await professionalPage.getByRole('button', { name: 'Guardar imagen' }).click();
+		await professionalPage.getByRole('button', { name: 'Guardar documento' }).click();
 		await expect(
-			professionalPage.getByText('Imagen guardada en la ficha del paciente.')
+			professionalPage.getByText('Documento guardado en la ficha del paciente.')
 		).toBeVisible({ timeout: 30_000 });
 		await expect(
 			professionalPage.getByRole('heading', { name: professionalDescription })
@@ -499,16 +542,37 @@ test.describe('Archivos clínicos privados', () => {
 
 		await page.reload();
 		await expect(page.getByRole('heading', { name: professionalDescription })).toBeVisible();
+		const contribution = await must(adminClient().from('patient_radiographs')
+			.select('uploaded_by,integrity_status,status').eq('business_id', fixture.businessId)
+			.eq('patient_id', fixture.patientId).eq('original_filename', professionalFilename).single());
+		expect(contribution).toMatchObject({ uploaded_by: fixture.professionalUserId, integrity_status: 'ok', status: 'ready' });
+	});
+
+	test('la papelera conserva lectura restringida y restaura el archivo y su auditoría', async ({ page, browser }) => {
+		if (!fixture) throw new Error('Fixture no preparado.');
+		const { description, filename, professionalDescription, professionalFilename } = clinicalExample;
+		await login(page, fixture.ownerEmail);
+		await page.goto(`/odonto/pacientes/${fixture.patientId}?tab=radiografias`);
+		await uploadFixtureImage(page, filename, description);
+		const professionalContext = await browser.newContext();
+		try {
+			const professionalPage = await professionalContext.newPage();
+			await login(professionalPage, fixture.professionalEmail);
+			await professionalPage.goto(`/odonto/pacientes/${fixture.patientId}?tab=radiografias`);
+			await uploadFixtureImage(professionalPage, professionalFilename, professionalDescription);
+		} finally { await professionalContext.close(); }
+		await page.reload();
+		await expect(page.getByRole('heading', { name: professionalDescription })).toBeVisible();
 		const ownerFileCard = page.locator('article').filter({
 			has: page.getByRole('heading', { name: description })
 		});
 		await ownerFileCard.getByRole('button', { name: 'Mover a papelera' }).click();
-		await expect(page.getByRole('heading', { name: 'Mover imagen a la papelera' })).toBeVisible();
+		await expect(page.getByRole('heading', { name: 'Mover documento a la papelera' })).toBeVisible();
 		await page.getByRole('button', { name: 'Mover a papelera' }).last().click();
 		await expect(page.getByText('Imagen movida a la papelera. Podés restaurarla cuando la necesites.')).toBeVisible();
 
 		await page.goto('/odonto/pacientes/papelera');
-		await expect(page.getByRole('heading', { name: 'Papelera de imágenes' })).toBeVisible();
+		await expect(page.getByRole('heading', { name: 'Papelera de documentos' })).toBeVisible();
 		await expect(page.getByText(fixture.patientName)).toBeVisible();
 		await expect(page.getByText(filename)).toBeVisible();
 
@@ -538,7 +602,7 @@ test.describe('Archivos clínicos privados', () => {
 		await expect(page.getByText(filename)).toBeVisible();
 		await expect(
 			page.getByText(
-				'Podés consultar la papelera. Para restaurar imágenes, activá nuevamente la suscripción.'
+				'Podés consultar la papelera. Para restaurar documentos, activá nuevamente la suscripción.'
 			)
 		).toBeVisible();
 		await expect(page.getByRole('button', { name: 'Restaurar' })).toHaveCount(0);
@@ -553,7 +617,7 @@ test.describe('Archivos clínicos privados', () => {
 
 		await page.goto(`/odonto/pacientes/${fixture.patientId}?tab=radiografias`);
 		await expect(page.getByRole('heading', { name: professionalDescription })).toBeVisible();
-		await expect(page.getByRole('button', { name: 'Añadir imagen' })).toHaveCount(0);
+		await expect(page.getByRole('button', { name: 'Añadir documento' })).toHaveCount(0);
 		await expect(page.getByRole('button', { name: 'Mover a papelera' })).toHaveCount(0);
 		await page.getByRole('button', { name: 'Ver imagen' }).click();
 		const restrictedViewerDialog = page.getByRole('dialog', { name: professionalDescription });
@@ -561,7 +625,7 @@ test.describe('Archivos clínicos privados', () => {
 		await restrictedViewerDialog.getByRole('button', { name: 'Cerrar visor' }).click();
 		await page.goto('/odonto/pacientes/papelera');
 
-		await must(
+		await write(
 			admin
 				.from('business_subscriptions')
 				.update({
@@ -577,7 +641,7 @@ test.describe('Archivos clínicos privados', () => {
 		);
 		await page.reload();
 		await page.getByRole('button', { name: 'Restaurar' }).click();
-		await page.getByRole('button', { name: 'Restaurar imagen' }).click();
+		await page.getByRole('button', { name: 'Restaurar documento' }).click();
 		await expect(page.getByText('Imagen restaurada en la ficha del paciente.')).toBeVisible();
 
 		await page.goto(`/odonto/pacientes/${fixture.patientId}?tab=radiografias`);
@@ -626,13 +690,26 @@ test.describe('Archivos clínicos privados', () => {
 		expect(audit.every((row) => row.result === 'success')).toBe(true);
 	});
 
-	test('la lista pagina y busca globalmente, conserva contexto y recepción no descubre imágenes', async ({
+	test('la lista pagina y busca globalmente, conserva contexto y recepción no descubre documentos ni historia clínica', async ({
 		page,
 		browser
 	}) => {
 		if (!fixture) throw new Error('Fixture no preparado.');
 
 		await login(page, fixture.ownerEmail);
+		const privateClinicalDescription = 'Historia clínica sintética reservada al equipo clínico';
+		await write(adminClient().from('clinical_entries').insert({
+			business_id: fixture.businessId,
+			patient_id: fixture.patientId,
+			owner_id: fixture.ownerUserId,
+			created_by_user_id: fixture.ownerUserId,
+			entry_type: 'Consulta',
+			description: privateClinicalDescription
+		}));
+		await page.goto(`/odonto/pacientes/${fixture.patientId}?tab=historial`);
+		await expect(page.getByText(privateClinicalDescription, { exact: true })).toBeVisible();
+		await page.goto(`/odonto/pacientes/${fixture.patientId}?tab=radiografias`);
+		await uploadFixtureImage(page, clinicalExample.filename, clinicalExample.description);
 		await page.goto('/odonto/pacientes');
 		await expect(page.locator('tbody tr')).toHaveCount(30);
 		await expect(page.getByRole('button', { name: 'Ver más pacientes' })).toBeVisible();
@@ -678,7 +755,7 @@ test.describe('Archivos clínicos privados', () => {
 
 		await page.setViewportSize({ width: 390, height: 844 });
 		await page.goto(`/odonto/pacientes/${fixture.patientId}?tab=radiografias`);
-		await expect(page.getByRole('heading', { name: 'Imágenes y radiografías' })).toBeVisible();
+		await expect(page.getByRole('heading', { name: 'Estudios y documentos' })).toBeVisible();
 		await expect
 			.poll(() =>
 				page.evaluate(
@@ -691,9 +768,124 @@ test.describe('Archivos clínicos privados', () => {
 		const receptionPage = await receptionContext.newPage();
 		await login(receptionPage, fixture.receptionEmail);
 		await receptionPage.goto(`/odonto/pacientes/${fixture.patientId}?tab=radiografias`);
-		await expect(receptionPage.getByText('Tu rol no permite ver imágenes clínicas.')).toBeVisible();
+		await expect(receptionPage.getByText('Tu rol no permite ver documentos clínicos.')).toBeVisible();
 		await expect(receptionPage.getByText('Panorámica compartida del equipo')).toHaveCount(0);
-		await expect(receptionPage.getByRole('button', { name: 'Añadir imagen' })).toHaveCount(0);
+		await expect(receptionPage.getByRole('button', { name: 'Añadir documento' })).toHaveCount(0);
+		const receptionHtml = await browserRequest(receptionPage, `/odonto/pacientes/${fixture.patientId}?tab=historial`);
+		expect(receptionHtml.status).toBe(200);
+		expect(receptionHtml.headers.get('cache-control')).toContain('no-store');
+		const receptionBody = await receptionHtml.text();
+		expect(receptionBody.includes(privateClinicalDescription), 'Reception SSR must omit private clinical history.').toBe(false);
+		expect(receptionBody.includes('Datos del paciente'), 'Reception must receive its authorized patient data, not a login page.').toBe(true);
+		await receptionPage.goto(`/odonto/pacientes/${fixture.patientId}?tab=historial`);
+		await expect(receptionPage.getByRole('main').getByRole('heading', { name: fixture.patientName })).toBeVisible();
+		await expect(receptionPage.getByRole('button', { name: 'Historial', exact: true })).toHaveCount(0);
+		await expect(receptionPage.getByText(privateClinicalDescription)).toHaveCount(0);
+		await expect(receptionPage.getByRole('heading', { name: 'Datos del paciente', exact: true })).toBeVisible();
+		const deniedHistory = await browserRequest(receptionPage, `/odonto/pacientes/${fixture.patientId}/historial`);
+		expect(deniedHistory.status).toBe(403);
+		expect((await deniedHistory.text()).includes(privateClinicalDescription), 'Denied history must omit private clinical data.').toBe(false);
+		await receptionPage.setViewportSize({ width: 1280, height: 900 });
+		await expect(receptionPage.getByRole('button', { name: 'Historial', exact: true })).toHaveCount(0);
+		await expect(receptionPage.getByText(privateClinicalDescription)).toHaveCount(0);
 		await receptionContext.close();
+	});
+
+	// Final audit of the plan: raising a practice's quota and the global capacity, as a plan change
+	// does, keeps stored documents, their permissions and a pending upload. The master raises the
+	// quota with its own form; the operator raises the capacity as a versioned migration would.
+	test('ampliar la cuota y la capacidad global conserva documentos, permisos y cargas pendientes', async ({ page, browser }) => {
+		if (!fixture || !databaseUrl) throw new Error('Fixture no preparado.');
+		const target = fixture;
+		const connection = databaseUrl;
+		const masterEmail = process.env.MASTER_EMAIL;
+		const masterPassword = process.env.E2E_MASTER_PASSWORD;
+		if (!masterEmail || !masterPassword) throw new Error('Explicit synthetic master identity is required.');
+		const admin = adminClient();
+		const masterId = await syntheticMasterId(admin.auth.admin, masterEmail, masterPassword);
+		const operator = (sql: string) => {
+			const result = spawnSync('psql', ['-X', '-v', 'ON_ERROR_STOP=1', '-qAt', '-c', sql], { env: psqlEnvironment(connection), encoding: 'utf8' });
+			if (result.status !== 0) throw new Error(`No se pudo operar la capacidad global: ${result.stderr || 'psql falló.'}`);
+			return result.stdout.trim();
+		};
+		const endpoint = `/odonto/pacientes/${target.patientId}/radiografias`;
+		const accounting = async () => ({
+			business: await must(admin.from('clinical_business_storage_budget').select('max_bytes,used_bytes,reserved_bytes,uploads_enabled')
+				.eq('business_id', target.businessId).single()),
+			global: await must(admin.from('clinical_storage_budget').select('max_bytes,used_bytes,reserved_bytes').eq('singleton', true).single()),
+			files: await must(admin.from('patient_radiographs').select('id,status,bytes,storage_bucket,storage_path')
+				.eq('business_id', target.businessId).order('created_at'))
+		});
+
+		await login(page, target.ownerEmail);
+		await page.goto(`/odonto/pacientes/${target.patientId}?tab=radiografias`);
+		await uploadFixtureImage(page, 'antes-del-cambio.png', 'Documento anterior al cambio');
+		// A pending upload: its signed URL is issued and its reservation stays while the resources change.
+		const started = await browserRequest(page, `${endpoint}/uploads`, { method: 'POST', data: {
+			clientRequestId: randomUUID(), originalFilename: 'pendiente.png', mimeType: 'image/png', bytes: onePixelPng.length,
+			sha256: createHash('sha256').update(onePixelPng).digest('hex'), takenAt: null, note: 'Carga pendiente durante el cambio' } });
+		expect(started.status).toBe(200);
+		const pending = (await started.json()) as { id: string; upload_url: string };
+		const before = await accounting();
+		expect(before.files.map((file) => file.status)).toEqual(['ready', 'uploading']);
+		expect(before.business.reserved_bytes).toBeGreaterThan(0);
+		const capacity = Number(operator('select max_bytes from public.clinical_storage_budget where singleton'));
+		const masterContext = await browser.newContext();
+		try {
+			const masterPage = await masterContext.newPage();
+			await signInWithPassword(masterPage, masterEmail, masterPassword);
+			await masterPage.goto('/odonto/maestro/almacenamiento');
+			const { name } = await must(admin.from('businesses').select('name').eq('id', target.businessId).single());
+			const row = masterPage.locator('form').filter({ has: masterPage.getByRole('heading', { name, exact: true }) });
+			const quota = before.business.max_bytes + 50_000_000;
+			await row.getByLabel(`Límite de ${name} (MB)`).fill(String(quota / 1_000_000));
+			await row.getByRole('button', { name: 'Guardar límite', exact: true }).click();
+			await expect(row.getByRole('status')).toContainText('Los documentos y las cargas pendientes se conservaron.');
+			operator(`update public.clinical_storage_budget set max_bytes=${capacity + 100_000_000} where singleton`);
+			// The new limit still refuses a reduction below what is stored and reserved.
+			const below = await admin.rpc('set_business_clinical_storage_policy', { p_actor_id: masterId, p_business_id: target.businessId,
+				p_max_bytes: before.business.used_bytes + before.business.reserved_bytes - 1, p_uploads_enabled: true });
+			expect(below.error?.message).toContain('CLINICAL_STORAGE_COMMITTED');
+			const changed = await accounting();
+			expect(changed).toEqual({ business: { ...before.business, max_bytes: quota }, global: { ...before.global, max_bytes: capacity + 100_000_000 },
+				files: before.files });
+
+			// The pending upload completes under the new limits: its original's 5 MB become the stored bytes.
+			// Its thumbnail URL was not used and stays backed until it expires.
+			const uploaded = await page.request.put(pending.upload_url, { headers: { 'x-upsert': 'false', 'content-type': 'image/png' }, data: onePixelPng });
+			expect(uploaded.ok()).toBe(true);
+			const completed = await browserRequest(page, `${endpoint}/${pending.id}/complete`, { method: 'POST', data: { thumbnailUploaded: false } });
+			expect(completed.status).toBe(200);
+			const after = await accounting();
+			expect(after.files.map((file) => [file.id, file.status])).toEqual([[before.files[0].id, 'ready'], [pending.id, 'ready']]);
+			expect(after.business).toEqual({ ...changed.business, used_bytes: before.business.used_bytes + onePixelPng.length,
+				reserved_bytes: before.business.reserved_bytes - 5_000_000 });
+			expect(after.global.used_bytes - before.global.used_bytes).toBe(onePixelPng.length);
+			expect(before.global.reserved_bytes - after.global.reserved_bytes).toBe(5_000_000);
+			for (const file of after.files) {
+				if (!file.storage_bucket || !file.storage_path) throw new Error('A stored document lost its object.');
+				const { data, error } = await admin.storage.from(file.storage_bucket).download(file.storage_path);
+				if (error || !data) throw error ?? new Error('A stored document could not be read.');
+				expect(Buffer.from(await data.arrayBuffer()).equals(onePixelPng)).toBe(true);
+			}
+
+			// Permissions are unchanged: the owner reads both documents, reception reads none.
+			const listed = await browserRequest(page, endpoint);
+			expect(listed.status).toBe(200);
+			const { items } = (await listed.json()) as { items: { id: string }[] };
+			expect(items.map((item) => item.id).sort()).toEqual(after.files.map((file) => file.id).sort());
+			const receptionContext = await browser.newContext();
+			try {
+				const receptionPage = await receptionContext.newPage();
+				await login(receptionPage, target.receptionEmail);
+				expect((await browserRequest(receptionPage, endpoint)).status).toBe(403);
+			} finally { await receptionContext.close(); }
+			// Reconciliation of the stored objects finds this practice's counters already exact.
+			await write(admin.rpc('reconcile_clinical_storage_budget', { p_max_businesses: 1000 }));
+			expect((await accounting()).business).toEqual(after.business);
+		} finally {
+			await masterContext.close();
+			operator(`update public.clinical_storage_budget set max_bytes=${capacity} where singleton`);
+		}
 	});
 });

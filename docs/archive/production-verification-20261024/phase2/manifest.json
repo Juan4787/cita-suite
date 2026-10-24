@@ -1,0 +1,159 @@
+{
+  "at": "2026-10-24T12:52:01.351070+00:00",
+  "sourceRevision": "cb8a9bafdf9a07a6b8977e841fa3f401061fda4f",
+  "rollbackRevision": "5ee3fa5a19bcdda49697692fc4c9c3b3702c9eca",
+  "scope": "Production load failure, reporting corrections, Natalia publication and newly reproduced inactive-push defect. No launch certification; later correction verification remains separate.",
+  "privatePatternAndActualEnvironmentSecretScanPassed": true,
+  "adversarialScannerChecksPassed": true,
+  "files": [
+    {
+      "path": "docs/archive/production-verification-20261024/phase2/capacity-two-final-state-20261024.json",
+      "source": ".verification/capacity-two-final-state-20261024.json",
+      "bytes": 2198,
+      "sha256": "04265250a7b8d0dea1bfb768392b94845a95082fa071520ab4ea8c990b971c9d"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase2/capacity-two-smoke-cleanup-20261024.log",
+      "source": ".verification/capacity-two-smoke-cleanup-20261024.log",
+      "bytes": 73,
+      "sha256": "cd63a13d321c20be838b80007c585e6fd9621b7d69133ef827512ef712fce709"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase2/capacity-two-data-cleanup-20261024.log",
+      "source": ".verification/capacity-two-data-cleanup-20261024.log",
+      "bytes": 165,
+      "sha256": "97bd25edc5467470dae922fb95006c54ee68e8a5c4f6cb2c1a8ca42202edd162"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase2/capacity-two-temporary-secret-cleanup-20261024.json",
+      "source": ".verification/capacity-two-temporary-secret-cleanup-20261024.json",
+      "bytes": 248,
+      "sha256": "893ae869e89681a4227c58ea4b886abb45a23589155a2a855b0f16cd26ddbb2b"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase2/capacity-two-collectors-stop-20261024.json",
+      "source": ".verification/capacity-two-collectors-stop-20261024.json",
+      "bytes": 528,
+      "sha256": "f98c26be674cc9b06f564685991031e35408ca7823652277b894c6bd4dc828cc"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase2/capacity-two-ordinary-pause-attribution-20261024.json",
+      "source": ".verification/capacity-two-ordinary-pause-attribution-20261024.json",
+      "bytes": 2999,
+      "sha256": "1f511a6f48ef346815c364b42c22553d7fb5e82cf43896e647907e67c50ec6e2"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase2/production-report-queryid-red-20261024.json",
+      "source": ".verification/production-report-queryid-red-20261024.json",
+      "bytes": 507,
+      "sha256": "e32e282fdddef6654d3b430b04a4f9e5dc026567e11e5ebfb22f514233225d48"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase2/production-report-queryid-green-20261024.json",
+      "source": ".verification/production-report-queryid-green-20261024.json",
+      "bytes": 528,
+      "sha256": "3efb4b766c92902a935e0a71baea7703dbbd90784798a4782cac32f1c41dd7a2"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase2/production-report-composite-identity-green-20261024.json",
+      "source": ".verification/production-report-composite-identity-green-20261024.json",
+      "bytes": 491,
+      "sha256": "65965c4dddb621d37af4538ba0cbd5575afcdec3968aeee867b40c39975815b5"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase2/attribute-pauses-missing-metrics-red-20261024.log",
+      "source": ".verification/attribute-pauses-missing-metrics-red-20261024.log",
+      "bytes": 2427,
+      "sha256": "559bb0b69ad108b0da3b9cf3c6c96df364352cc0b73c1c2dbed28c61cbdfac65"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase2/attribute-pauses-missing-metrics-green-20261024.log",
+      "source": ".verification/attribute-pauses-missing-metrics-green-20261024.log",
+      "bytes": 811,
+      "sha256": "f64f92664e740d6d0ef2b5eda1898d783312a8b9e94fc0d7ecf349efeb929181"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase2/observability-reporting-source-v2-20261024.json",
+      "source": ".verification/observability-reporting-source-v2-20261024.json",
+      "bytes": 1248,
+      "sha256": "6028c2633eaad42021300f5c652bf185d7657f05b480367b51639badaca8b8f7"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase2/commercial-manual-production-proof-20261024.json",
+      "source": ".verification/commercial-manual-production-proof-20261024.json",
+      "bytes": 1280,
+      "sha256": "cf2a7e25f28fdbce5342efff36f951c573febc37ab6062d5a8c24a081ec37f5d"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase2/natalia-prepublication-final-20261024.json",
+      "source": ".verification/natalia-prepublication-final-20261024.json",
+      "bytes": 391,
+      "sha256": "b10d30b8cdf405773894554205fd32a4d142b2cc0195d94ea0b5c325463f5c0c"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase2/natalia-main-update-20261024.json",
+      "source": ".verification/natalia-main-update-20261024.json",
+      "bytes": 445,
+      "sha256": "59cc50b445cf023a5ba2c5f487ebfc57c27b247bbfe52f15f5f633e1a2665e95"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase2/natalia-production-publication-20261024.json",
+      "source": ".verification/natalia-production-publication-20261024.json",
+      "bytes": 602,
+      "sha256": "f42f5e28b8fa378d4526a8d6907315b1ed190e68192a34f8b478ae077d4ef21a"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase2/samsung-natalia-production-journey-20261024.json",
+      "source": ".verification/samsung-natalia-production-journey-20261024.json",
+      "bytes": 1318,
+      "sha256": "2f51b9ca7cbdac2feac4ddd735306bb2243db184210fadd99c530888da00c527"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase2/samsung-natalia-production-journey-v2-20261024.json",
+      "source": ".verification/samsung-natalia-production-journey-v2-20261024.json",
+      "bytes": 2838,
+      "sha256": "a4bc163529f5b5f644b8d126b359e0e2d24f562edba29b01f71d9d97ca91a991"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase2/samsung-natalia-console-source-diagnostic-20261024.json",
+      "source": ".verification/samsung-natalia-console-source-diagnostic-20261024.json",
+      "bytes": 413,
+      "sha256": "1d564258a86d18d944a7ae6908a15c66256de57b60c9b8850df5c6f2359df57d"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase2/inactive-push-red-diagnostic-20261024.log",
+      "source": ".verification/inactive-push-red-diagnostic-20261024.log",
+      "bytes": 1773,
+      "sha256": "ec5d830fb2fb8a5175c4a13913688f577681393644106a91ba410911c983809f"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase2/inactive-push-red-source-20261024.json",
+      "source": ".verification/inactive-push-red-source-20261024.json",
+      "bytes": 620,
+      "sha256": "e0d4a4dbce8240d71019b15dd7c977ab214db68b3cd90cfd8a03f18ef5cbf39f"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase2/inactive-push-green-source-20261024.json",
+      "source": ".verification/inactive-push-green-source-20261024.json",
+      "bytes": 842,
+      "sha256": "7728f91823f888e7f35810863171388234648e815d9331d16a6d39ab9f85ed4a"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase2/inactive-push-rollback-source-20261024.json",
+      "source": ".verification/inactive-push-rollback-source-20261024.json",
+      "bytes": 1726,
+      "sha256": "f56ace7a8c360edbbbbdbc2ea5af76e0c5fc21e861e39cded85ab6d81d66e7c1"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase2/production-capacity-measure.json",
+      "source": ".verification/production-measure-40078561771/production-capacity-measure.json",
+      "bytes": 14874,
+      "sha256": "05d12107eb9ac9d7e379cdb1a82fabb4b72f23306ab86656d3dcbc01bbf9f6ba"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase2/README.md",
+      "bytes": 1198,
+      "sha256": "93860ea374ca384522aa38c955e2388a9d79332ae0da45a6d34de2473838c91b"
+    }
+  ]
+}

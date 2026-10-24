@@ -17,16 +17,29 @@ slug='e2e-clinical-upload-concurrency'
 tmpdir=$(mktemp -d)
 
 clear_fixture() {
-	psql "$database_url" -v ON_ERROR_STOP=1 -q <<SQL >/dev/null 2>&1 || true
+	psql "$database_url" -v ON_ERROR_STOP=1 -q <<SQL >/dev/null
+begin;
+select private.clinical_budget_lock();
+with released as (
+ delete from public.clinical_upload_slots
+ where file_id in (select id from public.patient_radiographs where business_id='$business_id')
+ returning reserved_bytes
+)
+update public.clinical_storage_budget
+set reserved_bytes=reserved_bytes-(select coalesce(sum(reserved_bytes),0) from released),updated_at=clock_timestamp()
+where singleton;
 delete from public.patient_radiographs where business_id = '$business_id';
 delete from public.businesses where id = '$business_id';
 delete from auth.users where id = '$actor_id';
+commit;
 SQL
 }
 
 cleanup() {
-	clear_fixture
+	local status="$?"
+	if ! clear_fixture; then status=1; fi
 	rm -rf "$tmpdir"
+	exit "$status"
 }
 trap cleanup EXIT
 

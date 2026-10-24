@@ -1,13 +1,14 @@
+import { logServerFailure } from '$lib/server/platform/logging';
 // Fallback de descarga del calendario (attachment) para navegadores que no abren
 // bien text/calendar inline. Mismo contenido vivo que /calendario.ics.
 
 import { error } from '@sveltejs/kit';
-import { loadAppointmentForToken } from '$lib/server/appointment-token';
-import { icsForAppointment } from '$lib/server/calendar-content';
+import { loadAppointmentForToken } from '$lib/server/scheduling/public/appointment-token';
+import { icsForAppointment } from '$lib/server/integrations/public/calendar-content';
 import {
 	canRegisterCalendarAction,
 	recordCalendarAction
-} from '$lib/server/calendar-tracking';
+} from '$lib/server/integrations/public/calendar-tracking';
 import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async ({ params, fetch }) => {
@@ -18,7 +19,7 @@ export const GET: RequestHandler = async ({ params, fetch }) => {
 		try {
 			await recordCalendarAction(supabase, appointment, 'downloaded_ics');
 		} catch (trackingError) {
-			console.error('Error registrando descarga de calendario', trackingError);
+			logServerFailure('Error registrando descarga de calendario', trackingError);
 		}
 	}
 

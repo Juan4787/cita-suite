@@ -1,6 +1,6 @@
-import { expect, test, type Locator, type Page } from '@playwright/test';
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-import WebSocket from 'ws';
+import { expect, test, type Locator, type Page, type Route } from '@playwright/test';
+import { loginWithSharedSession } from './helpers/shared-auth';
+import { createFixtureClient, must, write, type FixtureClient } from './helpers/fixture-db';
 
 const supabaseUrl = process.env.ODONTO_SUPABASE_URL;
 const serviceRoleKey = process.env.ODONTO_SUPABASE_SERVICE_ROLE_KEY;
@@ -32,16 +32,7 @@ type Fixture = {
 
 const adminClient = () => {
 	if (!supabaseUrl || !serviceRoleKey) throw new Error('Faltan credenciales de Supabase.');
-	return createClient(supabaseUrl, serviceRoleKey, {
-		auth: { autoRefreshToken: false, persistSession: false },
-		realtime: { transport: WebSocket }
-	});
-};
-
-const must = async <T>(operation: PromiseLike<{ data: T; error: unknown }>) => {
-	const { data, error } = await operation;
-	if (error) throw error;
-	return data;
+	return createFixtureClient(supabaseUrl, serviceRoleKey);
 };
 
 const localDate = (date: Date) =>
@@ -61,8 +52,8 @@ const addDays = (date: string, days: number) => {
 const appointmentInstant = (date: string, time: string) => new Date(`${date}T${time}:00-03:00`);
 
 const createAppointmentRow = async (
-	admin: SupabaseClient,
-	fixture: Pick<Fixture, 'businessId' | 'serviceId' | 'professionalId' | 'patientId'>,
+	admin: FixtureClient,
+	fixture: Pick<Fixture, 'businessId' | 'serviceId' | 'professionalId' | 'patientId' | 'patientName'>,
 	input: { date: string; time: string; status: 'reserved' | 'cancelled' }
 ) => {
 	const startsAt = appointmentInstant(input.date, input.time);
@@ -81,6 +72,8 @@ const createAppointmentRow = async (
 				blocking_ends_at: endsAt.toISOString(),
 				status: input.status,
 				source: 'manual',
+				// The insert trigger replaces identity snapshots with the patient's current data.
+				patient_name_at_booking: fixture.patientName,
 				service_name_snapshot: 'Pendiente',
 				professional_name_snapshot: 'Pendiente',
 				duration_minutes_snapshot: 30,
@@ -91,7 +84,7 @@ const createAppointmentRow = async (
 	);
 };
 
-const createFixture = async (admin: SupabaseClient): Promise<Fixture> => {
+const createFixture = async (admin: FixtureClient): Promise<Fixture> => {
 	const ownerEmail = partialFixture.ownerEmail;
 	const authResult = await admin.auth.admin.createUser({
 		email: ownerEmail,
@@ -122,7 +115,7 @@ const createFixture = async (admin: SupabaseClient): Promise<Fixture> => {
 	);
 	partialFixture.businessId = business.id;
 
-	await must(
+	await write(
 		admin.from('business_subscriptions').upsert(
 			{
 				business_id: business.id,
@@ -138,8 +131,8 @@ const createFixture = async (admin: SupabaseClient): Promise<Fixture> => {
 			{ onConflict: 'business_id' }
 		)
 	);
-	await must(admin.from('allowed_emails').upsert({ email: ownerEmail, enabled: true }));
-	await must(
+	await write(admin.from('allowed_emails').upsert({ email: ownerEmail, enabled: true }));
+	await write(
 		admin.from('business_users').insert({
 			business_id: business.id,
 			user_id: ownerUserId,
@@ -178,7 +171,7 @@ const createFixture = async (admin: SupabaseClient): Promise<Fixture> => {
 			.select('id')
 			.single()
 	);
-	await must(
+	await write(
 		admin.from('professional_services').insert({
 			business_id: business.id,
 			professional_id: professional.id,
@@ -186,7 +179,7 @@ const createFixture = async (admin: SupabaseClient): Promise<Fixture> => {
 		})
 	);
 	for (const weekday of [0, 1, 2, 3, 4, 5, 6]) {
-		await must(
+		await write(
 			admin.from('availability_rules').insert({
 				business_id: business.id,
 				professional_id: professional.id,
@@ -254,26 +247,26 @@ const createFixture = async (admin: SupabaseClient): Promise<Fixture> => {
 	};
 };
 
-const cleanupFixture = async (admin: SupabaseClient, fixture: Fixture | null) => {
+const cleanupFixture = async (admin: FixtureClient, fixture: Fixture | null) => {
 	if (!fixture) return;
 	const { error: businessError } = await admin
 		.from('businesses')
 		.delete()
 		.eq('id', fixture.businessId);
 	if (businessError) throw businessError;
-	await admin.from('allowed_emails').delete().eq('email', fixture.ownerEmail);
+	await write(admin.from('allowed_emails').delete().eq('email', fixture.ownerEmail));
 	const { error: userError } = await admin.auth.admin.deleteUser(fixture.ownerUserId);
 	if (userError && !userError.message.includes('User not found')) throw userError;
 	partialFixture.ownerUserId = '';
 	partialFixture.businessId = '';
 };
 
-const cleanupPartialFixture = async (admin: SupabaseClient) => {
+const cleanupPartialFixture = async (admin: FixtureClient) => {
 	if (partialFixture.businessId) {
 		const { error } = await admin.from('businesses').delete().eq('id', partialFixture.businessId);
 		if (error) throw error;
 	}
-	await admin.from('allowed_emails').delete().eq('email', partialFixture.ownerEmail);
+	await write(admin.from('allowed_emails').delete().eq('email', partialFixture.ownerEmail));
 	if (partialFixture.ownerUserId) {
 		const { error } = await admin.auth.admin.deleteUser(partialFixture.ownerUserId);
 		if (error && !error.message.includes('User not found')) throw error;
@@ -282,12 +275,14 @@ const cleanupPartialFixture = async (admin: SupabaseClient) => {
 	partialFixture.businessId = '';
 };
 
+// Reuse one real session across the cases: each password sign-in counts toward the
+// per-email login limit, which stays enabled.
 const login = async (page: Page, fixture: Fixture) => {
-	await page.goto('/login');
-	await page.getByLabel('Correo electrónico').fill(fixture.ownerEmail);
-	await page.getByLabel('Contraseña').fill(password);
-	await page.locator('form').getByRole('button', { name: 'Ingresar', exact: true }).click();
-	await expect(page.getByRole('link', { name: 'Agenda' })).toBeVisible({ timeout: 15_000 });
+	await loginWithSharedSession(page, {
+		email: fixture.ownerEmail,
+		password,
+		readyLinkNames: ['Agenda']
+	});
 };
 
 const boxesDoNotOverlap = async (left: Locator, right: Locator) => {
@@ -300,11 +295,10 @@ const boxesDoNotOverlap = async (left: Locator, right: Locator) => {
 const openWizardAt = async (page: Page, fixture: Fixture, time: string) => {
 	await page.goto(`/odonto/agenda?date=${fixture.bookingDate}`);
 	const wizard = page.locator('form').filter({ has: page.locator('input[name="booking_mode"]') });
-	const openButton = page.getByRole('button', { name: '+ Nuevo turno', exact: true });
-	await expect(async () => {
-		await openButton.click();
-		await expect(wizard).toBeVisible({ timeout: 1_500 });
-	}).toPass({ timeout: 10_000 });
+	// The control is enabled only once hydrated, so its first click must open the wizard.
+	// Retrying a toggle would close what it just opened while references load.
+	await page.getByRole('button', { name: '+ Nuevo turno', exact: true }).click();
+	await expect(wizard).toBeVisible({ timeout: 15_000 });
 	await wizard.getByRole('button').filter({ hasText: fixture.serviceName }).click();
 	await wizard.getByRole('button').filter({ hasText: fixture.professionalName }).click();
 	await expect(wizard.getByRole('heading', { name: 'Elegí un día' })).toBeVisible();
@@ -331,7 +325,7 @@ test.describe('Pacientes, próximos turnos y teléfono — UX integrada', () => 
 		'Requiere E2E_ALLOW_DESTRUCTIVE=true y credenciales de Supabase.'
 	);
 
-	let admin: SupabaseClient;
+	let admin: FixtureClient;
 	let fixture: Fixture | null = null;
 
 	test.beforeAll(async () => {
@@ -372,7 +366,7 @@ test.describe('Pacientes, próximos turnos y teléfono — UX integrada', () => 
 			// Playwright informa ese aborto como una ruta ya resuelta.
 			await route.continue().catch(() => undefined);
 		});
-		const search = page.getByPlaceholder('Buscar por nombre, DNI o teléfono');
+		const search = page.getByRole('searchbox', { name: 'Buscar pacientes' });
 		await search.fill('Z');
 		const desktopPatientName = page.getByRole('button', {
 			name: fixture.patientName,
@@ -392,6 +386,18 @@ test.describe('Pacientes, próximos turnos y teléfono — UX integrada', () => 
 		await expect(page.locator('.animate-spin')).toHaveCount(0, { timeout: 3_000 });
 		await page.unroute('**/odonto/pacientes/lista?**');
 
+		// A 200 with a partial body must not erase the list or masquerade as
+		// an empty search. Exercise the component's own fetch, beyond PageLoad.
+		await page.route('**/odonto/pacientes/lista?**', route => route.fulfill({
+			status: 200, contentType: 'application/json', body: JSON.stringify({ patients: [] })
+		}), { times: 1 });
+		await search.fill('Z');
+		await expect(page.getByRole('alert')).toContainText('No pudimos validar la respuesta');
+		await expect(desktopPatientName).toBeVisible();
+		await clear.click();
+		await expect(search).toHaveValue('');
+		await expect(desktopPatientName).toBeVisible();
+
 		const row = page.locator('tr').filter({ hasText: fixture.patientName });
 		await expect(row).toBeVisible();
 		await row.locator('td').nth(1).click();
@@ -406,6 +412,43 @@ test.describe('Pacientes, próximos turnos y teléfono — UX integrada', () => 
 		);
 		await expect(upcoming.locator(`a[href*="${fixture.pastAppointmentId}"]`)).toHaveCount(0);
 		await expect(upcoming.locator(`a[href*="${fixture.cancelledAppointmentId}"]`)).toHaveCount(0);
+	});
+
+	test('abre un turno nuevo con un solo clic aunque profesionales y servicios tarden en cargar', async ({
+		page
+	}) => {
+		if (!fixture) throw new Error('Fixture no inicializado.');
+		await login(page, fixture);
+		// Deterministic slow response: references are held until the loading state is verified.
+		let releaseReferences!: () => void;
+		const referencesHeld = new Promise<void>((resolve) => {
+			releaseReferences = resolve;
+		});
+		// Only the target day: the login landing agenda (today) may still be loading its own
+		// references, and navigating away legitimately aborts that earlier request.
+		const { bookingDate } = fixture;
+		const isReferences = (url: URL) =>
+			url.pathname === '/odonto/agenda/referencias' && url.searchParams.get('from') === bookingDate;
+		const holdReferences = async (route: Route) => {
+			await referencesHeld;
+			await route.continue();
+		};
+		await page.route(isReferences, holdReferences);
+		try {
+			await page.goto(`/odonto/agenda?date=${fixture.bookingDate}`);
+			await page.getByRole('button', { name: '+ Nuevo turno', exact: true }).click();
+			await expect(page.getByText('Cargando profesionales y servicios…', { exact: true })).toBeVisible();
+			await expect(page.getByRole('button', { name: 'Cerrar', exact: true })).toBeVisible();
+		} finally {
+			// Released, the gate lets any later reference request through. It is not unrouted:
+			// unrouting while the held request is in flight lets Playwright settle it first.
+			releaseReferences();
+		}
+		const wizard = page.locator('form').filter({ has: page.locator('input[name="booking_mode"]') });
+		await expect(wizard).toBeVisible({ timeout: 15_000 });
+		await wizard.getByRole('button').filter({ hasText: fixture.serviceName }).click();
+		await wizard.getByRole('button').filter({ hasText: fixture.professionalName }).click();
+		await expect(wizard.getByRole('heading', { name: 'Elegí un día' })).toBeVisible();
 	});
 
 	test('corrige un número inválido sin salir del formulario y conserva el turno', async ({ page }) => {
@@ -446,7 +489,7 @@ test.describe('Pacientes, próximos turnos y teléfono — UX integrada', () => 
 		await expect(page.getByRole('link', { name: 'Enviar enlace de activación' })).toBeVisible();
 
 		const createdAppointmentId = new URL(page.url()).pathname.split('/').at(-1);
-		expect(createdAppointmentId).toBeTruthy();
+		if (!createdAppointmentId) throw new Error('La confirmación no abrió el turno creado.');
 		const appointment = await must(
 			admin
 				.from('appointments')
@@ -512,7 +555,7 @@ test.describe('Pacientes, próximos turnos y teléfono — UX integrada', () => 
 		);
 
 		const createdAppointmentId = new URL(page.url()).pathname.split('/').at(-1);
-		expect(createdAppointmentId).toBeTruthy();
+		if (!createdAppointmentId) throw new Error('La confirmación no abrió el turno creado.');
 		const appointment = await must(
 			admin
 				.from('appointments')
@@ -551,7 +594,7 @@ test.describe('Pacientes, próximos turnos y teléfono — UX integrada', () => 
 		await expect(page.getByRole('link', { name: /WhatsApp|Enviar enlace/ })).toHaveCount(0);
 
 		const createdAppointmentId = new URL(page.url()).pathname.split('/').at(-1);
-		expect(createdAppointmentId).toBeTruthy();
+		if (!createdAppointmentId) throw new Error('La confirmación no abrió el turno creado.');
 		const appointment = await must(
 			admin
 				.from('appointments')
@@ -603,7 +646,7 @@ test.describe('Pacientes, próximos turnos y teléfono — UX integrada', () => 
 		await expect(page.getByRole('link', { name: /WhatsApp|Enviar enlace/ })).toHaveCount(0);
 
 		const createdAppointmentId = new URL(page.url()).pathname.split('/').at(-1);
-		expect(createdAppointmentId).toBeTruthy();
+		if (!createdAppointmentId) throw new Error('La confirmación no abrió el turno creado.');
 		const appointment = await must(
 			admin
 				.from('appointments')

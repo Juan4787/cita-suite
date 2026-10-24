@@ -1,5 +1,5 @@
 import type { RequestHandler } from './$types';
-import { patientExportFailure, patientExportJson } from '$lib/server/patient-export-http';
+import { patientExportFailure, patientExportJson } from '$lib/server/patients/public/patient-export-http';
 import {
 	PatientExportError,
 	createPatientExportAdminClient,
@@ -8,7 +8,7 @@ import {
 	isValidPatientExportCounts,
 	readPatientExportJson,
 	validatePatientExport
-} from '$lib/server/patient-exports';
+} from '$lib/server/patients/public/patient-exports';
 
 export const POST: RequestHandler = async ({ request, params, locals, fetch }) => {
 	try {
@@ -23,7 +23,7 @@ export const POST: RequestHandler = async ({ request, params, locals, fetch }) =
 			throw new PatientExportError('EXPORT_INVALID_REQUEST');
 		}
 
-		const actorUserId = getPatientExportActorId(locals.auth);
+		const actorUserId = getPatientExportActorId(locals);
 		const supabase = await createPatientExportAdminClient(fetch);
 		const validation = await validatePatientExport({
 			supabase,

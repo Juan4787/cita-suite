@@ -1,30 +1,34 @@
-import {readBoundedBookingForm} from '$lib/server/public-booking-page';
+import { todayInTimeZone } from '$lib/availability/calculate';
+import { logServerFailure } from '$lib/server/platform/logging';
+import {readBoundedBookingForm} from '$lib/server/platform/form-data';
 import { env } from '$env/dynamic/private';
-import { bookingContextsAvailable } from '$lib/server/booking-integration-flags';
-import { demoBusinessContext } from '$lib/server/business';
-import { getAvailabilitySlots } from '$lib/server/availability';
+import { bookingContextsAvailable } from '$lib/server/sites/public/booking-integration-flags';
+import { demoBusinessContext } from '$lib/server/access/public/business';
+import { getAvailabilitySlots } from '$lib/server/scheduling/public/availability';
 import {
 	getHumanAppointmentErrorMessage,
 	isAppointmentStatus,
 	rescheduleAppointment,
 	updateAppointmentStatus
-} from '$lib/server/appointments';
-import { getOdontoContext } from '$lib/server/odonto-context';
-import { createSupabaseAdminClient } from '$lib/server/supabase';
-import { loadAppointmentBookingContext, loadAppointmentIntakeForPatient } from '$lib/server/booking-integrations';
-import { processAppointmentGoogleCalendarSync } from '$lib/server/google-calendar';
-import { resetPushRemindersForReschedule, sendReschedulePushNotice } from '$lib/server/push';
+} from '$lib/server/scheduling/public/appointments';
+import { getOdontoContext } from '$lib/server/access/public/odonto-context';
+import { createSupabaseAdminClient } from '$lib/server/platform/supabase';
+import { loadAppointmentBookingContext, loadAppointmentIntakeForPatient } from '$lib/server/sites/public/booking-integrations';
+import { processAppointmentGoogleCalendarSync } from '$lib/server/integrations/public/google-calendar';
+import { resetPushRemindersForReschedule, sendReschedulePushNotice } from '$lib/server/integrations/public/push';
 import {
 	buildAppointmentActivationDelivery,
 	buildArgentineWaMeUrl,
 	buildRescheduleWhatsAppMessage,
 	buildWhatsAppWebUrl
-} from '$lib/server/reminders';
-import { publicRescheduleUrl } from '$lib/server/messaging';
-import { shouldOfferCreatedAppointmentActivation } from '$lib/server/agenda-navigation';
-import { normalizeArgentineWhatsAppPhone } from '$lib/server/phone';
+} from '$lib/server/scheduling/public/reminders';
+import { publicRescheduleUrl } from '$lib/server/integrations/public/messaging';
+import { shouldOfferCreatedAppointmentActivation } from '$lib/scheduling/agenda-navigation';
+import { normalizeArgentineWhatsAppPhone } from '$lib/utils/phone';
 import { classifyUserAgent } from '$lib/device';
 import { isActiveAppointmentStatus } from '$lib/utils/appointment-visibility';
+import { isAvailabilityDate } from '$lib/availability/windows';
+import { parsePriceQuote } from '$lib/scheduling/price-contracts';
 import { error as kitError, fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 
@@ -39,17 +43,6 @@ const localDateFor = (isoDate: string, timeZone: string) => {
 	return `${parts.year}-${parts.month}-${parts.day}`;
 };
 
-const todayForTimezone = (timeZone: string) => {
-	const formatter = new Intl.DateTimeFormat('en-CA', {
-		timeZone,
-		year: 'numeric',
-		month: '2-digit',
-		day: '2-digit'
-	});
-	const parts = Object.fromEntries(formatter.formatToParts(new Date()).map((part) => [part.type, part.value]));
-	return `${parts.year}-${parts.month}-${parts.day}`;
-};
-
 export const load: PageServerLoad = async ({ params, locals, fetch, cookies, url, request }) => {
 	if (!locals.auth) throw redirect(303, '/login');
 	const activationDevice = classifyUserAgent(request.headers.get('user-agent'));
@@ -58,7 +51,6 @@ export const load: PageServerLoad = async ({ params, locals, fetch, cookies, url
 			context: demoBusinessContext(),
 			appointment: null,
 			auditLogs: [],
-			messageDispatches: [],
 			userLabels: {},
 			reprogramDate: new Date().toISOString().slice(0, 10),
 			minReprogramDate: new Date().toISOString().slice(0, 10),
@@ -82,8 +74,7 @@ export const load: PageServerLoad = async ({ params, locals, fetch, cookies, url
 	const { supabase, business, userId } = await getOdontoContext({
 		locals,
 		fetch,
-		cookies,
-		membershipCache: 'fresh'
+		cookies
 	});
 	const { data, error } = await supabase
 		.from('appointments')
@@ -95,7 +86,7 @@ export const load: PageServerLoad = async ({ params, locals, fetch, cookies, url
 		.maybeSingle();
 
 	if (error) {
-		console.error('Error cargando turno', error);
+		logServerFailure('Error cargando turno', error);
 		throw kitError(
 			500,
 			'No pudimos cargar el turno. Volvé a la agenda e intentá abrirlo otra vez; si el problema continúa, pedile a un administrador que revise el registro interno.'
@@ -116,13 +107,16 @@ export const load: PageServerLoad = async ({ params, locals, fetch, cookies, url
 		? await loadAppointmentIntakeForPatient(supabase, business.business.id, data.id, data.patient_id) : null;
 
 	const appointmentLocalDate = localDateFor(data.starts_at, business.business.timezone);
-	const minReprogramDate = todayForTimezone(business.business.timezone);
-	const requestedReprogramDate = url.searchParams.get('reprogram_date');
-	const reprogramDate =
-		requestedReprogramDate ?? (appointmentLocalDate >= minReprogramDate ? appointmentLocalDate : minReprogramDate);
-	const fromDate = url.searchParams.get('from_date') ?? localDateFor(data.starts_at, business.business.timezone);
+	const minReprogramDate = todayInTimeZone(business.business.timezone);
+	// Dates from the address are used only when they are real dates.
+	const requestedReprogramDate = url.searchParams.get('reprogram_date') ?? '';
+	const reprogramDate = isAvailabilityDate(requestedReprogramDate)
+		? requestedReprogramDate
+		: appointmentLocalDate >= minReprogramDate ? appointmentLocalDate : minReprogramDate;
+	const requestedFromDate = url.searchParams.get('from_date') ?? '';
+	const fromDate = isAvailabilityDate(requestedFromDate) ? requestedFromDate : appointmentLocalDate;
 
-	const [auditResult, usersResult, messageResult, teamResult] = await Promise.all([
+	const [auditResult, usersResult, teamResult] = await Promise.all([
 		supabase
 			.from('audit_logs')
 			.select('id, user_id, action, entity_type, entity_id, metadata, created_at')
@@ -131,12 +125,6 @@ export const load: PageServerLoad = async ({ params, locals, fetch, cookies, url
 			.eq('entity_id', params.appointmentId)
 			.order('created_at', { ascending: false }),
 		supabase.rpc('list_business_users', { target_business_id: business.business.id }),
-		supabase
-			.from('message_dispatches')
-			.select('id, type, status, scheduled_for, sent_at, delivered_at, read_at, failed_at, human_error_message, created_at')
-			.eq('business_id', business.business.id)
-			.eq('appointment_id', params.appointmentId)
-			.order('created_at', { ascending: false }),
 		supabase
 			.from('appointment_professionals')
 			.select(
@@ -147,21 +135,26 @@ export const load: PageServerLoad = async ({ params, locals, fetch, cookies, url
 			.order('position')
 	]);
 
-	if (auditResult.error) console.error('Error cargando auditoria del turno', auditResult.error);
-	if (usersResult.error) console.error('Error cargando usuarios para auditoria', usersResult.error);
-	if (messageResult.error) console.error('Error cargando mensajes del turno', messageResult.error);
-	if (teamResult.error) console.error('Error cargando equipo del turno', teamResult.error);
+	// Without its team a joint appointment would look like one professional's: an error.
+	// The history is secondary, so the page says it could not be loaded instead of
+	// showing it as empty; without the users, it names them by their identifier.
+	if (teamResult.error) {
+		logServerFailure('appointment.team_unavailable', teamResult.error);
+		throw kitError(503, 'No pudimos cargar el equipo del turno. Volvé a intentar.');
+	}
+	if (auditResult.error) logServerFailure('Error cargando auditoria del turno', auditResult.error);
+	if (usersResult.error) logServerFailure('Error cargando usuarios para auditoria', usersResult.error);
 
 	const userLabels = Object.fromEntries(
-		(usersResult.data ?? []).map((user: any) => [String(user.user_id), user.email ?? String(user.user_id).slice(0, 8)])
+		(usersResult.data ?? []).map((user) => [String(user.user_id), user.email ?? String(user.user_id).slice(0, 8)])
 	);
 
 	// Botón "Enviar actualización por WhatsApp": solo si el turno sigue activo, hay un
 	// teléfono E.164 plausible y un token. El enlace privado muestra SOLO el aviso de
 	// reprogramación. El texto va precargado y neutral (sin datos clínicos).
-	const patient = (data as any).patients;
+	const patient = data.patients;
 	const phone = normalizeArgentineWhatsAppPhone(patient?.phone_e164);
-	const token = (data as any).confirmation_token ? String((data as any).confirmation_token) : null;
+	const token = data.confirmation_token ? String(data.confirmation_token) : null;
 	const canNotifyReschedule = isActiveAppointmentStatus(data.status);
 	let rescheduleWhatsAppUrl: string | null = null;
 	let rescheduleWhatsAppWebUrl: string | null = null;
@@ -184,8 +177,8 @@ export const load: PageServerLoad = async ({ params, locals, fetch, cookies, url
 
 	const phoneWarningAcknowledged =
 		['missing', 'invalid'].includes(
-			String((data as any).phone_communication_status_at_booking)
-		) && Boolean((data as any).phone_warning_acknowledged_at);
+			String(data.phone_communication_status_at_booking)
+		) && Boolean(data.phone_warning_acknowledged_at);
 	const justCreated = shouldOfferCreatedAppointmentActivation({
 		requested: url.searchParams.get('created') === '1',
 		source: String(data.source),
@@ -201,6 +194,8 @@ export const load: PageServerLoad = async ({ params, locals, fetch, cookies, url
 		context: business,canEditInstructions,
 		appointment: {
 			...data,
+			// The quote saved with the booking is JSON: validated here, never trusted as is.
+			price_quote_snapshot: parsePriceQuote(data.price_quote_snapshot),
 			booking_context: bookingContext,
 			booking_intake: bookingIntake,
 			professionals:
@@ -216,8 +211,7 @@ export const load: PageServerLoad = async ({ params, locals, fetch, cookies, url
 							}
 						]
 		},
-		auditLogs: auditResult.data ?? [],
-		messageDispatches: messageResult.data ?? [],
+		auditLogs: auditResult.error ? null : auditResult.data,
 		userLabels,
 		reprogramDate,
 		minReprogramDate,
@@ -269,8 +263,8 @@ export const actions: Actions = {
 				userId,
 				reason: String(form.get('reason') ?? '').trim() || null
 			});
-		} catch (error: any) {
-			console.error('Error actualizando turno', error);
+		} catch (error) {
+			logServerFailure('Error actualizando turno', error);
 			return fail(400, { message: getHumanAppointmentErrorMessage(error) });
 		}
 
@@ -280,7 +274,7 @@ export const actions: Actions = {
 				await processAppointmentGoogleCalendarSync(admin, params.appointmentId, fetch);
 			} catch (calendarError) {
 				// El trigger ya dejó el borrado en la cola durable.
-				console.error('Error sincronizando Google Calendar tras cancelar turno', {
+				logServerFailure('Error sincronizando Google Calendar tras cancelar turno', {
 					appointmentId: params.appointmentId,
 					code:
 						calendarError instanceof Error
@@ -313,7 +307,7 @@ export const actions: Actions = {
 					'Elegí una fecha y uno de los horarios que muestra la agenda antes de confirmar la reprogramación.'
 			});
 		}
-		if (reprogramDate < todayForTimezone(business.business.timezone)) {
+		if (reprogramDate < todayInTimeZone(business.business.timezone)) {
 			return fail(400, {
 				message:
 					'No se puede mover un turno a una fecha pasada. Elegí hoy o una fecha futura y seleccioná un horario disponible.'
@@ -336,10 +330,7 @@ export const actions: Actions = {
 		]);
 		const appointment = appointmentResult.data;
 		if (appointmentResult.error || teamResult.error) {
-			console.error(
-				'Error cargando turno o equipo para reprogramar',
-				appointmentResult.error ?? teamResult.error
-			);
+			logServerFailure('Error cargando turno o equipo para reprogramar', appointmentResult.error ?? teamResult.error);
 			return fail(500, {
 				message:
 					'No pudimos cargar el turno completo y, por seguridad, no modificamos ninguna agenda. Recargá la página y volvé a intentar.'
@@ -370,7 +361,7 @@ export const actions: Actions = {
 				ignoreBreak
 			});
 		} catch (availabilityError) {
-			console.error('Error revalidando equipo antes de reprogramar', availabilityError);
+			logServerFailure('Error revalidando equipo antes de reprogramar', availabilityError);
 			return fail(500, {
 				message:
 					'No pudimos volver a comprobar la disponibilidad de todo el equipo y, por seguridad, el turno conserva su horario anterior. Recargá la página y volvé a intentar.'
@@ -394,8 +385,8 @@ export const actions: Actions = {
 				startsAt: new Date(slot.starts_at),
 				ignoreBreak
 			});
-		} catch (error: any) {
-			console.error('Error reprogramando turno', error);
+		} catch (error) {
+			logServerFailure('Error reprogramando turno', error);
 			return fail(400, { message: getHumanAppointmentErrorMessage(error) });
 		}
 
@@ -415,18 +406,18 @@ export const actions: Actions = {
 					appointmentId: params.appointmentId
 				});
 			} catch (resetError) {
-				console.error('Error reforzando el reseteo de avisos tras reprogramar', resetError);
+				logServerFailure('Error reforzando el reseteo de avisos tras reprogramar', resetError);
 			}
 			try {
-				await sendReschedulePushNotice(admin, {
+				await sendReschedulePushNotice(admin, fetch, {
 					businessId: business.business.id,
 					appointmentId: params.appointmentId
 				});
 			} catch (noticeError) {
-				console.error('Error enviando el aviso inmediato tras reprogramar', noticeError);
+				logServerFailure('Error enviando el aviso inmediato tras reprogramar', noticeError);
 			}
 		} catch (pushSetupError) {
-			console.error('Error preparando avisos push tras reprogramar', pushSetupError);
+			logServerFailure('Error preparando avisos push tras reprogramar', pushSetupError);
 		}
 
 		try {
@@ -434,7 +425,7 @@ export const actions: Actions = {
 			await processAppointmentGoogleCalendarSync(admin, params.appointmentId, fetch);
 		} catch (calendarError) {
 			// La reprogramacion ya quedó confirmada y la cola reintentará sin intervención.
-			console.error('Error sincronizando Google Calendar tras reprogramar', {
+			logServerFailure('Error sincronizando Google Calendar tras reprogramar', {
 				appointmentId: params.appointmentId,
 				code:
 					calendarError instanceof Error

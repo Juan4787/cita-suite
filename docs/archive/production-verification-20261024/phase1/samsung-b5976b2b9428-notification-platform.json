@@ -1,0 +1,14 @@
+{
+  "at": "2026-10-24T03:37:17.027Z",
+  "pageVisibility": "visible",
+  "permission": "granted",
+  "ownedNotifications": [
+    {
+      "title": "Turno en Prueba de dispositivo producción",
+      "body": "Te recordamos tu turno el sábado, 24 de octubre a las 03:32.",
+      "hasAuthenticatedDelivery": true,
+      "actions": []
+    }
+  ],
+  "otherOriginNotificationsNotReturned": true
+}

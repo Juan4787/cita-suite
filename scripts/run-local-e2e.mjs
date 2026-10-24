@@ -56,6 +56,8 @@ try {
 			env: {
 				...process.env,
 				E2E_ALLOW_DESTRUCTIVE: 'true',
+				CITA_E2E_ENVIRONMENT: 'supabase-local',
+				SUPABASE_DB_URL: databaseUrl,
 				ODONTO_SUPABASE_URL: apiUrl,
 				ODONTO_SUPABASE_ANON_KEY: anonKey,
 				ODONTO_SUPABASE_SERVICE_ROLE_KEY: serviceRoleKey,

@@ -1,0 +1,13 @@
+{
+  "at": "2026-10-24T09:35:31.689Z",
+  "phase": "red",
+  "scope": "Actual production-report queryid projection extracted from the current script, executed on two adjacent literal bigint values in a read-only transaction; no application rows or credentials returned. Exercise PostgreSQL JSON -> NodeJSON -> serialized report, not a string-presence assertion.",
+  "projection": "queryid",
+  "ids": [
+    9007199254740992,
+    9007199254740992
+  ],
+  "distinct": 1,
+  "allStrings": false,
+  "passed": false
+}

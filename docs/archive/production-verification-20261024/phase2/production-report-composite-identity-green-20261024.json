@@ -1,0 +1,22 @@
+{
+  "at": "2026-10-24T09:52:58.440Z",
+  "scope": "Actual complete report SELECT projection executed readonly on literal fixture rows. Same queryid with different users/toplevel remains distinguishable through PostgreSQL JSON and Node serialization; no application data.",
+  "keys": [
+    [
+      "9007199254740993",
+      "7",
+      true
+    ],
+    [
+      "9007199254740993",
+      "8",
+      true
+    ],
+    [
+      "9007199254740993",
+      "8",
+      false
+    ]
+  ],
+  "passed": true
+}

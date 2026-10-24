@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { parseAvailabilitySnapshot } from '$lib/availability/http';
+	import { readRecord } from '$lib/contracts/json';
 	import { afterNavigate } from '$app/navigation';
 	import DayFilterPicker from '$lib/components/agenda/DayFilterPicker.svelte';
 	import ManualAppointmentWizard from '$lib/components/agenda/ManualAppointmentWizard.svelte';
@@ -47,7 +49,7 @@
 	};
 	type Stat = { status: string; count: number };
 
-	let { data, form } = $props<{
+	let { data, form }: {
 		data: {
 			context: { canOperate: boolean; business?: { id?: string } };
 			date: string;
@@ -68,7 +70,7 @@
 			patients: Patient[];
 			patientsLoaded?: boolean;
 			referencesLoaded?: boolean;
-			reminderCount?: number;
+			reminderCount?: number | null;
 			appointmentRequestId: string;
 			demo: boolean;
 		};
@@ -77,7 +79,7 @@
 				phoneWarning?: { kind: 'missing' | 'invalid' };
 				values?: Record<string, unknown>;
 			};
-	}>();
+	} = $props();
 
 	const canOperate = $derived(data.context.canOperate && !data.demo);
 	let showCreate = $state(false);
@@ -386,6 +388,7 @@
 	);
 
 	const loadReferences = async () => {
+		if (data.demo) return;
 		const snapshotCoversAgendaDate = Boolean(
 			availabilitySnapshot &&
 				snapshotContainsRange(availabilitySnapshot, data.date, data.date)
@@ -401,16 +404,18 @@
 			const response = await fetch(
 				'/odonto/agenda/referencias?from=' + encodeURIComponent(data.date)
 			);
-			const payload = await response.json().catch(() => ({}));
-			if (!response.ok) {
-				throw new Error(
-					payload?.message ?? 'No se pudieron cargar profesionales y servicios.'
-				);
-			}
-			professionals = Array.isArray(payload?.professionals) ? payload.professionals : [];
-			services = Array.isArray(payload?.services) ? payload.services : [];
-			serviceProfessionalIds = payload?.service_professional_ids ?? {};
-			availabilitySnapshot = payload?.availability_snapshot ?? null;
+			const payload = readRecord(await response.json(), 'availability.http.references');
+			if (!response.ok) throw new Error(typeof payload.message === 'string' ? payload.message : 'No se pudieron cargar profesionales y servicios.');
+            const snapshot = parseAvailabilitySnapshot(payload.availability_snapshot, {
+                businessId: String(data.context.business?.id ?? ''), date: data.date
+            });
+            // Publish all references together only after the whole snapshot passes.
+            professionals = snapshot.professionals;
+            services = snapshot.services;
+            serviceProfessionalIds = snapshot.assignments.reduce<Record<string, string[]>>((mapping, row) => {
+                (mapping[row.service_id] ??= []).push(row.professional_id); return mapping;
+            }, {});
+            availabilitySnapshot = snapshot;
 			referencesLoaded = true;
 		} catch (error) {
 			referencesError =
@@ -525,15 +530,15 @@
 	>
 		<div class={`shrink-0 text-center ${showDate ? 'w-16 sm:w-24' : 'w-14 sm:w-20'}`}>
 			{#if showDate}
-				<p class="text-[11px] font-bold uppercase tracking-wide text-[#c4b5fd]">{shortDayLabel(appointment.starts_at)}</p>
+				<p class="text-micro font-bold uppercase tracking-wide text-[#c4b5fd]">{shortDayLabel(appointment.starts_at)}</p>
 			{/if}
 			<p class="text-xl font-bold text-white sm:text-2xl">{timeOnly(appointment.starts_at)}</p>
 			<p class="mt-0.5 text-xs text-white/40">{timeOnly(appointment.ends_at)}</p>
 		</div>
 		<div class="min-w-0 flex-1">
-			<p class="truncate text-base font-bold text-white sm:text-lg">{appointment.patients?.full_name ?? 'Paciente'}</p>
-			<p class="mt-0.5 truncate text-sm text-white/55">
-				{appointment.service_name_snapshot} · {appointment.professional_name_snapshot}
+			<p class="break-words text-base font-bold text-white sm:text-lg">{appointment.patients?.full_name ?? 'Paciente'}</p>
+			<p class="mt-0.5 break-words text-sm text-white/55">
+				{appointment.service_name_snapshot} ·&nbsp;{appointment.professional_name_snapshot}
 			</p>
 			<div class="mt-2 flex flex-wrap gap-2">
 				<span class={appointmentStatusTone(appointment)}>{appointmentStatusLabel(appointment)}</span>
@@ -578,6 +583,7 @@
 					type="button"
 					class="ux-btn-primary w-full sm:w-auto"
 					onclick={toggleCreate}
+					disabled={!initialized}
 					onpointerenter={() => void loadReferences()}
 					onfocus={() => void loadReferences()}
 				>
@@ -591,12 +597,13 @@
 				type="button"
 				class="ux-btn-secondary"
 				onclick={toggleSearch}
+				disabled={!initialized}
 				onpointerenter={() => void loadLiveSnapshot()}
 				onfocus={() => void loadLiveSnapshot()}
 			>
 				{showSearch ? 'Ocultar búsqueda' : 'Buscar'}
 			</button>
-			<a href={weekHref} class="ux-btn-secondary">Ver turnos de la semana</a>
+			<a href={weekHref} class="ux-btn-secondary w-full sm:w-auto">Ver semana</a>
 		</div>
 	</div>
 
@@ -610,9 +617,14 @@
 		</div>
 	{/if}
 
-	{#if (data.reminderCount ?? 0) > 0}
+	{#if data.reminderCount === null}
 		<div class="ux-alert ux-alert-warning">
-			📋 {data.reminderCount}{' '}
+			No pudimos comprobar los recordatorios de mañana.
+			<a href="/odonto/recordatorios" class="font-bold underline">Ver turnos para recordar</a>
+		</div>
+	{:else if (data.reminderCount ?? 0) > 0}
+		<div class="ux-alert ux-alert-warning">
+			{data.reminderCount}{' '}
 			{data.reminderCount === 1
 				? 'turno de mañana sin calendario iniciado ni notificación confirmada'
 				: 'turnos de mañana sin calendario iniciado ni notificación confirmada'}.
@@ -742,9 +754,9 @@
 					{liveActive ? 'Resultado del buscador' : hasActiveSearch ? 'Resultado de búsqueda' : 'Turnos del día'}
 				</h2>
 				{#if liveActive}
-					<p class="mt-1 truncate text-sm font-semibold text-white/50">“{liveQuery}”</p>
+					<p class="mt-1 break-words text-sm font-semibold text-white/50">“{liveQuery}”</p>
 				{:else if searchSummary}
-					<p class="mt-1 truncate text-sm font-semibold text-white/50">{searchSummary}</p>
+					<p class="mt-1 break-words text-sm font-semibold text-white/50">{searchSummary}</p>
 				{/if}
 			</div>
 			<span class="ux-badge shrink-0">{resultLabel}</span>

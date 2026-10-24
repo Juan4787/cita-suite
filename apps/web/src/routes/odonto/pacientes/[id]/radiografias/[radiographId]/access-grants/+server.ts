@@ -1,3 +1,4 @@
+import { logServerFailure } from '$lib/server/platform/logging';
 import {
 	CLINICAL_FILE_ORIGINAL_URL_TTL_SECONDS,
 	clinicalFileCacheHeaders,
@@ -6,11 +7,11 @@ import {
 	createSignedClinicalFileUrl,
 	getClinicalFileRequestContext,
 	requireClinicalFileView
-} from '$lib/server/clinical-files';
+} from '$lib/server/patients/public/clinical-files';
 import {
 	enforceRateLimits,
 	radiographOriginalAccessRateLimitRules
-} from '$lib/server/rate-limits';
+} from '$lib/server/platform/rate-limits';
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import {clinicalDownloadName} from '$lib/clinical-documents';
@@ -23,24 +24,16 @@ export const POST: RequestHandler = async (event) => {
 		await enforceRateLimits(radiographOriginalAccessRateLimitRules(context.userId), event.fetch);
 
 		const { data, error } = await context.admin.rpc(
-			'grant_patient_radiograph_original_access' as never,
+			'grant_patient_radiograph_original_access',
 			{
 				p_actor_id: context.userId,
 				p_business_id: context.businessId,
 				p_patient_id: event.params.id,
 				p_radiograph_id: event.params.radiographId
-			} as never
+			}
 		);
 		if (error) throw error;
-		const row = (Array.isArray(data) ? data[0] : data) as
-			| {
-					storage_bucket: string;
-					storage_path: string;
-					original_filename: string | null;
-					mime_type: string;
-					bytes: number;
-			  }
-			| null;
+		const row = data?.[0];
 		if (!row?.storage_path || !row.storage_bucket) throw new Error('RADIOGRAPH_NOT_FOUND');
         const {data:patient,error:patientError}=await context.supabase.from('patients').select('full_name').eq('business_id',context.businessId).eq('id',event.params.id).single();
         if(patientError||!patient)throw new Error('PATIENT_NOT_FOUND');
@@ -62,7 +55,7 @@ export const POST: RequestHandler = async (event) => {
 			bytes: row.bytes
 		});
 	} catch (error) {
-		console.error('Error concediendo acceso a imagen clínica', error);
+		logServerFailure('Error concediendo acceso a imagen clínica', error);
 		const safe = clinicalFileError(error, 'No pudimos abrir la imagen. Probá de nuevo.');
 		const headers = safe.retryAfterSeconds ? { 'retry-after': String(safe.retryAfterSeconds) } : undefined;
 		return json(clinicalFileErrorBody(safe), { status: safe.status, headers });

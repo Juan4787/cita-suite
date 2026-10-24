@@ -1,3 +1,6 @@
+import { isUuid } from '@cita-suite/shared/uuid';
+import { logServerFailure } from '$lib/server/platform/logging';
+import { readRecord } from '$lib/contracts/json';
 import { env } from '$env/dynamic/private';
 import {
 	CLINICAL_FILES_BUCKET,
@@ -7,28 +10,27 @@ import {
 	clinicalFileError,
 	getClinicalFileRequestContext,
 	requireClinicalFileView
-} from '$lib/server/clinical-files';
-import { readDemoDb } from '$lib/server/demo-store';
+} from '$lib/server/patients/public/clinical-files';
+import { readDemoDb } from '$lib/server/platform/demo-store';
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
 const PAGE_SIZE = 30;
 
 type Cursor = { createdAt: string; id: string };
-const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const timestampPattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})$/;
 
 const decodeCursor = (value: string | null): Cursor | null => {
 	if (!value) return null;
 	if (value.length > 512) return null;
 	try {
-		const parsed = JSON.parse(Buffer.from(value, 'base64url').toString('utf8')) as Partial<Cursor>;
+		const parsed = readRecord(JSON.parse(Buffer.from(value, 'base64url').toString('utf8')), 'patientFiles.cursor');
 		if (
 			typeof parsed.createdAt !== 'string' ||
 			!timestampPattern.test(parsed.createdAt) ||
 			Number.isNaN(Date.parse(parsed.createdAt)) ||
 			typeof parsed.id !== 'string' ||
-			!uuidPattern.test(parsed.id)
+			!isUuid(parsed.id)
 		) {
 			return null;
 		}
@@ -133,7 +135,7 @@ export const GET: RequestHandler = async (event) => {
 				hasMore && last ? encodeCursor({ createdAt: last.created_at, id: last.id }) : null
 		});
 	} catch (error) {
-		console.error('Error cargando imágenes clínicas', error);
+		logServerFailure('Error cargando imágenes clínicas', error);
 		const safe = clinicalFileError(error, 'No pudimos cargar las imágenes. Probá de nuevo.');
 		return json(clinicalFileErrorBody(safe), { status: safe.status });
 	}

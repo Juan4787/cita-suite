@@ -1,15 +1,28 @@
+import { authUnavailableResponse } from '$lib/server/access/public/auth-unavailable';
 import { dev } from '$app/environment';
 import {
 	createSupabaseServerClient,
+	parseModule,
 	getEmailFromAccessToken,
 	getModuleEntryRoute,
 	isJwtExpired,
 	isMasterEmail,
 	type Module
-} from '$lib/server/supabase';
-import { ACTIVE_BUSINESS_COOKIE } from '$lib/server/business';
+} from '$lib/server/platform/supabase';
+import { ACTIVE_BUSINESS_COOKIE } from '$lib/server/access/public/business';
 import { redirect, type Handle } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
+import { env as publicEnv } from '$env/dynamic/public';
+import { withSupabaseOrigin } from '$lib/server/platform/content-security';
+import { logServerFailure } from '$lib/server/platform/logging';
+import type { HandleServerError } from '@sveltejs/kit';
+
+// Unhandled provider errors may carry SQL details or signed URLs. The framework
+// must use the same bounded diagnostic boundary as explicitly handled failures.
+export const handleError: HandleServerError = ({ error }) => {
+	logServerFailure('request.unexpected_failure', error);
+	return { message: 'No pudimos completar la acción. Volvé a intentar en unos momentos.' };
+};
 
 const moduleHome = (module: Module) => getModuleEntryRoute(module);
 const toHost = (value?: string | null) => {
@@ -40,29 +53,18 @@ const isTransientAuthError = (error: unknown): boolean => {
 	return /retryable|fetch failed|network|timed? ?out|econn|enotfound|socket|temporar/.test(descriptor);
 };
 
-const authUnavailableResponse = () =>
-	new Response(
-		'No pudimos validar tu sesión porque el servicio de acceso está momentáneamente no disponible. Tus datos no se modificaron. Esperá unos segundos y volvé a intentar.',
-		{
-			status: 503,
-			headers: {
-				'content-type': 'text/plain; charset=utf-8',
-				'cache-control': 'no-store',
-				'retry-after': '10',
-				'strict-transport-security': 'max-age=31536000',
-				'content-security-policy': "default-src 'none'; frame-ancestors 'none'",
-				'x-content-type-options': 'nosniff',
-				'x-frame-options': 'DENY',
-				'referrer-policy': 'no-referrer',
-				'permissions-policy': 'camera=(), microphone=(), geolocation=()'
-			}
-		}
-	);
 
 export const handle: Handle = async ({ event, resolve }) => {
+	// Assigned only after this request's Auth response is verified. A decoded
+	// cookie payload is not the identity exposed to private request contexts.
+	event.locals.verifiedUser = null;
+	// A request that cannot write lets its layout and page share one membership read;
+	// one that can (an action and the page it renders) reads again each time.
+	event.locals.membershipCache = event.request.method === 'GET' || event.request.method === 'HEAD' ? 'request' : 'fresh';
 	const startedAt = performance.now();
 	let authMs = 0;
-	let dbQ = 0;
+	// HTTP trips to PostgREST and Auth: a fetch counter, not a count of SQL queries.
+	let dbHttpRequests = 0;
 	let dbMs = 0;
 	let dbMaxMs = 0;
 
@@ -86,7 +88,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 		const fetchMs = performance.now() - fetchStart;
 
 		if (isRestRequest || isAuthRequest) {
-			dbQ += 1;
+			dbHttpRequests += 1;
 			dbMs += fetchMs;
 			dbMaxMs = Math.max(dbMaxMs, fetchMs);
 		}
@@ -94,12 +96,19 @@ export const handle: Handle = async ({ event, resolve }) => {
 		return response;
 	};
 
-	const moduleCookie = event.cookies.get('sb-module') as Module | undefined;
+	const moduleCookie = parseModule(event.cookies.get('sb-module'));
 	const accessToken = event.cookies.get('sb-access-token');
 	const refreshToken = event.cookies.get('sb-refresh-token');
+	// These entry points authenticate their own booking token, provider state,
+	// signature or job credential. Unrelated user cookies must neither identify
+	// their actor nor prevent their authorization from running.
+	const path = event.url.pathname;
+	const independentAuthorization = ['/reservar/', '/embed/v1/', '/turno/', '/api/public/', '/internal/jobs/']
+		.some(prefix => path.startsWith(prefix)) ||
+		['/api/mercadopago/webhook', '/api/whatsapp/webhook', '/oauth/google-calendar/callback'].includes(path);
 
 	event.locals.auth =
-		moduleCookie && accessToken && refreshToken
+		!independentAuthorization && moduleCookie && accessToken && refreshToken
 			? { module: moduleCookie, access_token: accessToken, refresh_token: refreshToken }
 			: null;
 
@@ -112,7 +121,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 	};
 
 	const isDemo = env.DEMO_MODE === 'true';
-	if (event.locals.auth && !isDemo && !event.url.pathname.startsWith('/embed/v1/')) {
+	if (event.locals.auth && !isDemo) {
 		try {
 			const supabase = await createSupabaseServerClient(
 				event.locals.auth.module,
@@ -128,6 +137,9 @@ export const handle: Handle = async ({ event, resolve }) => {
 				}
 
 				const session = data.session;
+				const user = data.user ?? session.user;
+				if (!user?.id) throw new Error('Sesión sin identidad verificada');
+				event.locals.verifiedUser = { id: user.id, email: user.email ?? null };
 				const cookieOptions = {
 					path: '/',
 					httpOnly: true,
@@ -153,9 +165,10 @@ export const handle: Handle = async ({ event, resolve }) => {
 				if (error || !data?.user?.id) {
 					throw error ?? new Error('Sesión inválida');
 				}
+				event.locals.verifiedUser = { id: data.user.id, email: data.user.email ?? null };
 			}
 		} catch (err) {
-			if (isTransientAuthError(err)) return authUnavailableResponse();
+			if (isTransientAuthError(err)) return authUnavailableResponse(!event.isDataRequest && event.request.headers.get('accept')?.includes('text/html') === true);
 			clearAuthCookies();
 			throw redirect(303, '/login');
 		}
@@ -172,7 +185,9 @@ export const handle: Handle = async ({ event, resolve }) => {
 	}
 
 	if (event.locals.auth) {
-		const email = getEmailFromAccessToken(event.locals.auth.access_token);
+		const email = isDemo
+			? getEmailFromAccessToken(event.locals.auth.access_token)
+			: event.locals.verifiedUser?.email;
 		const isMaster = isMasterEmail(email);
 
 		if (wantsMaster && !isMaster) {
@@ -193,6 +208,8 @@ export const handle: Handle = async ({ event, resolve }) => {
 	}
 
 	const response = await resolve(event);
+	const renderedPolicy = response.headers.get('content-security-policy');
+	if (renderedPolicy) response.headers.set('content-security-policy', withSupabaseOrigin(renderedPolicy, publicEnv.PUBLIC_ODONTO_SUPABASE_URL));
 	// Only a validated public integration may opt into framing. Private routes
 	// and every rejected/unknown integration retain DENY.
 	if (event.locals.bookingFrameAncestors?.length) {
@@ -230,7 +247,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 		`load;dur=${loadMs.toFixed(1)}`,
 		`db;dur=${dbMs.toFixed(1)}`,
 		`db_max;dur=${dbMaxMs.toFixed(1)}`,
-		`db_q;desc="${dbQ}"`,
+		`db_http;desc="${dbHttpRequests}"`,
 		`runtime_region;desc="${runtimeRegion || 'unknown'}"`
 	].join(', ');
 	const existingTiming = response.headers.get('Server-Timing');

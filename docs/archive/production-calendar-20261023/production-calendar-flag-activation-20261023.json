@@ -1,0 +1,26 @@
+{
+  "startedAt": "2026-10-23T15:26:57.835Z",
+  "account": "52b358653379c162b5a07b10ae5e84b3",
+  "worker": "app",
+  "key": "GOOGLE_CALENDAR_MANAGED_ENABLED",
+  "value": "true",
+  "beforeVersion": "c7daf16d-fd5d-4bdf-909e-0387f1abfc5d",
+  "revision": "478c096e63299b886e640c4627cd25e0db22dbfa",
+  "preflight": {
+    "pending": 0,
+    "legacy": false
+  },
+  "scope": "Enable existing managed Calendar configuration only; preserve four existing secrets including encryption key and all database rows. Existing event active, no pending queue. No new OAuth client or encryption key.",
+  "rollbackCommand": "node --max-old-space-size=192 apps/web/node_modules/wrangler/bin/wrangler.js secret delete GOOGLE_CALENDAR_MANAGED_ENABLED --name app --config apps/web/wrangler.jsonc",
+  "rawOutputDiscarded": true,
+  "credentialsPersistedOrPrinted": false,
+  "exitCode": 0,
+  "afterVersion": "e0fdc6fe-a4ff-4657-9afd-534766a99c4f",
+  "afterDeployment": "17b66ba0-82ce-4d19-ad01-583d0b2fa33c",
+  "preservedBindingNamesAndTypes": true,
+  "revisionAnnotationPreserved": false,
+  "servedRevisionPreserved": true,
+  "passed": false,
+  "finishedAt": "2026-10-23T15:27:03.874Z",
+  "status": "postcondition-failed"
+}

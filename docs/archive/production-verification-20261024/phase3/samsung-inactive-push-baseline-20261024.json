@@ -1,0 +1,19 @@
+{
+  "at": "2026-10-24T13:14:38.102Z",
+  "phase": "baseline",
+  "fixture": {
+    "count": 1,
+    "past": true
+  },
+  "scope": "RealSamsung, own past fixture, permission granted. Clear already preserved buffered log, reload normally, observe5seconds; no interception, status masking, notification-permission change or new booking.",
+  "ui": {
+    "ready": "complete",
+    "secure": true,
+    "permission": "granted",
+    "notificationButtons": 0
+  },
+  "requests": [],
+  "consoleErrors": [],
+  "passed": true,
+  "finishedAt": "2026-10-24T13:14:45.795Z"
+}

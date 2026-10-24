@@ -1,0 +1,74 @@
+{
+  "conclusion": "failure",
+  "headSha": "cb8a9bafdf9a07a6b8977e841fa3f401061fda4f",
+  "jobs": [
+    {
+      "completedAt": "2026-10-24T09:24:15Z",
+      "conclusion": "failure",
+      "databaseId": 120827102115,
+      "name": "measure",
+      "startedAt": "2026-10-24T08:34:25Z",
+      "status": "completed",
+      "steps": [
+        {
+          "conclusion": "success",
+          "name": "Set up job",
+          "number": 1,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09",
+          "number": 2,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+          "number": 3,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Install pinned package manager and dependencies",
+          "number": 4,
+          "status": "completed"
+        },
+        {
+          "conclusion": "failure",
+          "name": "Measure the production app with the plan's load",
+          "number": 5,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Run actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a",
+          "number": 6,
+          "status": "completed"
+        },
+        {
+          "conclusion": "skipped",
+          "name": "Post Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+          "number": 11,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Post Run actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09",
+          "number": 12,
+          "status": "completed"
+        },
+        {
+          "conclusion": "success",
+          "name": "Complete job",
+          "number": 13,
+          "status": "completed"
+        }
+      ],
+      "url": "https://github.com/Juan4787/cita-suite-verificacion/actions/runs/40078561771/job/120827102115"
+    }
+  ],
+  "status": "completed",
+  "run": 40078561771,
+  "recordedAt": "2026-10-24T09:27:30.322907+00:00"
+}

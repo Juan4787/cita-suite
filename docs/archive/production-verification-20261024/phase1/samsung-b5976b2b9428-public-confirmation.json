@@ -1,0 +1,12 @@
+{
+  "at": "2026-10-24T03:38:14.885Z",
+  "run": "b5976b2b9428",
+  "uiText": "Tu turno\n\nTe esperamos el sábado, 24 de octubre a las 03:32.\n\nTurno confirmado.\n\nInformación para tu consulta\n\nPodés ampliar la información para la profesional. Los campos configurados se incorporan a tu perfil. Tu reserva se conserva.\n\nVer y ampliar mis datos\nRecordatorio activado\n\nEste teléfono ya está listo para avisarte durante el día previo y 2 horas antes del turno.\n\nListo para este turno\nCopiar detalles del turno\nPrueba de dispositivo producción\n\nPrueba de dispositivo producción\n\nConfirmado\n\nServicio\n\nConsulta\n\nProfesional\n\nProfesional sintético\n\nFecha y hora\n\n24 de octubre de 2026 a las 03:32\n\nGuardar comprobante\nAcciones\nConfirmo que voy\nNecesito reprogramar\nCancelar turno\nCita Suite",
+  "db": {
+    "appointments": 1,
+    "allConfirmed": true
+  },
+  "realPhone": true,
+  "interaction": "Trusted CDP mouse click on Confirmo que voy in existing phone Chrome, followed by server readback",
+  "ok": true
+}

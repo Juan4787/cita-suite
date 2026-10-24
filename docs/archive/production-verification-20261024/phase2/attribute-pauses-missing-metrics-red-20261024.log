@@ -1,0 +1,74 @@
+TAP version 13
+# Subtest: absent pressure and memory counters stay unknown
+not ok 1 - absent pressure and memory counters stay unknown
+  ---
+  duration_ms: 64.943925
+  type: 'test'
+  location: '/home/usuario/CascadeProjects/Base de Datos Sabrina/scripts/lib/attribute-pauses.test.mjs:18:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    
+    0 !== null
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ~
+  actual: 0
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///home/usuario/CascadeProjects/Base%20de%20Datos%20Sabrina/scripts/lib/attribute-pauses.test.mjs:20:9)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+# Subtest: reported zero remains a measured zero
+ok 2 - reported zero remains a measured zero
+  ---
+  duration_ms: 65.334837
+  type: 'test'
+  ...
+# Subtest: a reset counter cannot produce a negative utilization rate
+not ok 3 - a reset counter cannot produce a negative utilization rate
+  ---
+  duration_ms: 51.428011
+  type: 'test'
+  location: '/home/usuario/CascadeProjects/Base de Datos Sabrina/scripts/lib/attribute-pauses.test.mjs:32:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + -0.8166666666666667
+    - null
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: ~
+  actual: -0.8166666666666667
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///home/usuario/CascadeProjects/Base%20de%20Datos%20Sabrina/scripts/lib/attribute-pauses.test.mjs:34:9)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: reported rates keep their scale when counters are available
+ok 4 - reported rates keep their scale when counters are available
+  ---
+  duration_ms: 49.608951
+  type: 'test'
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 2
+# fail 2
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 351.778455

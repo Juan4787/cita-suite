@@ -1,4 +1,6 @@
 <script lang="ts">
+	import type { Snippet } from 'svelte';
+
   import { createEventDispatcher } from "svelte";
 
   // dismissible: cierra al click afuera / Escape. closable: muestra la X (cierre explícito) sin click-afuera.
@@ -8,7 +10,7 @@
     children,
     dismissible = false,
     closable = false,
-  } = $props();
+  }: { open?: boolean; title?: string; children?: Snippet; dismissible?: boolean; closable?: boolean } = $props();
 
   const dispatch = createEventDispatcher<{ close: void }>();
   const close = () => dispatch("close");
@@ -89,7 +91,7 @@
         class="flex shrink-0 items-center justify-between gap-3 border-b border-neutral-100 px-4 py-3 dark:border-[#1f3554] sm:px-6 sm:py-4"
       >
         <h3
-          class="min-w-0 truncate text-lg font-semibold text-neutral-900 dark:text-white"
+          class="min-w-0 break-words text-lg font-semibold text-neutral-900 dark:text-white"
         >
           {title}
         </h3>

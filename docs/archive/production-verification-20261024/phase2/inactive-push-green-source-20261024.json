@@ -1,0 +1,22 @@
+{
+  "at": "2026-10-24T12:49:40.710101+00:00",
+  "phase": "green",
+  "base": "a5b95809cfbb11ef05bf17f9e5660e45b3f1bd55",
+  "runtimeBase": "cb8a9bafdf9a07a6b8977e841fa3f401061fda4f",
+  "commit": "0851de59ed7971debe2514e6d6851d142bbc5766",
+  "tree": "e48e86feb335b0683e9bd9a8080def4cad4b8dbe",
+  "branch": "refactor/inactive-push-green-20261024",
+  "files": [
+    {
+      "path": "apps/web/src/routes/turno/[token]/page.client.test.ts",
+      "blob": "d93ba3df3572a2db67bd53f8eafe6e847be99000",
+      "sha256": "17f275e24c695ed93f175538a7b409b51e0f4bcc5e1a315e7fdca76bef651ae2"
+    },
+    {
+      "path": "apps/web/src/routes/turno/[token]/+page.svelte",
+      "blob": "eefedae4fa690557f4804867e132b9ee29a5b0ca",
+      "sha256": "bbb2307c2a68df7bc86b83999af7613c3c37a329a7234bef4aa468b8308d8386"
+    }
+  ],
+  "userIndexAndHeadPreserved": true
+}

@@ -1,5 +1,7 @@
 # Activación futura y verificación
 
+> **Alcance histórico, actualizado el 22 de octubre de 2026.** Este procedimiento describe la integración embebida inicial, que conserva compatibilidad para otros sitios. Natalia ahora navega de forma nativa al turnero de Cita Suite: usar el [plan aprobado](../plans/refactorizacion-cita-suite.md), la [verificación vigente](../architecture/verificacion.md) y el [procedimiento de publicación](../architecture/publicacion-y-reversion.md). No conectar sus botones al iframe ni ejecutar localmente los comandos pesados de las secciones históricas: bases, builds y navegadores se ejecutan secuencialmente en CI. Las evidencias locales de abajo no certifican la activación actual ni sustituyen el release.
+
 ## Estado inicial
 
 `BOOKING_INTEGRATIONS_ENABLED=false` y `BOOKING_CONTEXTS_AVAILABLE=false` conservan el comportamiento anterior y evitan consultas a tablas nuevas antes de instalarlas. No hay registros reales de Natalia en estas migraciones. `WEB NATALIA` sigue siendo una maqueta.

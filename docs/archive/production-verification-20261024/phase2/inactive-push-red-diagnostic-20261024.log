@@ -1,0 +1,14 @@
+2026-10-24T12:48:48.0876094Z  Test Files  188 passed (188)
+2026-10-24T12:48:48.0886783Z       Tests  1395 passed (1395)
+2026-10-24T12:48:52.4690309Z stderr | src/routes/turno/[token]/page.client.test.ts > activación de notificaciones en el teléfono > no activa avisos de un turno 'vencido reservado' aunque el permiso ya exista
+2026-10-24T12:48:55.6611926Z      × no activa avisos de un turno 'vencido reservado' aunque el permiso ya exista 159ms
+2026-10-24T12:48:55.6612756Z      × no activa avisos de un turno 'vencido confirmado' aunque el permiso ya exista 108ms
+2026-10-24T12:48:55.6613522Z      × no activa avisos de un turno 'cancelado futuro' aunque el permiso ya exista 110ms
+2026-10-24T12:48:55.6614199Z      ✓ no vuelve a sincronizar avisos después de recibir una cancelación 73ms
+2026-10-24T12:49:25.2267185Z ⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+2026-10-24T12:49:25.2284590Z  FAIL  src/routes/turno/[token]/page.client.test.ts > activación de notificaciones en el teléfono > no activa avisos de un turno 'vencido reservado' aunque el permiso ya exista
+2026-10-24T12:49:25.2287388Z  FAIL  src/routes/turno/[token]/page.client.test.ts > activación de notificaciones en el teléfono > no activa avisos de un turno 'vencido confirmado' aunque el permiso ya exista
+2026-10-24T12:49:25.2289423Z  FAIL  src/routes/turno/[token]/page.client.test.ts > activación de notificaciones en el teléfono > no activa avisos de un turno 'cancelado futuro' aunque el permiso ya exista
+2026-10-24T12:49:25.2290775Z AssertionError: expected "vi.fn()" to not be called at all, but actually been called 1 times
+2026-10-24T12:49:25.2482424Z  Test Files  1 failed | 26 passed (27)
+2026-10-24T12:49:25.2483348Z       Tests  3 failed | 172 passed (175)

@@ -1,0 +1,10 @@
+{
+  "at": "2026-10-24T08:26:36.039Z",
+  "scope": "Read only the known Cita Suite project general-settings page in a newly opened authorized Samsung tab. No cookies, tokens, credential storage, unrelated tabs or page bodies persisted.",
+  "projectRef": "yjzferwuzbtgpmdnzlcb",
+  "mutation": false,
+  "status": "read-not-confirmed",
+  "errorKind": "Error",
+  "safeFailure": "UI_TIMEOUT",
+  "ownTemporaryTabClosed": true
+}

@@ -1,0 +1,53 @@
+{
+  "at": "2026-10-23T14:35:41.497Z",
+  "versions": [
+    {
+      "id": "b283dd5c-307d-4d49-adb0-c3bee2211b1b",
+      "keys": [
+        "id",
+        "number",
+        "metadata",
+        "annotations",
+        "resources"
+      ],
+      "metadataKeys": [
+        "created_on",
+        "source",
+        "author_id",
+        "author_email",
+        "has_preview"
+      ],
+      "annotationsKeys": [
+        "workers/message",
+        "workers/triggered_by"
+      ],
+      "topMessage": "Cita Suite dfb487faa74b8117c46c180c70f368f77f3dbcd2",
+      "nestedMessage": null
+    },
+    {
+      "id": "678ac8ae-9511-4c5a-81f1-6e7a8fc9997d",
+      "keys": [
+        "id",
+        "number",
+        "metadata",
+        "annotations",
+        "resources"
+      ],
+      "metadataKeys": [
+        "created_on",
+        "source",
+        "author_id",
+        "author_email",
+        "has_preview"
+      ],
+      "annotationsKeys": [
+        "workers/message",
+        "workers/triggered_by"
+      ],
+      "topMessage": "Cita Suite 478c096e63299b886e640c4627cd25e0db22dbfa",
+      "nestedMessage": null
+    }
+  ],
+  "scope": "Inspect supported metadata shape only; no binding values or secrets read",
+  "schedulerStillStopped": true
+}

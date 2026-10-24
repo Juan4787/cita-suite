@@ -1,0 +1,66 @@
+{
+  "runId": "owned-provider-lifecycle-20261024",
+  "at": "2026-10-24T07:27:05.087Z",
+  "operation": "cancel-calendar",
+  "before": [
+    {
+      "slug": "production-calendar-1a4b7003690d",
+      "status": "reserved",
+      "startsAt": "2026-10-25T02:51:00+00:00",
+      "endsAt": "2026-10-25T03:21:00+00:00",
+      "sequence": 2,
+      "eventStatus": "active",
+      "syncedSequence": 2,
+      "lastSyncedAt": "2026-10-24T07:21:55.863+00:00",
+      "lastError": null,
+      "eventIdPresent": true,
+      "eventIdSha256": "7e49d6966b512594ce809363d994c5632cd6b4decf4fa672f971a6f82c7fc8a5"
+    },
+    {
+      "slug": "production-device-b5976b2b9428",
+      "status": "confirmed",
+      "startsAt": "2026-10-24T07:02:00+00:00",
+      "endsAt": "2026-10-24T07:32:00+00:00",
+      "sequence": 1,
+      "eventStatus": null,
+      "syncedSequence": null,
+      "lastSyncedAt": null,
+      "lastError": null,
+      "eventIdPresent": false,
+      "eventIdSha256": null
+    }
+  ],
+  "scope": "Only two dedicated synthetic fixtures, identified by exact business slug and fake owner. Normal constraints and triggers retained. Time changes are fixture SQL, not proof of internal rescheduling UI. Public cancellation uses the real app action. No IDs, management tokens or credentials persisted.",
+  "status": "completed",
+  "publicActionStatus": 200,
+  "publicActionType": "success",
+  "after": [
+    {
+      "slug": "production-calendar-1a4b7003690d",
+      "status": "cancelled",
+      "startsAt": "2026-10-25T02:51:00+00:00",
+      "endsAt": "2026-10-25T03:21:00+00:00",
+      "sequence": 2,
+      "eventStatus": null,
+      "syncedSequence": null,
+      "lastSyncedAt": null,
+      "lastError": null,
+      "eventIdPresent": false,
+      "eventIdSha256": null
+    },
+    {
+      "slug": "production-device-b5976b2b9428",
+      "status": "confirmed",
+      "startsAt": "2026-10-24T07:02:00+00:00",
+      "endsAt": "2026-10-24T07:32:00+00:00",
+      "sequence": 1,
+      "eventStatus": null,
+      "syncedSequence": null,
+      "lastSyncedAt": null,
+      "lastError": null,
+      "eventIdPresent": false,
+      "eventIdSha256": null
+    }
+  ],
+  "finishedAt": "2026-10-24T07:27:09.831Z"
+}

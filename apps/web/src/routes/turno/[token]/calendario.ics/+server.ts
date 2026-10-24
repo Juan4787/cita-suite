@@ -1,15 +1,16 @@
+import { logServerFailure } from '$lib/server/platform/logging';
 // Evento de calendario del turno, servido inline para que el navegador lo abra con
 // el calendario (camino principal en iPhone/iPad). Siempre se genera desde el estado
 // ACTUAL del turno: tras una reprogramación este mismo link entrega fecha nueva y
 // SEQUENCE incrementado; si el turno se canceló entrega METHOD:CANCEL.
 
 import { error } from '@sveltejs/kit';
-import { loadAppointmentForToken } from '$lib/server/appointment-token';
-import { icsForAppointment } from '$lib/server/calendar-content';
+import { loadAppointmentForToken } from '$lib/server/scheduling/public/appointment-token';
+import { icsForAppointment } from '$lib/server/integrations/public/calendar-content';
 import {
 	canRegisterCalendarAction,
 	recordCalendarAction
-} from '$lib/server/calendar-tracking';
+} from '$lib/server/integrations/public/calendar-tracking';
 import type { RequestHandler } from './$types';
 
 export const GET: RequestHandler = async ({ params, url, fetch }) => {
@@ -23,7 +24,7 @@ export const GET: RequestHandler = async ({ params, url, fetch }) => {
 			await recordCalendarAction(supabase, appointment, action);
 		} catch (trackingError) {
 			// El tracking nunca bloquea la entrega del calendario.
-			console.error('Error registrando acción de calendario', trackingError);
+			logServerFailure('Error registrando acción de calendario', trackingError);
 		}
 	}
 

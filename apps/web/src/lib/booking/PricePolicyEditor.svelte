@@ -4,8 +4,11 @@
   import { enhance } from "$app/forms";
   import {
     previewMonthlyPrices,
+    MAX_PRICE_MONTH_OFFSET,
+    PriceConfigurationError,
     formatQuotedPrice,
     type PriceAdjustment,
+    type PricePolicy,
   } from "./pricing";
   let {
     services,
@@ -16,12 +19,13 @@
     canConfigureShared = false,
   }: {
     services: Array<{ id: string; name: string }>;
-    policies: any[];
+    policies: PricePolicy[];
     professionalId: string;
     currentMonth: string;
     canEdit?: boolean;
     canConfigureShared?: boolean;
   } = $props();
+  const feedbackId = $props.id();
   let scope = $state("professional");
   const initialService = () => services[0]?.id ?? "";
   let selected = $state(initialService());
@@ -31,8 +35,10 @@
         item.service_id === initialService() &&
         item.professional_id === professionalId,
     );
-  const initialBase = () =>
-    initialPolicy() ? String(initialPolicy().base_amount) : "";
+  const initialBase = () => {
+    const policy = initialPolicy();
+    return policy ? String(policy.base_amount) : "";
+  };
   const initialRate = () => String(initialPolicy()?.monthly_percentage ?? 0);
   const initialRounding = () => String(initialPolicy()?.rounding_unit ?? 1);
   const initialReference = () =>
@@ -47,7 +53,7 @@
   const initialRevision = () => initialPolicy()?.revision ?? 0;
   const initialAdjustments = () =>
     (initialPolicy()?.service_price_monthly_adjustments ?? []).map(
-      (row: any) => ({
+      (row) => ({
         month: row.month,
         kind: row.kind,
         percentage: row.percentage,
@@ -104,7 +110,7 @@
       policy?.first_adjustment_month?.slice(0, 7) ??
       `${year + (month === 12 ? 1 : 0)}-${String(month === 12 ? 1 : month + 1).padStart(2, "0")}`;
     adjustments = (policy?.service_price_monthly_adjustments ?? []).map(
-      (row: any) => ({
+      (row) => ({
         month: row.month,
         kind: row.kind,
         percentage: row.percentage,
@@ -123,22 +129,30 @@
       adjustments,
     }),
   );
-  const preview = $derived.by(() => {
+  const previewResult = $derived.by(() => {
+    if (![base, rate, rounding, baseMonth, firstMonth].every(value => value.trim()))
+      return { rows: [], error: null, monthlyError: false };
     try {
-      return previewMonthlyPrices(
-        base,
-        rate,
-        rounding,
-        baseMonth,
-        firstMonth,
-        adjustments,
-        6,
-        currentMonth,
-      );
-    } catch {
-      return [];
+      const [baseYear, baseNumber] = baseMonth.split("-").map(Number);
+      const [startYear, startNumber] = currentMonth.split("-").map(Number);
+      const offset = (startYear - baseYear) * 12 + startNumber - baseNumber;
+      // The editor asks for up to six valid results. It must still display the
+      // inclusive last month, rather than requesting five out-of-range months.
+      const count = Math.min(6, Math.max(1, MAX_PRICE_MONTH_OFFSET - offset + 1));
+      return { rows: previewMonthlyPrices(base, rate, rounding, baseMonth, firstMonth, adjustments, count, currentMonth), error: null, monthlyError: false };
+    } catch (cause) {
+      const code = cause instanceof Error ? cause.message : '';
+      const monthlyError = cause instanceof PriceConfigurationError && cause.field === 'monthly_percentage';
+      const message = monthlyError ? 'El aumento mensual admite valores de 0 a 1.000 %, con hasta cuatro decimales.' : code === 'PRICE_DATE_INVALID'
+        ? 'El mes de referencia no puede ser posterior al actual ni tener más de 50 años de antigüedad.'
+        : code === 'PRICE_AMOUNT_INVALID'
+          ? 'Los ajustes superan el arancel máximo admitido. Reducí el importe o el porcentaje.'
+          : 'Revisá el importe, los porcentajes y los meses de los ajustes.';
+      return { rows: [], error: message, monthlyError };
     }
   });
+  const preview = $derived(previewResult.rows);
+
 </script>
 
 <form
@@ -241,6 +255,8 @@
       >
       <label class="ux-label"
         >Aumento mensual desde el primer ajuste (%)<input
+          aria-invalid={previewResult.monthlyError || undefined}
+          aria-describedby={previewResult.monthlyError ? feedbackId : undefined}
           bind:value={rate}
           inputmode="decimal"
           class="ux-input mt-2"
@@ -351,7 +367,7 @@
               >{/each}</tbody
           >
         </table>
-      </div>{:else}<p class="mt-4 text-sm text-white/70">
+      </div>{:else if previewResult.error}<p id={feedbackId} role="status" class="ux-alert mt-4">{previewResult.error}</p>{:else}<p class="mt-4 text-sm text-white/70">
         Completá el importe y los meses para ver los aranceles antes de guardar.
       </p>{/if}
     <button

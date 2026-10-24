@@ -1,0 +1,17 @@
+{
+  "at": "2026-10-24T03:44:59.498903+00:00",
+  "run": "b5976b2b9428",
+  "nativeSystemUiNotificationFound": true,
+  "ownedTexts": [
+    "Turno en Prueba de dispositivo producción",
+    "Te recordamos tu turno el sábado, 24 de octubre a las 03:32."
+  ],
+  "otherNotificationsNotPersisted": true,
+  "interaction": "Physical adb tap on exact own notification title bounds",
+  "bounds": [
+    189,
+    849,
+    572,
+    903
+  ]
+}

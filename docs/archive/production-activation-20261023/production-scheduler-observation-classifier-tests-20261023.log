@@ -1,0 +1,17 @@
+...E..
+======================================================================
+ERROR: test_platform_ok_does_not_hide_real401 (__main__.Cases.test_platform_ok_does_not_hide_real401)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/usuario/CascadeProjects/Base de Datos Sabrina/.verification/scheduler-observation-report-20261023.test.py", line 14, in test_platform_ok_does_not_hide_real401
+    x=copy.deepcopy(rows);x[0]['status']=401;x[0]['job']=None;self.assertFalse(m.analyze(x,meta)['routinesOperationalPassed'])
+                                                                               ^^^^^^^^^^^^^^^^^
+  File "/home/usuario/CascadeProjects/Base de Datos Sabrina/.verification/scheduler-observation-report-20261023.py", line 40, in analyze
+    provider_flags={kind:sorted({r.get('job',{}).get('configured') for r in group if type(r.get('job',{}).get('configured')) is bool}) for kind,group in groups.items() if group}
+                                                                                          ^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'get'
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.003s
+
+FAILED (errors=1)

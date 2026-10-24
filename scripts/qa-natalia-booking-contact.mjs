@@ -1,3 +1,4 @@
+import { fixturePath } from './lib/fixture-path.mjs';
 // Local static Natalia + real disposable Cita backend. No remote writes/messages.
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
@@ -9,7 +10,7 @@ import { spawnSync } from 'node:child_process';
 const root = fileURLToPath(new URL('../', import.meta.url));
 const require = createRequire(new URL('../apps/web/package.json', import.meta.url));
 const { chromium } = require('@playwright/test');
-const r = JSON.parse(readFileSync('/tmp/cita-booking-runtime.json', 'utf8'));
+const r = JSON.parse(readFileSync(fixturePath('runtime.json'), 'utf8'));
 assert.match(r.container, /^cita-booking-test-[a-f0-9]{12}$/);
 assert.equal(
 	spawnSync(

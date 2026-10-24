@@ -1,8 +1,8 @@
 import { expect, test } from '@playwright/test';
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { signInWithPassword } from './helpers/shared-auth';
+import { createFixtureClient, must, write, type FixtureClient } from './helpers/fixture-db';
 import fs from 'node:fs';
 import path from 'node:path';
-import WebSocket from 'ws';
 
 const readEnvFile = () => {
 	let current = process.cwd();
@@ -35,7 +35,6 @@ const masterEmail = (env.MASTER_EMAIL ?? 'juanpabloaltamira@protonmail.com').tri
 const isLocalSupabase = Boolean(supabaseUrl?.startsWith('http://127.0.0.1') || supabaseUrl?.startsWith('http://localhost'));
 const masterPassword = env.E2E_MASTER_PASSWORD ?? (isLocalSupabase ? 'E2eMasterLocal!2026' : '');
 const password = 'E2eAssistance!2026';
-const screenshotDir = 'output/playwright';
 
 type Fixture = {
 	email: string;
@@ -58,19 +57,10 @@ const adminClient = () => {
 	if (!supabaseUrl || !serviceRoleKey) {
 		throw new Error('Faltan ODONTO_SUPABASE_URL u ODONTO_SUPABASE_SERVICE_ROLE_KEY.');
 	}
-	return createClient(supabaseUrl, serviceRoleKey, {
-		auth: { autoRefreshToken: false, persistSession: false },
-		realtime: { transport: WebSocket }
-	});
+	return createFixtureClient(supabaseUrl, serviceRoleKey);
 };
 
-const must = async <T>(operation: PromiseLike<{ data: T; error: unknown }>) => {
-	const { data, error } = await operation;
-	if (error) throw error;
-	return data;
-};
-
-const findAuthUserByEmail = async (admin: SupabaseClient, email: string) => {
+const findAuthUserByEmail = async (admin: FixtureClient, email: string) => {
 	for (let page = 1; page <= 20; page += 1) {
 		const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 1000 });
 		if (error) throw error;
@@ -81,7 +71,7 @@ const findAuthUserByEmail = async (admin: SupabaseClient, email: string) => {
 	return null;
 };
 
-const createFixture = async (admin: SupabaseClient): Promise<Fixture> => {
+const createFixture = async (admin: FixtureClient): Promise<Fixture> => {
 	const schemaProbe = await admin.from('account_assistance_grants').select('id').limit(1);
 	if (schemaProbe.error) throw schemaProbe.error;
 
@@ -139,7 +129,7 @@ const createFixture = async (admin: SupabaseClient): Promise<Fixture> => {
 			.single()
 	);
 
-	await must(
+	await write(
 		admin.from('allowed_emails').upsert(
 			[
 				{ email, enabled: true },
@@ -148,7 +138,7 @@ const createFixture = async (admin: SupabaseClient): Promise<Fixture> => {
 			{ onConflict: 'email' }
 		)
 	);
-	await must(
+	await write(
 		admin.from('business_users').insert({
 			business_id: business.id,
 			user_id: userId,
@@ -157,7 +147,7 @@ const createFixture = async (admin: SupabaseClient): Promise<Fixture> => {
 			accepted_at: new Date().toISOString()
 		})
 	);
-	await must(
+	await write(
 		admin.from('business_users').insert({
 			business_id: business.id,
 			user_id: adminUserId,
@@ -166,7 +156,7 @@ const createFixture = async (admin: SupabaseClient): Promise<Fixture> => {
 			accepted_at: new Date().toISOString()
 		})
 	);
-	await must(
+	await write(
 		admin.from('business_subscriptions').upsert(
 			{
 				business_id: business.id,
@@ -208,43 +198,34 @@ const createFixture = async (admin: SupabaseClient): Promise<Fixture> => {
 	};
 };
 
-const cleanupFixture = async (admin: SupabaseClient, target: Fixture | null) => {
+const cleanupFixture = async (admin: FixtureClient, target: Fixture | null) => {
 	if (!target) return;
-	await admin.from('businesses').delete().eq('id', target.businessId);
-	await admin.from('allowed_emails').delete().in('email', [target.email, target.adminEmail]);
-	await admin.auth.admin.deleteUser(target.userId);
-	await admin.auth.admin.deleteUser(target.adminUserId);
+	await write(admin.from('businesses').delete().eq('id', target.businessId));
+	await write(admin.from('allowed_emails').delete().in('email', [target.email, target.adminEmail]));
+	for (const userId of [target.userId, target.adminUserId])
+		if ((await admin.auth.admin.deleteUser(userId)).error)
+			throw new Error('Owned account assistance user cleanup failed.');
 };
 
-const cleanupMasterFixture = async (admin: SupabaseClient) => {
+const cleanupMasterFixture = async (admin: FixtureClient) => {
 	if (!createdMasterUserId) return;
-	const { data: memberships } = await admin
-		.from('business_users')
-		.select('business_id')
-		.eq('user_id', createdMasterUserId);
-	const ownedBusinessIds = (memberships ?? [])
-		.map((row: any) => String(row.business_id ?? ''))
-		.filter(Boolean);
-	if (ownedBusinessIds.length > 0) {
-		await admin.from('businesses').delete().in('id', ownedBusinessIds);
-	}
-	await admin.auth.admin.deleteUser(createdMasterUserId);
+	const memberships = await must(
+		admin.from('business_users').select('business_id').eq('user_id', createdMasterUserId)
+	);
+	const ownedBusinessIds = memberships.map((row) => row.business_id);
+	if (ownedBusinessIds.length > 0)
+		await write(admin.from('businesses').delete().in('id', ownedBusinessIds));
+	if ((await admin.auth.admin.deleteUser(createdMasterUserId)).error)
+		throw new Error('Owned local master user cleanup failed.');
 	createdMasterUserId = null;
 };
 
 const login = async (page: import('@playwright/test').Page, email: string, targetPassword: string) => {
-	await page.goto('/login');
-	await page.getByLabel('Correo electrónico').fill(email);
-	await page.getByLabel('Contraseña').fill(targetPassword);
-	await Promise.all([
-		page.waitForURL((url) => !url.pathname.startsWith('/login')),
-		page.locator('form').first().getByRole('button', { name: 'Ingresar', exact: true }).click()
-	]);
+	await signInWithPassword(page, email, targetPassword);
 };
 
 const screenshotPath = (name: string) => {
-	fs.mkdirSync(screenshotDir, { recursive: true });
-	return path.join(screenshotDir, name);
+	return test.info().outputPath(name);
 };
 
 test.describe('Ayuda para configurar', () => {
@@ -296,12 +277,12 @@ test.describe('Ayuda para configurar', () => {
 			ownerPage.getByRole('button', { name: 'Quitar aviso: Ayuda de Cita Suite activa' })
 		).toBeVisible();
 		await ownerPage.screenshot({
-			path: screenshotPath('account-assistance-owner-desktop-active.png'),
+			type: 'jpeg', quality: 65, path: screenshotPath('account-assistance-owner-desktop-active.jpg'),
 			fullPage: false
 		});
 		await ownerPage.setViewportSize({ width: 390, height: 844 });
 		await ownerPage.screenshot({
-			path: screenshotPath('account-assistance-owner-mobile-active.png'),
+			type: 'jpeg', quality: 65, path: screenshotPath('account-assistance-owner-mobile-active.jpg'),
 			fullPage: false
 		});
 		await ownerPage.setViewportSize({ width: 1280, height: 720 });
@@ -344,10 +325,8 @@ test.describe('Ayuda para configurar', () => {
 			await expect(masterPage.getByRole('button', { name: `Quitar aviso: ${label}` })).toBeVisible();
 		}
 
-		await expect(async () => {
-			await masterPage.getByRole('button', { name: 'Configurar', exact: true }).click();
-			await expect(masterPage.getByLabel('Persona del equipo')).toBeVisible({ timeout: 1_000 });
-		}).toPass({ timeout: 10_000 });
+		await masterPage.getByRole('button', { name: 'Configurar', exact: true }).click();
+		await expect(masterPage.getByLabel('Persona del equipo')).toBeVisible();
 		const memberSelect = masterPage.getByLabel('Persona del equipo');
 		await expect(memberSelect.getByRole('option', { name: `${fixture.email} · Dueño` })).toHaveCount(1);
 		await expect(
@@ -355,7 +334,7 @@ test.describe('Ayuda para configurar', () => {
 		).toHaveCount(1);
 		await masterPage.getByRole('button', { name: 'Cancelar', exact: true }).click();
 		await masterPage.screenshot({
-			path: screenshotPath('account-assistance-master-configuring.png'),
+			type: 'jpeg', quality: 65, path: screenshotPath('account-assistance-master-configuring.jpg'),
 			fullPage: false
 		});
 		await masterPage

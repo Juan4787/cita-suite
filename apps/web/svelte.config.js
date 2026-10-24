@@ -18,7 +18,12 @@ if (isProd && !buildVersion) {
 }
 
 // Cloudflare Workers es el único destino de publicación del candidato comercial.
-const adapter = cloudflareAdapter();
+// Disposable verification must not share a local workerd SQLite directory.
+// Keep real bindings emulated; only filesystem persistence is ephemeral in CI.
+// https://developers.cloudflare.com/workers/wrangler/api/#getplatformproxy
+const adapter = cloudflareAdapter({
+ platformProxy: process.env.CITA_VERIFICATION_RUN_ID ? { persist: false } : undefined
+});
 
 const config = {
 	// Consult https://svelte.dev/docs/kit/integrations
@@ -44,16 +49,15 @@ const config = {
 						'style-src-elem': ['self', 'https://fonts.googleapis.com'],
 						'style-src-attr': ['unsafe-inline'],
 						'font-src': ['self', 'https://fonts.gstatic.com'],
-						'img-src': ['self', 'data:', 'blob:', 'https://*.supabase.co'],
+						// The Supabase project of the deployment is added per request (hooks.server.ts).
+						'img-src': ['self', 'data:', 'blob:'],
 						'connect-src': [
 							'self',
 							'https://accounts.google.com',
 							'https://fonts.googleapis.com',
 							'https://fonts.gstatic.com',
 							'https://oauth2.googleapis.com',
-							'https://www.googleapis.com',
-							'https://*.supabase.co',
-							'wss://*.supabase.co'
+							'https://www.googleapis.com'
 						],
 						'frame-src': ['https://accounts.google.com', 'https://challenges.cloudflare.com'],
 						'base-uri': ['self'],

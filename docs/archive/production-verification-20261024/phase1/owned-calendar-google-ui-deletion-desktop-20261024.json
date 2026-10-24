@@ -1,0 +1,12 @@
+{
+  "runId": "owned-calendar-google-ui-deletion-desktop-20261024",
+  "at": "2026-10-24T07:41:27.321Z",
+  "scope": "Read only the known synthetic event through a new temporary phone Chrome tab. No Google credentials, cookies, management URL, event ID or broad calendar contents persisted.",
+  "googleUiReadConfirmed": false,
+  "openedBy": "authorized-Android-VIEW-intent",
+  "newOwnTab": true,
+  "presentation": "desktop-UA-and-viewport-on-authorized-real-Samsung; not a desktop-device claim",
+  "status": "not-confirmed",
+  "safeFailure": "OWN_GOOGLE_SEARCH_EVALUATION_FAILED",
+  "ownTemporaryTabClosed": true
+}

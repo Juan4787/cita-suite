@@ -1,9 +1,10 @@
+import { isRedirect } from '@sveltejs/kit';
 import { fail, error, redirect } from "@sveltejs/kit";
 import { env } from "$env/dynamic/private";
-import { getOdontoContext } from "$lib/server/odonto-context";
-import { bookingInformationEnabled } from "$lib/server/booking-information";
-import { bookingProfileConfig } from "$lib/server/booking-profile-config";
-import { readBoundedBookingForm } from "$lib/server/public-booking-page";
+import { getOdontoContext } from "$lib/server/access/public/odonto-context";
+import { bookingInformationEnabled } from "$lib/server/patients/public/booking-information";
+import { bookingProfileConfig } from "$lib/server/sites/public/booking-profile-config";
+import { readBoundedBookingForm } from "$lib/server/platform/form-data";
 import type { Actions, PageServerLoad } from "./$types";
 export const load: PageServerLoad = async (event) => {
   const context = await getOdontoContext(event);
@@ -105,9 +106,11 @@ export const actions: Actions = {
             : "No pudimos guardar el enlace. Revisá su configuración y volvé a intentar.";
         return fail(400, { message });
       }
-      throw redirect(303, `?perfil=${data.id}&instalar=1&guardado=1`);
+      const saved = readRecord(data, 'bookingIntegration.saved');
+      const id = readText(saved.id, 'bookingIntegration.saved.id');
+      throw redirect(303, `?perfil=${encodeURIComponent(id)}&instalar=1&guardado=1`);
     } catch (cause) {
-      if ((cause as any)?.status === 303) throw cause;
+      if (isRedirect(cause)) throw cause;
       return fail(400, {
         message:
           "Revisá la dirección web y las opciones de la agenda antes de guardar.",
@@ -115,3 +118,4 @@ export const actions: Actions = {
     }
   },
 };
+import { readRecord, readText } from '$lib/contracts/json';

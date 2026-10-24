@@ -1,5 +1,7 @@
 <script lang="ts">
-	let { data, form } = $props();
+	import type { PageProps } from './$types';
+
+	let { data, form }: PageProps = $props();
 	type AuthMode = 'login' | 'register';
 	let showPassword = $state(false);
 	let showConfirmPassword = $state(false);
@@ -104,7 +106,7 @@
 						name="password"
 						type={showPassword ? 'text' : 'password'}
 						class="ux-input pr-16"
-						placeholder={mode === 'register' ? 'Creá una contraseña segura' : 'Ingresá tu contraseña'}
+						placeholder={mode === 'register' ? 'Creala' : 'Tu contraseña'}
 						required
 						bind:value={password}
 						oninput={clearLocalMessage}
@@ -129,7 +131,7 @@
 							name="confirm_password"
 							type={showConfirmPassword ? 'text' : 'password'}
 							class="ux-input pr-16"
-							placeholder="Repetí la misma contraseña"
+							placeholder="Repetila"
 							required
 							bind:value={confirmPassword}
 							oninput={clearLocalMessage}
@@ -202,7 +204,7 @@
 			<input type="hidden" name="accepted_terms" value={acceptedTerms ? 'true' : 'false'} />
 			<button
 				type="submit"
-				class="flex w-full items-center justify-center gap-3 rounded-2xl border border-white/15 bg-white px-4 py-3 text-sm font-black text-neutral-950 shadow-lg transition hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-50"
+				class="flex w-full items-center justify-center gap-3 rounded-2xl border border-white/15 bg-white px-4 py-3 text-sm font-bold text-neutral-950 shadow-lg transition hover:bg-white/90 disabled:cursor-not-allowed disabled:opacity-50"
 				disabled={googleSubmitting || (mode === 'register' && !acceptedTerms)}
 				aria-busy={googleSubmitting}
 			>

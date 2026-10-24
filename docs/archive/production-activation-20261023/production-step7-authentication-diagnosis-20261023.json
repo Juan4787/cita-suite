@@ -1,0 +1,9 @@
+{
+  "at": "2026-10-23T14:28:54.183Z",
+  "legacyEntrypointsDisabled": true,
+  "negativeStatus": 401,
+  "localPrivateSecretStatus": 401,
+  "expectedPositiveStatus": 410,
+  "noJobRunExpected": true,
+  "secretPersistedOrPrinted": false
+}

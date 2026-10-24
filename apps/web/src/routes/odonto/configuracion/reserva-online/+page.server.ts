@@ -1,10 +1,9 @@
 import { fail, error, redirect } from "@sveltejs/kit";
 import { env } from "$env/dynamic/private";
-import { getOdontoContext } from "$lib/server/odonto-context";
-import { createSupabaseAdminClient } from "$lib/server/supabase";
-import { bookingInformationEnabled } from "$lib/server/booking-information";
-import { readBoundedBookingForm } from "$lib/server/public-booking-page";
-import { parseBookingSettings } from "$lib/server/booking-settings";
+import { getOdontoContext } from "$lib/server/access/public/odonto-context";
+import { bookingInformationEnabled } from "$lib/server/patients/public/booking-information";
+import { readBoundedBookingForm } from "$lib/server/platform/form-data";
+import { parseBookingSettings } from "$lib/server/sites/public/booking-settings";
 import type { PageServerLoad, Actions } from "./$types";
 export const load: PageServerLoad = async (event) => {
   const context = await getOdontoContext(event);
@@ -26,7 +25,8 @@ export const load: PageServerLoad = async (event) => {
         .from("booking_integrations")
         .select("id", { count: "exact", head: true })
         .eq("business_id", context.business.business.id)
-        .neq("allowed_origins", "{}")
+        // PostgREST expects the PostgreSQL array literal; JS [] serializes as ''.
+        .filter("allowed_origins", "neq", "{}")
     : { count: 0, error: null };
   if (count.error)
     error(503, "No pudimos cargar las reservas. Volvé a intentar.");
@@ -75,9 +75,10 @@ async function saveSettings(
     const expected = String(form.get("revision") ?? "");
     if (!expected)
       return fail(409, { message: "Recargá la página antes de guardar." });
-    let client = context.supabase;
+    // The assistance saves under its own rules, as an administrator of the practice;
+    // checking the grant first only gives it a clear message when it expired.
     if (context.business.assistance) {
-      const grant = await client.rpc("user_has_active_account_assistance", {
+      const grant = await context.supabase.rpc("user_has_active_account_assistance", {
         target_business_id: context.business.business.id,
       });
       if (grant.error || grant.data !== true)
@@ -85,9 +86,8 @@ async function saveSettings(
           message:
             "La autorización de ayuda venció. Volvé a abrir el consultorio.",
         });
-      client = await createSupabaseAdminClient("odonto", event.fetch);
     }
-    const result = await client
+    const result = await context.supabase
       .from("businesses")
       .update({ ...patch, updated_at: new Date().toISOString() })
       .eq("id", context.business.business.id)

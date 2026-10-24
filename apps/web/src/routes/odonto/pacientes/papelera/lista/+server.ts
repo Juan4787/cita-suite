@@ -1,3 +1,5 @@
+import { isUuid } from '@cita-suite/shared/uuid';
+import { logServerFailure } from '$lib/server/platform/logging';
 import {
 	CLINICAL_FILES_BUCKET,
 	CLINICAL_FILE_THUMBNAIL_URL_TTL_SECONDS,
@@ -6,26 +8,26 @@ import {
 	clinicalFileError,
 	getClinicalFileRequestContext,
 	requireClinicalFileTrashView
-} from '$lib/server/clinical-files';
+} from '$lib/server/patients/public/clinical-files';
+import { readArray, readRecord } from '$lib/contracts/json';
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
 const PAGE_SIZE = 30;
 type Cursor = { deletedAt: string; id: string };
-const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const timestampPattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})$/;
 
 const decodeCursor = (value: string | null): Cursor | null => {
 	if (!value) return null;
 	if (value.length > 512) return null;
 	try {
-		const parsed = JSON.parse(Buffer.from(value, 'base64url').toString('utf8')) as Partial<Cursor>;
+		const parsed = readRecord(JSON.parse(Buffer.from(value, 'base64url').toString('utf8')), 'patientFiles.cursor');
 		if (
 			typeof parsed.deletedAt !== 'string' ||
 			!timestampPattern.test(parsed.deletedAt) ||
 			Number.isNaN(Date.parse(parsed.deletedAt)) ||
 			typeof parsed.id !== 'string' ||
-			!uuidPattern.test(parsed.id)
+			!isUuid(parsed.id)
 		) return null;
 		return { deletedAt: parsed.deletedAt, id: parsed.id };
 	} catch {
@@ -54,17 +56,18 @@ export const GET: RequestHandler = async (event) => {
 		}
 
 		const { data, error } = await context.supabase.rpc(
-			'list_trashed_patient_radiographs_page' as never,
+			'list_trashed_patient_radiographs_page',
 			{
 				p_business_id: context.businessId,
 				p_query: query,
 				p_limit: PAGE_SIZE,
 				p_cursor_deleted_at: cursor?.deletedAt ?? null,
 				p_cursor_id: cursor?.id ?? null
-			} as never
+			}
 		);
 		if (error) throw error;
-		const rows = (Array.isArray(data) ? data : []) as Array<Record<string, any>>;
+		readArray(data, 'patientFiles.trash');
+		const rows = data ?? [];
 		const hasMore = rows.length > PAGE_SIZE;
 		const visible = hasMore ? rows.slice(0, PAGE_SIZE) : rows;
 		const paths = visible
@@ -106,7 +109,7 @@ export const GET: RequestHandler = async (event) => {
 					: null
 		});
 	} catch (cause) {
-		console.error('Error cargando papelera de imágenes clínicas', cause);
+		logServerFailure('Error cargando papelera de imágenes clínicas', cause);
 		const safe = clinicalFileError(cause, 'No pudimos cargar la papelera. Probá de nuevo.');
 		return json(clinicalFileErrorBody(safe), { status: safe.status });
 	}

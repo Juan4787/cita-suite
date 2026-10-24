@@ -1,0 +1,9 @@
+{
+  "at": "2026-10-24T12:59:04.051Z",
+  "status": 200,
+  "kind": "data",
+  "syntheticConfiguredAccount": true,
+  "membershipBusinessPresent": true,
+  "errorNodes": 0,
+  "scope": "Existing explicitly configured CITA_SUITE_TEST credentials; no new owner, reset, cookie or identity exported. Session used only for readonly agenda."
+}

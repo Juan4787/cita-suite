@@ -19,17 +19,17 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('$env/dynamic/private', () => ({ env: envState.privateEnv }));
-vi.mock('$lib/server/supabase', () => ({
+vi.mock('$lib/server/platform/supabase', () => ({
 	createSupabaseServerClient: mocks.createSupabaseServerClient,
 	createSupabaseAdminClient: mocks.createSupabaseAdminClient,
 	getEmailFromAccessToken: mocks.getEmailFromAccessToken,
 	isMasterEmail: mocks.isMasterEmail
 }));
-vi.mock('$lib/server/business', () => ({
+vi.mock('$lib/server/access/public/business', () => ({
 	resolveActiveBusiness: mocks.resolveActiveBusiness,
 	demoBusinessContext: mocks.demoBusinessContext
 }));
-vi.mock('$lib/server/account-assistance', () => ({
+vi.mock('$lib/server/access/public/account-assistance', () => ({
 	activateAccountAssistance: mocks.activateAccountAssistance,
 	revokeAccountAssistance: mocks.revokeAccountAssistance,
 	dismissAccountAssistanceNotice: mocks.dismissAccountAssistanceNotice,
@@ -139,6 +139,22 @@ describe('configuracion ayuda server', () => {
 			status: 303,
 			location: '/odonto/maestro'
 		});
+	});
+
+	it('recognizes the master by the identity Auth verified, not by the claim the token carries', async () => {
+		mocks.resolveActiveBusiness.mockResolvedValue(context('owner'));
+		mocks.getEmailFromAccessToken.mockReturnValue('master@test.com');
+		mocks.isMasterEmail.mockImplementation((email?: string | null) => email === 'master@test.com');
+		const event = { ...makeEvent(), locals: { ...makeEvent().locals, verifiedUser: { email: 'owner@test.com' } } };
+
+		await expect(load(event as never)).resolves.toMatchObject({ demo: false });
+	});
+
+	it('says it could not read the help state instead of showing it as available', async () => {
+		mocks.resolveActiveBusiness.mockResolvedValue(context('owner'));
+		mocks.loadAccountAssistanceView.mockRejectedValue(new Error('read failed'));
+
+		await expect(load(makeEvent() as never)).rejects.toMatchObject({ status: 503 });
 	});
 
 	it('blocks a direct master request to activate help', async () => {

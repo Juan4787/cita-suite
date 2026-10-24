@@ -1,42 +1,36 @@
+import { logServerFailure } from '$lib/server/platform/logging';
 import {
 	COMMERCIAL_STATUSES,
-	getBusinessAccessState,
-	type BusinessSubscriptionRow
-} from '$lib/server/commercial-access';
+	getBusinessAccessState
+} from '$lib/access/commercial-access';
 import {
 	cancelPreapproval,
 	pickRelevantMpSubscription,
 	reconcileMercadoPago,
 	settleApprovedChargesForPreapproval,
 	type MpSubscriptionRow
-} from '$lib/server/mercadopago';
-import { ACTIVE_BUSINESS_COOKIE, normalizeSlug } from '$lib/server/business';
-import {
-	createSupabaseAdminClient,
-	getEmailFromAccessToken,
-	getUserIdFromAccessToken,
-	isMasterEmail
-} from '$lib/server/supabase';
+} from '$lib/server/integrations/public/mercadopago';
+import { ACTIVE_BUSINESS_COOKIE, normalizeSlug } from '$lib/server/access/public/business';
+import { createSupabaseAdminClient, isMasterEmail } from '$lib/server/platform/supabase';
 import {
 	businessEmailAssociationErrorMessage,
-	businessEmailAssociationErrorStatus,
-	EMAIL_ALREADY_ASSOCIATED_WITH_OTHER_BUSINESS_MESSAGE
-} from '$lib/server/business-email-association';
+	businessEmailAssociationErrorStatus
+} from '$lib/server/access/public/business-email-association';
+import { InvalidDataContractError, readArray, readBoolean, readRecord, readText } from '$lib/contracts/json';
 import { parseMoneyInteger } from '$lib/utils/money-input';
+import { isUuid } from '@cita-suite/shared/uuid';
 import { defaultManualAccessNote } from '$lib/utils/commercial-access-copy';
 import { fail, redirect } from '@sveltejs/kit';
 import { randomUUID } from 'node:crypto';
 import type { Actions, PageServerLoad } from './$types';
 
-const ensureMaster = (accessToken?: string | null) => {
-	const email = getEmailFromAccessToken(accessToken);
-	if (!email || !isMasterEmail(email)) {
+// The master is the identity Auth verified in hooks, never a claim decoded from the token.
+const ensureMaster = (locals: App.Locals) => {
+	const user = locals.verifiedUser;
+	if (!user?.email || !isMasterEmail(user.email)) {
 		throw redirect(303, '/odonto/pacientes');
 	}
-	return {
-		email,
-		userId: getUserIdFromAccessToken(accessToken)
-	};
+	return { email: user.email, userId: user.id };
 };
 
 const EMAIL_FORMAT_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -85,19 +79,17 @@ const normalizeEmail = (value: FormDataEntryValue | string | null | undefined) =
 		.trim()
 		.toLowerCase();
 
-const uniqueBusinessSlug = async (
-	admin: Awaited<ReturnType<typeof createSupabaseAdminClient>>,
-	baseValue: string
-) => {
-	const base = normalizeSlug(baseValue) || 'consultorio';
-	for (let attempt = 0; attempt < 20; attempt += 1) {
-		const suffix = attempt === 0 ? '' : `-${randomUUID().slice(0, 6)}`;
-		const slug = `${base}${suffix}`.slice(0, 80);
-		const { data, error } = await admin.from('businesses').select('id').eq('slug', slug).maybeSingle();
-		if (error) throw error;
-		if (!data) return slug;
-	}
-	return `${base}-${randomUUID().slice(0, 8)}`.slice(0, 80);
+const UNCONFIRMED_BUSINESS_CREATION =
+	'No pudimos confirmar el alta del consultorio. Revisá la lista de consultorios antes de volver a intentarlo.';
+
+// The creation confirms exactly one practice; any other answer is not a confirmation.
+const readCreatedBusiness = (data: unknown) => {
+	const rows = readArray(data, 'createdBusiness');
+	if (rows.length !== 1) throw new InvalidDataContractError('createdBusiness');
+	const row = readRecord(rows[0], 'createdBusiness');
+	const businessId = readText(row.business_id, 'createdBusiness');
+	if (!isUuid(businessId)) throw new InvalidDataContractError('createdBusiness');
+	return { businessId, ownerLinked: readBoolean(row.owner_linked, 'createdBusiness') };
 };
 
 const listAuthEmailsById = async (admin: Awaited<ReturnType<typeof createSupabaseAdminClient>>) => {
@@ -107,10 +99,8 @@ const listAuthEmailsById = async (admin: Awaited<ReturnType<typeof createSupabas
 
 	while (true) {
 		const { data, error } = await admin.auth.admin.listUsers({ page, perPage });
-		if (error) {
-			console.error('Error listando usuarios Auth para panel maestro', error);
-			break;
-		}
+		// A partial list would show accounts without their emails.
+		if (error) throw error;
 		const users = data?.users ?? [];
 		for (const user of users) {
 			if (user.id && user.email) result.set(user.id, user.email);
@@ -120,24 +110,6 @@ const listAuthEmailsById = async (admin: Awaited<ReturnType<typeof createSupabas
 	}
 
 	return result;
-};
-
-const findAuthUserIdByEmail = async (
-	admin: Awaited<ReturnType<typeof createSupabaseAdminClient>>,
-	email: string
-) => {
-	const normalizedEmail = email.trim().toLowerCase();
-	const perPage = 200;
-	let page = 1;
-	while (true) {
-		const { data, error } = await admin.auth.admin.listUsers({ page, perPage });
-		if (error) throw error;
-		const users = data?.users ?? [];
-		const match = users.find((user) => (user.email ?? '').toLowerCase() === normalizedEmail);
-		if (match?.id) return match.id;
-		if (users.length < perPage) return null;
-		page += 1;
-	}
 };
 
 const businessHasMasterOwner = async (
@@ -223,32 +195,18 @@ const buildMasterData = async (
 
 	if (emailsRes.error) throw emailsRes.error;
 	if (businessesRes.error) throw businessesRes.error;
-	if (subscriptionsRes.error) {
-		// Compatibility: before migration, keep page readable.
-		console.error('Error cargando business_subscriptions', subscriptionsRes.error);
-	}
-	if (membershipsRes.error) throw membershipsRes.error;
-	if (grantsRes.error) {
-		console.error('Error cargando access_grants', grantsRes.error);
-	}
-	// Compatibilidad: si las tablas MP no existen todavía, el panel sigue legible.
-	if (mpSubsRes.error) {
-		console.error('Error cargando mp_subscriptions', mpSubsRes.error);
-	}
-	if (mpAttentionRes.error) {
-		console.error('Error cargando eventos MP con atención', mpAttentionRes.error);
-	}
-	if (assistanceRes.error) {
-		console.error('Error cargando ayuda para configurar', assistanceRes.error);
-	}
+	// Every table exists since its migration: a failed read is an error the panel shows,
+	// not practices listed without their commercial state, grants or payments.
+	for (const result of [subscriptionsRes, membershipsRes, grantsRes, mpSubsRes, mpAttentionRes, assistanceRes])
+		if (result.error) throw result.error;
 
 	const subscriptionsByBusinessId = new Map(
-		((subscriptionsRes.data ?? []) as BusinessSubscriptionRow[]).map((subscription) => [
+		(subscriptionsRes.data ?? []).map((subscription) => [
 			subscription.business_id,
 			subscription
 		])
 	);
-	const membershipsByBusinessId = new Map<string, any[]>();
+	const membershipsByBusinessId = new Map<string, (NonNullable<typeof membershipsRes.data>[number] & { email: string | null })[]>();
 	for (const membership of membershipsRes.data ?? []) {
 		const businessId = String(membership.business_id);
 		const list = membershipsByBusinessId.get(businessId) ?? [];
@@ -259,7 +217,7 @@ const buildMasterData = async (
 		membershipsByBusinessId.set(businessId, list);
 	}
 
-	const grantsByBusinessId = new Map<string, any[]>();
+	const grantsByBusinessId = new Map<string, NonNullable<typeof grantsRes.data>>();
 	for (const grant of grantsRes.data ?? []) {
 		const businessId = String(grant.business_id);
 		const list = grantsByBusinessId.get(businessId) ?? [];
@@ -268,7 +226,7 @@ const buildMasterData = async (
 	}
 
 	const mpSubsByBusinessId = new Map<string, MpSubscriptionRow[]>();
-	for (const sub of (mpSubsRes.data ?? []) as MpSubscriptionRow[]) {
+	for (const sub of mpSubsRes.data ?? []) {
 		const businessId = String(sub.business_id);
 		const list = mpSubsByBusinessId.get(businessId) ?? [];
 		list.push(sub);
@@ -281,7 +239,7 @@ const buildMasterData = async (
 		return Boolean(email && (email === normalizedMasterEmail || isMasterEmail(email)));
 	};
 
-	const businesses = (businessesRes.data ?? []).map((business: any) => {
+	const businesses = (businessesRes.data ?? []).map((business) => {
 		const subscription = subscriptionsByBusinessId.get(String(business.id)) ?? null;
 		const access = getBusinessAccessState(subscription, { businessCreatedAt: business.created_at });
 		const members = membershipsByBusinessId.get(String(business.id)) ?? [];
@@ -298,18 +256,18 @@ const buildMasterData = async (
 				mpSubsByBusinessId.get(String(business.id)) ?? []
 			)
 		};
-	}).filter((business: any) => {
+	}).filter((business) => {
 		const ownerEmails = (business.owners ?? [])
-			.map((owner: any) => String(owner.email ?? '').toLowerCase())
+			.map((owner) => String(owner.email ?? '').toLowerCase())
 			.filter(Boolean);
 		if (isProtectedEmail(business.email)) return false;
 		return !ownerEmails.some((email: string) => isProtectedEmail(email));
 	});
 
 	const businessNameById = new Map(
-		businesses.map((business: any) => [String(business.id), String(business.name ?? '')])
+		businesses.map((business) => [String(business.id), String(business.name ?? '')])
 	);
-	const assistance = ((assistanceRes.error ? [] : assistanceRes.data ?? []) as any[])
+	const assistance = (assistanceRes.data ?? [])
 		.filter((grant) => businessNameById.has(String(grant.business_id)))
 		.map((grant) => {
 			const business = Array.isArray(grant.business) ? grant.business[0] : grant.business;
@@ -326,7 +284,7 @@ const buildMasterData = async (
 		});
 	// Solo eventos de negocios visibles en el panel (o globales, sin negocio):
 	// los negocios filtrados por protección no deben filtrarse por acá.
-	const mpAttention = ((mpAttentionRes.data ?? []) as any[])
+	const mpAttention = (mpAttentionRes.data ?? [])
 		.filter((event) => !event.business_id || businessNameById.has(String(event.business_id)))
 		.map((event) => ({
 			...event,
@@ -336,7 +294,7 @@ const buildMasterData = async (
 		}));
 
 	return {
-		emails: (emailsRes.data ?? []).filter((item: any) => !isProtectedEmail(String(item.email ?? ''))),
+		emails: (emailsRes.data ?? []).filter((item) => !isProtectedEmail(String(item.email ?? ''))),
 		businesses,
 		statuses: COMMERCIAL_STATUSES,
 		assistance,
@@ -346,7 +304,7 @@ const buildMasterData = async (
 
 export const load: PageServerLoad = async ({ locals, fetch }) => {
 	if (!locals.auth) throw redirect(303, '/login');
-	const master = ensureMaster(locals.auth.access_token);
+	const master = ensureMaster(locals);
 	const admin = await createSupabaseAdminClient('odonto', fetch);
 
 	try {
@@ -356,7 +314,7 @@ export const load: PageServerLoad = async ({ locals, fetch }) => {
 			loadError: null
 		};
 	} catch (error) {
-		console.error('Error cargando panel maestro', error);
+		logServerFailure('Error cargando panel maestro', error);
 		return {
 			emails: [],
 			businesses: [],
@@ -372,7 +330,7 @@ export const load: PageServerLoad = async ({ locals, fetch }) => {
 export const actions: Actions = {
 	enter_assisted_business: async ({ request, locals, fetch, cookies }) => {
 		if (!locals.auth) throw redirect(303, '/login');
-		const master = ensureMaster(locals.auth.access_token);
+		const master = ensureMaster(locals);
 		const form = await request.formData();
 		const grantId = String(form.get('grant_id') ?? '').trim();
 		const businessId = String(form.get('business_id') ?? '').trim();
@@ -381,10 +339,7 @@ export const actions: Actions = {
 		}
 
 		const admin = await createSupabaseAdminClient('odonto', fetch);
-		const masterUserId = master.userId ?? (await findAuthUserIdByEmail(admin, master.email));
-		if (!masterUserId) {
-			return fail(403, { message: 'No pudimos validar el usuario maestro.' });
-		}
+		const masterUserId = master.userId;
 
 		const { data: grant, error } = await admin
 			.from('account_assistance_grants')
@@ -393,7 +348,7 @@ export const actions: Actions = {
 			.eq('business_id', businessId)
 			.maybeSingle();
 		if (error) {
-			console.error('Error validando ayuda para configurar desde panel maestro', error);
+			logServerFailure('Error validando ayuda para configurar desde panel maestro', error);
 			return fail(500, { message: 'No pudimos validar la ayuda.' });
 		}
 		if (
@@ -410,7 +365,7 @@ export const actions: Actions = {
 			target_business_id: businessId
 		});
 		if (canUseError) {
-			console.error('Error validando estado del consultorio para ayuda', canUseError);
+			logServerFailure('Error validando estado del consultorio para ayuda', canUseError);
 			return fail(500, { message: 'No pudimos validar el estado del consultorio.' });
 		}
 		if (canUseRows !== true) {
@@ -428,7 +383,7 @@ export const actions: Actions = {
 	},
 	create_business: async ({ request, locals, fetch }) => {
 		if (!locals.auth) throw redirect(303, '/login');
-		const master = ensureMaster(locals.auth.access_token);
+		const master = ensureMaster(locals);
 		const form = await request.formData();
 		const name = String(form.get('name') ?? '').trim();
 		const ownerEmail = normalizeEmail(form.get('owner_email'));
@@ -447,173 +402,46 @@ export const actions: Actions = {
 			return fail(400, { message: 'Elegí la duración inicial del consultorio.' });
 		}
 
+		// The access email, the practice, its owner and its initial access are written in
+		// one transaction, and the database keeps one practice per email.
 		const admin = await createSupabaseAdminClient('odonto', fetch);
-		let ownerUserId: string | null = null;
-		try {
-			ownerUserId = await findAuthUserIdByEmail(admin, ownerEmail);
-		} catch (error) {
-			console.error('Error buscando usuario owner', error);
-			return fail(500, { message: 'No pudimos validar el usuario owner.' });
-		}
-
-		if (ownerUserId) {
-			const { data: existingMemberships, error: existingMembershipsError } = await admin
-				.from('business_users')
-				.select('business_id, role')
-				.eq('user_id', ownerUserId)
-				.eq('status', 'active')
-				.limit(1);
-			if (existingMembershipsError) {
-				console.error('Error validando membresías existentes del owner', existingMembershipsError);
-				return fail(500, { message: 'No pudimos validar si el owner ya tiene consultorio.' });
-			}
-			if ((existingMemberships ?? []).length > 0) {
-				return fail(409, {
-					message: EMAIL_ALREADY_ASSOCIATED_WITH_OTHER_BUSINESS_MESSAGE
-				});
-			}
-		}
-
-		const { data: existingInvites, error: existingInvitesError } = await admin
-			.from('business_user_invites')
-			.select('id, business_id, role')
-			.eq('email', ownerEmail)
-			.eq('status', 'pending')
-			.limit(1);
-		if (existingInvitesError) {
-			console.error('Error validando invitaciones existentes del owner', existingInvitesError);
-			return fail(500, { message: 'No pudimos validar si el owner ya tiene invitación pendiente.' });
-		}
-		if ((existingInvites ?? []).length > 0) {
-			return fail(409, {
-				message: EMAIL_ALREADY_ASSOCIATED_WITH_OTHER_BUSINESS_MESSAGE
-			});
-		}
-
-		const { data: existingEmail, error: existingEmailError } = await admin
-			.from('allowed_emails')
-			.select('id')
-			.eq('email', ownerEmail)
-			.maybeSingle();
-		if (existingEmailError) {
-			console.error('Error validando email owner', existingEmailError);
-			return fail(500, { message: 'No pudimos validar el email owner.' });
-		}
-
-		const emailWrite = existingEmail
-			? await admin
-					.from('allowed_emails')
-					.update({
-						enabled: true,
-						onboarding_mode: 'manual',
-						disabled_at: null,
-						disabled_reason: null,
-						updated_by: master.userId,
-						note: note ?? 'Owner de consultorio creado desde panel maestro.'
-					})
-					.eq('id', existingEmail.id)
-			: await admin.from('allowed_emails').insert({
-					email: ownerEmail,
-					enabled: true,
-					onboarding_mode: 'manual',
-					note: note ?? 'Owner de consultorio creado desde panel maestro.',
-					updated_by: master.userId,
-					created_by: master.userId
-				});
-		if (emailWrite.error) {
-			console.error('Error habilitando email owner', emailWrite.error);
-			return fail(500, { message: 'No pudimos habilitar el email owner.' });
-		}
-
-		const slug = await uniqueBusinessSlug(admin, name);
-		const { data: business, error: businessError } = await admin
-			.from('businesses')
-			.insert({
-				name,
-				slug,
-				industry: 'odontology',
-				email: ownerEmail
-			})
-			.select('id')
-			.single();
-
-		if (businessError || !business?.id) {
-			console.error('Error creando consultorio', businessError);
-			return fail(500, { message: 'No pudimos crear el consultorio.' });
-		}
-
-		if (ownerUserId) {
-			const { error: membershipError } = await admin.from('business_users').insert({
-				business_id: business.id,
-				user_id: ownerUserId,
-				role: 'owner',
-				status: 'active',
-				accepted_at: new Date().toISOString(),
-				created_by: master.userId,
-				updated_by: master.userId
-			});
-
-			if (membershipError) {
-				console.error('Error vinculando owner al consultorio', membershipError);
-				await admin.from('businesses').delete().eq('id', business.id);
-				return fail(businessEmailAssociationErrorStatus(membershipError), {
-					message: businessEmailAssociationErrorMessage(
-						membershipError,
-						'No pudimos vincular el owner al consultorio.'
-					)
-				});
-			}
-		} else {
-			const { error: inviteError } = await admin.from('business_user_invites').insert({
-				business_id: business.id,
-				email: ownerEmail,
-				role: 'owner',
-				status: 'pending',
-				invited_by: master.userId
-			});
-
-			if (inviteError) {
-				console.error('Error creando invitación owner del consultorio', inviteError);
-				await admin.from('businesses').delete().eq('id', business.id);
-				return fail(businessEmailAssociationErrorStatus(inviteError), {
-					message: businessEmailAssociationErrorMessage(
-						inviteError,
-						'No pudimos dejar invitado al owner del consultorio.'
-					)
-				});
-			}
-		}
-
-		const operation = durationKey === 'permanent' ? 'set_permanent' : 'grant_access';
-		const { error: grantError } = await admin.rpc('grant_business_access', {
-			p_business_id: business.id,
-			p_operation: operation,
+		const { data, error } = await admin.rpc('create_business_with_owner', {
+			p_name: name,
+			p_slug_base: normalizeSlug(name) || 'consultorio',
+			p_owner_email: ownerEmail,
 			p_duration_seconds: duration.seconds,
 			p_duration_unit: duration.unit,
 			p_is_permanent: durationKey === 'permanent',
-			p_amount: null,
-			p_source: 'internal',
-			p_note: note ?? `Consultorio creado con acceso inicial: ${duration.label}.`,
+			p_note: note,
+			p_access_note: note ?? `Consultorio creado con acceso inicial: ${duration.label}.`,
 			p_admin_id: master.userId,
 			p_admin_email: master.email,
 			p_idempotency_key: randomUUID()
 		});
-		if (grantError) {
-			console.error('Error asignando acceso inicial al consultorio', grantError);
-			await admin.from('businesses').delete().eq('id', business.id);
-			return fail(500, { message: 'No pudimos asignar el acceso inicial del consultorio.' });
+		if (error) {
+			logServerFailure('Error creando consultorio', error);
+			return fail(businessEmailAssociationErrorStatus(error, 503), {
+				message: businessEmailAssociationErrorMessage(error, UNCONFIRMED_BUSINESS_CREATION)
+			});
+		}
+		let created: ReturnType<typeof readCreatedBusiness>;
+		try {
+			created = readCreatedBusiness(data);
+		} catch (contractError) {
+			logServerFailure('Respuesta inválida al crear el consultorio', contractError);
+			return fail(503, { message: UNCONFIRMED_BUSINESS_CREATION });
 		}
 
-			return {
-				success: true,
-				message: ownerUserId
-					? `Consultorio creado y owner vinculado. Acceso inicial: ${duration.label}.`
-					: `Consultorio creado con owner pendiente. Acceso inicial: ${duration.label}. Cuando el owner ingrese, se vinculará automáticamente.`
-			};
+		return {
+			success: true,
+			message: created.ownerLinked
+				? `Consultorio creado y owner vinculado. Acceso inicial: ${duration.label}.`
+				: `Consultorio creado con owner pendiente. Acceso inicial: ${duration.label}. Cuando el owner ingrese, se vinculará automáticamente.`
+		};
 	},
 	add_email: async ({ request, locals, fetch }) => {
 		if (!locals.auth) throw redirect(303, '/login');
-		const master = ensureMaster(locals.auth.access_token);
+		const master = ensureMaster(locals);
 		const form = await request.formData();
 		const email = normalizeEmail(form.get('email'));
 		const onboardingModeRaw = String(form.get('onboarding_mode') ?? 'manual').trim();
@@ -638,7 +466,7 @@ export const actions: Actions = {
 			.maybeSingle();
 
 		if (existingError) {
-			console.error('Error buscando email habilitado', existingError);
+			logServerFailure('Error buscando email habilitado', existingError);
 			return fail(500, { message: 'No pudimos validar el correo electrónico.', email });
 		}
 
@@ -666,7 +494,7 @@ export const actions: Actions = {
 				});
 
 		if (error) {
-			console.error('Error guardando email habilitado', error);
+			logServerFailure('Error guardando email habilitado', error);
 			return fail(500, { message: 'No pudimos guardar el correo electrónico.', email });
 		}
 
@@ -680,7 +508,7 @@ export const actions: Actions = {
 	},
 	toggle_email: async ({ request, locals, fetch }) => {
 		if (!locals.auth) throw redirect(303, '/login');
-		const master = ensureMaster(locals.auth.access_token);
+		const master = ensureMaster(locals);
 		const form = await request.formData();
 		const id = String(form.get('id') ?? '').trim();
 		const enabled = String(form.get('enabled') ?? '') === 'true';
@@ -695,7 +523,7 @@ export const actions: Actions = {
 			.eq('id', id)
 			.maybeSingle();
 		if (existingError) {
-			console.error('Error validando email para cambio de estado', existingError);
+			logServerFailure('Error validando email para cambio de estado', existingError);
 			return fail(500, { message: 'No pudimos validar el correo electrónico.' });
 		}
 		if (!existingEmail) return fail(404, { message: 'Correo electrónico no encontrado.' });
@@ -714,7 +542,7 @@ export const actions: Actions = {
 			.eq('id', id);
 
 		if (error) {
-			console.error('Error actualizando email', error);
+			logServerFailure('Error actualizando email', error);
 			return fail(500, { message: 'No pudimos actualizar el correo electrónico.' });
 		}
 
@@ -725,7 +553,7 @@ export const actions: Actions = {
 	},
 	adjust_business_access: async ({ request, locals, fetch }) => {
 		if (!locals.auth) throw redirect(303, '/login');
-		const master = ensureMaster(locals.auth.access_token);
+		const master = ensureMaster(locals);
 		const form = await request.formData();
 		const businessId = String(form.get('business_id') ?? '').trim();
 		const operation = String(form.get('operation') ?? '').trim();
@@ -738,7 +566,7 @@ export const actions: Actions = {
 		const idempotencyKey = String(form.get('idempotency_key') ?? '').trim() || randomUUID();
 
 		if (!businessId) return fail(400, { message: 'Consultorio inválido.' });
-		if (!BUSINESS_ACCESS_OPERATIONS.includes(operation as any)) {
+		if (!BUSINESS_ACCESS_OPERATIONS.some(allowed => allowed === operation)) {
 			return fail(400, { message: 'Operación inválida.' });
 		}
 		if (!duration && !['disable_business_access', 'enable_business_access', 'archive_business', 'payment_cancelled', 'unset_permanent'].includes(operation)) {
@@ -768,7 +596,7 @@ export const actions: Actions = {
 		});
 
 		if (error) {
-			console.error('Error ajustando acceso comercial', error);
+			logServerFailure('Error ajustando acceso comercial', error);
 			const raw = error.message?.toLowerCase() ?? '';
 			if (raw.includes('permanent')) {
 				return fail(400, { message: 'La operación no es válida para una cuenta permanente.' });
@@ -799,7 +627,7 @@ export const actions: Actions = {
 	},
 	revoke_business_sessions: async ({ request, locals, fetch }) => {
 		if (!locals.auth) throw redirect(303, '/login');
-		const master = ensureMaster(locals.auth.access_token);
+		const master = ensureMaster(locals);
 		const form = await request.formData();
 		const businessId = String(form.get('business_id') ?? '').trim();
 		if (!businessId) return fail(400, { message: 'Consultorio inválido.' });
@@ -814,7 +642,7 @@ export const actions: Actions = {
 			.select('user_id')
 			.eq('business_id', businessId);
 		if (membersError) {
-			console.error('Error cargando usuarios para cerrar sesiones', membersError);
+			logServerFailure('Error cargando usuarios para cerrar sesiones', membersError);
 			return fail(500, { message: 'No pudimos cargar los usuarios del consultorio.' });
 		}
 
@@ -823,7 +651,7 @@ export const actions: Actions = {
 			if (!member.user_id) continue;
 			const { error } = await admin.auth.admin.signOut(member.user_id);
 			if (error) {
-				console.error('Error cerrando sesión de usuario', member.user_id, error);
+				logServerFailure('Error cerrando sesión de usuario', error);
 				continue;
 			}
 			revoked += 1;
@@ -843,7 +671,7 @@ export const actions: Actions = {
 	},
 	mp_cancel_subscription: async ({ request, locals, fetch }) => {
 		if (!locals.auth) throw redirect(303, '/login');
-		ensureMaster(locals.auth.access_token);
+		ensureMaster(locals);
 		const form = await request.formData();
 		const businessId = String(form.get('business_id') ?? '').trim();
 		const preapprovalId = String(form.get('preapproval_id') ?? '').trim();
@@ -860,7 +688,7 @@ export const actions: Actions = {
 			.eq('business_id', businessId)
 			.maybeSingle();
 		if (ownedError) {
-			console.error('Error verificando suscripción MP a cancelar', ownedError);
+			logServerFailure('Error verificando suscripción MP a cancelar', ownedError);
 			return fail(500, { message: 'No se pudo verificar la suscripción.' });
 		}
 		if (!owned) {
@@ -868,22 +696,19 @@ export const actions: Actions = {
 		}
 
 		// Se asienta cualquier cobro aprobado sin registrar antes de cancelar:
-		// una vez cancelada la fila sale del filtro de conciliación.
-		try {
-			await settleApprovedChargesForPreapproval(admin, fetch, businessId, preapprovalId);
-		} catch (error) {
-			console.error('No se pudo asentar el cobro final antes de cancelar (maestro)', error);
-		}
+		// una vez cancelada la fila sale del filtro de conciliación. Si el barrido
+		// falla, la cancelación sigue y queda un evento que requiere atención.
+		await settleApprovedChargesForPreapproval(admin, fetch, businessId, preapprovalId);
 
 		let cancelled;
 		try {
 			cancelled = await cancelPreapproval(fetch, preapprovalId);
 		} catch (error) {
-			console.error('Error cancelando suscripción MP desde maestro', error);
+			logServerFailure('Error cancelando suscripción MP desde maestro', error);
 			return fail(502, { message: 'Mercado Pago no respondió. Probá de nuevo en unos minutos.' });
 		}
 		if (!cancelled.ok) {
-			console.error('MP rechazó la cancelación desde maestro', cancelled.status, cancelled.data);
+			logServerFailure('MP rechazó la cancelación desde maestro', { status: cancelled.status });
 			return fail(502, { message: 'Mercado Pago no aceptó la cancelación.' });
 		}
 
@@ -896,7 +721,7 @@ export const actions: Actions = {
 			})
 			.eq('preapproval_id', preapprovalId);
 		if (updateError) {
-			console.error('No se pudo sincronizar la suscripción cancelada', updateError);
+			logServerFailure('No se pudo sincronizar la suscripción cancelada', updateError);
 		}
 
 		return {
@@ -906,14 +731,14 @@ export const actions: Actions = {
 	},
 	mp_reconcile_now: async ({ locals, fetch }) => {
 		if (!locals.auth) throw redirect(303, '/login');
-		ensureMaster(locals.auth.access_token);
+		ensureMaster(locals);
 
 		const admin = await createSupabaseAdminClient('odonto', fetch);
 		let summary;
 		try {
 			summary = await reconcileMercadoPago(admin, fetch, { limit: 20 });
 		} catch (error) {
-			console.error('Error corriendo conciliación manual', error);
+			logServerFailure('Error corriendo conciliación manual', error);
 			return fail(500, { message: 'La conciliación falló. Revisá los logs.' });
 		}
 

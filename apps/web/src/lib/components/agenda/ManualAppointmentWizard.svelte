@@ -1,8 +1,9 @@
 <script lang="ts">
-	import {
-		calculateAvailabilitySlots,
-		type AvailabilitySlot
-	} from '$lib/availability/calculate';
+	import Icon from '$lib/components/Icon.svelte';
+	import { formatDuration, formatStepCounter } from '$lib/utils/format';
+	import ManualPatientPicker from './ManualPatientPicker.svelte';
+	import type { ManualBookingPatient as Patient } from '$lib/patients/manual-booking';
+	import { calculateAvailabilitySlots, type AvailabilitySlot } from '$lib/availability/calculate';
 	import {
 		snapshotContainsRange,
 		type AvailabilitySnapshot,
@@ -10,6 +11,7 @@
 		type AvailabilitySnapshotProfessional,
 		type AvailabilitySnapshotService
 	} from '$lib/availability/snapshot';
+	import { parseAvailabilitySlots } from '$lib/availability/http';
 	import { classifyCommunicationPhone } from '$lib/utils/communication-phone';
 	import { onDestroy, tick, untrack } from 'svelte';
 
@@ -19,17 +21,6 @@
 		name: string;
 		specialty?: string | null;
 		is_active: boolean;
-	};
-	type Patient = {
-		id: string;
-		full_name: string;
-		phone: string | null;
-		phone_raw: string | null;
-		phone_e164: string | null;
-		dni: string | null;
-		birth_date: string | null;
-		activity_at: string;
-		blocked: boolean;
 	};
 	type Slot = AvailabilitySlot;
 	type PhoneWarningKind = 'missing' | 'invalid';
@@ -49,7 +40,7 @@
 		appointmentRequestId,
 		canOperate,
 		form
-	} = $props<{
+	}: {
 		services: Service[];
 		professionals: Professional[];
 		serviceProfessionalIds: Record<string, string[]>;
@@ -68,7 +59,7 @@
 			phoneWarning?: { kind: PhoneWarningKind };
 			values?: Record<string, unknown>;
 		};
-	}>();
+	} = $props();
 
 	const value = (key: string) => String(form?.values?.[key] ?? '');
 	const today = () => new Date().toISOString().slice(0, 10);
@@ -91,9 +82,6 @@
 		new Intl.DateTimeFormat('es-AR', { weekday: 'long', day: '2-digit', month: 'long' }).format(
 			new Date(date + 'T12:00:00')
 		);
-	const durationLabel = (minutes: number) =>
-		String(minutes) + ' ' + (minutes === 1 ? 'minuto' : 'minutos');
-	const patientDateFormatter = new Intl.DateTimeFormat('es-AR', { timeZone: 'UTC' });
 	const initialsFor = (name: string) =>
 		name
 			.split(/\s+/)
@@ -136,9 +124,7 @@
 	let patientEmail = $state(value('patient_email'));
 	let patientSearch = $state('');
 	let internalNote = $state(value('internal_note'));
-	let idempotencyKey = $state(
-		untrack(() => value('idempotency_key') || appointmentRequestId)
-	);
+	let idempotencyKey = $state(untrack(() => value('idempotency_key') || appointmentRequestId));
 	let pendingInitialTime = $state(value('time'));
 	let ignoreBreak = $state(value('ignore_break') === 'true');
 	let slots = $state<Slot[]>([]);
@@ -147,10 +133,7 @@
 	let slotsError = $state('');
 	let slotRequest = 0;
 	let slotAbortController: AbortController | null = null;
-	let remotePatients = $state<Patient[]>([]);
-	let patientSearchLoading = $state(false);
-	let patientSearchError = $state('');
-	let patientSearchRequest = 0;
+	let selectedRemotePatient = $state<Patient | null>(null);
 	let appointmentForm = $state<HTMLFormElement | null>(null);
 	let phoneInput = $state<HTMLInputElement | null>(null);
 	let patientPhoneChanged = $state(value('patient_phone_changed') === 'true');
@@ -159,9 +142,7 @@
 			? (value('phone_warning_override') as PhoneWarningKind)
 			: ''
 	);
-	let phoneWarning = $state<PhoneWarningKind | null>(
-		untrack(() => form?.phoneWarning?.kind ?? null)
-	);
+	let phoneWarning = $state<PhoneWarningKind | null>(untrack(() => form?.phoneWarning?.kind ?? null));
 	let phoneNeedsAttention = $state(false);
 	let hydratedPatientId = untrack(() => (value('patient_phone') ? selectedPatientId : ''));
 	let appliedFormResult = untrack(() => form);
@@ -173,7 +154,9 @@
 	);
 	const offeredProfessionalIds = $derived(serviceProfessionalIds[selectedServiceId] ?? []);
 	const offeringProfessionals = $derived(
-		professionals.filter((professional: Professional) => offeredProfessionalIds.includes(professional.id))
+		professionals.filter((professional: Professional) =>
+			offeredProfessionalIds.includes(professional.id)
+		)
 	);
 	const selectedTeam = $derived(
 		selectedProfessionalIds
@@ -186,14 +169,15 @@
 			.filter((professional): professional is Professional => Boolean(professional))
 	);
 	const hasValidProfessionalSelection = $derived(
-		bookingMode === 'joint'
-			? selectedTeam.length >= 2
-			: Boolean(selectedProfessionalId)
+		bookingMode === 'joint' ? selectedTeam.length >= 2 : Boolean(selectedProfessionalId)
 	);
 	const selectedProfessional = $derived(
-		professionals.find((professional: Professional) => professional.id === selectedProfessionalId) ?? null
+		professionals.find((professional: Professional) => professional.id === selectedProfessionalId) ??
+			null
 	);
-	const weekDays = $derived(Array.from({ length: 7 }, (_, index) => addDays(visibleWeekStart, index)));
+	const weekDays = $derived(
+		Array.from({ length: 7 }, (_, index) => addDays(visibleWeekStart, index))
+	);
 	const professionalSlots = $derived(
 		slots.filter(
 			(slot) =>
@@ -225,33 +209,18 @@
 	const selectedSlot = $derived(
 		professionalSlots.find((slot) => slot.starts_at === selectedSlotStartsAt) ?? null
 	);
-	const patientCandidates = $derived(patientSearch.trim().length >= 1 ? remotePatients : patients);
-	const visiblePatients = $derived(
-		patientCandidates
-			.filter((patient: Patient) => !patient.blocked)
-			.filter((patient: Patient) => {
-				const query = patientSearch.trim().toLowerCase();
-				if (patientSearch.trim().length >= 1) return true;
-				if (!query) return true;
-				return (
-					patient.full_name.toLowerCase().includes(query) ||
-					(patient.phone_e164 ?? '').toLowerCase().includes(query)
-				);
-			})
-			.slice(0, patientSearch.trim().length >= 1 ? 12 : 8)
-	);
 	const selectedPatient = $derived(
-		[...patients, ...remotePatients].find((patient: Patient) => patient.id === selectedPatientId) ??
-			null
+		patients.find((patient) => patient.id === selectedPatientId) ??
+			(selectedRemotePatient?.id === selectedPatientId ? selectedRemotePatient : null)
 	);
 	const canUseExistingPatient = $derived(patientMode === 'existing' && Boolean(selectedPatientId));
 	const canUseNewPatient = $derived(patientMode === 'new' && patientName.trim().length >= 2);
 	const canCreate = $derived(
 		Boolean(
 			selectedService &&
-				hasValidProfessionalSelection &&
-				selectedSlot &&
-				(canUseExistingPatient || canUseNewPatient)
+			hasValidProfessionalSelection &&
+			selectedSlot &&
+			(canUseExistingPatient || canUseNewPatient)
 		)
 	);
 
@@ -276,6 +245,7 @@
 		newPatientPhoneDraft = '';
 		patientEmail = '';
 		patientSearch = '';
+		selectedRemotePatient = null;
 		internalNote = '';
 		idempotencyKey = crypto.randomUUID();
 		patientPhoneChanged = false;
@@ -374,22 +344,8 @@
 
 	const patientPhoneValue = (patient: Patient | null) =>
 		String(patient?.phone_raw ?? patient?.phone ?? patient?.phone_e164 ?? '').trim();
-	const patientDisambiguation = (patient: Patient) => {
-		const activityDate = new Date(patient.activity_at);
-		const details = [
-			patient.phone_e164,
-			patient.dni ? `DNI ${patient.dni}` : null,
-			patient.birth_date
-				? `Nac. ${patientDateFormatter.format(new Date(`${patient.birth_date}T00:00:00Z`))}`
-				: null,
-			Number.isNaN(activityDate.getTime())
-				? null
-				: `Últ. actividad ${patientDateFormatter.format(activityDate)}`
-		].filter(Boolean);
-		return details.join(' · ');
-	};
-
 	const selectPatient = (patient: Patient) => {
+		selectedRemotePatient = patient;
 		selectedPatientId = patient.id;
 		patientPhone = patientPhoneValue(patient);
 		patientPhoneChanged = false;
@@ -482,12 +438,16 @@
 		maxSlotsPerDate?: number;
 	}): Slot[] | null => {
 		const snapshot = availabilitySnapshot;
-		if (!snapshot || !snapshotContainsRange(snapshot, input.fromDate, input.fromDate)) return null;
+		if (
+			!snapshot ||
+			Date.parse(snapshot.valid_until) <= Date.now() ||
+			!snapshotContainsRange(snapshot, input.fromDate, input.fromDate)
+		)
+			return null;
 		// Nunca afirmamos que una semana está vacía usando un snapshot que sólo
 		// cubre una parte de esos siete días. En ese borde se consulta al servidor.
 		if (input.maxSlotsPerDate && snapshot.to_date < addDays(input.fromDate, 6)) return null;
-		const calculationToDate =
-			input.toDate <= snapshot.to_date ? input.toDate : snapshot.to_date;
+		const calculationToDate = input.toDate <= snapshot.to_date ? input.toDate : snapshot.to_date;
 		const service = snapshot.services.find(
 			(candidate: AvailabilitySnapshotService) => candidate.id === input.serviceId
 		);
@@ -495,8 +455,7 @@
 		const assignedProfessionalIds = new Set(
 			snapshot.assignments
 				.filter(
-					(assignment: AvailabilitySnapshotAssignment) =>
-						assignment.service_id === input.serviceId
+					(assignment: AvailabilitySnapshotAssignment) => assignment.service_id === input.serviceId
 				)
 				.map((assignment: AvailabilitySnapshotAssignment) => assignment.professional_id)
 		);
@@ -517,9 +476,8 @@
 		return calculateAvailabilitySlots({
 			business: snapshot.business,
 			service,
-			professionals: snapshot.professionals.filter(
-				(professional: AvailabilitySnapshotProfessional) =>
-					assignedProfessionalIds.has(professional.id)
+			professionals: snapshot.professionals.filter((professional: AvailabilitySnapshotProfessional) =>
+				assignedProfessionalIds.has(professional.id)
 			),
 			rules: snapshot.rules,
 			exceptions: snapshot.exceptions,
@@ -574,15 +532,13 @@
 			});
 			const payload = await response.json().catch(() => ({}));
 			if (request !== slotRequest) return;
-			if (!response.ok) {
-				if (silent) return;
-				slots = [];
-				slotsError =
-					payload?.message ??
-					'No pudimos cargar los horarios. No se reservó nada. Revisá la conexión y volvé a intentar.';
-				return;
-			}
-			const liveSlots: Slot[] = Array.isArray(payload?.slots) ? payload.slots : [];
+			if (!response.ok) throw new Error('Availability request failed');
+			const liveSlots = parseAvailabilitySlots(payload, {
+				fromDate: input.fromDate,
+				toDate: input.toDate,
+				professionalIds:
+					input.teamProfessionalIds.length >= 2 ? input.teamProfessionalIds : [input.professionalId]
+			});
 			slots = liveSlots;
 			slotsLoaded = true;
 			if (
@@ -598,10 +554,11 @@
 		} catch (error) {
 			if (request !== slotRequest) return;
 			if (error instanceof DOMException && error.name === 'AbortError') return;
-			if (silent) return;
 			slots = [];
-			slotsError =
-				'No pudimos cargar los horarios porque se interrumpió la conexión. No se reservó nada. Revisá internet y volvé a intentar.';
+			slotsLoaded = false;
+			selectedSlotStartsAt = '';
+			if (step > 4) step = 4;
+			slotsError = 'No pudimos actualizar los horarios. No se reservó nada. Probá nuevamente.';
 		} finally {
 			if (request === slotRequest) {
 				if (!silent) loadingSlots = false;
@@ -610,27 +567,9 @@
 		}
 	};
 
-	const loadPatients = async (query: string) => {
-		const request = ++patientSearchRequest;
-		patientSearchLoading = true;
-		patientSearchError = '';
-		try {
-			const response = await fetch('/odonto/pacientes/buscar?q=' + encodeURIComponent(query));
-			const payload = await response.json().catch(() => ({}));
-			if (request !== patientSearchRequest) return;
-			if (!response.ok) {
-				remotePatients = [];
-					patientSearchError = payload?.message ?? 'No pudimos buscar pacientes para crear el turno. Revisá tu conexión y volvé a intentar.';
-				return;
-			}
-			remotePatients = Array.isArray(payload?.patients) ? payload.patients : [];
-		} catch {
-			if (request !== patientSearchRequest) return;
-			remotePatients = [];
-			patientSearchError = 'No pudimos buscar pacientes para crear el turno. Revisá tu conexión y volvé a intentar.';
-		} finally {
-			if (request === patientSearchRequest) patientSearchLoading = false;
-		}
+	let lastSlotInput: Parameters<typeof loadServiceSlots>[0] | null = null;
+	const retrySlots = () => {
+		if (lastSlotInput) void loadServiceSlots(lastSlotInput);
 	};
 
 	$effect(() => {
@@ -641,6 +580,7 @@
 				? [...selectedProfessionalIds]
 				: [];
 		if (!serviceId || (!individualProfessionalId && teamProfessionalIds.length < 2)) {
+			lastSlotInput = null;
 			slotAbortController?.abort();
 			slotAbortController = null;
 			slotRequest += 1;
@@ -656,12 +596,14 @@
 		const requestInput = {
 			serviceId,
 			fromDate,
-			toDate: isTimeRequest ? fromDate : addDays(fromDate, 27),
+			// The UI displays one week. Request only that week, within one SQL window.
+			toDate: isTimeRequest ? fromDate : addDays(fromDate, 6),
 			professionalId: individualProfessionalId,
 			teamProfessionalIds,
 			shouldIgnoreBreak: ignoreBreak,
 			maxSlotsPerDate: isTimeRequest ? undefined : 1
 		};
+		lastSlotInput = requestInput;
 		const snapshotSlots = calculateSnapshotSlots(requestInput);
 		if (snapshotSlots !== null) {
 			slotAbortController?.abort();
@@ -682,9 +624,7 @@
 	$effect(() => {
 		if (bookingMode === 'joint') {
 			const validIds = selectedProfessionalIds.filter((professionalId) =>
-				offeringProfessionals.some(
-					(professional: Professional) => professional.id === professionalId
-				)
+				offeringProfessionals.some((professional: Professional) => professional.id === professionalId)
 			);
 			if (validIds.length !== selectedProfessionalIds.length) {
 				selectedProfessionalIds = validIds;
@@ -729,18 +669,6 @@
 	});
 
 	$effect(() => {
-		const query = patientSearch.trim();
-		if (query.length < 1) {
-			remotePatients = [];
-			patientSearchLoading = false;
-			patientSearchError = '';
-			return;
-		}
-		const timeout = window.setTimeout(() => void loadPatients(query), 120);
-		return () => window.clearTimeout(timeout);
-	});
-
-	$effect(() => {
 		const result = form;
 		if (result === appliedFormResult) return;
 		appliedFormResult = result;
@@ -777,6 +705,14 @@
 	});
 </script>
 
+{#snippet slotFailure()}
+ <div class="mt-5 space-y-3">
+  <p class="ux-alert" role="alert">{slotsError}</p>
+  <button type="button" class="ux-btn-secondary w-full sm:w-auto" disabled={loadingSlots} onclick={retrySlots}>Reintentar búsqueda</button>
+ </div>
+{/snippet}
+
+
 <form bind:this={appointmentForm} method="POST" action="?/create_appointment" class="mx-auto grid w-full max-w-5xl gap-4" onsubmit={validatePhoneBeforeSubmit}>
 	<input type="hidden" name="service_id" value={selectedServiceId} />
 	<input type="hidden" name="booking_mode" value={bookingMode} />
@@ -794,9 +730,9 @@
 	<input type="hidden" name="phone_warning_override" value={phoneWarningOverride} />
 
 	<section class="ux-card min-w-0 w-full px-5 py-4 sm:px-6">
-		<div class="flex items-center justify-between gap-4">
-			<p class="text-base font-bold text-white/75 sm:text-lg">
-				Paso {step} de 5 · {stepLabels[step - 1]}
+		<div class="flex flex-col items-start gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+			<p class="min-w-0 text-base font-bold text-white/75 sm:text-lg">
+				{formatStepCounter(step, 5)} ·&nbsp;{stepLabels[step - 1]}
 			</p>
 			{#if step > 1}
 				<button
@@ -833,7 +769,7 @@
 						<span class="min-w-0">
 							<span class="block text-lg font-bold leading-tight text-white">{service.name}</span>
 						</span>
-						<span class="ux-badge shrink-0 text-sm">{durationLabel(service.duration_minutes)}</span>
+						<span class="ux-badge shrink-0 text-sm">{formatDuration(service.duration_minutes)}</span>
 					</button>
 				{/each}
 			</div>
@@ -847,7 +783,7 @@
 			<h2 class="text-xl font-bold tracking-tight text-white sm:text-2xl">¿Con quién?</h2>
 			{#if selectedService}
 				<p class="mt-2 text-base text-white/60">
-					{selectedService.name} · {durationLabel(selectedService.duration_minutes)}
+					{selectedService.name} ·&nbsp;{formatDuration(selectedService.duration_minutes)}
 				</p>
 			{/if}
 
@@ -894,8 +830,8 @@
 								{initialsFor(professional.name)}
 							</span>
 							<span class="min-w-0 flex-1">
-								<span class="block truncate text-lg font-bold text-white">{professional.name}</span>
-								<span class="mt-1 block truncate text-base text-white/55">
+								<span class="block break-words text-lg font-bold text-white">{professional.name}</span>
+								<span class="mt-1 block break-words text-base text-white/55">
 									{professional.specialty ?? 'Profesional'}
 								</span>
 							</span>
@@ -917,18 +853,18 @@
 								{initialsFor(professional.name)}
 							</span>
 							<span class="min-w-0 flex-1">
-								<span class="block truncate text-lg font-bold text-white">{professional.name}</span>
-								<span class="mt-1 block truncate text-base text-white/55">
+								<span class="block break-words text-lg font-bold text-white">{professional.name}</span>
+								<span class="mt-1 block break-words text-base text-white/55">
 									{professional.specialty ?? 'Profesional'}
 								</span>
 							</span>
 							<span
 								aria-hidden="true"
 								class={selected
-									? 'grid h-7 w-7 shrink-0 place-items-center rounded-full border border-[#a78bfa] bg-[#7c3aed] text-sm font-black text-white'
-									: 'grid h-7 w-7 shrink-0 place-items-center rounded-full border border-white/20 text-sm font-black text-transparent'}
+									? 'grid h-7 w-7 shrink-0 place-items-center rounded-full border border-[#a78bfa] bg-[#7c3aed] text-sm font-bold text-white'
+									: 'grid h-7 w-7 shrink-0 place-items-center rounded-full border border-white/20 text-sm font-bold text-transparent'}
 							>
-								✓
+								<Icon name="check" class="h-4 w-4" />
 							</span>
 						</button>
 					{/each}
@@ -954,7 +890,7 @@
 			{/if}
 
 			{#if slotsError}
-				<p class="ux-alert mt-5">{slotsError}</p>
+				{@render slotFailure()}
 			{/if}
 
 			<div class="mt-7 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -967,7 +903,7 @@
 						class="ux-btn-primary group min-h-16 min-w-0 w-full justify-between rounded-2xl px-6 py-4 text-left shadow-xl shadow-violet-950/40 sm:w-auto sm:min-w-80"
 					>
 						<span class="min-w-0">
-							<span class="block text-lg font-black leading-tight tracking-tight">
+							<span class="block text-lg font-bold leading-tight tracking-tight">
 								{selectedTeam.length < 2
 									? 'Seleccioná al menos dos integrantes'
 									: loadingSlots
@@ -1005,7 +941,7 @@
 					<h2 class="text-xl font-bold tracking-tight text-white sm:text-2xl">Elegí un día</h2>
 					{#if selectedService}
 						<p class="mt-2 text-base text-white/60">
-							{selectedService.name} · {durationLabel(selectedService.duration_minutes)}
+							{selectedService.name} ·&nbsp;{formatDuration(selectedService.duration_minutes)}
 						</p>
 					{/if}
 				</div>
@@ -1056,7 +992,7 @@
 						</button>
 					{/each}
 				</div>
-			{:else}
+			{:else if !slotsError}
 				<div class="ux-empty mt-6">
 					<p class="text-lg font-bold text-white/85">
 						{bookingMode === 'joint'
@@ -1070,7 +1006,7 @@
 			{/if}
 
 			{#if slotsError}
-				<p class="ux-alert mt-5">{slotsError}</p>
+				{@render slotFailure()}
 			{/if}
 
 			<div class="mt-7 flex flex-wrap gap-3">
@@ -1124,13 +1060,13 @@
 						{/each}
 					</div>
 				{/if}
-				{#if selectedDaySlots.length === 0}
+				{#if selectedDaySlots.length === 0 && !slotsError}
 					<p class="ux-empty mt-6 text-base">No hay horarios para ese día. Probá con otro día.</p>
 				{/if}
 			{/if}
 
 			{#if slotsError}
-				<p class="ux-alert mt-5">{slotsError}</p>
+				{@render slotFailure()}
 			{/if}
 		</section>
 	{:else}
@@ -1186,58 +1122,8 @@
 					<input type="hidden" name="patient_name" value="" />
 					<input type="hidden" name="patient_email" value="" />
 					<input type="hidden" name="patient_id" value={selectedPatientId} />
-					<div class="mt-6">
-						<label>
-							<span class="ux-label">Buscar por nombre, teléfono o DNI</span>
-							<input
-								bind:value={patientSearch}
-								placeholder="Buscar paciente"
-								class="ux-input"
-							/>
-						</label>
-						{#if patientSearchLoading}
-							<p class="mt-3 text-base font-semibold text-white/55">Buscando pacientes…</p>
-						{:else if patientsLoading && patientSearch.trim().length < 1}
-							<p class="mt-3 text-base font-semibold text-white/55" aria-live="polite">
-								Cargando fichas recientes…
-							</p>
-						{/if}
-						{#if patientSearchError}
-							<p class="ux-alert mt-3">{patientSearchError}</p>
-						{/if}
-						{#if patientsError && patientSearch.trim().length < 1}
-							<div class="ux-alert mt-3">
-								{patientsError}
-								<button type="button" class="ml-2 font-bold underline" onclick={() => void onNeedPatients()}>
-									Reintentar
-								</button>
-							</div>
-						{/if}
-						<div class="mt-3 grid gap-2">
-							{#each visiblePatients as patient}
-								<button
-									type="button"
-									onclick={() => selectPatient(patient)}
-									class="ux-choice px-4 py-3 text-left"
-									class:ux-choice-active={selectedPatientId === patient.id}
-								>
-									<span class="block text-base font-bold text-white">{patient.full_name}</span>
-									{#if patientDisambiguation(patient)}
-										<span class="mt-1 block text-sm text-white/55">{patientDisambiguation(patient)}</span>
-									{/if}
-								</button>
-							{/each}
-							{#if visiblePatients.length === 0 && !patientsLoading && !patientSearchLoading}
-								<p class="ux-empty p-4 text-base">
-									{patientSearch.trim().length >= 1
-										? 'No encontramos pacientes con esa búsqueda.'
-										: patientsLoaded
-											? 'No hay fichas de pacientes para mostrar.'
-											: 'Buscá una ficha.'}
-								</p>
-							{/if}
-						</div>
-					</div>
+					<ManualPatientPicker {patients} loaded={patientsLoaded} loading={patientsLoading} error={patientsError}
+						selectedId={selectedPatientId} bind:query={patientSearch} onSelect={selectPatient} {onNeedPatients} />
 					{#if selectedPatientId}
 						<label class="mt-4 block">
 							<span class="ux-label">Teléfono</span>
@@ -1301,7 +1187,7 @@
 
 				{#if phoneWarning}
 					<div id="phone-warning" class="mt-5 rounded-2xl border border-amber-300/35 bg-amber-300/[0.09] p-4 text-amber-50" role="alert">
-						<p class="text-base font-extrabold">
+						<p class="text-base font-bold">
 							{phoneWarning === 'missing'
 								? 'Falta el número de teléfono'
 								: 'El número de teléfono no es válido'}

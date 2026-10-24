@@ -1,0 +1,39 @@
+{
+  "at": "2026-10-24T13:20:16.109Z",
+  "scope": "Only two explicitly synthetic Natalia journey appointments and their two newly created patients. Never delete Natalia business, members or Auth owners; preserve clinical/files/history and shared phone device.",
+  "targets": [
+    {
+      "appointmentId": "f1372fc0-d801-4aba-b34d-1c3761516bc8",
+      "patientId": "8823fa9d-0963-405a-8af8-987db6ec01e0"
+    },
+    {
+      "appointmentId": "083ca283-3c0f-4587-9dd0-e0e09421c109",
+      "patientId": "e8eb8083-13a1-4f79-a010-a25af725b545"
+    }
+  ],
+  "before": {
+    "businesses": 21,
+    "owners": 44,
+    "patients": 125,
+    "appointments": 111,
+    "calendarConnections": 1,
+    "calendarEvents": 1,
+    "storedObjects": 24
+  },
+  "status": "guard-rejected-wrong-identity-readonly-no-mutation",
+  "probeFailureCategory": "owned-identity-guard",
+  "after": {
+    "businesses": 21,
+    "owners": 44,
+    "patients": 125,
+    "appointments": 111,
+    "calendarConnections": 1,
+    "calendarEvents": 1,
+    "storedObjects": 24
+  },
+  "wrongPhoneRejectedBeforeMutation": true,
+  "validIdentityAccepted": false,
+  "readonlyTransaction": true,
+  "deletionsRemovedFromProbe": true,
+  "passed": true
+}

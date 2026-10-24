@@ -1,8 +1,8 @@
 import { expect, test } from '@playwright/test';
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { signInWithPassword } from './helpers/shared-auth';
+import { createFixtureClient, must, write, type FixtureClient } from './helpers/fixture-db';
 import fs from 'node:fs';
 import path from 'node:path';
-import WebSocket from 'ws';
 
 const expiredEmail = process.env.E2E_EXPIRED_EMAIL;
 const expiredPassword = process.env.E2E_EXPIRED_PASSWORD ?? 'E2eLocked!2026';
@@ -52,19 +52,10 @@ const adminClient = () => {
 	if (!supabaseUrl || !serviceRoleKey) {
 		throw new Error('Faltan ODONTO_SUPABASE_URL u ODONTO_SUPABASE_SERVICE_ROLE_KEY.');
 	}
-	return createClient(supabaseUrl, serviceRoleKey, {
-		auth: { autoRefreshToken: false, persistSession: false },
-		realtime: { transport: WebSocket }
-	});
+	return createFixtureClient(supabaseUrl, serviceRoleKey);
 };
 
-const must = async <T>(operation: PromiseLike<{ data: T; error: unknown }>) => {
-	const { data, error } = await operation;
-	if (error) throw error;
-	return data;
-};
-
-const createBlockedFixture = async (admin: SupabaseClient): Promise<Fixture> => {
+const createBlockedFixture = async (admin: FixtureClient): Promise<Fixture> => {
 	const suffix = unique();
 	const email = `e2e-commercial-lock-${suffix}@example.com`;
 	const password = expiredPassword;
@@ -93,8 +84,8 @@ const createBlockedFixture = async (admin: SupabaseClient): Promise<Fixture> => 
 			.single()
 	);
 
-	await must(admin.from('allowed_emails').upsert({ email, enabled: true }, { onConflict: 'email' }));
-	await must(
+	await write(admin.from('allowed_emails').upsert({ email, enabled: true }, { onConflict: 'email' }));
+	await write(
 		admin.from('business_users').insert({
 			business_id: business.id,
 			user_id: userId,
@@ -103,7 +94,7 @@ const createBlockedFixture = async (admin: SupabaseClient): Promise<Fixture> => 
 			accepted_at: new Date().toISOString()
 		})
 	);
-	await must(
+	await write(
 		admin.from('business_subscriptions').upsert(
 			{
 				business_id: business.id,
@@ -123,11 +114,12 @@ const createBlockedFixture = async (admin: SupabaseClient): Promise<Fixture> => 
 	return { email, password, userId, businessId: business.id };
 };
 
-const cleanupFixture = async (admin: SupabaseClient, target: Fixture | null) => {
+const cleanupFixture = async (admin: FixtureClient, target: Fixture | null) => {
 	if (!target) return;
-	await admin.from('businesses').delete().eq('id', target.businessId);
-	await admin.from('allowed_emails').delete().eq('email', target.email);
-	await admin.auth.admin.deleteUser(target.userId);
+	await write(admin.from('businesses').delete().eq('id', target.businessId));
+	await write(admin.from('allowed_emails').delete().eq('email', target.email));
+	const { error } = await admin.auth.admin.deleteUser(target.userId);
+	if (error) throw new Error('Owned commercial lock account cleanup failed.');
 };
 
 test.describe('Acceso comercial bloqueado', () => {
@@ -151,10 +143,7 @@ test.describe('Acceso comercial bloqueado', () => {
 	});
 
 	const loginBlockedAccount = async (page: import('@playwright/test').Page) => {
-		await page.goto('/login');
-		await page.getByLabel('Correo electrónico').fill(fixture?.email ?? expiredEmail ?? '');
-		await page.getByLabel('Contraseña').fill(fixture?.password ?? expiredPassword);
-		await page.locator('form').getByRole('button', { name: 'Ingresar', exact: true }).click();
+		await signInWithPassword(page, fixture?.email ?? expiredEmail ?? '', fixture?.password ?? expiredPassword);
 		await expect(
 			page.getByRole('heading', { name: /Activá tu suscripción|Tu acceso a Cita Suite venció/ })
 		).toBeVisible();
@@ -177,18 +166,16 @@ test.describe('Acceso comercial bloqueado', () => {
 	test('en mobile mantiene salida disponible desde la pantalla de activación', async ({ page }) => {
 		await page.setViewportSize({ width: 390, height: 844 });
 		await loginBlockedAccount(page);
-		await page.screenshot({ path: 'output/playwright/commercial-lock-mobile.png', fullPage: false });
+		await page.screenshot({ type: 'jpeg', quality: 65, path: test.info().outputPath('commercial-lock-mobile.jpg'), fullPage: false });
 
 		const menuButton = page.getByRole('button', { name: 'Abrir menú' }).last();
 		await expect(menuButton).toBeVisible();
 		const dialog = page.getByRole('dialog', { name: 'Menú de navegación' });
-		await expect(async () => {
-			await menuButton.click();
-			await expect(dialog).toBeVisible({ timeout: 1_000 });
-		}).toPass({ timeout: 10_000 });
+		await menuButton.click();
+		await expect(dialog).toBeVisible();
 		const logout = dialog.getByRole('button', { name: 'Salir', exact: true });
 		await expect(logout).toBeVisible();
 		await expect(logout).toBeInViewport();
-		await page.screenshot({ path: 'output/playwright/commercial-lock-mobile-menu.png', fullPage: false });
+		await page.screenshot({ type: 'jpeg', quality: 65, path: test.info().outputPath('commercial-lock-mobile-menu.jpg'), fullPage: false });
 	});
 });

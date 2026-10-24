@@ -1,0 +1,250 @@
+{
+  "run": "ab3c7cc08434",
+  "minutes": 90,
+  "startedAt": "2026-10-23T14:40:24.737Z",
+  "scope": "One read-only Wrangler tail; sanitized job and request metrics, no raw events or credentials persisted",
+  "observerSha256": "d5d8cf2e6b2741b7a9a0cee3b1baa09ae1e9c73d31f5ea42551022b56e736add",
+  "filterSha256": "c39d9b3e176351b882d54ae6c6337de6f65a288f931dcbb6fb29cc39031fb05a",
+  "routeCatalogSha256": "32fe294c89650aac0c10162814e34937082f8755be28a7ea8caa1f15d1847c98",
+  "paths": {
+    "jobs": ".verification/production-observer-ab3c7cc08434-jobs.jsonl",
+    "requests": ".verification/production-observer-ab3c7cc08434-requests.jsonl",
+    "live": ".verification/production-observer-ab3c7cc08434-live.json",
+    "final": ".verification/production-observer-ab3c7cc08434-final.json"
+  },
+  "reportedAt": "2026-10-23T15:19:08.117Z",
+  "tailReadyAt": "2026-10-23T14:42:27.272Z",
+  "parseFailures": 0,
+  "jobs": {
+    "events": 21,
+    "cpuReported": true,
+    "jobs": {
+      "/internal/jobs/push": {
+        "runs": 7,
+        "outcomes": {
+          "ok": 7
+        },
+        "cpuMs": {
+          "p50": 21,
+          "p99": 42,
+          "max": 42
+        },
+        "wallMs": {
+          "p50": 530,
+          "p99": 1262,
+          "max": 1262
+        }
+      },
+      "/internal/jobs/calendar": {
+        "runs": 7,
+        "outcomes": {
+          "ok": 7
+        },
+        "cpuMs": {
+          "p50": 18,
+          "p99": 63,
+          "max": 63
+        },
+        "wallMs": {
+          "p50": 19,
+          "p99": 66,
+          "max": 66
+        }
+      },
+      "/internal/jobs/uploads": {
+        "runs": 3,
+        "outcomes": {
+          "ok": 3
+        },
+        "cpuMs": {
+          "p50": 6,
+          "p99": 7,
+          "max": 7
+        },
+        "wallMs": {
+          "p50": 192,
+          "p99": 450,
+          "max": 450
+        }
+      },
+      "/internal/jobs/reviews": {
+        "runs": 3,
+        "outcomes": {
+          "ok": 3
+        },
+        "cpuMs": {
+          "p50": 10,
+          "p99": 10,
+          "max": 10
+        },
+        "wallMs": {
+          "p50": 380,
+          "p99": 406,
+          "max": 406
+        }
+      },
+      "/internal/jobs/storage": {
+        "runs": 1,
+        "outcomes": {
+          "ok": 1
+        },
+        "cpuMs": {
+          "p50": 8,
+          "p99": 8,
+          "max": 8
+        },
+        "wallMs": {
+          "p50": 407,
+          "p99": 407,
+          "max": 407
+        }
+      }
+    }
+  },
+  "requests": {
+    "events": 23,
+    "cpuReported": true,
+    "outcomes": {
+      "ok": 23
+    },
+    "routes": {
+      "GET /auth/google": {
+        "requests": 1,
+        "outcomes": {
+          "ok": 1
+        },
+        "statuses": {
+          "303": 1
+        },
+        "cpuMs": {
+          "p50": 6,
+          "p99": 6,
+          "max": 6
+        },
+        "wallMs": {
+          "p50": 397,
+          "p99": 397,
+          "max": 397
+        }
+      },
+      "GET /login": {
+        "requests": 1,
+        "outcomes": {
+          "ok": 1
+        },
+        "statuses": {
+          "200": 1
+        },
+        "cpuMs": {
+          "p50": 17,
+          "p99": 17,
+          "max": 17
+        },
+        "wallMs": {
+          "p50": 40,
+          "p99": 40,
+          "max": 40
+        }
+      },
+      "POST /internal/jobs/calendar": {
+        "requests": 7,
+        "outcomes": {
+          "ok": 7
+        },
+        "statuses": {
+          "200": 7
+        },
+        "cpuMs": {
+          "p50": 18,
+          "p99": 63,
+          "max": 63
+        },
+        "wallMs": {
+          "p50": 19,
+          "p99": 66,
+          "max": 66
+        }
+      },
+      "POST /internal/jobs/push": {
+        "requests": 7,
+        "outcomes": {
+          "ok": 7
+        },
+        "statuses": {
+          "200": 7
+        },
+        "cpuMs": {
+          "p50": 21,
+          "p99": 42,
+          "max": 42
+        },
+        "wallMs": {
+          "p50": 530,
+          "p99": 1262,
+          "max": 1262
+        }
+      },
+      "POST /internal/jobs/reviews": {
+        "requests": 3,
+        "outcomes": {
+          "ok": 3
+        },
+        "statuses": {
+          "200": 3
+        },
+        "cpuMs": {
+          "p50": 10,
+          "p99": 10,
+          "max": 10
+        },
+        "wallMs": {
+          "p50": 380,
+          "p99": 406,
+          "max": 406
+        }
+      },
+      "POST /internal/jobs/storage": {
+        "requests": 1,
+        "outcomes": {
+          "ok": 1
+        },
+        "statuses": {
+          "200": 1
+        },
+        "cpuMs": {
+          "p50": 8,
+          "p99": 8,
+          "max": 8
+        },
+        "wallMs": {
+          "p50": 407,
+          "p99": 407,
+          "max": 407
+        }
+      },
+      "POST /internal/jobs/uploads": {
+        "requests": 3,
+        "outcomes": {
+          "ok": 3
+        },
+        "statuses": {
+          "200": 3
+        },
+        "cpuMs": {
+          "p50": 6,
+          "p99": 7,
+          "max": 7
+        },
+        "wallMs": {
+          "p50": 192,
+          "p99": 450,
+          "max": 450
+        }
+      }
+    }
+  },
+  "finishedAt": "2026-10-23T15:19:08.117Z",
+  "code": 0,
+  "signal": null,
+  "stoppedByDuration": false
+}

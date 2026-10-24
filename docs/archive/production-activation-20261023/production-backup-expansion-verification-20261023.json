@@ -1,0 +1,44 @@
+{
+  "at": "2026-10-23T13:40:53.426567+00:00",
+  "runId": "ab3c7cc0-8431-43e5-959b-b04f0a543187",
+  "runtime": "478c096e63299b886e640c4627cd25e0db22dbfa",
+  "directory": "/home/usuario/.local/share/cita-suite/backups/production-2026-10-23T13-39-07-963Z",
+  "manifestSha256": "0c967a045ab477ca9fd1d8f0761929bec5a2733addfc837b53090255f2298e67",
+  "createdAt": "2026-10-23T13:40:23.413Z",
+  "tables": 101,
+  "rows": 4410,
+  "migrations": 97,
+  "lastMigration": "20261014030000",
+  "dumpFiles": [
+    {
+      "name": "roles",
+      "bytes": 297,
+      "sha256": "25873cec56a2cc6514e204f420231777f85c03da818caa7090cdcdfa89776ecd"
+    },
+    {
+      "name": "schema",
+      "bytes": 857866,
+      "sha256": "a199547550fad43413701a2257052989a54a88c0d0c3e7ed9e1fa50c3347113b"
+    },
+    {
+      "name": "data",
+      "bytes": 1272801,
+      "sha256": "04e61dc8ae41934dd9cb6f22125ba1f892d4776379e7e5c3586ba821dbd40bfb"
+    },
+    {
+      "name": "managed",
+      "bytes": 477,
+      "sha256": "ae46f1fa78e92312fe2799f5aa6a3dcabdf0774f1f093086221d610de0bf1ee5"
+    },
+    {
+      "name": "history",
+      "bytes": 12471,
+      "sha256": "7deaa712f093767cd5dbf6a51b42c4adc47fb1da00acedb6a55b8667fa229c91"
+    }
+  ],
+  "objectsVerified": 32,
+  "objectBytes": 15675483,
+  "objectFailures": 0,
+  "mode": "700",
+  "passed": true
+}

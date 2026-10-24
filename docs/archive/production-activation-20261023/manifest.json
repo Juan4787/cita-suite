@@ -1,0 +1,274 @@
+{
+  "capturedAt": "2026-10-23T15:07:35.249650+00:00",
+  "scope": "Explicit filtered operational receipts and synthetic test logs; no private dumps or configuration; exact bytes unless prefix/derived is declared",
+  "files": [
+    {
+      "path": "docs/archive/production-activation-20261023/README.md",
+      "source": "new checkpoint guide",
+      "bytes": 1819,
+      "sha256": "89b92dac6edb00e820133b0db59a3cf207f3d18ffea72531c1c5d8c121bd5f54",
+      "sourceContinuesOrDerived": false
+    },
+    {
+      "path": "docs/archive/production-activation-20261023/checkpoint.json",
+      "source": "generated from the exact captured metadata and event prefix",
+      "bytes": 2492,
+      "sha256": "2dc83b9d7feeadd2e306a6497ef2d8317ec22250494c9b091eedcc4d4d9077c7",
+      "sourceContinuesOrDerived": true
+    },
+    {
+      "path": "docs/archive/production-activation-20261023/observe-production-20261023.mjs",
+      "source": ".verification/observe-production-20261023.mjs",
+      "bytes": 3528,
+      "sha256": "d5d8cf2e6b2741b7a9a0cee3b1baa09ae1e9c73d31f5ea42551022b56e736add",
+      "sourceContinuesOrDerived": false
+    },
+    {
+      "path": "docs/archive/production-activation-20261023/observer34-jobs-checkpoint.jsonl",
+      "source": ".verification/production-observer-ab3c7cc08434-jobs.jsonl",
+      "bytes": 5457,
+      "sha256": "b7aa6782606d95546c25570e8fa6afa2b0a21431a063bb541acdccc7b09417be",
+      "sourceContinuesOrDerived": true
+    },
+    {
+      "path": "docs/archive/production-activation-20261023/observer34-live-checkpoint.json",
+      "source": ".verification/production-observer-ab3c7cc08434-live.json",
+      "bytes": 4074,
+      "sha256": "428acc9dbeeedc17f5d08b42d53212e785ca624a6ad0b8c27a938ee484bb2aec",
+      "sourceContinuesOrDerived": true
+    },
+    {
+      "path": "docs/archive/production-activation-20261023/observer34-requests-checkpoint.jsonl",
+      "source": ".verification/production-observer-ab3c7cc08434-requests.jsonl",
+      "bytes": 2150,
+      "sha256": "f99c89f9591e54ff56d833c3be2a84e07de2ce5d358ff279c709f6dc9b97ad98",
+      "sourceContinuesOrDerived": true
+    },
+    {
+      "path": "docs/archive/production-activation-20261023/production-auth-node-guards-20261023.log",
+      "source": ".verification/production-auth-node-guards-20261023.log",
+      "bytes": 31895,
+      "sha256": "bcfe800c476cf8e5b06e7dcd5313a85142bf3502fbe1074096ce552d073c9497",
+      "sourceContinuesOrDerived": false
+    },
+    {
+      "path": "docs/archive/production-activation-20261023/production-backup-expansion-verification-20261023.json",
+      "source": ".verification/production-backup-expansion-verification-20261023.json",
+      "bytes": 1315,
+      "sha256": "44d171d7b65c39ed171a74dfded81506501d43a119999309b6fe07e1d0566f9f",
+      "sourceContinuesOrDerived": false
+    },
+    {
+      "path": "docs/archive/production-activation-20261023/production-identity-project-names-current-20261023.json",
+      "source": ".verification/production-identity-project-names-current-20261023.json",
+      "bytes": 550,
+      "sha256": "07897b0b0c7331801159af6f6d55d46d5758a45ecdb698af1f8c6a26dfa61c98",
+      "sourceContinuesOrDerived": false
+    },
+    {
+      "path": "docs/archive/production-activation-20261023/production-observer-ab3c7cc08433-final.json",
+      "source": ".verification/production-observer-ab3c7cc08433-final.json",
+      "bytes": 2511,
+      "sha256": "aa9796c76b80245442a0d3d8c74d85dbf05931f73553ecf7578fa115d74f847f",
+      "sourceContinuesOrDerived": false
+    },
+    {
+      "path": "docs/archive/production-activation-20261023/production-observer-ab3c7cc08433-jobs.jsonl",
+      "source": ".verification/production-observer-ab3c7cc08433-jobs.jsonl",
+      "bytes": 276,
+      "sha256": "803f9aabf763380aaf59ba484ffa3314794df53a710538d93190c6be868f91a0",
+      "sourceContinuesOrDerived": false
+    },
+    {
+      "path": "docs/archive/production-activation-20261023/production-operations-publication-20261023.json",
+      "source": ".verification/production-operations-publication-20261023.json",
+      "bytes": 2202,
+      "sha256": "f97a99bacb9fdd7a2af1f8a544e67d9bd0d059196f5709e112ddbf636e609a65",
+      "sourceContinuesOrDerived": false
+    },
+    {
+      "path": "docs/archive/production-activation-20261023/production-provider-documentation-20261023.json",
+      "source": ".verification/production-provider-documentation-20261023.json",
+      "bytes": 981,
+      "sha256": "aee2be615820c0854b7364ad31166f0a757b26bfd3b5d5c3ead1cdff5bb1cd8b",
+      "sourceContinuesOrDerived": false
+    },
+    {
+      "path": "docs/archive/production-activation-20261023/production-publication-20261023.json",
+      "source": ".verification/production-publication-20261023.json",
+      "bytes": 13144,
+      "sha256": "72c4e873c63917f2c6afd070c78ef9eaa9be055f4d2a18ebccd8c6b9a42fbd87",
+      "sourceContinuesOrDerived": false
+    },
+    {
+      "path": "docs/archive/production-activation-20261023/production-scheduler-auth-preflight-green-20261023.log",
+      "source": ".verification/production-scheduler-auth-preflight-green-20261023.log",
+      "bytes": 812,
+      "sha256": "e5c2baad67ec5688123b538248c44ae333c8cd399abf832406e7134c0b85ee95",
+      "sourceContinuesOrDerived": false
+    },
+    {
+      "path": "docs/archive/production-activation-20261023/production-scheduler-auth-preflight-red-20261023.log",
+      "source": ".verification/production-scheduler-auth-preflight-red-20261023.log",
+      "bytes": 1488,
+      "sha256": "64da39d78aa3a50aaf139e1711a6e1f984c3ec41bd9e7767662473895ac29cf2",
+      "sourceContinuesOrDerived": false
+    },
+    {
+      "path": "docs/archive/production-activation-20261023/production-scheduler-observation-classifier-tests-20261023.log",
+      "source": ".verification/production-scheduler-observation-classifier-tests-20261023.log",
+      "bytes": 1278,
+      "sha256": "8d836bd23fe7f704108b4901b97786b9e7a20d2a5b4a6ef8015f45fc290b3743",
+      "sourceContinuesOrDerived": false
+    },
+    {
+      "path": "docs/archive/production-activation-20261023/production-scheduler-observation-classifier-tests-green-20261023.log",
+      "source": ".verification/production-scheduler-observation-classifier-tests-green-20261023.log",
+      "bytes": 104,
+      "sha256": "b95b5805bef96b568b1b2424b637003cd6f306e6312d682e4f2e4e23f635b26a",
+      "sourceContinuesOrDerived": false
+    },
+    {
+      "path": "docs/archive/production-activation-20261023/production-step7-aligned-baseline-confirmed-20261023.json",
+      "source": ".verification/production-step7-aligned-baseline-confirmed-20261023.json",
+      "bytes": 506,
+      "sha256": "d94cf1dff6c8f5216784985659576557dc6c42236916fd5d8c08a8ca3decfbc0",
+      "sourceContinuesOrDerived": false
+    },
+    {
+      "path": "docs/archive/production-activation-20261023/production-step7-aligned-candidate-confirmed-20261023.json",
+      "source": ".verification/production-step7-aligned-candidate-confirmed-20261023.json",
+      "bytes": 506,
+      "sha256": "213b5198298f51559efd005621c8e03520a9bace298beb5cda1f68d28003fdd2",
+      "sourceContinuesOrDerived": false
+    },
+    {
+      "path": "docs/archive/production-activation-20261023/production-step7-app-job-secret-alignment-20261023.json",
+      "source": ".verification/production-step7-app-job-secret-alignment-20261023.json",
+      "bytes": 517,
+      "sha256": "37ef8c1b984cf14757675aa0fc9891faf69e264f3fd66c1ffad2ca03a6cd893b",
+      "sourceContinuesOrDerived": false
+    },
+    {
+      "path": "docs/archive/production-activation-20261023/production-step7-auth-preflight-real-red-20261023.log",
+      "source": ".verification/production-step7-auth-preflight-real-red-20261023.log",
+      "bytes": 795,
+      "sha256": "1dfd53c5de1d1b6aaf18d6fca8db4c9dd04797ea53bea7cad8a5484b18f3d603",
+      "sourceContinuesOrDerived": false
+    },
+    {
+      "path": "docs/archive/production-activation-20261023/production-step7-authentication-corrected-20261023.json",
+      "source": ".verification/production-step7-authentication-corrected-20261023.json",
+      "bytes": 232,
+      "sha256": "eedc88379a62d0326eec59e77aacd7eb0a1a64ba1e97586720c90f483b271e42",
+      "sourceContinuesOrDerived": false
+    },
+    {
+      "path": "docs/archive/production-activation-20261023/production-step7-authentication-diagnosis-20261023.json",
+      "source": ".verification/production-step7-authentication-diagnosis-20261023.json",
+      "bytes": 234,
+      "sha256": "c8c2a22d5ca5bde0f0842a5aaba6e98cc88d37f2fa74b62c74ea873a618c8289",
+      "sourceContinuesOrDerived": false
+    },
+    {
+      "path": "docs/archive/production-activation-20261023/production-step7-provider-auth-corrected-20261023.json",
+      "source": ".verification/production-step7-provider-auth-corrected-20261023.json",
+      "bytes": 985,
+      "sha256": "281684b2bb2648ef70e2679f177fac99098661d1186fb6fb52d71659bef9baf5",
+      "sourceContinuesOrDerived": false
+    },
+    {
+      "path": "docs/archive/production-activation-20261023/production-step7-provider-auth-failure-stopped-20261023.json",
+      "source": ".verification/production-step7-provider-auth-failure-stopped-20261023.json",
+      "bytes": 852,
+      "sha256": "98f731461cd423a576d9856697d25ad93cc0abf8ffef1534446305d8fd93a5ab",
+      "sourceContinuesOrDerived": false
+    },
+    {
+      "path": "docs/archive/production-activation-20261023/production-step7-routine-observation-20261023.json",
+      "source": ".verification/production-step7-routine-observation-20261023.json",
+      "bytes": 1331,
+      "sha256": "5f30cd6a12486a0db49fe2009e5463a5780eed9cc9ae7731a5696a16cb4cb645",
+      "sourceContinuesOrDerived": false
+    },
+    {
+      "path": "docs/archive/production-activation-20261023/production-step7-version-metadata-shape-20261023.json",
+      "source": ".verification/production-step7-version-metadata-shape-20261023.json",
+      "bytes": 1223,
+      "sha256": "85b700bcce2b36dfafea286d6d3f786e305ffb5d92aac992c6210210bd3d64bc",
+      "sourceContinuesOrDerived": false
+    },
+    {
+      "path": "docs/archive/production-activation-20261023/production-tail-privacy-green-20261023.log",
+      "source": ".verification/production-tail-privacy-green-20261023.log",
+      "bytes": 3081,
+      "sha256": "da41626c4df95d2f1b15b6a15aeaae71cd61580632cbbfba5e575df42bbbd5fc",
+      "sourceContinuesOrDerived": false
+    },
+    {
+      "path": "docs/archive/production-activation-20261023/production-tail-privacy-green2-20261023.log",
+      "source": ".verification/production-tail-privacy-green2-20261023.log",
+      "bytes": 2132,
+      "sha256": "48b44e6c0324a9403170f3d6e8220fa5d154d8a2d5a9d37b72019840772fed67",
+      "sourceContinuesOrDerived": false
+    },
+    {
+      "path": "docs/archive/production-activation-20261023/production-tail-privacy-red-20261023.log",
+      "source": ".verification/production-tail-privacy-red-20261023.log",
+      "bytes": 4286,
+      "sha256": "9d912dd29d7c75979ab6c9585ee1f92bb88aa57376783dabc239d4ad952477aa",
+      "sourceContinuesOrDerived": false
+    },
+    {
+      "path": "docs/archive/production-activation-20261023/production-tail-route-red-20261023.log",
+      "source": ".verification/production-tail-route-red-20261023.log",
+      "bytes": 3015,
+      "sha256": "088842c9c63aaa6292a1d37ef2af0d9a09af57838321ac99a061c52880a631fd",
+      "sourceContinuesOrDerived": false
+    },
+    {
+      "path": "docs/archive/production-activation-20261023/production-tail-token-green-20261023.log",
+      "source": ".verification/production-tail-token-green-20261023.log",
+      "bytes": 1576,
+      "sha256": "e3a549c3845ecedb94d7a392f072c7b0d789e2ee217629c5823339b930932c0f",
+      "sourceContinuesOrDerived": false
+    },
+    {
+      "path": "docs/archive/production-activation-20261023/production-tail-token-red-20261023.log",
+      "source": ".verification/production-tail-token-red-20261023.log",
+      "bytes": 2605,
+      "sha256": "37a8d4aa59283bd893cfa6f015d381ffd0fe54845d8d4ad9175c4fe049c1b01b",
+      "sourceContinuesOrDerived": false
+    },
+    {
+      "path": "docs/archive/production-activation-20261023/production-telemetry-node-guards-20261023.log",
+      "source": ".verification/production-telemetry-node-guards-20261023.log",
+      "bytes": 31616,
+      "sha256": "5c4972ee85103064fe30780f78a989cc9712a133d2f4142def7bb1e3cfc5c806",
+      "sourceContinuesOrDerived": false
+    },
+    {
+      "path": "docs/archive/production-activation-20261023/publication-gates-user-screenshots-20261023.json",
+      "source": ".verification/publication-gates-user-screenshots-20261023.json",
+      "bytes": 1305,
+      "sha256": "ac39d80a6bfcaa2dddbb5382b5a9c68b93b3e5f275458f984116be6343a217b2",
+      "sourceContinuesOrDerived": false
+    },
+    {
+      "path": "docs/archive/production-activation-20261023/scheduler-observation-report-20261023.py",
+      "source": ".verification/scheduler-observation-report-20261023.py",
+      "bytes": 4392,
+      "sha256": "6c4421b959a7430b9dbded9b92017999c0c258a3522b0c7ab68ad24276742cb5",
+      "sourceContinuesOrDerived": false
+    },
+    {
+      "path": "docs/archive/production-activation-20261023/scheduler-observation-report-20261023.test.py",
+      "source": ".verification/scheduler-observation-report-20261023.test.py",
+      "bytes": 2707,
+      "sha256": "622dc85f371f40c26d8f97c64e6133b0d7f7a6ddd4a16c164b0ef63fd8aaf76c",
+      "sourceContinuesOrDerived": false
+    }
+  ],
+  "totalBytes": 139972,
+  "privateValueAndCredentialPatternScanPassed": true
+}

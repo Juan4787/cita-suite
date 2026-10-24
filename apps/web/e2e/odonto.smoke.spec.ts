@@ -22,24 +22,22 @@ test.describe('Odontologia - flujo base', () => {
 		await expect(page.getByRole('link', { name: 'Pacientes' })).toBeVisible();
 		const configMenu = page.getByRole('button', { name: 'Configuración' });
 		await expect(configMenu).toBeVisible();
-		await expect(async () => {
-			await configMenu.click();
-			await expect(configMenu).toHaveAttribute('aria-expanded', 'true', { timeout: 1000 });
-		}).toPass();
+		await configMenu.click();
+		await expect(configMenu).toHaveAttribute('aria-expanded', 'true');
 		await expect(page.getByRole('menuitem', { name: 'Equipo' })).toBeVisible();
 		await expect(page.getByRole('menuitem', { name: 'Reseña de Google' })).toBeVisible();
 
 		await page.goto('/odonto/configuracion/comunicacion');
-		await expect(page.getByRole('heading', { name: 'Link de reserva', level: 1 })).toBeVisible();
-		await expect(page.getByRole('button', { name: 'Copiar', exact: true })).toBeVisible();
-		await expect(page.getByRole('link', { name: 'Abrir link' })).toHaveAttribute(
+		await expect(page.getByRole('heading', { name: 'Reserva online', level: 1 })).toBeVisible();
+		await expect(page.getByRole('button', { name: 'Copiar enlace', exact: true })).toBeVisible();
+		await expect(page.getByRole('link', { name: 'Ver como paciente' })).toHaveAttribute(
 			'href',
 			/\/reservar\//
 		);
 		await expect(page.getByText(/WhatsApp|notificaciones push/i)).toHaveCount(0);
 
 		await page.goto('/odonto/configuracion/negocio');
-		await expect(page.getByText('El enlace está en “Link de reserva”.')).toBeVisible();
+		await expect(page.getByRole('heading', { name: 'Datos del consultorio', level: 1 })).toBeVisible();
 		await expect(page.locator('a[href*="/reservar/"]')).toHaveCount(0);
 		await expect(page.getByRole('link', { name: 'Abrir link' })).toHaveCount(0);
 

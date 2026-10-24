@@ -1,0 +1,47 @@
+{
+  "runId": "calendar-fix-production-deployment-20261024",
+  "at": "2026-10-24T04:18:25.906Z",
+  "revision": "cb8a9bafdf9a07a6b8977e841fa3f401061fda4f",
+  "artifactRun": 40060390309,
+  "releaseRun": 40060516027,
+  "baseline": "474554a8-539b-457d-9b1c-edd1b31f43e1",
+  "status": "deployed-verified-provider-cycle-pending",
+  "scope": "Deploy only the exact approved216-file package, without migrations or secret changes. Keep33bindings and the existing scheduler. Baseline is structurally compatible but may retain the reproduced batch defect; do not certify Calendar fallback from its earlier green suite.",
+  "database": {
+    "migrations": 126,
+    "legacyEnabled": false
+  },
+  "internalAuthenticationBefore": {
+    "legacyEntrypointsDisabled": true,
+    "unauthorizedStatus": 401,
+    "authorizedStatus": 410
+  },
+  "deployment": "6f75f1bb-e2e4-407e-9016-1f89bd5083de",
+  "version": "f35abec7-bcce-4c5f-b08a-017bb58fe8c9",
+  "bindingsPreserved": 33,
+  "verification": {
+    "at": "2026-10-24T04:18:57.751Z",
+    "revision": "cb8a9bafdf9a07a6b8977e841fa3f401061fda4f",
+    "appOrigin": "https://app.cita-suite.workers.dev",
+    "clientFiles": 130,
+    "contentSecurity": {
+      "connect": [
+        "https://yjzferwuzbtgpmdnzlcb.supabase.co",
+        "wss://yjzferwuzbtgpmdnzlcb.supabase.co"
+      ],
+      "images": [
+        "https://yjzferwuzbtgpmdnzlcb.supabase.co"
+      ]
+    },
+    "natalia": "not checked",
+    "anonymousRelations": 70,
+    "exposed": []
+  },
+  "internalAuthenticationAfter": {
+    "legacyEntrypointsDisabled": true,
+    "unauthorizedStatus": 401,
+    "authorizedStatus": 410
+  },
+  "userIndexPreserved": true,
+  "finishedAt": "2026-10-24T04:18:58.892Z"
+}

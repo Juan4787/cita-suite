@@ -1,0 +1,16 @@
+{
+  "startedAt": "2026-10-23T15:30:47.370Z",
+  "finishedAt": "2026-10-23T15:30:48.208Z",
+  "scope": "openid https://www.googleapis.com/auth/calendar.events.owned",
+  "status": 303,
+  "googleAuthorizationEndpoint": true,
+  "redirectUri": "https://app.cita-suite.workers.dev/oauth/google-calendar/callback",
+  "clientId": "48946672642-mi95jkebofoj0gc6ub8ljl5nl7ci0e3e.apps.googleusercontent.com",
+  "pkceMethod": "S256",
+  "hasOpaqueState": true,
+  "statePersistedOrPrinted": false,
+  "callbackCompleted": false,
+  "googleConsentCompleted": false,
+  "runtimeConfigured": true,
+  "canonicalCallback": true
+}

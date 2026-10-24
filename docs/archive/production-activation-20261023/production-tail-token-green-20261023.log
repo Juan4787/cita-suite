@@ -1,0 +1,46 @@
+TAP version 13
+# Subtest: tail events split across chunks and lines are parsed one by one, including braces and quotes inside strings
+ok 1 - tail events split across chunks and lines are parsed one by one, including braces and quotes inside strings
+  ---
+  duration_ms: 3.814611
+  type: 'test'
+  ...
+# Subtest: only scheduled job requests are measured and nothing beyond their counts survives
+ok 2 - only scheduled job requests are measured and nothing beyond their counts survives
+  ---
+  duration_ms: 1.513371
+  type: 'test'
+  ...
+# Subtest: the summary reports outcomes and CPU and wall distributions per job
+ok 3 - the summary reports outcomes and CPU and wall distributions per job
+  ---
+  duration_ms: 3.088078
+  type: 'test'
+  ...
+# Subtest: every app request is measured by route template, without identifiers, keys, tokens, queries, headers or logs
+ok 4 - every app request is measured by route template, without identifiers, keys, tokens, queries, headers or logs
+  ---
+  duration_ms: 1.935089
+  type: 'test'
+  ...
+# Subtest: management tokens are redacted by their route even when they contain no digits
+ok 5 - management tokens are redacted by their route even when they contain no digits
+  ---
+  duration_ms: 0.956557
+  type: 'test'
+  ...
+# Subtest: the request summary groups outcomes, statuses and CPU per method and route
+ok 6 - the request summary groups outcomes, statuses and CPU per method and route
+  ---
+  duration_ms: 21.841355
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 6
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 205.619247

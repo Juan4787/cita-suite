@@ -1,0 +1,20 @@
+{
+  "at": "2026-10-24T07:52:46.228Z",
+  "scope": "Read-only ad-hoc dry query of app scheduled-job telemetry. Supported CLI token in memory only; no raw log/event source persisted. A known7:21 event is the positive control before any historical inference.",
+  "queries": [
+    {
+      "label": "positive-control",
+      "status": 403,
+      "success": false,
+      "errorCodes": [
+        10000
+      ],
+      "resultKeys": [],
+      "eventsType": "undefined",
+      "eventsKeys": [],
+      "rows": 0,
+      "eventSchemas": [],
+      "dryConfirmed": false
+    }
+  ]
+}

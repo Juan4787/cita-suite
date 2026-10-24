@@ -1,0 +1,29 @@
+{
+  "at": "2026-10-23T14:54:52.642414+00:00",
+  "sources": [
+    {
+      "url": "https://developers.cloudflare.com/workers/platform/limits/",
+      "lastUpdatedDisplayed": "2026-10-12",
+      "verifiedFacts": [
+        "Free HTTP CPU10ms",
+        "Free cron CPU10ms",
+        "Infrequent excess may be tolerated by isolate; consistent excess can terminate",
+        "exceededCpu identifies platform CPU termination"
+      ]
+    },
+    {
+      "url": "https://supabase.com/docs/guides/auth/auth-smtp",
+      "verifiedFacts": [
+        "Default SMTP is for nonproduction exploration and restricts recipients to organization team",
+        "Custom SMTP required for general transactional mail; remote configuration still not read"
+      ]
+    }
+  ],
+  "remoteConfigurationAssumptions": false,
+  "managementTokenPresenceOnly": {
+    "SUPABASE_ACCESS_TOKEN": false,
+    "SUPABASE_MANAGEMENT_TOKEN": false,
+    "CITA_SUPABASE_ACCESS_TOKEN": false
+  },
+  "noCredentialFilesRead": true
+}

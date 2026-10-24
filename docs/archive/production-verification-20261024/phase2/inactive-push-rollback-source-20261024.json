@@ -1,0 +1,38 @@
+{
+  "at": "2026-10-24T12:51:05.570428+00:00",
+  "base": "5ee3fa5a19bcdda49697692fc4c9c3b3702c9eca",
+  "commit": "83278ad47f15b0af4e08e328fb88548910c198b0",
+  "tree": "b22b6dfdda93c660f71aaaec7ba493e3089c558f",
+  "branch": "refactor/inactive-push-rollback-20261024",
+  "candidate": "0851de59ed7971debe2514e6d6851d142bbc5766",
+  "files": [
+    {
+      "path": "apps/web/src/routes/turno/[token]/page.client.test.ts",
+      "blob": "d93ba3df3572a2db67bd53f8eafe6e847be99000",
+      "sha256": "17f275e24c695ed93f175538a7b409b51e0f4bcc5e1a315e7fdca76bef651ae2"
+    },
+    {
+      "path": "apps/web/src/routes/turno/[token]/+page.svelte",
+      "blob": "eefedae4fa690557f4804867e132b9ee29a5b0ca",
+      "sha256": "bbb2307c2a68df7bc86b83999af7613c3c37a329a7234bef4aa468b8308d8386"
+    }
+  ],
+  "activeRuntimeDifferences": [],
+  "historicalVerificationAndDocumentationDifferences": [
+    ".github/workflows/refactoring-verification.yml",
+    "apps/natalia/PRODUCT.md",
+    "apps/natalia/README.md",
+    "apps/web/e2e/booking-embed.spec.ts",
+    "apps/web/e2e/clinical-entry-date.spec.ts",
+    "apps/web/e2e/clinical-files.spec.ts",
+    "apps/web/e2e/clinical-storage-policy.spec.ts",
+    "apps/web/e2e/helpers/browser-request.ts",
+    "apps/web/e2e/helpers/realtime-diagnostics.ts",
+    "apps/web/e2e/helpers/render-health.ts",
+    "apps/web/e2e/patient-structure-ux.spec.ts",
+    "apps/web/e2e/render-health.spec.ts",
+    "apps/web/e2e/request-transport.spec.ts",
+    "apps/web/e2e/roles-agenda-regression.spec.ts"
+  ],
+  "scope": "Only same two inactive-push files backported. No migration, secret, provider or scheduler changes. Recovery will preserve the newly reproduced guard rather than reintroduce the known client defect."
+}

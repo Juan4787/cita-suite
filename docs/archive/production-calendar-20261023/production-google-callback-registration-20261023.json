@@ -1,0 +1,48 @@
+{
+  "at": "2026-10-23T15:32:19.886Z",
+  "scope": "Two unauthenticated Google authorization requests; negative callback control first. No account selected, no consent, no callback code, no private URL/state/response body persisted. This is callback registration preflight, not end-to-end synchronization.",
+  "clientId": "48946672642-mi95jkebofoj0gc6ub8ljl5nl7ci0e3e.apps.googleusercontent.com",
+  "negative": {
+    "redirectUri": "https://callback-check.invalid/oauth/google-calendar/callback",
+    "hops": [
+      {
+        "status": 302,
+        "path": "/o/oauth2/v2/auth"
+      },
+      {
+        "status": 302,
+        "path": "/signin/oauth/error"
+      },
+      {
+        "status": 200,
+        "path": "/signin/oauth/error"
+      }
+    ],
+    "redirectMismatch": false,
+    "providerErrorPage": true,
+    "loginPageReached": false
+  },
+  "actual": {
+    "redirectUri": "https://app.cita-suite.workers.dev/oauth/google-calendar/callback",
+    "hops": [
+      {
+        "status": 302,
+        "path": "/o/oauth2/v2/auth"
+      },
+      {
+        "status": 302,
+        "path": "/signin/oauth/error"
+      },
+      {
+        "status": 200,
+        "path": "/signin/oauth/error"
+      }
+    ],
+    "redirectMismatch": true,
+    "providerErrorPage": true,
+    "loginPageReached": false
+  },
+  "negativeControlDetected": false,
+  "canonicalCallbackAcceptedBeforeLogin": false,
+  "completeGoogleAuthorizationVerified": false
+}

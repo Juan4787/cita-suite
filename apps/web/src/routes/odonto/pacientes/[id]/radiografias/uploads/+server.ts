@@ -1,3 +1,5 @@
+import { isUuid } from '@cita-suite/shared/uuid';
+import { logServerFailure } from '$lib/server/platform/logging';
 import {
 	clinicalFileCacheHeaders,
 	clinicalFileErrorBody,
@@ -10,12 +12,11 @@ import {
 	normalizeClinicalNote,
 	requireClinicalFileUpload,
 	CLINICAL_FILE_MAX_BYTES, readClinicalJson
-} from '$lib/server/clinical-files';
-import { enforceRateLimits, radiographUploadRateLimitRules } from '$lib/server/rate-limits';
+} from '$lib/server/patients/public/clinical-files';
+import { enforceRateLimits, radiographUploadRateLimitRules } from '$lib/server/platform/rate-limits';
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
-const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const checksumPattern = /^[0-9a-f]{64}$/i;
 
 export const POST: RequestHandler = async (event) => {
@@ -24,7 +25,7 @@ export const POST: RequestHandler = async (event) => {
 	try {
 		const context = await getClinicalFileRequestContext(event);
 		requireClinicalFileUpload(context);
-		const body = (await readClinicalJson(event.request)) as Record<string, unknown> | null;
+		const body = await readClinicalJson(event.request);
 		if (!body) {
 			return json(
 				{ code: 'INVALID_REQUEST', message: 'Revisá los datos del archivo.' },
@@ -40,7 +41,7 @@ export const POST: RequestHandler = async (event) => {
 		const takenAt = normalizeClinicalDate(body.takenAt);
 		const note = normalizeClinicalNote(body.note);
 
-		if (!uuidPattern.test(clientRequestId) || !originalFilename || !checksumPattern.test(sha256)) {
+		if (!isUuid(clientRequestId) || !originalFilename || !checksumPattern.test(sha256)) {
 			return json(
 				{ code: 'INVALID_METADATA', message: 'Revisá los datos del archivo.' },
 				{ status: 400 }
@@ -66,7 +67,7 @@ export const POST: RequestHandler = async (event) => {
 		}
 
 		await enforceRateLimits(radiographUploadRateLimitRules(context.userId), event.fetch);
-		const { data, error } = await context.admin.rpc('begin_patient_radiograph_upload' as never, {
+		const { data, error } = await context.admin.rpc('begin_patient_radiograph_upload', {
 			p_actor_id: context.userId,
 			p_business_id: context.businessId,
 			p_patient_id: event.params.id,
@@ -77,18 +78,10 @@ export const POST: RequestHandler = async (event) => {
 			p_sha256: sha256,
 			p_taken_at: takenAt,
 			p_note: note
-		} as never);
+		});
 		if (error) throw error;
 
-		const row = (Array.isArray(data) ? data[0] : data) as
-			| {
-					radiograph_id: string;
-					storage_bucket: string;
-					storage_path: string;
-					thumbnail_path: string | null;
-					status: string;
-			  }
-			| null;
+		const row = data?.[0];
 		if (!row?.radiograph_id) throw new Error('RADIOGRAPH_BEGIN_EMPTY');
 		if (row.status === 'ready') {
 			return json({ id: row.radiograph_id, already_complete: true });
@@ -112,20 +105,20 @@ export const POST: RequestHandler = async (event) => {
 			});
 		} catch (error) {
 			try {
-				await context.admin.rpc('fail_patient_radiograph_upload' as never, {
+				await context.admin.rpc('fail_patient_radiograph_upload', {
 					p_actor_id: context.userId,
 					p_business_id: context.businessId,
 					p_patient_id: event.params.id,
 					p_radiograph_id: row.radiograph_id,
 					p_failure_code: 'signed_url_failed'
-				} as never);
+				});
 			} catch {
 				// La falla original se informa al usuario; este registro es de mejor esfuerzo.
 			}
 			throw error;
 		}
 	} catch (error) {
-		console.error('Error iniciando carga de imagen clínica', error);
+		logServerFailure('Error iniciando carga de imagen clínica', error);
 		const safe = clinicalFileError(error, 'No pudimos iniciar la carga. Probá de nuevo.');
 		const headers = safe.retryAfterSeconds ? { 'retry-after': String(safe.retryAfterSeconds) } : undefined;
 		return json(clinicalFileErrorBody(safe), { status: safe.status, headers });

@@ -1,5 +1,7 @@
+import { logServerFailure } from '$lib/server/platform/logging';
+import type { CitaSupabaseClient } from '$lib/types/database';
 import { env } from '$env/dynamic/private';
-import { demoBusinessContext, resolveActiveBusiness } from '$lib/server/business';
+import { demoBusinessContext, resolveActiveBusiness } from '$lib/server/access/public/business';
 import {
 	cancelPreapproval,
 	confirmMpSubscriptionForBusiness,
@@ -14,14 +16,14 @@ import {
 	type MpApiResult,
 	type MpPreapproval,
 	type MpReturnSummary
-} from '$lib/server/mercadopago';
-import { getExternalCallbackSiteUrl } from '$lib/server/messaging';
+} from '$lib/server/integrations/public/mercadopago';
+import { getExternalCallbackSiteUrl } from '$lib/server/integrations/public/messaging';
 import {
 	enforceRateLimits,
 	mpSubscriptionRateLimitRules,
 	rateLimitFail
-} from '$lib/server/rate-limits';
-import { createSupabaseAdminClient, createSupabaseServerClient } from '$lib/server/supabase';
+} from '$lib/server/platform/rate-limits';
+import { createSupabaseAdminClient, createSupabaseServerClient } from '$lib/server/platform/supabase';
 import { error as kitError, fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 
@@ -48,11 +50,8 @@ const loadMpSubscription = async (
 		.eq('business_id', businessId)
 		.order('created_at', { ascending: false })
 		.limit(5);
-	if (error) {
-		console.error('Error cargando suscripción de Mercado Pago', error);
-		return null;
-	}
-	return pickRelevantMpSubscription((data ?? []) as MpSubscriptionView[]);
+	if (error) throw error;
+	return pickRelevantMpSubscription(data ?? []);
 };
 
 export const load: PageServerLoad = async ({ locals, fetch, cookies, url }) => {
@@ -64,6 +63,7 @@ export const load: PageServerLoad = async ({ locals, fetch, cookies, url }) => {
 			grants: [],
 			demo: true,
 			mpSubscription: null,
+			mpSubscriptionUnavailable: false,
 			mpAmount: getSubscriptionAmountArs(),
 			mpEnvironment: getMercadoPagoEnvironment(),
 			mpReturn: null as MpReturnSummary | null,
@@ -83,13 +83,13 @@ export const load: PageServerLoad = async ({ locals, fetch, cookies, url }) => {
 	if (context.role !== 'owner' && context.role !== 'admin') throw redirect(303, '/odonto/agenda');
 	if (context.assistance) throw redirect(303, '/odonto/configuracion/ayuda');
 
-	// Sin cliente admin la página degrada (no muestra el estado MP) pero no se
-	// cae: el estado comercial sale del cliente del usuario igual que antes.
+	// Sin cliente admin la página no se cae: el estado comercial sale del cliente
+	// del usuario, y la suscripción se muestra como no comprobada, nunca como ausente.
 	let admin: Awaited<ReturnType<typeof createSupabaseAdminClient>> | null = null;
 	try {
 		admin = await createSupabaseAdminClient('odonto', fetch);
 	} catch (error) {
-		console.error('No se pudo crear el cliente admin para la página de suscripción', error);
+		logServerFailure('No se pudo crear el cliente admin para la página de suscripción', error);
 	}
 
 	// Retorno del checkout: confirmación activa contra la API de MP ANTES de
@@ -104,19 +104,32 @@ export const load: PageServerLoad = async ({ locals, fetch, cookies, url }) => {
 			// El contexto se refresca siempre tras confirmar: si el webhook ganó
 			// la carrera y acreditó primero (outcome duplicado), el acceso al día
 			// igual tiene que verse en esta carga.
+			// Una lectura nueva: el pedido ya tiene la de antes de confirmar el pago.
 			const refreshed = await resolveActiveBusiness({
 				supabase,
 				accessToken: locals.auth.access_token,
-				cookies
+				cookies,
+				membershipCache: 'fresh'
 			});
 			if (refreshed) context = refreshed;
 		} catch (error) {
 			mpReturnFailed = true;
-			console.error('No se pudo confirmar el retorno de Mercado Pago', error);
+			logServerFailure('No se pudo confirmar el retorno de Mercado Pago', error);
 		}
 	}
 
-	const [{ data: grants, error }, mpSubscription] = await Promise.all([
+	// An unread subscription is not an absent one: offering to subscribe, and hiding the
+	// cancellation, would act on a state nobody checked.
+	const readMpSubscription = async () => {
+		if (!admin) return { subscription: null, unavailable: true };
+		try {
+			return { subscription: await loadMpSubscription(admin, context.business.id), unavailable: false };
+		} catch (cause) {
+			logServerFailure('Error cargando suscripción de Mercado Pago', cause);
+			return { subscription: null, unavailable: true };
+		}
+	};
+	const [{ data: grants, error }, mp] = await Promise.all([
 		supabase
 			.from('access_grants')
 			.select(
@@ -125,18 +138,19 @@ export const load: PageServerLoad = async ({ locals, fetch, cookies, url }) => {
 			.eq('business_id', context.business.id)
 			.order('created_at', { ascending: false })
 			.limit(30),
-		admin ? loadMpSubscription(admin, context.business.id) : Promise.resolve(null)
+		readMpSubscription()
 	]);
 
 	if (error) {
-		console.error('Error cargando historial de suscripción', error);
+		logServerFailure('Error cargando historial de suscripción', error);
 	}
 
 	return {
 		context,
-		grants: grants ?? [],
+		grants: error ? null : (grants ?? []),
 		demo: false,
-		mpSubscription,
+		mpSubscription: mp.subscription,
+		mpSubscriptionUnavailable: mp.unavailable,
 		mpAmount: getSubscriptionAmountArs(),
 		mpEnvironment: getMercadoPagoEnvironment(),
 		mpReturn,
@@ -151,7 +165,7 @@ export const actions: Actions = {
 			return fail(400, { message: 'No disponible en modo demo.' });
 		}
 
-		let supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>;
+		let supabase: CitaSupabaseClient;
 		let context: Awaited<ReturnType<typeof resolveActiveBusiness>>;
 		try {
 			supabase = await createSupabaseServerClient('odonto', locals.auth, fetch);
@@ -161,7 +175,7 @@ export const actions: Actions = {
 				cookies
 			});
 		} catch (error) {
-			console.error('No se pudo preparar el contexto para suscribir', error);
+			logServerFailure('No se pudo preparar el contexto para suscribir', error);
 			return fail(503, { message: SUBSCRIPTION_PREPARATION_UNAVAILABLE });
 		}
 		if (!context) {
@@ -187,19 +201,8 @@ export const actions: Actions = {
 			});
 		}
 
-		let authEmail = '';
-		try {
-			const { data: userData, error: userError } = await supabase.auth.getUser();
-			if (userError) {
-				console.warn('No se pudo leer el email autenticado para la suscripción', {
-					status: userError.status
-				});
-			} else {
-				authEmail = userData?.user?.email?.trim() ?? '';
-			}
-		} catch (error) {
-			console.error('No se pudo consultar el email autenticado para la suscripción', error);
-		}
+		// Hooks already verified this request's identity with Auth: no second round trip.
+		const authEmail = locals.verifiedUser?.email?.trim() ?? '';
 		const payerEmail =
 			authEmail || context.business.email?.trim() || '';
 		if (!payerEmail) {
@@ -212,7 +215,7 @@ export const actions: Actions = {
 		const backUrl = `${getExternalCallbackSiteUrl()}/odonto/pago/procesando?mp=retorno`;
 		const mpConfigIssue = getMercadoPagoApiConfigIssue();
 		if (mpConfigIssue) {
-			console.error('Mercado Pago no está configurado para crear suscripciones', {
+			logServerFailure('Mercado Pago no está configurado para crear suscripciones', {
 				missing: mpConfigIssue
 			});
 			return fail(503, { message: SUBSCRIPTION_PREPARATION_UNAVAILABLE });
@@ -225,7 +228,7 @@ export const actions: Actions = {
 		try {
 			admin = await createSupabaseAdminClient('odonto', fetch);
 		} catch (error) {
-			console.error('No se pudo crear el cliente admin para suscribir', error);
+			logServerFailure('No se pudo crear el cliente admin para suscribir', error);
 			return fail(503, { message: SUBSCRIPTION_PREPARATION_UNAVAILABLE });
 		}
 
@@ -239,7 +242,7 @@ export const actions: Actions = {
 			.in('status', ['authorized', 'paused', 'pending'])
 			.order('created_at', { ascending: false });
 		if (existingError) {
-			console.error('No se pudo verificar suscripciones existentes', existingError);
+			logServerFailure('No se pudo verificar suscripciones existentes', existingError);
 			return fail(503, { message: SUBSCRIPTION_PREPARATION_UNAVAILABLE });
 		}
 		const blockingSubscription = (existingRows ?? []).find((row) =>
@@ -264,7 +267,7 @@ export const actions: Actions = {
 					}))
 				);
 			} catch (error) {
-				console.error('No se pudieron consultar las solicitudes pendientes de Mercado Pago', error);
+				logServerFailure('No se pudieron consultar las solicitudes pendientes de Mercado Pago', error);
 				return fail(502, {
 					message:
 						'Ya hay una solicitud de suscripción pendiente, pero no pudimos abrirla en este momento. Probá de nuevo en unos minutos.'
@@ -311,7 +314,7 @@ export const actions: Actions = {
 						livePending.map(({ preapproval }) => cancelPreapproval(fetch, preapproval.id))
 					);
 				} catch (error) {
-					console.error('No se pudieron cancelar solicitudes pendientes viejas', error);
+					logServerFailure('No se pudieron cancelar solicitudes pendientes viejas', error);
 					return false;
 				}
 				if (cancelledResults.some((result) => !result.ok || !result.data)) return false;
@@ -387,14 +390,14 @@ export const actions: Actions = {
 				backUrl
 			});
 		} catch (error) {
-			console.error('Error creando preapproval de Mercado Pago', error);
+			logServerFailure('Error creando preapproval de Mercado Pago', error);
 			return fail(502, {
 				message: 'No pudimos iniciar la suscripción con Mercado Pago. Probá de nuevo en unos minutos.'
 			});
 		}
 
 		if (!created.ok || !created.data?.id || !created.data.init_point) {
-			console.error('Mercado Pago rechazó el preapproval', created.status, created.data);
+			logServerFailure('Mercado Pago rechazó el preapproval', { status: created.status });
 			return fail(502, {
 				message: 'Mercado Pago no aceptó la solicitud. Probá de nuevo en unos minutos.'
 			});
@@ -417,7 +420,7 @@ export const actions: Actions = {
 			{ onConflict: 'preapproval_id' }
 		);
 		if (upsertError) {
-			console.error('No se pudo guardar el mapeo de la suscripción MP', upsertError);
+			logServerFailure('No se pudo guardar el mapeo de la suscripción MP', upsertError);
 		}
 
 		throw redirect(303, created.data.init_point);
@@ -457,7 +460,7 @@ export const actions: Actions = {
 		try {
 			admin = await createSupabaseAdminClient('odonto', fetch);
 		} catch (error) {
-			console.error('No se pudo crear el cliente admin para cancelar', error);
+			logServerFailure('No se pudo crear el cliente admin para cancelar', error);
 			return fail(500, {
 				message: 'El sistema no está listo para procesar la cancelación. Avisá al administrador.'
 			});
@@ -469,7 +472,7 @@ export const actions: Actions = {
 			.eq('business_id', context.business.id)
 			.maybeSingle();
 		if (ownedError) {
-			console.error('Error verificando la suscripción a cancelar', ownedError);
+			logServerFailure('Error verificando la suscripción a cancelar', ownedError);
 			return fail(500, { message: 'No se pudo verificar la suscripción.' });
 		}
 		if (!owned) {
@@ -477,7 +480,7 @@ export const actions: Actions = {
 		}
 		const mpConfigIssue = getMercadoPagoApiConfigIssue();
 		if (mpConfigIssue) {
-			console.error('Mercado Pago no está configurado para cancelar suscripciones', {
+			logServerFailure('Mercado Pago no está configurado para cancelar suscripciones', {
 				missing: mpConfigIssue
 			});
 			return fail(500, {
@@ -487,25 +490,21 @@ export const actions: Actions = {
 
 		// Antes de cancelar se asienta cualquier cobro ya aprobado sin registrar:
 		// una vez cancelada, la fila sale del filtro de conciliación y el último
-		// mes pagado se perdería. Si el barrido falla, la cancelación sigue (la
-		// conciliación de esta última corrida como authorized aún puede curarlo).
-		try {
-			await settleApprovedChargesForPreapproval(admin, fetch, context.business.id, preapprovalId);
-		} catch (error) {
-			console.error('No se pudo asentar el cobro final antes de cancelar', error);
-		}
+		// mes pagado se perdería. Si el barrido falla, la cancelación sigue y queda
+		// un evento que requiere atención para revisar ese cobro a mano.
+		await settleApprovedChargesForPreapproval(admin, fetch, context.business.id, preapprovalId);
 
 		let cancelled;
 		try {
 			cancelled = await cancelPreapproval(fetch, preapprovalId);
 		} catch (error) {
-			console.error('Error cancelando preapproval de Mercado Pago', error);
+			logServerFailure('Error cancelando preapproval de Mercado Pago', error);
 			return fail(502, {
 				message: 'No pudimos cancelar la suscripción en Mercado Pago. Probá de nuevo en unos minutos.'
 			});
 		}
 		if (!cancelled.ok) {
-			console.error('Mercado Pago rechazó la cancelación', cancelled.status, cancelled.data);
+			logServerFailure('Mercado Pago rechazó la cancelación', { status: cancelled.status });
 			return fail(502, {
 				message: 'Mercado Pago no aceptó la cancelación. Probá de nuevo en unos minutos.'
 			});
@@ -520,7 +519,7 @@ export const actions: Actions = {
 			})
 			.eq('preapproval_id', preapprovalId);
 		if (updateError) {
-			console.error('No se pudo actualizar el estado local de la suscripción', updateError);
+			logServerFailure('No se pudo actualizar el estado local de la suscripción', updateError);
 		}
 
 		return {

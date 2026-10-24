@@ -1,0 +1,48 @@
+{
+  "run": "b5976b2b9428",
+  "reportedAt": "2026-10-24T08:24:24.3646+00:00",
+  "appointmentStartsAt": "2026-10-24T07:02:00+00:00",
+  "subscriptions": [
+    {
+      "pushHost": "fcm.googleapis.com",
+      "createdAt": "2026-10-24T03:32:43.14317+00:00",
+      "sent24h": "2026-10-24T03:45:16.006+00:00",
+      "sent2h": "2026-10-24T05:05:15.894+00:00",
+      "failures24h": 0,
+      "detachedAt": null,
+      "goneAt": null
+    }
+  ],
+  "attempts": [
+    {
+      "kind": "24h",
+      "createdAt": "2026-10-24T03:35:16.502+00:00",
+      "status": 201,
+      "acceptedAt": "2026-10-24T03:35:16.502+00:00",
+      "receivedAt": "2026-10-24T03:35:18.439+00:00",
+      "displayedAt": "2026-10-24T03:35:18.439+00:00",
+      "confirmedAt": null,
+      "failure": null
+    },
+    {
+      "kind": "24h",
+      "createdAt": "2026-10-24T03:45:16.006+00:00",
+      "status": 201,
+      "acceptedAt": "2026-10-24T03:45:16.006+00:00",
+      "receivedAt": "2026-10-24T03:45:17.082+00:00",
+      "displayedAt": "2026-10-24T03:45:17.082+00:00",
+      "confirmedAt": null,
+      "failure": null
+    },
+    {
+      "kind": "2h",
+      "createdAt": "2026-10-24T05:05:15.894+00:00",
+      "status": 201,
+      "acceptedAt": "2026-10-24T05:05:15.894+00:00",
+      "receivedAt": "2026-10-24T05:05:18.622+00:00",
+      "displayedAt": "2026-10-24T05:05:18.622+00:00",
+      "confirmedAt": null,
+      "failure": null
+    }
+  ]
+}

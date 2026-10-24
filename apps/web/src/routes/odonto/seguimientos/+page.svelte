@@ -3,6 +3,7 @@
 	import EmptyState from '$lib/components/EmptyState.svelte';
 	import Modal from '$lib/components/Modal.svelte';
 	import FollowUpComposer from '$lib/components/seguimientos/FollowUpComposer.svelte';
+	import { createClientReadiness } from '$lib/client/readiness.svelte';
 
 	type Item = {
 		id: string;
@@ -14,9 +15,10 @@
 		updated_at: string;
 	};
 
-	let { data } = $props<{
-		data: { programmed: Item[]; canAssign: boolean; todayISO: string; demo: boolean };
-	}>();
+	let { data }: {
+		data: { programmed: Item[]; programmedTotal: number; canAssign: boolean; todayISO: string; demo: boolean };
+	} = $props();
+	const client = createClientReadiness();
 
 	let showComposer = $state(false);
 	let editingItem = $state<Item | null>(null);
@@ -46,7 +48,7 @@
 	</div>
 
 	<div class="flex justify-end">
-		<button type="button" onclick={() => (showComposer = true)} disabled={data.demo} class="ux-btn-primary disabled:opacity-50">
+		<button type="button" onclick={() => (showComposer = true)} disabled={data.demo || !client.ready} class="ux-btn-primary disabled:opacity-50">
 			Agregar seguimiento
 		</button>
 	</div>
@@ -72,6 +74,8 @@
 					title="Sin recordatorios programados"
 					description="No hay recordatorios programados para más adelante."
 				/>
+			{:else if data.programmedTotal > data.programmed.length}
+				<p class="text-sm text-white/55">Se muestran los {data.programmed.length} más próximos de {data.programmedTotal}.</p>
 			{/if}
 		</div>
 	</div>

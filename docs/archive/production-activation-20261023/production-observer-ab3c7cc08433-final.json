@@ -1,0 +1,107 @@
+{
+  "run": "ab3c7cc08433",
+  "minutes": 90,
+  "startedAt": "2026-10-23T14:23:35.303Z",
+  "scope": "One read-only Wrangler tail; sanitized job and request metrics, no raw events or credentials persisted",
+  "observerSha256": "d5d8cf2e6b2741b7a9a0cee3b1baa09ae1e9c73d31f5ea42551022b56e736add",
+  "filterSha256": "c39d9b3e176351b882d54ae6c6337de6f65a288f931dcbb6fb29cc39031fb05a",
+  "routeCatalogSha256": "32fe294c89650aac0c10162814e34937082f8755be28a7ea8caa1f15d1847c98",
+  "paths": {
+    "jobs": ".verification/production-observer-ab3c7cc08433-jobs.jsonl",
+    "requests": ".verification/production-observer-ab3c7cc08433-requests.jsonl",
+    "live": ".verification/production-observer-ab3c7cc08433-live.json",
+    "final": ".verification/production-observer-ab3c7cc08433-final.json"
+  },
+  "reportedAt": "2026-10-23T14:27:29.585Z",
+  "tailReadyAt": "2026-10-23T14:25:07.693Z",
+  "parseFailures": 0,
+  "jobs": {
+    "events": 2,
+    "cpuReported": true,
+    "jobs": {
+      "/internal/jobs/push": {
+        "runs": 1,
+        "outcomes": {
+          "ok": 1
+        },
+        "cpuMs": {
+          "p50": 10,
+          "p99": 10,
+          "max": 10
+        },
+        "wallMs": {
+          "p50": 10,
+          "p99": 10,
+          "max": 10
+        }
+      },
+      "/internal/jobs/calendar": {
+        "runs": 1,
+        "outcomes": {
+          "ok": 1
+        },
+        "cpuMs": {
+          "p50": 24,
+          "p99": 24,
+          "max": 24
+        },
+        "wallMs": {
+          "p50": 25,
+          "p99": 25,
+          "max": 25
+        }
+      }
+    }
+  },
+  "requests": {
+    "events": 2,
+    "cpuReported": true,
+    "outcomes": {
+      "ok": 2
+    },
+    "routes": {
+      "POST /internal/jobs/calendar": {
+        "requests": 1,
+        "outcomes": {
+          "ok": 1
+        },
+        "statuses": {
+          "401": 1
+        },
+        "cpuMs": {
+          "p50": 24,
+          "p99": 24,
+          "max": 24
+        },
+        "wallMs": {
+          "p50": 25,
+          "p99": 25,
+          "max": 25
+        }
+      },
+      "POST /internal/jobs/push": {
+        "requests": 1,
+        "outcomes": {
+          "ok": 1
+        },
+        "statuses": {
+          "401": 1
+        },
+        "cpuMs": {
+          "p50": 10,
+          "p99": 10,
+          "max": 10
+        },
+        "wallMs": {
+          "p50": 10,
+          "p99": 10,
+          "max": 10
+        }
+      }
+    }
+  },
+  "finishedAt": "2026-10-23T14:27:29.585Z",
+  "code": 0,
+  "signal": null,
+  "stoppedByDuration": false
+}

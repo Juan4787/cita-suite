@@ -1,0 +1,108 @@
+{
+  "requests": 1183,
+  "slowRequests": 7,
+  "slowMs": 2000,
+  "windows": 46,
+  "withSlowRequests": 3,
+  "withoutSlowRequests": 43,
+  "median": {
+    "busy": {
+      "withSlowRequests": 0.08738181648261838,
+      "withoutSlowRequests": 0.01847455228718829
+    },
+    "steal": {
+      "withSlowRequests": 0.0001550724188194477,
+      "withoutSlowRequests": 0
+    },
+    "iowait": {
+      "withSlowRequests": 0.2307680260600456,
+      "withoutSlowRequests": 0.03907171270892883
+    },
+    "cpuPressure": {
+      "withSlowRequests": null,
+      "withoutSlowRequests": null
+    },
+    "ioStalled": {
+      "withSlowRequests": null,
+      "withoutSlowRequests": null
+    },
+    "memoryStalled": {
+      "withSlowRequests": null,
+      "withoutSlowRequests": null
+    },
+    "swapInPerSecond": {
+      "withSlowRequests": 871.1238489005826,
+      "withoutSlowRequests": 194.9041364376373
+    },
+    "swapOutPerSecond": {
+      "withSlowRequests": 922.7119064603169,
+      "withoutSlowRequests": 174.1193159429427
+    },
+    "majorFaultsPerSecond": {
+      "withSlowRequests": 577.1330211208634,
+      "withoutSlowRequests": 123.9056919819222
+    },
+    "diskBusy": {
+      "withSlowRequests": 0.3523710572837226,
+      "withoutSlowRequests": 0.06768761497449749
+    },
+    "checkpoints": {
+      "withSlowRequests": 1,
+      "withoutSlowRequests": 0
+    },
+    "memoryAvailableMb": {
+      "withSlowRequests": 174.145536,
+      "withoutSlowRequests": 148.5824
+    }
+  },
+  "slowWindows": [
+    {
+      "from": "2026-10-24T08:54:26.238Z",
+      "slowRequests": 3,
+      "busy": 0.08288620785908823,
+      "steal": 0.0001550724188194477,
+      "iowait": 0.22229631237797975,
+      "cpuPressure": null,
+      "ioStalled": null,
+      "memoryStalled": null,
+      "swapInPerSecond": 889.8675681543281,
+      "swapOutPerSecond": 922.7119064603169,
+      "majorFaultsPerSecond": 577.1330211208634,
+      "diskBusy": 0.3523710572837226,
+      "checkpoints": 0,
+      "memoryAvailableMb": 172.466176
+    },
+    {
+      "from": "2026-10-24T09:01:51.893Z",
+      "slowRequests": 3,
+      "busy": 0.08738181648261838,
+      "steal": 0.0001557608136947918,
+      "iowait": 0.23862556657984196,
+      "cpuPressure": null,
+      "ioStalled": null,
+      "memoryStalled": null,
+      "swapInPerSecond": 754.8013270821327,
+      "swapOutPerSecond": 915.8580084422362,
+      "majorFaultsPerSecond": 505.58402517094754,
+      "diskBusy": 0.33756483543811283,
+      "checkpoints": 1,
+      "memoryAvailableMb": 174.145536
+    },
+    {
+      "from": "2026-10-24T09:11:25.216Z",
+      "slowRequests": 1,
+      "busy": 0.08872079183100917,
+      "steal": 0,
+      "iowait": 0.2307680260600456,
+      "cpuPressure": null,
+      "ioStalled": null,
+      "memoryStalled": null,
+      "swapInPerSecond": 871.1238489005826,
+      "swapOutPerSecond": 1114.6401052433753,
+      "majorFaultsPerSecond": 596.7863183612103,
+      "diskBusy": 0.35366159243241996,
+      "checkpoints": 1,
+      "memoryAvailableMb": 183.304192
+    }
+  ]
+}

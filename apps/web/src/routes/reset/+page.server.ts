@@ -1,6 +1,7 @@
+import { logServerFailure } from '$lib/server/platform/logging';
 import { env } from '$env/dynamic/private';
 import { PUBLIC_SITE_URL_FALLBACK } from '$lib/constants';
-import { createSupabaseServerClient } from '$lib/server/supabase';
+import { createSupabaseServerClient } from '$lib/server/platform/supabase';
 import { fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 
@@ -31,7 +32,7 @@ export const actions: Actions = {
 		});
 
 		if (error) {
-			console.error('Error reset password', error);
+			logServerFailure('Error reset password', error);
 			return fail(500, { message: 'No pudimos enviar el correo. Intentá de nuevo.', email });
 		}
 

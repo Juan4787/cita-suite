@@ -1,0 +1,10 @@
+{
+  "at": "2026-10-23T15:17:42.663Z",
+  "project": "yjzferwuzbtgpmdnzlcb",
+  "scope": "Read-only aggregate counts; no account identity, appointment data, refresh token or encrypted value read; zero current rows does not disprove an earlier test",
+  "counts": {
+    "connections": 1,
+    "appointmentEvents": 1,
+    "oauthAttempts": 1
+  }
+}

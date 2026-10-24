@@ -1,0 +1,48 @@
+{
+  "at": "2026-10-23T15:33:32.302Z",
+  "scope": "Two unauthenticated Google authorization requests; negative callback control first. No account selected, no consent, no callback code, no private URL/state/response body persisted. Google sign-in callback registration preflight only; Supabase app redirect allowlist and complete login remain unproven.",
+  "clientId": "372761266416-6pt6cuh73a5s4uttv31co0jc43ifrmtc.apps.googleusercontent.com",
+  "negative": {
+    "redirectUri": "https://yjzferwuzbtgpmdnzlcb.supabase.co/auth/v1/callback-verification-negative",
+    "hops": [
+      {
+        "status": 302,
+        "path": "/o/oauth2/v2/auth"
+      },
+      {
+        "status": 302,
+        "path": "/signin/oauth/error"
+      },
+      {
+        "status": 200,
+        "path": "/signin/oauth/error"
+      }
+    ],
+    "redirectMismatch": true,
+    "providerErrorPage": true,
+    "loginPageReached": false,
+    "errorCodes": [
+      "redirect_uri_mismatch"
+    ]
+  },
+  "actual": {
+    "redirectUri": "https://yjzferwuzbtgpmdnzlcb.supabase.co/auth/v1/callback",
+    "hops": [
+      {
+        "status": 302,
+        "path": "/o/oauth2/v2/auth"
+      },
+      {
+        "status": 200,
+        "path": "/v3/signin/identifier"
+      }
+    ],
+    "redirectMismatch": false,
+    "providerErrorPage": false,
+    "loginPageReached": true,
+    "errorCodes": []
+  },
+  "negativeControlDetected": true,
+  "canonicalCallbackAcceptedBeforeLogin": true,
+  "completeGoogleAuthorizationVerified": false
+}

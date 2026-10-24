@@ -1,0 +1,91 @@
+{
+  "capturedAt": "2026-10-23T15:07:35.249650+00:00",
+  "runId": "ab3c7cc0-8431-43e5-959b-b04f0a543187",
+  "runtime": "478c096e63299b886e640c4627cd25e0db22dbfa",
+  "runtimeRelease": 39901784288,
+  "operationalCommit": "3ebb44a6e19d4c68e323cce4d3d86cab94dc72a9",
+  "productionAppVersion": "c7daf16d-fd5d-4bdf-909e-0387f1abfc5d",
+  "compatibleBaselineVersion": "035338f1-9673-49e3-9b32-257d3c4c4364",
+  "schedulerVersion": "9b77dcf3-98bd-4535-8f4f-6a6e171c9188",
+  "databaseMigrations": 125,
+  "routines": {
+    "reportedAt": "2026-10-23T15:07:25.925Z",
+    "readyAt": "2026-10-23T14:42:27.272Z",
+    "observedSeconds": 1498.653,
+    "events": 14,
+    "counts": {
+      "uploads": 2,
+      "storage": 0,
+      "calendar": 5,
+      "reviews": 2,
+      "push": 5,
+      "commercial": 0
+    },
+    "observationHealthy20Minutes": true,
+    "missingRoutineCounts": [],
+    "cadenceGaps": [],
+    "failures": [],
+    "routinesOperationalPassed": true,
+    "cpuExcess": [
+      {
+        "index": 0,
+        "kind": "push",
+        "cpuTimeMs": 42
+      },
+      {
+        "index": 1,
+        "kind": "calendar",
+        "cpuTimeMs": 48
+      },
+      {
+        "index": 3,
+        "kind": "push",
+        "cpuTimeMs": 34
+      },
+      {
+        "index": 7,
+        "kind": "calendar",
+        "cpuTimeMs": 18
+      },
+      {
+        "index": 8,
+        "kind": "push",
+        "cpuTimeMs": 39
+      },
+      {
+        "index": 12,
+        "kind": "push",
+        "cpuTimeMs": 21
+      },
+      {
+        "index": 13,
+        "kind": "calendar",
+        "cpuTimeMs": 63
+      }
+    ],
+    "cpuMissing": [],
+    "freeCpuPassed": false,
+    "configuredFlags": {
+      "uploads": [],
+      "calendar": [
+        false
+      ],
+      "reviews": [
+        true
+      ],
+      "push": [
+        true
+      ]
+    },
+    "allThreeProvidersConfigured": false,
+    "bothMaintenanceCategoriesObserved": false,
+    "launchSchedulerAccepted": false,
+    "scope": "Sanitized app events plus code/provider schedule evidence; empty queues do not prove delivery, backlog fairness or device receipt. Routine checks do not certify CPU or external providers."
+  },
+  "maintenanceStillPending": true,
+  "deviceStillPending": true,
+  "contractionCapacityCleanupNataliaIdentityStillPending": true,
+  "campaignComplete": false,
+  "backupContentsIncluded": false,
+  "scope": "Immutable checkpoint; source observer continues. Prefix counts match the captured live metadata. Private backups and configuration are excluded."
+}

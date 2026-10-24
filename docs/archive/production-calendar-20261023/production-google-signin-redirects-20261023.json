@@ -1,0 +1,25 @@
+{
+  "at": "2026-10-23T15:14:35.346Z",
+  "scope": "Initiate Google sign-in only; account consent/login/callback not performed. Normal temporary OAuth state and rate counters may be created; no state/cookie values or tokens persisted.",
+  "appStatus": 303,
+  "appOAuthCallback": "https://app.cita-suite.workers.dev/auth/callback",
+  "supabaseAuthorizeOrigin": "https://yjzferwuzbtgpmdnzlcb.supabase.co",
+  "supabaseAuthorizePath": "/auth/v1/authorize",
+  "provider": "google",
+  "supabaseStatus": 302,
+  "googleOrigin": "https://accounts.google.com",
+  "googlePath": "/o/oauth2/v2/auth",
+  "googleProviderCallback": "https://yjzferwuzbtgpmdnzlcb.supabase.co/auth/v1/callback",
+  "publicOAuthClientId": "372761266416-6pt6cuh73a5s4uttv31co0jc43ifrmtc.apps.googleusercontent.com",
+  "cookies": [
+    {
+      "name": "sb-oauth-code-verifier",
+      "secure": true,
+      "httpOnly": true,
+      "sameSite": "Lax"
+    }
+  ],
+  "googleAccountSignedIn": false,
+  "completeOAuthProved": false,
+  "managedCalendarProved": false
+}

@@ -1,8 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import { fail, error, isHttpError } from '@sveltejs/kit';
-import { informationContext, informationErrorMessage, loadBookingInformation } from '$lib/server/booking-information';
-import { readBoundedBookingForm } from '$lib/server/public-booking-page';
-import { intakeAnswersFromForm } from '$lib/server/booking-integrations';
+import { informationContext, informationErrorMessage, loadBookingInformation } from '$lib/server/patients/public/booking-information';
+import { readBoundedBookingForm } from '$lib/server/platform/form-data';
+import { intakeAnswersFromForm } from '$lib/server/sites/public/booking-integrations';
 import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
@@ -22,7 +22,7 @@ export const actions: Actions = {
       const { admin, token } = await informationContext(event);
       const form = await readBoundedBookingForm(event.request);
       const info = await loadBookingInformation(admin, token);
-      const answers = intakeAnswersFromForm({ intakeFields: info.schema } as any, form);
+      const answers = intakeAnswersFromForm({ intakeFields: info.schema }, form);
       const { error: cause } = await admin.rpc('submit_public_booking_information', {
         p_token: token, p_request_key: String(form.get('request_key') ?? ''), p_schema_hash: String(form.get('schema_hash') ?? ''),
         p_expected_version: String(form.get('version') ?? ''), p_answers: answers, p_comment: String(form.get('comment') ?? '').trim()

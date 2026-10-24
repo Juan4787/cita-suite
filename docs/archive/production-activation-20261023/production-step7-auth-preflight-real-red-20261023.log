@@ -1,0 +1,10 @@
+file:///home/usuario/CascadeProjects/Base%20de%20Datos%20Sabrina/scripts/lib/production-deploy.mjs:63
+	if (authorizedStatus !== 410) throw new Error('The production job authentication does not match the app or its disabled legacy entry. Nothing was deployed.');
+	                                    ^
+
+Error: The production job authentication does not match the app or its disabled legacy entry. Nothing was deployed.
+    at assertProductionSchedulerAuthentication (file:///home/usuario/CascadeProjects/Base%20de%20Datos%20Sabrina/scripts/lib/production-deploy.mjs:63:38)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async file:///home/usuario/CascadeProjects/Base%20de%20Datos%20Sabrina/scripts/deploy-production-workers.mjs:84:17
+
+Node.js v22.23.2

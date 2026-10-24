@@ -1,10 +1,12 @@
+import { logServerFailure } from '$lib/server/platform/logging';
+import { isRecord } from '$lib/contracts/json';
 import {
 	authorizeGoogleCalendarAppointment,
 	consumeGoogleCalendarOAuthAttempt,
 	processGoogleCalendarEvent
-} from '$lib/server/google-calendar';
-import { createSupabaseAdminClient } from '$lib/server/supabase';
-import type { SupabaseClient } from '@supabase/supabase-js';
+} from '$lib/server/integrations/public/google-calendar';
+import { createSupabaseAdminClient } from '$lib/server/platform/supabase';
+import type { CitaSupabaseClient } from '$lib/types/database';
 import type { RequestHandler } from './$types';
 
 const redirectToAppointment = (token: string, status: string) =>
@@ -18,7 +20,7 @@ const redirectToAppointment = (token: string, status: string) =>
 	});
 
 const loadToken = async (
-	supabase: SupabaseClient,
+	supabase: CitaSupabaseClient,
 	appointmentId: string
 ): Promise<string | null> => {
 	const { data, error } = await supabase
@@ -71,9 +73,9 @@ export const GET: RequestHandler = async ({ url, fetch }) => {
 						? 'preparing'
 						: 'unavailable';
 		return redirectToAppointment(appointmentToken, status);
-	} catch (error: any) {
-		const code = String(error?.message ?? error?.code ?? 'unknown');
-		console.error('No se pudo completar Google Calendar', {
+	} catch (error) {
+		const code = error instanceof Error ? error.message : isRecord(error) ? String(error.message ?? error.code ?? 'unknown') : 'unknown';
+		logServerFailure('No se pudo completar Google Calendar', {
 			appointmentId,
 			code: code.slice(0, 120)
 		});

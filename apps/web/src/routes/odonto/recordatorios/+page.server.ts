@@ -1,17 +1,14 @@
+import { logServerFailure } from '$lib/server/platform/logging';
 import { env } from '$env/dynamic/private';
 import { error as kitError, fail, redirect } from '@sveltejs/kit';
-import {
-	createSupabaseAdminClient,
-	createSupabaseServerClient,
-	getAuthUserId
-} from '$lib/server/supabase';
-import { resolveActiveBusiness } from '$lib/server/business';
-import { writeAuditLog } from '$lib/server/audit';
+import { createSupabaseAdminClient, createSupabaseServerClient } from '$lib/server/platform/supabase';
+import { resolveActiveBusiness } from '$lib/server/access/public/business';
+import { writeAuditLog } from '$lib/server/platform/audit';
 import {
 	loadReminderCandidates,
 	type ReminderCandidate,
 	type ReminderDay
-} from '$lib/server/reminders';
+} from '$lib/server/scheduling/public/reminders';
 import type { Actions, PageServerLoad } from './$types';
 
 const parseDay = (raw: string | null): ReminderDay => (raw === 'hoy' ? 'hoy' : 'manana');
@@ -78,7 +75,7 @@ export const load: PageServerLoad = async ({ locals, fetch, cookies, url }) => {
 		supabase,
 		accessToken: locals.auth.access_token,
 		cookies,
-		membershipCache: 'fresh'
+		membershipCache: locals.membershipCache ?? 'fresh'
 	});
 	if (!context) throw kitError(500, 'No se pudo resolver el negocio activo');
 	if (context.role === 'professional') throw redirect(303, '/odonto/mis-turnos');
@@ -98,7 +95,7 @@ export const load: PageServerLoad = async ({ locals, fetch, cookies, url }) => {
 		} catch (reminderError) {
 			// Sin poder comprobar la cobertura de notificaciones y calendarios, no
 			// mostramos turnos: es preferible a abrir un WhatsApp duplicado.
-			console.error('Error cargando cobertura de recordatorios', reminderError);
+			logServerFailure('Error cargando cobertura de recordatorios', reminderError);
 			remindersUnavailable = true;
 		}
 	}
@@ -125,7 +122,7 @@ export const actions: Actions = {
 		const appointmentId = String(form.get('appointment_id') ?? '').trim();
 		if (!appointmentId) return fail(400, { message: 'Falta el turno.' });
 
-		const userId = await getAuthUserId(supabase, locals.auth.access_token);
+		const userId = locals.verifiedUser?.id ?? null;
 		const now = new Date().toISOString();
 		const { error } = await supabase
 			.from('appointments')
@@ -137,7 +134,7 @@ export const actions: Actions = {
 			.eq('id', appointmentId)
 			.eq('business_id', context.business.id);
 		if (error) {
-			console.error('Error marcando recordatorio como enviado', error);
+			logServerFailure('Error marcando recordatorio como enviado', error);
 			return fail(500, { message: 'No se pudo marcar el recordatorio.' });
 		}
 

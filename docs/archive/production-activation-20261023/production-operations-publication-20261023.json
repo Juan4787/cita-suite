@@ -1,0 +1,43 @@
+{
+  "at": "2026-10-23T14:43:10.111263+00:00",
+  "runtime": "478c096e63299b886e640c4627cd25e0db22dbfa",
+  "runtimeRelease": 39901784288,
+  "operationalCommit": "3ebb44a6e19d4c68e323cce4d3d86cab94dc72a9",
+  "operationalTree": "170d3a3e0c048156c1acb489d8e6f7fb7342d94d",
+  "operationalParent": "daedca6ea7faaa5627c6e5ed887a1abe24d57cb2",
+  "operationalRef": "refs/verification/production-operations-20261023",
+  "operationalBranch": "refactor/release-evidence-478c096",
+  "operationalPatch": {
+    "scripts/lib/worker-tail.mjs": "c39d9b3e176351b882d54ae6c6337de6f65a288f931dcbb6fb29cc39031fb05a",
+    "scripts/lib/worker-tail.test.mjs": "29f8ad1149f111b3b2901d94ec436da72b6875bd19d60f8ca91ba316e8691a75",
+    "scripts/deploy-production-workers.mjs": "18e7eec492d4dce93e1f444bb3c1c16f8661dda6481ee2d8d206ea151931f46e",
+    "scripts/lib/production-deploy.mjs": "cf9ef365a61df10e01e205d25aa305552a833366222b39ee03719a39633fe36e",
+    "scripts/lib/production-deploy.test.mjs": "b110bf938a00cc6b419b4036728ab74374de3e916ba77c30c102b4325b69b87c"
+  },
+  "localGuards": {
+    "targetedCollectorPassed": 8,
+    "targetedDeploymentPassed": 3,
+    "nodeGuardsPassed": 140,
+    "nodeGuardFiles": 46,
+    "skipped": 0,
+    "runId": "55a6edc0-70db-4379-b89b-434ca6cfa910",
+    "allAdversarialMutationsRejected": true
+  },
+  "principalPreparedCommit": "e7956620f1a121b7edc18441a7b0f60d63f794c1",
+  "principalPreparedParent": "750865a38fa5e32989035e161dfc2c76b938c06b",
+  "principalTree": "37f54a3b38b81daf3e58d55c7c344a76a03ccaef",
+  "principalPushed": false,
+  "nataliaPushed": false,
+  "auxiliaryPushVerified": true,
+  "userHeadAndIndexPreserved": true,
+  "userHead": "80268e2a501198243996e1bdb0048ce066434727",
+  "userIndexSha256": "33f4b1bd022cd7584271ae6700515a41b7f0422d459d908ceaef496957334244",
+  "verifiedAt": "2026-10-23T14:44:58.840211+00:00",
+  "runtimeRemoteUnchanged": true,
+  "principalRemoteUnchanged": true,
+  "connectorCapability": {
+    "push": false,
+    "fallback": "Existing gh CLI administrative session, per-command Git HTTPS credential helper; no token file/output or global config change"
+  },
+  "sshAttempt": "Read-only ls-remote failed128 with publickey; no remote or local product change"
+}

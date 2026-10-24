@@ -288,7 +288,7 @@ a {
 		padding: 0.75rem 1rem;
 		color: rgba(234, 241, 255, 0.62);
 		font-size: 0.9rem;
-		font-weight: 800;
+		font-weight: 700;
 		transition:
 			background-color 160ms ease,
 			border-color 160ms ease,
@@ -296,9 +296,12 @@ a {
 			box-shadow 160ms ease;
 	}
 
-	.ux-profile-tab:hover {
-		background: rgba(255, 255, 255, 0.07);
-		color: var(--text);
+	/* Hover never overrides the selected tab, and touch screens do not keep it after a tap. */
+	@media (hover: hover) {
+		.ux-profile-tab:not(.ux-profile-tab-active):hover {
+			background: rgba(255, 255, 255, 0.07);
+			color: var(--text);
+		}
 	}
 
 	.ux-profile-tab-active {
@@ -318,21 +321,22 @@ a {
 
 	.ux-tab-marker {
 		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		min-width: 0.85rem;
-		font-weight: 900;
-		line-height: 1;
+		flex-shrink: 0;
+		width: 0.85rem;
+		height: 0.85rem;
+	}
+
+	.ux-tab-marker svg {
+		width: 100%;
+		height: 100%;
 	}
 
 	.ux-tab-marker-warning {
 		color: #fcd34d;
-		font-size: 1.15rem;
 	}
 
 	.ux-tab-marker-danger {
 		color: #fecaca;
-		font-size: 0.82rem;
 	}
 
 	/* ------------------------------ Formularios --------------------------- */
@@ -410,7 +414,7 @@ a {
 	.ux-section-meta {
 		margin-top: 0.55rem;
 		font-size: 0.82rem;
-		font-weight: 800;
+		font-weight: 700;
 	}
 
 	.ux-section-meta-warning,
@@ -425,7 +429,7 @@ a {
 
 	.ux-inline-status {
 		font-size: 0.75rem;
-		font-weight: 800;
+		font-weight: 700;
 	}
 
 	/* ------------------------------- Botones ------------------------------ */
@@ -551,7 +555,7 @@ a {
 		border-radius: 999px;
 		padding: 0.22rem 0.5rem;
 		font-size: 0.68rem;
-		font-weight: 800;
+		font-weight: 700;
 		line-height: 1.1;
 		text-align: center;
 		white-space: normal;
@@ -762,10 +766,11 @@ progress::-moz-progress-bar {
   font: inherit;
   font-weight: 400;
 }
+/* The selected value wraps instead of being truncated: on narrow forms an ellipsis
+   hid which option was chosen ("Sólo las seleccio…"). */
 .ux-control-trigger > span:first-child {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 .ux-control-trigger[aria-expanded="true"] {
   border-color: var(--accent);
@@ -933,7 +938,7 @@ progress::-moz-progress-bar {
 }
 .ux-confirm-dialog h2 {
   font-size: 1.25rem;
-  font-weight: 650;
+  font-weight: 700;
 }
 .ux-confirm-dialog p {
   margin-top: 0.75rem;

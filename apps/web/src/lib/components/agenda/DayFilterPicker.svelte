@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Selector de día para los filtros de agenda. Emite por un input hidden
 	// "YYYY-MM-DD" o "any" (cualquier día) dentro del form GET que lo contiene.
-	let { value, name = 'date' } = $props<{ value: string; name?: string }>();
+	let { value, name = 'date' }: { value: string; name?: string } = $props();
 
 	const pad = (n: number) => String(n).padStart(2, '0');
 	const dateKey = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
@@ -111,7 +111,7 @@
 				<rect x="3" y="4.5" width="18" height="17" rx="3" />
 				<path d="M3 9.5h18M8 2.5v4M16 2.5v4" />
 			</svg>
-			<span class="truncate font-semibold">{triggerLabel}</span>
+			<span class="min-w-0 break-words font-semibold">{triggerLabel}</span>
 		</span>
 		<svg class={`h-4 w-4 shrink-0 text-white/50 transition-transform ${open ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
 			<path d="m6 9 6 6 6-6" />
@@ -161,7 +161,7 @@
 
 			<div class="mt-3 grid grid-cols-7 gap-1 text-center">
 				{#each weekdays as weekday}
-					<span class="text-[11px] font-bold uppercase text-white/35">{weekday}</span>
+					<span class="text-micro font-bold uppercase text-white/35">{weekday}</span>
 				{/each}
 				{#each cells as cell, index (index)}
 					{#if cell === null}

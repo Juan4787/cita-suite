@@ -38,21 +38,23 @@
 		initialItems = [],
 		canView = false,
 		canUpload = false,
+		uploadAvailability = 'available',
 		canViewTrash = false,
 		canTrash = false,
 		todayISO,
 		demo = false
-	} = $props<{
+	}: {
 		patientId: string;
 		cacheScope: string;
 		initialItems?: RadiographItem[];
 		canView?: boolean;
 		canUpload?: boolean;
+		uploadAvailability?: 'available' | 'paused' | 'unavailable' | 'not_permitted';
 		canViewTrash?: boolean;
 		canTrash?: boolean;
 		todayISO: string;
 		demo?: boolean;
-	}>();
+	} = $props();
 
 	let items = $state<RadiographItem[]>([]);
 	let loaded = $state(false);
@@ -550,8 +552,7 @@
 <section class="ux-card" aria-labelledby="clinical-images-title">
 	<div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 		<div>
-			<p class="ux-badge">Ficha clínica</p>
-			<h2 id="clinical-images-title" class="ux-section-title mt-3">Estudios y documentos</h2>
+			<h2 id="clinical-images-title" class="ux-section-title">Estudios y documentos</h2>
 			<p class="mt-2 max-w-2xl text-sm text-white/60">
 				El equipo autorizado puede consultarlos desde esta ficha. Los originales permanecen privados.
 			</p>
@@ -582,6 +583,11 @@
 			</div>
 		{/if}
 	</div>
+	{#if canView && uploadAvailability === 'paused'}
+		<p class="ux-alert mt-4">La carga de documentos está pausada. Podés consultar los documentos guardados.</p>
+	{:else if canView && uploadAvailability === 'unavailable'}
+		<p class="ux-alert mt-4" role="alert">No pudimos consultar la disponibilidad para nuevas cargas. Recargá para volver a intentar; los documentos guardados siguen disponibles.</p>
+	{/if}
 
 	{#if !canView}
 		<p class="ux-alert mt-5">Tu rol no permite ver documentos clínicos.</p>
@@ -617,7 +623,11 @@
 			<div class="mt-6 rounded-2xl border border-dashed border-white/15 bg-white/[0.03] px-5 py-8 text-center">
 				<p class="text-base font-semibold text-white">Todavía no hay documentos en esta ficha</p>
 				<p class="mx-auto mt-2 max-w-lg text-sm text-white/55">
-					Podés adjuntar imágenes y estudios en JPG, PNG o PDF, de hasta 5 MB.
+					{#if canUpload && !demo}
+						Podés adjuntar imágenes y estudios en JPG, PNG o PDF, de hasta 5 MB.
+					{:else}
+						Los documentos guardados aparecerán en esta ficha.
+					{/if}
 				</p>
 				{#if canUpload && !demo}
 					<button type="button" class="ux-btn-primary mt-5" onclick={() => chooseFile('files')}>Añadir el primer documento</button>
@@ -647,7 +657,7 @@
 							{/if}
 						</div>
 						<div class="min-w-0 flex-1">
-							<h3 class="truncate text-sm font-semibold text-white" title={item.original_filename ?? ''}>{titleFor(item)}</h3>
+							<h3 class="break-words text-sm font-semibold text-white" title={item.original_filename ?? ''}>{titleFor(item)}</h3>
  {#if item.source==='patient'}<p class="text-xs text-white/75">Adjuntado desde el enlace del turno</p>{/if}
 							<p class="mt-1 text-xs text-white/50">{metadataFor(item)}</p>
 							{#if item.status === 'ready' && item.integrity_status !== 'ok'}
@@ -689,10 +699,10 @@
 	{/if}
 </section>
 
-<Modal open={showUpload} title="Añadir documento clínica" closable={!uploadBusy} on:close={closeUpload}>
+<Modal open={showUpload} title="Añadir documento clínico" closable={!uploadBusy} on:close={closeUpload}>
 	<div class="space-y-4 text-sm text-neutral-800 dark:text-neutral-100">
 		<div class="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 dark:border-[#1f3554] dark:bg-[#122641]">
-			<p class="truncate font-semibold text-neutral-900 dark:text-white">{selectedFile?.name ?? 'Imagen seleccionada'}</p>
+			<p class="break-words font-semibold text-neutral-900 dark:text-white">{selectedFile?.name ?? 'Imagen seleccionada'}</p>
 			<p class="mt-1 text-xs text-neutral-500 dark:text-neutral-300">{formatClinicalFileBytes(selectedFile?.size)}</p>
 		</div>
 		<div class="grid gap-4 sm:grid-cols-2">

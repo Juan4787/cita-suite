@@ -1,0 +1,9 @@
+
+ RUN  v4.1.6 /home/usuario/CascadeProjects/Base de Datos Sabrina/apps/web
+
+
+ Test Files  5 passed (5)
+      Tests  87 passed (87)
+   Start at  00:52:01
+   Duration  2.87s (transform 736ms, setup 0ms, import 1.40s, tests 415ms, environment 2ms)
+

@@ -1,0 +1,29 @@
+{
+  "at": "2026-10-24T13:00:15.600Z",
+  "phase": "red",
+  "scope": "RealSamsung, own past fixture, permission granted. Clear already preserved buffered log, reload normally, observe5seconds; no interception, status masking, notification-permission change or new booking.",
+  "ui": {
+    "ready": "complete",
+    "secure": true,
+    "permission": "granted",
+    "past": false,
+    "notificationButtons": 0
+  },
+  "requests": [
+    {
+      "method": "POST",
+      "path": "/turno/[token]/push",
+      "at": "2026-10-24T13:00:17.079Z",
+      "status": 404
+    }
+  ],
+  "consoleErrors": [
+    {
+      "method": "Log.entryAdded",
+      "level": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    }
+  ],
+  "passed": true,
+  "finishedAt": "2026-10-24T13:00:21.872Z"
+}

@@ -1,3 +1,4 @@
+import { fixturePath } from './lib/fixture-path.mjs';
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import { createServer } from "node:http";
@@ -7,7 +8,7 @@ const root = fileURLToPath(new URL("../", import.meta.url)).replace(/\/$/, "");
 const require = createRequire(root + "/apps/web/package.json");
 const { chromium, expect } = require("@playwright/test");
 const { createClient } = require("@supabase/supabase-js");
-const f = JSON.parse(readFileSync("/tmp/cita-booking-runtime.json", "utf8"));
+const f = JSON.parse(readFileSync(fixturePath("runtime.json"), "utf8"));
 assert.equal(f.businessId, "90000000-0000-4000-8000-000000000001");
 for (const url of [f.appOrigin, f.apiOrigin])
   assert.equal(new URL(url).hostname, "127.0.0.1");

@@ -1,11 +1,12 @@
 import { browser } from '$app/environment';
+import { isRecord, InvalidDataContractError } from '$lib/contracts/json';
+import { parsePatientListData, type PatientListData } from '$lib/contracts/patient-list';
 import {
 	acceptPatientListSnapshot,
 	getCurrentVerifiedPatientRevision,
 	getCachedPatientList,
 	setCachedPatientList,
-	verifyPatientRevision,
-	type PatientListSnapshot
+	verifyPatientRevision
 } from '$lib/client/patient-list-cache';
 import { normalizePatientListQuery } from '$lib/utils/patient-list-query';
 import { error as kitError, type LoadEvent } from '@sveltejs/kit';
@@ -15,7 +16,7 @@ const fetchPatientList = async (
 	fetcher: LoadEvent['fetch'],
 	showArchived: boolean,
 	query: string
-): Promise<PatientListSnapshot> => {
+): Promise<PatientListData> => {
 	const params = new URLSearchParams();
 	if (showArchived) params.set('estado', 'archivados');
 	if (query) params.set('q', query);
@@ -31,10 +32,16 @@ const fetchPatientList = async (
 		payload = null;
 	}
 	if (!response.ok) {
-		const message = String((payload as { message?: unknown } | null)?.message ?? '').trim();
+		const message = isRecord(payload) && typeof payload.message === 'string' ? payload.message.trim() : '';
 		throw kitError(response.status, message || 'No se pudieron cargar los pacientes.');
 	}
-	return payload as PatientListSnapshot;
+	try {
+		return parsePatientListData(payload, { showArchived, query });
+	} catch (error) {
+		if (error instanceof InvalidDataContractError)
+			throw kitError(503, 'No pudimos cargar la lista completa de pacientes. Volvé a intentar.');
+		throw error;
+	}
 };
 
 export const load: PageLoad = async ({ fetch, url, depends, parent }) => {
@@ -58,7 +65,7 @@ export const load: PageLoad = async ({ fetch, url, depends, parent }) => {
 			query,
 			revision: currentRevision.revision
 		});
-		if (cached) return cached;
+		if (cached) return parsePatientListData(cached, { businessId, showArchived, query });
 	} else {
 		try {
 			const revision = await verifyPatientRevision(fetch, businessId);
@@ -69,7 +76,7 @@ export const load: PageLoad = async ({ fetch, url, depends, parent }) => {
 					query,
 					revision: revision.revision
 				});
-				if (cached) return cached;
+				if (cached) return parsePatientListData(cached, { businessId, showArchived, query });
 			}
 		} catch {
 			// Sin una verificación válida nunca se reutiliza memoria: se pide una lista fresca.

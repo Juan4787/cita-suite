@@ -23,20 +23,21 @@ type WizardPatient = {
 
 const renderWizard = (
 	phone: string,
-	options: { patients?: WizardPatient[]; initialPatientId?: string } = {}
+	options: { patients?: WizardPatient[]; initialPatientId?: string; availability?: unknown } = {}
 ) => {
 	vi.stubGlobal(
 		'fetch',
 		vi.fn().mockResolvedValue(
 			new Response(
-				JSON.stringify({
+				JSON.stringify(options.availability ?? {
 					slots: [
 						{
 							date,
 							time: '10:00',
 							starts_at: startsAt,
-							professional_id: 'professional-1',
-							professional_ids: ['professional-1']
+							ends_at: '2099-08-25T13:30:00.000Z',
+							professional_name: 'Dra. Prueba',
+							professional_id: 'professional-1'
 						}
 					]
 				}),
@@ -98,6 +99,27 @@ afterEach(() => {
 });
 
 describe('validación previa del teléfono al crear un turno', () => {
+ it('retira un horario no certificado y muestra recuperación ante un 200 incompleto', async () => {
+  const { container } = renderWizard('3425048209', { availability: { slots: [{}] } });
+  expect(await screen.findByText(/No pudimos actualizar los horarios/)).toBeInTheDocument();
+  expect(screen.queryByText(/No hay horarios para ese día/)).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: 'Confirmar turno' })).not.toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Cambiar día' })).toBeInTheDocument();
+  const submittedValues = () => new FormData(container.querySelector('form')!);
+  expect(submittedValues().get('time')).toBe('');
+  vi.mocked(globalThis.fetch).mockResolvedValue(Response.json({ slots: [{ date, time: '10:00', starts_at: startsAt,
+   ends_at: '2099-08-25T13:30:00.000Z', professional_id: 'professional-1', professional_name: 'Dra. Prueba' }] }));
+  await fireEvent.click(screen.getByRole('button', { name: 'Reintentar búsqueda' }));
+  // The existing form restores its pending initial time once real slots validate.
+  // Recovery must certify that selection before allowing the patient step again.
+  expect(await screen.findByRole('button', { name: 'Confirmar turno' })).toBeEnabled();
+  expect(submittedValues().get('date')).toBe(date);
+  expect(submittedValues().get('time')).toBe('10:00');
+  expect(submittedValues().get('professional_id')).toBe('professional-1');
+  expect(screen.queryByText(/No pudimos actualizar los horarios/)).not.toBeInTheDocument();
+
+ });
+
 	it('no presenta el campo como problemático mientras se completa normalmente', async () => {
 		const user = userEvent.setup();
 		renderWizard('');

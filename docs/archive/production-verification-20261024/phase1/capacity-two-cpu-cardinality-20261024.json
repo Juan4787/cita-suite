@@ -1,0 +1,9 @@
+{
+  "at": "2026-10-24T08:44:16.500Z",
+  "projectRef": "yjzferwuzbtgpmdnzlcb",
+  "metric": "node_cpu_seconds_total cpu label cardinality",
+  "logicalCpus": 2,
+  "attributionScriptAssumes": 2,
+  "assumptionMatchesObserved": true,
+  "rawMetricsPersisted": false
+}

@@ -1,19 +1,20 @@
+import { logServerFailure } from '$lib/server/platform/logging';
 // Redirect-through de "Enviar WhatsApp": registra quién abrió el recordatorio y
 // recién después redirige a wa.me con el mensaje prearmado. La app solo prepara el
 // mensaje: el envío real lo hace recepción dentro de WhatsApp (sin API de Meta).
 
 import { env } from '$env/dynamic/private';
 import { redirect } from '@sveltejs/kit';
-import { createSupabaseServerClient, getAuthUserId } from '$lib/server/supabase';
-import { resolveActiveBusiness } from '$lib/server/business';
-import { writeAuditLog } from '$lib/server/audit';
-import { resolveMapsUrl } from '$lib/server/location';
-import { normalizeArgentineWhatsAppPhone } from '$lib/server/phone';
+import { createSupabaseServerClient } from '$lib/server/platform/supabase';
+import { resolveActiveBusiness } from '$lib/server/access/public/business';
+import { writeAuditLog } from '$lib/server/platform/audit';
+import { resolveMapsUrl } from '$lib/sites/location';
+import { normalizeArgentineWhatsAppPhone } from '$lib/utils/phone';
 import {
 	buildReminderWhatsAppMessage,
 	buildWaMeUrl,
 	buildWhatsAppWebUrl
-} from '$lib/server/reminders';
+} from '$lib/server/scheduling/public/reminders';
 import { classifyUserAgent, type DeviceClass, whatsappHrefFor } from '$lib/device';
 import type { RequestHandler } from './$types';
 
@@ -47,10 +48,11 @@ export const GET: RequestHandler = async ({ params, locals, fetch, cookies, url,
 		.eq('id', params.appointmentId)
 		.maybeSingle();
 
-	const patient = (appointment as any)?.patients;
+	const patient = appointment?.patients;
 	const phone = normalizeArgentineWhatsAppPhone(patient?.phone_e164);
 	if (
 		!appointment ||
+		!patient ||
 		!phone ||
 		patient.blocked ||
 		!['reserved', 'confirmed'].includes(String(appointment.status))
@@ -64,7 +66,7 @@ export const GET: RequestHandler = async ({ params, locals, fetch, cookies, url,
 		throw redirect(303, backTo(day));
 	}
 
-	const userId = await getAuthUserId(supabase, locals.auth.access_token);
+	const userId = locals.verifiedUser?.id ?? null;
 	const now = new Date().toISOString();
 	const { error: updateError } = await supabase
 		.from('appointments')
@@ -75,7 +77,7 @@ export const GET: RequestHandler = async ({ params, locals, fetch, cookies, url,
 		})
 		.eq('id', appointment.id)
 		.eq('business_id', context.business.id);
-	if (updateError) console.error('Error registrando apertura de WhatsApp', updateError);
+	if (updateError) logServerFailure('Error registrando apertura de WhatsApp', updateError);
 
 	await writeAuditLog(supabase, {
 		businessId: context.business.id,

@@ -1,6 +1,7 @@
+import { logServerFailure } from '$lib/server/platform/logging';
 import { env } from '$env/dynamic/private';
-import { getAvailabilitySlots, groupSlotsByDate } from '$lib/server/availability';
-import { getOdontoContext } from '$lib/server/odonto-context';
+import { getAvailabilitySlots, groupSlotsByDate } from '$lib/server/scheduling/public/availability';
+import { getOdontoContext } from '$lib/server/access/public/odonto-context';
 import { json, redirect } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
@@ -65,6 +66,7 @@ export const GET: RequestHandler = async ({ url, locals, fetch, cookies }) => {
 
 	try {
 		const slots = await getAvailabilitySlots(supabase, {
+			readScope: 'internal',
 			business: business.business,
 			serviceId,
 			professionalId,
@@ -77,7 +79,7 @@ export const GET: RequestHandler = async ({ url, locals, fetch, cookies }) => {
 		});
 		return json({ slots, days: groupSlotsByDate(slots) });
 	} catch (error) {
-		console.error('Error calculando slots', error);
+		logServerFailure('Error calculando slots', error);
 		return json(
 			{
 				message:

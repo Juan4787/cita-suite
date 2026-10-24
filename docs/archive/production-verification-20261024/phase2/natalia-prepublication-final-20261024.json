@@ -1,0 +1,11 @@
+{
+  "at": "2026-10-24T12:41:21.800091+00:00",
+  "projectId": "prj_ddhAhez9VNro373XWSykLkhU5vBS",
+  "teamId": "team_CGSlkRXKKlw98jb3O2wSmcyt",
+  "plan": "hobby",
+  "deployment": "dpl_GftFq86SmaGL6xWfynd9ZuxFWWa8",
+  "state": "READY",
+  "source": "cli",
+  "head": "a66dea894dcb513f5e9a4fcc9d8598c7f22503b9",
+  "homeSha256": "dde43c727ca1cb812bc48dec76c9ab0a8f48d24c5823aa331985fb31e66ea849"
+}

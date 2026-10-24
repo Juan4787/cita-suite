@@ -1,0 +1,23 @@
+{
+  "runId": "owned-calendar-google-ui-read-v2-20261024",
+  "at": "2026-10-24T07:26:06.130Z",
+  "scope": "Read only the known synthetic event through a new temporary phone Chrome tab. No Google credentials, cookies, management URL, event ID or broad calendar contents persisted.",
+  "googleUiReadConfirmed": true,
+  "openedBy": "authorized-Android-VIEW-intent",
+  "newOwnTab": true,
+  "observed": {
+    "ready": "interactive",
+    "host": "calendar.google.com",
+    "ownedEventTitleVisible": true,
+    "loginPage": false,
+    "timeAndDateValues": [
+      "23:51",
+      "00:21"
+    ],
+    "calendarEditor": true,
+    "updatedLocalTimeInDescription": true,
+    "syntheticProfessionalInDescription": true
+  },
+  "status": "owned-event-visible",
+  "ownTemporaryTabClosed": true
+}

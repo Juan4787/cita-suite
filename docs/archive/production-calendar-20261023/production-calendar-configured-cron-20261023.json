@@ -1,0 +1,43 @@
+{
+  "at": "2026-10-23T15:36:25.485Z",
+  "scope": "Real sanitized cron and independent read-only aggregate after flag activation; no user identifiers, Google tokens, ciphertexts or management URLs selected",
+  "observer": "ab3c7cc08435",
+  "source": ".verification/production-observer-ab3c7cc08435-jobs.jsonl",
+  "event": {
+    "at": 1792769515815,
+    "path": "/internal/jobs/calendar",
+    "outcome": "ok",
+    "status": 200,
+    "cpuTimeMs": 20,
+    "wallTimeMs": 775,
+    "exceptions": [],
+    "job": {
+      "kind": "calendar",
+      "ok": true,
+      "scheduledFor": "2026-10-23T15:31:54.405Z",
+      "profile": "free",
+      "maxCalls": 40,
+      "usedCalls": 2,
+      "databaseRequests": 1,
+      "providerRequests": 0,
+      "elapsedMs": 765,
+      "configured": true,
+      "claimed": 0,
+      "active": 0,
+      "deleted": 0,
+      "retrying": 0,
+      "attention": 0,
+      "stale": 0,
+      "released": 0
+    }
+  },
+  "counts": {
+    "activeConnections": 1,
+    "eventsByStatus": {
+      "active": 1
+    },
+    "ownedTemporaryAttempts": 1
+  },
+  "freeCpuPassed": false,
+  "realEventSynchronizationVerified": false
+}

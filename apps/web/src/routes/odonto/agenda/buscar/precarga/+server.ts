@@ -1,11 +1,13 @@
+import { isUuid } from '@cita-suite/shared/uuid';
+import { logServerFailure } from '$lib/server/platform/logging';
+import type { CitaSupabaseClient } from '$lib/types/database';
 import { env } from '$env/dynamic/private';
-import { ACTIVE_BUSINESS_COOKIE } from '$lib/server/business';
-import { getOdontoContext } from '$lib/server/odonto-context';
-import { createSupabaseServerClient } from '$lib/server/supabase';
+import { ACTIVE_BUSINESS_COOKIE } from '$lib/server/access/public/business';
+import { getOdontoContext } from '$lib/server/access/public/odonto-context';
+import { createSupabaseServerClient } from '$lib/server/platform/supabase';
 import { json, redirect } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
-const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MAX_SNAPSHOT_RESULTS = 400;
 
 const empty = () => json({ appointments: [] });
@@ -17,9 +19,9 @@ export const GET: RequestHandler = async ({ locals, fetch, cookies, setHeaders }
 
 	const cookieBusinessId = String(cookies.get(ACTIVE_BUSINESS_COOKIE) ?? '').trim();
 	let businessId = cookieBusinessId;
-	let supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>;
+	let supabase: CitaSupabaseClient;
 
-	if (UUID_PATTERN.test(cookieBusinessId)) {
+	if (isUuid(cookieBusinessId)) {
 		supabase = await createSupabaseServerClient('odonto', locals.auth, fetch);
 	} else {
 		const context = await getOdontoContext({
@@ -42,7 +44,7 @@ export const GET: RequestHandler = async ({ locals, fetch, cookies, setHeaders }
 		if (diagnostic.includes('AGENDA_SEARCH_DENIED')) {
 			return json({ message: 'No tenés permisos para buscar en la agenda.' }, { status: 403 });
 		}
-		console.error('Error preparando la búsqueda de turnos en la agenda', error);
+		logServerFailure('Error preparando la búsqueda de turnos en la agenda', error);
 		return json({ message: 'No pudimos preparar la búsqueda de turnos. Recargá la agenda y volvé a intentar.' }, { status: 500 });
 	}
 

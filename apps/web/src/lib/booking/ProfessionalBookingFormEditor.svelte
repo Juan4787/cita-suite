@@ -4,11 +4,11 @@
   import { revealInvalidFields } from "$lib/client/reveal-invalid-fields";
   import { enhance } from "$app/forms";
   import BookingQuestionDetails from "./BookingQuestionDetails.svelte";
-  import type { BookingIntakeField } from "@turnos-saas/shared/booking-integration";
-  let { professional, configuration } = $props<{
+  import type { BookingIntakeField } from "@cita-suite/shared/booking-integration";
+  let { professional, configuration }: {
     professional: { id: string; name: string };
     configuration: { revision: number; fields: BookingIntakeField[] } | null;
-  }>();
+  } = $props();
   let fields = $state<BookingIntakeField[]>(
     untrack(() => structuredClone(configuration?.fields ?? [])),
   );

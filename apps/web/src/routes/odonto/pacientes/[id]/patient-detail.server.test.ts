@@ -15,18 +15,19 @@ const mocks = vi.hoisted(() => ({
 	}
 }));
 
-vi.mock('$lib/server/supabase', () => ({
+vi.mock('$lib/server/platform/supabase', () => ({
 	createSupabaseAdminClient: mocks.createSupabaseAdminClient,
 	createSupabaseServerClient: mocks.createSupabaseServerClient,
 	getAuthUserId: mocks.getAuthUserId
 }));
 
-vi.mock('$lib/server/business', () => ({
+vi.mock('$lib/server/access/public/business', () => ({
 	resolveActiveBusiness: mocks.resolveActiveBusiness
 }));
 
 const { actions } = await import('./+page.server');
-const { resolvePatientPermissions } = await import('$lib/server/patient-permissions');
+const { resolvePatientPermissions } =
+	await import('$lib/server/patients/public/patient-permissions');
 
 const businessId = '00000000-0000-4000-8000-000000000001';
 const ownerId = '00000000-0000-4000-8000-000000000002';
@@ -61,7 +62,8 @@ const makeEvent = (formData = new FormData(), options: { enhanced?: boolean } = 
 			body: formData
 		}),
 		params: { id: patientId },
-		locals: { auth: { access_token: 'test-token' } },
+		// As hooks leaves it: the identity Auth verified for this request.
+		locals: { auth: { access_token: 'test-token' }, verifiedUser: { id: ownerId, email: null } },
 		fetch,
 		cookies: {}
 	}) as any;
@@ -164,7 +166,11 @@ describe('patient detail migrated actions', () => {
 		mocks.resolveActiveBusiness.mockResolvedValue({
 			business: { id: businessId },
 			role: 'owner',
-			access: { canEnterApp: true, canUseBusiness: true, allowedCapabilities: { ...allCapabilities } }
+			access: {
+				canEnterApp: true,
+				canUseBusiness: true,
+				allowedCapabilities: { ...allCapabilities }
+			}
 		});
 	});
 
@@ -252,7 +258,10 @@ describe('patient detail migrated actions', () => {
 	});
 
 	it('returns a specific permission error when the clinical entry RPC denies write access', async () => {
-		mocks.supabase.rpc.mockResolvedValue({ data: null, error: { message: 'CLINICAL_ENTRY_DENIED' } });
+		mocks.supabase.rpc.mockResolvedValue({
+			data: null,
+			error: { message: 'CLINICAL_ENTRY_DENIED' }
+		});
 
 		const form = new FormData();
 		form.set('entry_type', 'Consulta');
@@ -262,7 +271,9 @@ describe('patient detail migrated actions', () => {
 		const result = (await actions.add_entry!(makeEvent(form))) as any;
 
 		expect(result.status).toBe(403);
-		expect(result.data.message).toBe('Tu rol no permite modificar la historia clinica de este paciente.');
+		expect(result.data.message).toBe(
+			'Tu rol no permite modificar la historia clinica de este paciente.'
+		);
 		expect(mocks.supabase.from).not.toHaveBeenCalled();
 	});
 
@@ -319,10 +330,11 @@ describe('patient detail migrated actions', () => {
 
 		await expectRedirectToPatient(actions.update_entry!(makeEvent(form)), 'historial');
 
-		expect(mocks.supabase.rpc).toHaveBeenCalledWith('update_clinical_entry_safely', {
+		expect(mocks.supabase.rpc).toHaveBeenCalledWith('update_clinical_entry_with_date_safely', {
 			p_business_id: businessId,
 			p_patient_id: patientId,
 			p_entry_id: 'entry-1',
+			p_created_at: '2026-06-05T10:00:00.000Z',
 			p_entry_type: 'Tratamiento',
 			p_description: 'Evolucion controlada',
 			p_teeth: '21',
@@ -362,58 +374,47 @@ describe('patient detail migrated actions', () => {
 		expect(mocks.supabase.rpc).not.toHaveBeenCalled();
 	});
 
-	it('archives a professional patient only on the professional link', async () => {
+	it('archives a professional patient through the authenticated SQL scope instead of an administrative table write', async () => {
 		makeProfessionalContext();
-		const updateBuilder = makeQueryBuilder({ result: { data: { id: 'link-1' }, error: null } });
-		mockAdminBuilders([
-			makeQueryBuilder({
-				maybeSingleResult: {
-					data: { professional_id: 'prof-1', professionals: { name: 'Dra. Test' } },
-					error: null
-				}
-			}),
-			makeQueryBuilder({
-				maybeSingleResult: { data: { id: 'link-1', archived_at: null }, error: null }
-			}),
-			updateBuilder
-		]);
-
-		try {
-			await actions.archive_patient!(makeEvent());
-			throw new Error('Expected redirect');
-		} catch (err) {
-			expect(err).toMatchObject({
-				status: 303,
-				location: '/odonto/pacientes?estado=archivados'
-			});
-		}
-
-		expect(mocks.supabase.rpc).not.toHaveBeenCalledWith('set_patient_archive_state_safely', expect.any(Object));
-		expect(updateBuilder.update).toHaveBeenCalledWith(
-			expect.objectContaining({
-				archived_by: ownerId,
-				archived_at: expect.any(String)
-			})
-		);
-		expect(updateBuilder.eq).toHaveBeenCalledWith('id', 'link-1');
+		mocks.supabase.rpc.mockResolvedValue({ error: null });
+		await expect(actions.archive_patient!(makeEvent())).rejects.toMatchObject({
+			status: 303,
+			location: '/odonto/pacientes?estado=archivados'
+		});
+		expect(mocks.supabase.rpc).toHaveBeenCalledExactlyOnceWith('set_patient_archive_state_safely', {
+			p_business_id: businessId,
+			p_patient_id: patientId,
+			p_archived: true
+		});
+		expect(mocks.createSupabaseAdminClient).not.toHaveBeenCalled();
+		expect(mocks.admin.from).not.toHaveBeenCalled();
 	});
-
+	it('honors archive denial after the professional route context was resolved', async () => {
+		makeProfessionalContext();
+		mocks.supabase.rpc.mockResolvedValue({ error: { message: 'PATIENT_ARCHIVE_DENIED' } });
+		await expect(actions.archive_patient!(makeEvent())).resolves.toMatchObject({
+			status: 403,
+			data: { message: 'No tenés permiso para archivar este paciente.' }
+		});
+		expect(mocks.admin.from).not.toHaveBeenCalled();
+	});
 	it('shows a human deletion message for professionals instead of attempting deletion', async () => {
 		makeProfessionalContext();
 
 		const result = (await actions.delete_patient!(makeEvent())) as any;
 
 		expect(result.status).toBe(403);
-		expect(result.data.message).toBe('Para eliminar un paciente, consultá al dueño del consultorio.');
+		expect(result.data.message).toBe(
+			'Para eliminar un paciente, consultá al dueño del consultorio.'
+		);
 		expect(mocks.supabase.from).not.toHaveBeenCalled();
 		expect(mocks.supabase.rpc).not.toHaveBeenCalled();
 		expect(mocks.admin.from).not.toHaveBeenCalled();
 	});
 
-	it('lets a linked professional edit patient data and records a visible change event', async () => {
+	it('lets a linked professional edit patient data and records its visible change event in the same call', async () => {
 		makeProfessionalContext();
-		const eventInsertBuilder = makeQueryBuilder({ result: { error: null } });
-		mockAdminBuilders([
+		const calls = mockAdminBuilders([
 			makeQueryBuilder({
 				maybeSingleResult: {
 					data: { professional_id: 'prof-1', professionals: { name: 'Dra. Test' } },
@@ -449,8 +450,7 @@ describe('patient detail migrated actions', () => {
 					},
 					error: null
 				}
-			}),
-			eventInsertBuilder
+			})
 		]);
 
 		const form = new FormData();
@@ -462,31 +462,29 @@ describe('patient detail migrated actions', () => {
 		expect(mocks.admin.rpc).toHaveBeenCalledWith(
 			'update_patient_with_clinical_profile_safely',
 			expect.objectContaining({
-			p_actor_id: ownerId,
-			p_business_id: businessId,
-			p_patient_id: patientId,
-			p_full_name: 'Paciente Nuevo',
-			p_phone: '112233',
-			p_update_clinical_profile: true,
-			p_expected_patient_updated_at: '2026-08-31T12:00:00.000Z',
-			p_expected_clinical_profile_updated_at: '2026-08-31T12:00:00.000Z'
-		})
-		);
-		expect(eventInsertBuilder.insert).toHaveBeenCalledWith(
-			expect.objectContaining({
-				business_id: businessId,
-				patient_id: patientId,
-				changed_by_user_id: ownerId,
-				changed_by_professional_id: 'prof-1',
-				changed_by_name: 'Dra. Test',
-				changed_fields: ['nombre', 'teléfono'],
-				summary: 'Se modificó: nombre y teléfono.'
+				p_actor_id: ownerId,
+				p_business_id: businessId,
+				p_patient_id: patientId,
+				p_full_name: 'Paciente Nuevo',
+				p_phone: '112233',
+				p_update_clinical_profile: true,
+				p_expected_patient_updated_at: '2026-08-31T12:00:00.000Z',
+				p_expected_clinical_profile_updated_at: '2026-08-31T12:00:00.000Z',
+				p_changed_fields: ['nombre', 'teléfono'],
+				p_change_summary: 'Se modificó: nombre y teléfono.',
+				p_changed_by_professional_id: 'prof-1',
+				p_changed_by_name: 'Dra. Test'
 			})
 		);
+		// The history line is written by the same SQL transaction, never by a second insert.
+		expect(calls.map((call) => call.table)).not.toContain('patient_profile_change_events');
 	});
 
 	it('does not report success when the patient disappeared between read and update', async () => {
-		mocks.admin.rpc.mockResolvedValue({ data: null, error: { message: 'PATIENT_UPDATE_CONFLICT' } });
+		mocks.admin.rpc.mockResolvedValue({
+			data: null,
+			error: { message: 'PATIENT_UPDATE_CONFLICT' }
+		});
 		mockAdminBuilders([
 			makeQueryBuilder({
 				maybeSingleResult: {
@@ -506,7 +504,12 @@ describe('patient detail migrated actions', () => {
 			}),
 			makeQueryBuilder({
 				maybeSingleResult: {
-					data: { allergies: null, medication: null, background: null, updated_at: '2026-08-31T12:00:00.000Z' },
+					data: {
+						allergies: null,
+						medication: null,
+						background: null,
+						updated_at: '2026-08-31T12:00:00.000Z'
+					},
 					error: null
 				}
 			})
@@ -556,7 +559,10 @@ describe('patient detail migrated actions', () => {
 	});
 
 	it('does not report success when the clinical profile loses its optimistic race', async () => {
-		mocks.admin.rpc.mockResolvedValue({ data: null, error: { message: 'PATIENT_UPDATE_CONFLICT' } });
+		mocks.admin.rpc.mockResolvedValue({
+			data: null,
+			error: { message: 'PATIENT_UPDATE_CONFLICT' }
+		});
 		mockAdminBuilders([
 			makeQueryBuilder({
 				maybeSingleResult: {
@@ -576,7 +582,12 @@ describe('patient detail migrated actions', () => {
 			}),
 			makeQueryBuilder({
 				maybeSingleResult: {
-					data: { allergies: null, medication: null, background: null, updated_at: '2026-08-31T12:00:00.000Z' },
+					data: {
+						allergies: null,
+						medication: null,
+						background: null,
+						updated_at: '2026-08-31T12:00:00.000Z'
+					},
 					error: null
 				}
 			})

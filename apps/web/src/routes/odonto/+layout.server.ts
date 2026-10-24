@@ -1,35 +1,37 @@
+import { logServerFailure } from '$lib/server/platform/logging';
 import {
 	demoBusinessContext,
 	isDefaultBusinessPendingManualSetupError,
 	isDefaultBusinessSetupUnavailableError,
 	resolveActiveBusiness
-} from '$lib/server/business';
+} from '$lib/server/access/public/business';
 import {
 	createSupabaseAdminClient,
 	createSupabaseServerClient,
-	getAuthUserId,
-	getEmailFromAccessToken,
 	isMasterEmail
-} from '$lib/server/supabase';
-import { RateLimitExceededError } from '$lib/server/rate-limits';
+} from '$lib/server/platform/supabase';
+import { verifiedRequestEmail } from '$lib/server/access/public/odonto-context';
+import { RateLimitExceededError } from '$lib/server/platform/rate-limits';
 import {
-	buildFollowUpScope,
 	businessTodayISO,
 	getNoticeSummary,
 	roleParticipatesInFollowUps,
 	type FollowUpNotice
-} from '$lib/server/follow-ups';
+} from '$lib/server/patients/public/follow-ups';
 import {
 	loadAccountAssistanceView,
 	loadActiveMasterAccountAssistanceRequests,
 	type AccountAssistanceView,
 	type MasterAccountAssistanceRequest
-} from '$lib/server/account-assistance';
-import { getSubscriptionAmountArs } from '$lib/server/mercadopago';
+} from '$lib/server/access/public/account-assistance';
+import { getSubscriptionAmountArs } from '$lib/server/integrations/public/mercadopago';
 import { redirect } from '@sveltejs/kit';
 import type { LayoutServerLoad } from './$types';
 import { env } from '$env/dynamic/private';
-import { canExportPatientData } from '$lib/server/patient-permissions';
+import { canExportPatientData } from '$lib/server/patients/public/patient-permissions';
+
+// A notice the shell could not check. It says so instead of showing nothing to do.
+type UnavailableNotice = 'follow-ups' | 'help-requests' | 'assistance';
 
 export const load: LayoutServerLoad = async ({
 	locals,
@@ -49,7 +51,7 @@ export const load: LayoutServerLoad = async ({
 		// Administrativo deshabilitado por ahora.
 		throw redirect(303, '/odonto/pacientes');
 	}
-	const email = getEmailFromAccessToken(auth.access_token);
+	const email = verifiedRequestEmail(locals);
 	const isMaster = isMasterEmail(email);
 	// El estado comercial es sensible: debe revalidarse tanto al recargar como al
 	// navegar entre rutas. Evitar el seguimiento de la ruta dejaría el shell con
@@ -63,6 +65,7 @@ export const load: LayoutServerLoad = async ({
 	let followUpsTodayISO = '';
 	let accountAssistance: AccountAssistanceView | null = null;
 	let masterAssistanceRequests: MasterAccountAssistanceRequest[] = [];
+	const unavailableNotices: UnavailableNotice[] = [];
 
 	if (env.DEMO_MODE === 'true') {
 		activeBusiness = demoBusinessContext();
@@ -83,9 +86,10 @@ export const load: LayoutServerLoad = async ({
 					cookies,
 					defaultBusinessCreationIp: getClientAddress(),
 					fetch,
-					// Nunca reutilizar entre requests un estado comercial que puede haber
+					// Una lectura por pedido, compartida con la página cuando el pedido no
+					// escribe; nunca entre pedidos, porque el estado comercial puede haber
 					// sido revocado desde otra sesión o por soporte.
-					membershipCache: 'fresh'
+					membershipCache: locals.membershipCache ?? 'fresh'
 				});
 			}
 
@@ -98,27 +102,34 @@ export const load: LayoutServerLoad = async ({
 					) {
 						return null;
 					}
-					return loadAccountAssistanceView({
-						supabase,
-						businessId: activeBusiness.business.id,
-						role: activeBusiness.role,
-						timeZone: activeBusiness.business.timezone,
-						canUseBusiness: activeBusiness.access.canUseBusiness,
-						isAssisting: Boolean(activeBusiness.assistance)
-					});
+					try {
+						return await loadAccountAssistanceView({
+							supabase,
+							businessId: activeBusiness.business.id,
+							role: activeBusiness.role,
+							timeZone: activeBusiness.business.timezone,
+							canUseBusiness: activeBusiness.access.canUseBusiness,
+							isAssisting: Boolean(activeBusiness.assistance)
+						});
+					} catch (assistanceError) {
+						logServerFailure('Error cargando ayuda para configurar', assistanceError);
+						unavailableNotices.push('assistance');
+						return null;
+					}
 				})(),
 				(async (): Promise<MasterAccountAssistanceRequest[]> => {
 					if (!isMaster) return [];
 					try {
-						const supportUserId = await getAuthUserId(supabase, auth.access_token);
+						const supportUserId = locals.verifiedUser?.id;
 						if (supportUserId) {
-							return loadActiveMasterAccountAssistanceRequests({
+							return await loadActiveMasterAccountAssistanceRequests({
 								admin: await getAdminClient(),
 								supportUserId
 							});
 						}
 					} catch (assistanceError) {
-						console.error('Error cargando solicitudes globales de ayuda', assistanceError);
+						logServerFailure('Error cargando solicitudes globales de ayuda', assistanceError);
+						unavailableNotices.push('help-requests');
 					}
 					return [];
 				})(),
@@ -128,19 +139,17 @@ export const load: LayoutServerLoad = async ({
 						return { notice: { count: 0, single: null, dismissalKey: '0' }, todayISO: '' };
 					}
 					try {
-						const admin = await getAdminClient();
-						const userId =
-							activeBusiness.role === 'professional'
-								? (await getAuthUserId(supabase, auth.access_token)) ?? ''
-								: '';
-						const scope = await buildFollowUpScope(admin, activeBusiness, userId);
+						// The database counts what each role may read, as the lists do.
 						return {
-							notice: await getNoticeSummary(admin, scope),
+							notice: await getNoticeSummary(supabase, {
+								businessId: activeBusiness.business.id,
+								timezone: activeBusiness.business.timezone
+							}),
 							todayISO: businessTodayISO(activeBusiness.business.timezone)
 						};
 					} catch (noticeErr) {
-						// Degradación elegante: si la tabla aún no existe en remoto, no rompemos el layout.
-						console.error('Error cargando aviso de seguimientos', noticeErr);
+						logServerFailure('Error cargando aviso de seguimientos', noticeErr);
+						unavailableNotices.push('follow-ups');
 						return { notice: { count: 0, single: null, dismissalKey: '0' }, todayISO: '' };
 					}
 				})()
@@ -162,13 +171,13 @@ export const load: LayoutServerLoad = async ({
 				pendingManualSetup = true;
 				businessError = err.userMessage;
 			} else if (isDefaultBusinessSetupUnavailableError(err)) {
-				console.error('No se pudo preparar el consultorio inicial', err);
+				logServerFailure('No se pudo preparar el consultorio inicial', err);
 				if (!pathname.startsWith('/odonto/pendiente')) {
 					throw redirect(303, '/odonto/pendiente?reason=temporarily_unavailable');
 				}
 				pendingManualSetup = true;
 			} else {
-				console.error('Error resolviendo negocio activo', err);
+				logServerFailure('Error resolviendo negocio activo', err);
 				businessError =
 					'No pudimos cargar el consultorio activo. Recargá la página; si continúa, contactá a soporte.';
 			}
@@ -191,6 +200,7 @@ export const load: LayoutServerLoad = async ({
 		masterAssistanceRequests,
 		followUps,
 		followUpsTodayISO,
+		unavailableNotices,
 		mpAmount: getSubscriptionAmountArs()
 	};
 };

@@ -1,0 +1,38 @@
+{
+  "runId": "samsung-natalia-production-journey-20261024",
+  "at": "2026-10-24T12:42:25.036Z",
+  "revision": "cb8a9bafdf9a07a6b8977e841fa3f401061fda4f",
+  "presentation": "RealSamsungA71/Android13/Chrome155 native mobile viewport; no desktop-device claim",
+  "scope": "One new explicitly synthetic booking through the actual published Natalia link and public UI. Readonly DB confirms the exact idempotency key, context, recovery without duplicate and cancellation. No production key in CI, no transport interception, no management capability persisted.",
+  "steps": [
+    {
+      "action": "native-Natalia-booking-link",
+      "at": "2026-10-24T12:42:27.185Z"
+    },
+    {
+      "action": "public-booking-step",
+      "at": "2026-10-24T12:42:28.498Z"
+    },
+    {
+      "action": "public-booking-step",
+      "at": "2026-10-24T12:42:29.111Z"
+    },
+    {
+      "action": "public-booking-step",
+      "at": "2026-10-24T12:42:30.030Z"
+    }
+  ],
+  "status": "failed-inspect-owned-state-before-retry",
+  "phoneViewport": {
+    "width": 411,
+    "height": 775,
+    "secure": true
+  },
+  "expectedBookingColorMode": "light",
+  "nataliaSdkResources": 0,
+  "nativeSameTab": true,
+  "safeFailure": "BOOKING_PAGE_NOT_READY",
+  "passed": false,
+  "originalOwnedPageRestored": true,
+  "finishedAt": "2026-10-24T12:43:06.442Z"
+}

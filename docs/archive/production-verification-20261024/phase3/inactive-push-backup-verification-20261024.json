@@ -1,0 +1,19 @@
+{
+  "runId": "inactive-push-backup-verification-20261024",
+  "at": "2026-10-24T13:00:14.212Z",
+  "directory": "/home/usuario/.local/share/cita-suite/backups/production-2026-10-24T12-57-28-335Z",
+  "manifestSha256": "e042313d02e9c02599f55962a96e7d5a582436f0f55a2ea7fab0c7ef50ebabdf",
+  "migrations": 126,
+  "lastMigration": "20261022010000",
+  "tables": 105,
+  "rows": 3942,
+  "dumpFilesVerified": 5,
+  "objectsVerified": 24,
+  "objectBytes": 11599541,
+  "objectFailures": 0,
+  "directoryMode": "700",
+  "fileModes": "600",
+  "restorationOfThisExactBackupRehearsed": false,
+  "restorationMechanismPreviouslyRehearsed": true,
+  "passed": true
+}

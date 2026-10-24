@@ -3,7 +3,7 @@
 	import EmptyState from '$lib/components/EmptyState.svelte';
 	import { formatDateTime } from '$lib/utils/format';
 
-	let { data } = $props<{
+	let { data }: {
 		data: {
 			professional: { id: string; name: string } | null;
 			appointments: Array<{
@@ -22,10 +22,11 @@
 				patient_id: string;
 				patients?: { full_name: string } | null;
 			}>;
-			loadError: string | null;
+			appointmentsTotal: number;
+			entriesTotal: number;
 			demo: boolean;
 		};
-	}>();
+	} = $props();
 
 	const statusLabels: Record<string, string> = {
 		reserved: 'Reservado',
@@ -45,20 +46,16 @@
 		</p>
 	</div>
 
-	{#if data.loadError}
-		<p class="ux-alert">{data.loadError}</p>
-	{/if}
-
 	<div class="ux-card">
 		<div class="flex items-center justify-between gap-3">
 			<h2 class="ux-section-title">Turnos</h2>
-			<span class="ux-badge">{data.appointments.length}</span>
+			<span class="ux-badge">{data.appointmentsTotal}</span>
 		</div>
 		<div class="mt-5 grid gap-3">
 			{#each data.appointments as appt}
 				<a href={`/odonto/turnos/${appt.id}`} class="ux-choice flex items-center gap-3 p-4">
 					<div class="min-w-0 flex-1">
-						<p class="truncate font-bold text-white">{appt.patients?.full_name ?? 'Paciente'}</p>
+						<p class="break-words font-bold text-white">{appt.patients?.full_name ?? 'Paciente'}</p>
 						<p class="mt-0.5 text-sm text-white/55">
 							{formatDateTime(appt.starts_at)}{appt.service_name_snapshot ? ` · ${appt.service_name_snapshot}` : ''} · {statusLabels[appt.status] ?? appt.status}
 						</p>
@@ -68,6 +65,8 @@
 			{/each}
 			{#if data.appointments.length === 0}
 				<EmptyState title="Sin turnos" description="Este profesional no tiene turnos cargados." />
+			{:else if data.appointmentsTotal > data.appointments.length}
+				<p class="text-sm text-white/55">Se muestran los {data.appointments.length} más recientes de {data.appointmentsTotal}.</p>
 			{/if}
 		</div>
 	</div>
@@ -75,13 +74,13 @@
 	<div class="ux-card">
 		<div class="flex items-center justify-between gap-3">
 			<h2 class="ux-section-title">Consultas</h2>
-			<span class="ux-badge">{data.entries.length}</span>
+			<span class="ux-badge">{data.entriesTotal}</span>
 		</div>
 		<div class="mt-5 grid gap-3">
 			{#each data.entries as entry}
 				<a href={`/odonto/pacientes/${entry.patient_id}`} class="ux-choice flex items-center gap-3 p-4">
 					<div class="min-w-0 flex-1">
-						<p class="truncate font-bold text-white">{entry.patients?.full_name ?? 'Paciente'}</p>
+						<p class="break-words font-bold text-white">{entry.patients?.full_name ?? 'Paciente'}</p>
 						<p class="mt-0.5 text-sm text-white/55">
 							{formatDateTime(entry.created_at)}{entry.entry_type ? ` · ${entry.entry_type}` : ''}
 						</p>
@@ -94,6 +93,8 @@
 			{/each}
 			{#if data.entries.length === 0}
 				<EmptyState title="Sin consultas" description="Este profesional no tiene consultas cargadas." />
+			{:else if data.entriesTotal > data.entries.length}
+				<p class="text-sm text-white/55">Se muestran las {data.entries.length} más recientes de {data.entriesTotal}.</p>
 			{/if}
 		</div>
 	</div>

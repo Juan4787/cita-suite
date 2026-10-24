@@ -1,0 +1,219 @@
+{
+  "at": "2026-10-24T13:30:42.543102+00:00",
+  "sourceRevision": "0851de59ed7971debe2514e6d6851d142bbc5766",
+  "rollbackRevision": "83278ad47f15b0af4e08e328fb88548910c198b0",
+  "scope": "Production load failure, reporting corrections, Natalia publication and newly reproduced inactive-push defect. No launch certification; later correction verification remains separate.",
+  "privatePatternAndActualEnvironmentSecretScanPassed": true,
+  "adversarialScannerChecksPassed": true,
+  "files": [
+    {
+      "path": "docs/archive/production-verification-20261024/phase3/inactive-push-red-source-20261024.json",
+      "source": ".verification/inactive-push-red-source-20261024.json",
+      "bytes": 620,
+      "sha256": "e0d4a4dbce8240d71019b15dd7c977ab214db68b3cd90cfd8a03f18ef5cbf39f"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase3/inactive-push-green-source-20261024.json",
+      "source": ".verification/inactive-push-green-source-20261024.json",
+      "bytes": 842,
+      "sha256": "7728f91823f888e7f35810863171388234648e815d9331d16a6d39ab9f85ed4a"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase3/inactive-push-rollback-source-20261024.json",
+      "source": ".verification/inactive-push-rollback-source-20261024.json",
+      "bytes": 1726,
+      "sha256": "f56ace7a8c360edbbbbdbc2ea5af76e0c5fc21e861e39cded85ab6d81d66e7c1"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase3/inactive-push-candidate-artifact-20261024.json",
+      "source": ".verification/inactive-push-candidate-artifact-20261024.json",
+      "bytes": 272,
+      "sha256": "7ee1b788df3fe78780e89a1e104ff017bcb15b945668bf759fc4ea286efd798a"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase3/inactive-push-rollback-artifact-20261024.json",
+      "source": ".verification/inactive-push-rollback-artifact-20261024.json",
+      "bytes": 285,
+      "sha256": "9323adf46a94cd6bccac7e261c88eff68bc758b54226446bdd69a7b4060e426d"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase3/inactive-push-release-approval-20261024.json",
+      "source": ".verification/inactive-push-release-approval-20261024.json",
+      "bytes": 1967,
+      "sha256": "36593d0df728b5d5dccc6da51e583023dc9c12884627f59a24985a3e46b8c2a4"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase3/inactive-push-recovery-off-20261024.json",
+      "source": ".verification/inactive-push-recovery-off-20261024.json",
+      "bytes": 538,
+      "sha256": "2a6179d9727414d83e458f576e54fbc0d5ff550ee0ddca4be4262e921f7b6002"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase3/inactive-push-backup-verification-20261024.json",
+      "source": ".verification/inactive-push-backup-verification-20261024.json",
+      "bytes": 643,
+      "sha256": "9c77c1587242ea79eada562f394cb73417c0c6c547aae424f7e37364b44173a9"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase3/inactive-push-existing-test-login-preflight-20261024.json",
+      "source": ".verification/inactive-push-existing-test-login-preflight-20261024.json",
+      "bytes": 331,
+      "sha256": "9f0f8ea644ebdd3e7bb146cf676c7a2bea655666329e7f5bcf4e015015eb4a73"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase3/samsung-inactive-push-red-20261024.json",
+      "source": ".verification/samsung-inactive-push-red-20261024.json",
+      "bytes": 809,
+      "sha256": "1593624ba17d6d81f042e536a5ddfea78bcdf9b14cdf79acf519d331a62cedd0"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase3/samsung-inactive-push-fixture-readback-20261024.json",
+      "source": ".verification/samsung-inactive-push-fixture-readback-20261024.json",
+      "bytes": 227,
+      "sha256": "1f51d6f2368b5777e7072b1dcb4cfb5075abaea8efff84d44f9d61961488d904"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase3/samsung-inactive-push-candidate-20261024.json",
+      "source": ".verification/samsung-inactive-push-candidate-20261024.json",
+      "bytes": 554,
+      "sha256": "a59dd0f9bd528fbb7b6c4372e76fa9ff6d1813e899a592a95ff2a3fa767d5d15"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase3/samsung-inactive-push-baseline-20261024.json",
+      "source": ".verification/samsung-inactive-push-baseline-20261024.json",
+      "bytes": 553,
+      "sha256": "398017c3626eb6a5f0bca8afed3524e476911811111b6467e13e10502a3e385b"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase3/samsung-inactive-push-candidate-restored-20261024.json",
+      "source": ".verification/samsung-inactive-push-candidate-restored-20261024.json",
+      "bytes": 563,
+      "sha256": "a7c5ef60bd73fb0ee7284ac7f5bb6fffa6ae6d45671a8b5f7ac067829b9e5077"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase3/inactive-push-production-recovery-20261024.json",
+      "source": ".verification/inactive-push-production-recovery-20261024.json",
+      "bytes": 7853,
+      "sha256": "11a465ac474473ef8219a19df4239bd8ef17169d580124ce9c091238ff24f264"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase3/samsung-natalia-production-journey-v3-20261024.json",
+      "source": ".verification/samsung-natalia-production-journey-v3-20261024.json",
+      "bytes": 2603,
+      "sha256": "1a1a74228564e40bd200a9097ee7b32662f2a872e75de8b1cea4651a17dfc6ac"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase3/owned-natalia-journeys-cleanup-guard-probe-20261024.json",
+      "source": ".verification/owned-natalia-journeys-cleanup-guard-probe-20261024.json",
+      "bytes": 1045,
+      "sha256": "1762c65688459dedf0d7a44c076e5ca9f867b56711db4630376df867a8e9207c"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase3/owned-natalia-journeys-cleanup-guard-probe-v2-20261024.json",
+      "source": ".verification/owned-natalia-journeys-cleanup-guard-probe-v2-20261024.json",
+      "bytes": 1196,
+      "sha256": "322123e306c05bf04162bc2366b7fcb485d390c637f716979d62571945840c1b"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase3/owned-natalia-journeys-cleanup-valid-probe-20261024.json",
+      "source": ".verification/owned-natalia-journeys-cleanup-valid-probe-20261024.json",
+      "bytes": 1154,
+      "sha256": "66857e108465a67068c1d7a05859fd2f57337f105b38fe7b83fd99c0aa74d87e"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase3/owned-natalia-journeys-cleanup-20261024.json",
+      "source": ".verification/owned-natalia-journeys-cleanup-20261024.json",
+      "bytes": 1153,
+      "sha256": "2bc34e22f4e7efeb3e156f3b1f515fcc6f3a2accf10e09ab113cf2d64d61bbab"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase3/owned-provider-fixtures-cleanup-20261024.json",
+      "source": ".verification/owned-provider-fixtures-cleanup-20261024.json",
+      "bytes": 879,
+      "sha256": "ced0458ce96df4574ec5018292fd53a5ce6ff95693435a144a8b0841d9deeb53"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase3/owned-provider-fixtures-cleanup-v2-20261024.json",
+      "source": ".verification/owned-provider-fixtures-cleanup-v2-20261024.json",
+      "bytes": 1611,
+      "sha256": "752d8a9400e511ac7a213f37dc3ca6e7a478bb59d16ff0996e9cf89d35894de1"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase3/owned-phone-final-cleanup-20261024.json",
+      "source": ".verification/owned-phone-final-cleanup-20261024.json",
+      "bytes": 1669,
+      "sha256": "127eb5cd2cfe212e10f49d79b38260e0ed41e9b6d5bdd8cebe101292c9cb15e6"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase3/owned-phone-final-cleanup-v2-20261024.json",
+      "source": ".verification/owned-phone-final-cleanup-v2-20261024.json",
+      "bytes": 3636,
+      "sha256": "ebbb13e9c33109314186661ff8038e6fec82adcdcb5ff890d05c54865bce6455"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase3/provider-cleanup-dollar-replacement-red-green-20261024.json",
+      "source": ".verification/provider-cleanup-dollar-replacement-red-green-20261024.json",
+      "bytes": 254,
+      "sha256": "44f7ecdf8c49cf285d088ac7fe5ff6d8cb4938847963f551d225cba77ecf7d73"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase3/local-directory-atomic-rename-rehearsal-20261024.json",
+      "source": ".verification/local-directory-atomic-rename-rehearsal-20261024.json",
+      "bytes": 461,
+      "sha256": "92a4dbd9a2b9f4f2fb7f90660b7c701516887734cde6d226e781ffaaa9baac24"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase3/local-directory-identity-applied-20261024.json",
+      "source": ".verification/local-directory-identity-applied-20261024.json",
+      "bytes": 1120,
+      "sha256": "1f8dca8129cac7c082ca81e8f049391ca7540736132cbba1edd283f71aab8b9a"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase3/principal-identity-pretransition-final-20261024.json",
+      "source": ".verification/principal-identity-pretransition-final-20261024.json",
+      "bytes": 1854,
+      "sha256": "15a2810f28c4578fe3562325d1000ca4dd2ce330e86801587daa5ae38cb35e87"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase3/deploy-and-rehearse-inactive-push-20261024.mjs",
+      "source": ".verification/deploy-and-rehearse-inactive-push-20261024.mjs",
+      "bytes": 12125,
+      "sha256": "a358e1a3b245fbbe2d060875080ed8cdcd6b37dc1fcb5678ca117c1d31a2800b"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase3/cleanup-owned-natalia-journeys-20261024.mjs",
+      "source": ".verification/cleanup-owned-natalia-journeys-20261024.mjs",
+      "bytes": 7639,
+      "sha256": "fbe9a5a155ae94c83a50d620fb09600a7f58eaae5642be9f348a411c4b34f88f"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase3/cleanup-owned-provider-fixtures-v2-20261024.mjs",
+      "source": ".verification/cleanup-owned-provider-fixtures-v2-20261024.mjs",
+      "bytes": 6431,
+      "sha256": "ec527627db3a1d293e275a22ef889eba84d73a3fcc5e64150f7b6482f521cfc9"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase3/finish-owned-phone-fixtures-v2-20261024.mjs",
+      "source": ".verification/finish-owned-phone-fixtures-v2-20261024.mjs",
+      "bytes": 4015,
+      "sha256": "446113717940b84435f67b275f6872fd1b7b7d267c429ca8c9276aaf847facf4"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase3/samsung-inactive-push-probe-20261024.mjs",
+      "source": ".verification/samsung-inactive-push-probe-20261024.mjs",
+      "bytes": 2286,
+      "sha256": "f164488097490b4a7da9653236b0320be20e258ae98e1b0d204f2df43867d269"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase3/samsung-natalia-production-journey-v3-20261024.mjs",
+      "source": ".verification/samsung-natalia-production-journey-v3-20261024.mjs",
+      "bytes": 12074,
+      "sha256": "0fa4ef138c82e49c2c6cfa583e1b61471521dfd48f0e80c0c99dab17d5662a89"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase3/README.md",
+      "bytes": 1644,
+      "sha256": "62bdeee6389280d215c42bad093d9dd29b90accf5629b5e4adf5266552f3d3b7"
+    }
+  ]
+}

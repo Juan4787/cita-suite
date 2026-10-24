@@ -15,6 +15,19 @@ export type PriceAdjustment = {
   kind: "default" | "override";
   percentage: number;
 };
+/** A saved price policy as the editor receives it, its adjustments already validated. */
+export type PricePolicy = {
+  service_id: string;
+  professional_id: string | null;
+  base_amount: number;
+  base_month: string;
+  first_adjustment_month: string;
+  monthly_percentage: number;
+  rounding_unit: number;
+  currency: string;
+  revision: number;
+  service_price_monthly_adjustments: PriceAdjustment[];
+};
 export function monthForTimezone(date: Date, timezone: string) {
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone: timezone,
@@ -32,13 +45,18 @@ export const formatQuotedPrice = (
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(quote.amount);
-const invalid = () => new Error("PRICE_CONFIGURATION_INVALID");
-const percentageUnits = (text: string) => {
+export const MAX_PRICE_MONTH_OFFSET = 600;
+export const MAX_PRICE_PREVIEW_RESULTS = 120;
+export class PriceConfigurationError extends Error {
+  constructor(readonly field: 'configuration' | 'monthly_percentage' = 'configuration') { super('PRICE_CONFIGURATION_INVALID'); }
+}
+const invalid = () => new PriceConfigurationError();
+const percentageUnits = (text: string, field: PriceConfigurationError['field'] = 'configuration') => {
   const match = /^(\d+)(?:[.,](\d{1,4}))?$/.exec(text);
-  if (!match) throw invalid();
+  if (!match) throw new PriceConfigurationError(field);
   const rate =
     BigInt(match[1]) * 10000n + BigInt((match[2] ?? "").padEnd(4, "0") || "0");
-  if (rate > 10000000n) throw invalid();
+  if (rate > 10000000n) throw new PriceConfigurationError(field);
   return rate;
 };
 const monthPattern = /^\d{4}-(0[1-9]|1[0-2])$/;
@@ -65,7 +83,7 @@ export function previewMonthlyPrices(
   const unit = BigInt(rounding);
   let numerator = BigInt(base);
   let denominator = 1n;
-  const recurring = percentageUnits(monthly);
+  const recurring = percentageUnits(monthly, 'monthly_percentage');
   if (unit < 1n || unit > 1000n || numerator > 1000000000000n) throw invalid();
   const keys = new Set<string>();
   for (const row of adjustments) {
@@ -83,17 +101,17 @@ export function previewMonthlyPrices(
   }
   const [year, month] = baseMonth.split("-").map(Number);
   const [startYear, startNumber] = startMonth.split("-").map(Number);
-  const startOffset = Math.max(
-    0,
-    (startYear - year) * 12 + startNumber - month,
-  );
+  const startOffset = (startYear - year) * 12 + startNumber - month;
   if (
     !Number.isInteger(count) ||
     count < 1 ||
-    count > 120 ||
-    startOffset + count > 600
+    count > MAX_PRICE_PREVIEW_RESULTS
   )
     throw invalid();
+  // Offsets are inclusive: a one-item preview at month 600 is valid. A
+  // pre-base date must not silently become the base month's quote.
+  if (startOffset < 0 || startOffset + count - 1 > MAX_PRICE_MONTH_OFFSET)
+    throw new Error('PRICE_DATE_INVALID');
   const result = [];
   const defaults = adjustments
     .filter((row) => row.kind === "default")
@@ -119,6 +137,7 @@ export function previewMonthlyPrices(
     // Round only this month's quote. Keep the exact rational series unchanged.
     const divisor = denominator * unit;
     const amount = ((numerator * 2n + divisor) / (divisor * 2n)) * unit;
+    if (amount > 1000000000000n) throw new Error('PRICE_AMOUNT_INVALID');
     if (offset >= startOffset)
       result.push({ month: current, amount: Number(amount) });
   }

@@ -1,0 +1,177 @@
+{
+  "at": "2026-10-24T08:56:58.275063+00:00",
+  "sourceRevision": "cb8a9bafdf9a07a6b8977e841fa3f401061fda4f",
+  "rollbackRevision": "5ee3fa5a19bcdda49697692fc4c9c3b3702c9eca",
+  "scope": "Explicit phase1 evidence only; includes failed observations, no capacity approval or launch certification.",
+  "privatePatternAndActualEnvironmentSecretScanPassed": true,
+  "adversarialScannerChecksPassed": true,
+  "files": [
+    {
+      "path": "docs/archive/production-verification-20261024/phase1/calendar-fix-production-deployment-20261024.json",
+      "source": ".verification/calendar-fix-production-deployment-20261024.json",
+      "bytes": 1686,
+      "sha256": "5f2c78e000bd690d9d5ab0c5aff29768fb76bdd80a8f85bc0143013e8d495f96"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase1/calendar-repaired-rollback-release-ci-result-20261024.json",
+      "source": ".verification/calendar-repaired-rollback-release-ci-result-20261024.json",
+      "bytes": 99,
+      "sha256": "40e7165bbf61a14093a3b4768445b01de8ed23299ba1c03dcd007748a957f270"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase1/calendar-rollback-backport-source-20261024.json",
+      "source": ".verification/calendar-rollback-backport-source-20261024.json",
+      "bytes": 792,
+      "sha256": "c877e0478646f9ea37020f02b8ee1a467005d8353c99b2117d10070057d3c0ee"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase1/calendar-rollback-backport-artifact-20261024.json",
+      "source": ".verification/calendar-rollback-backport-artifact-20261024.json",
+      "bytes": 287,
+      "sha256": "7e5fbb71db76f68440a9aa680d31a48b0571487d3dfcf0d63239667c114db060"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase1/calendar-fresh-cadence-production-20261024.json",
+      "source": ".verification/calendar-fresh-cadence-production-20261024.json",
+      "bytes": 1426,
+      "sha256": "deb64a2388b3232f22082c953377dfcdc70d6ac5e359f9e61c8cf087ad3f8701"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase1/owned-calendar-google-ui-read-v2-20261024.json",
+      "source": ".verification/owned-calendar-google-ui-read-v2-20261024.json",
+      "bytes": 777,
+      "sha256": "6590786a2807b2991b1219b3c14236be3155d05dcc1b845a05e8e244b6cd5da9"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase1/owned-provider-lifecycle-20261024-cancel-calendar.json",
+      "source": ".verification/owned-provider-lifecycle-20261024-cancel-calendar.json",
+      "bytes": 2179,
+      "sha256": "373409866d68a4efe98794598b0c206680aeeb17e0120c44e3a430e0e121879d"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase1/owned-calendar-google-ui-deletion-direct-search-20261024.json",
+      "source": ".verification/owned-calendar-google-ui-deletion-direct-search-20261024.json",
+      "bytes": 794,
+      "sha256": "e0f7f15fd9b601d57e1d23d4b751dd6d17faa1f6ee535baca212d9db17585cde"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase1/owned-calendar-google-ui-deleted-20261024.json",
+      "source": ".verification/owned-calendar-google-ui-deleted-20261024.json",
+      "bytes": 832,
+      "sha256": "fb920153d0b8e67cc1df5891d48392e304d593b93827110c838443907a752131"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase1/owned-calendar-google-ui-deletion-diagnostic-20261024.json",
+      "source": ".verification/owned-calendar-google-ui-deletion-diagnostic-20261024.json",
+      "bytes": 5579,
+      "sha256": "c2720a45ec726428ec9c59c52d45d530f176c32773fdf58820ff2178fd08721b"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase1/owned-calendar-google-ui-deletion-search-20261024.json",
+      "source": ".verification/owned-calendar-google-ui-deletion-search-20261024.json",
+      "bytes": 666,
+      "sha256": "10dedd6f855a6c406b55f32f8422add44f2e691259a3672da9153f75377809f4"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase1/owned-calendar-google-ui-deletion-desktop-20261024.json",
+      "source": ".verification/owned-calendar-google-ui-deletion-desktop-20261024.json",
+      "bytes": 612,
+      "sha256": "72ab78ccc178aa8ac5796a490384ef745d377bed4c76a01686609483ddd2c9d9"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase1/calendar-recovery-backup-verification-20261024.json",
+      "source": ".verification/calendar-recovery-backup-verification-20261024.json",
+      "bytes": 648,
+      "sha256": "790a4b0de4d52a0abab93fcd7de0430b90b9a4652e4d75a495c742bbad878886"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase1/calendar-production-recovery-rehearsal-20261024.json",
+      "source": ".verification/calendar-production-recovery-rehearsal-20261024.json",
+      "bytes": 4525,
+      "sha256": "094c323c6e7fc6dac5dfbcb8b4805a59ed56abf403cb4035e520b1ad9472dea4"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase1/calendar-batch-contract-diagnosis-20261024.json",
+      "source": ".verification/calendar-batch-contract-diagnosis-20261024.json",
+      "bytes": 276,
+      "sha256": "c0a3f07311a754a6615f527d1f531b2f03e670eca3102f25bc961a862aa57d90"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase1/samsung-b5976b2b9428-first-reminder.json",
+      "source": ".verification/samsung-b5976b2b9428-first-reminder.json",
+      "bytes": 744,
+      "sha256": "7af5246587fcd5309d60d2f99b1d6c6d653d4c49b563459380dd40c41a0ce42a"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase1/samsung-b5976b2b9428-notification-platform.json",
+      "source": ".verification/samsung-b5976b2b9428-notification-platform.json",
+      "bytes": 387,
+      "sha256": "74aafabe72fa2f6609dee33e14e76e566ff9893b013054a529d0c1b7a934c6c6"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase1/samsung-b5976b2b9428-public-confirmation.json",
+      "source": ".verification/samsung-b5976b2b9428-public-confirmation.json",
+      "bytes": 1047,
+      "sha256": "18223b6ca639790afa100b9642d1f05a9400b4fcc563c7ab0081c776f32dc96d"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase1/samsung-b5976b2b9428-native-notification-click.json",
+      "source": ".verification/samsung-b5976b2b9428-native-notification-click.json",
+      "bytes": 428,
+      "sha256": "f4d4ee39cba48d30bee99351c52175e98d6a70c1636e008d5ee186b58c0f114d"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase1/samsung-b5976b2b9428-notification-refresh.json",
+      "source": ".verification/samsung-b5976b2b9428-notification-refresh.json",
+      "bytes": 921,
+      "sha256": "8909405668815dc54921c3aad12419b7d0d0a4c4f1ad46517be6b7e1f1764226"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase1/samsung-b5976b2b9428-final-durable-report-20261024.json",
+      "source": ".verification/samsung-b5976b2b9428-final-durable-report-20261024.json",
+      "bytes": 1401,
+      "sha256": "cefd6bcd576ad9e7a4b437979733d95418b401ea2945759744856e526449fc00"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase1/worker-history-query-capability-20261024.json",
+      "source": ".verification/worker-history-query-capability-20261024.json",
+      "bytes": 567,
+      "sha256": "da9096e84d053ef922c5b80a6a1bcd3e3bd1c43a5f0a4850c9cb11d51c2ff8a7"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase1/supabase-rename-capability-boundary-20261024.json",
+      "source": ".verification/supabase-rename-capability-boundary-20261024.json",
+      "bytes": 643,
+      "sha256": "afcee63b554e56dfac34889f903f7ea4fc6a24319140829415a8782e6206423e"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase1/supabase-name-ui-capability-v4-20261024.json",
+      "source": ".verification/supabase-name-ui-capability-v4-20261024.json",
+      "bytes": 420,
+      "sha256": "defad387e615ee23d93ceb4864bacecbe4e416be3e3261eb78c364287e043a36"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase1/capacity-two-cpu-cardinality-20261024.json",
+      "source": ".verification/capacity-two-cpu-cardinality-20261024.json",
+      "bytes": 261,
+      "sha256": "ed887074152dd17fd637974baa8d8473b9e39a457cde51f3b3d19cd206a6fc62"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase1/calendar-context-red-20261024.log",
+      "source": ".verification/calendar-context-red-20261024.log",
+      "bytes": 4203,
+      "sha256": "c823014b91e04a6f9dcd82740858ed6f902a173c8c8405ad74d1187b19797867"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase1/calendar-context-green2-20261024.log",
+      "source": ".verification/calendar-context-green2-20261024.log",
+      "bytes": 246,
+      "sha256": "6034d7c08fa6dd27fabe98cacd905ab3e0dac1bb1535d5a7ed26e09f6f296ea3"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase1/README.md",
+      "bytes": 1589,
+      "sha256": "33756c7bcf0eb46645e2f44042bda86cff4b53c6fd525992c510901c9d0c1cfb"
+    }
+  ]
+}

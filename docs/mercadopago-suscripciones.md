@@ -37,10 +37,10 @@ conciliar ahora, eventos con atención). Migraciones: `20260704120000` y
 
 | Variable | Dónde | Nota |
 |---|---|---|
-| `MP_ACCESS_TOKEN` | Netlify (prod) y `.env` (test local) | Access Token de la app **Cita Suite** (ID `6430070537499696`). El de prueba y el de producción son distintos. |
-| `MP_WEBHOOK_SECRET` | Netlify (prod) y `.env` (test) | Clave secreta del panel de Webhooks. **La de la config de prueba y la de producción son DISTINTAS** — causa clásica de "firma inválida solo en prod". |
-| `MP_SUBSCRIPTION_AMOUNT_ARS` | Netlify | Precio mensual. Si falta o es inválida, el código usa 50000. |
-| `MP_ENVIRONMENT` | Netlify y `.env` | `test` o `production`. Debe declararse: un token `APP_USR-` puede pertenecer a cualquiera de los dos entornos. |
+| `MP_ACCESS_TOKEN` | Secreto del Worker `app` de Cloudflare (prod) y `.env` (test local) | Access Token de la app **Cita Suite** (ID `6430070537499696`). El de prueba y el de producción son distintos. |
+| `MP_WEBHOOK_SECRET` | Secreto del Worker `app` (prod) y `.env` (test) | Clave secreta del panel de Webhooks. **La de la config de prueba y la de producción son DISTINTAS** — causa clásica de "firma inválida solo en prod". |
+| `MP_SUBSCRIPTION_AMOUNT_ARS` | Variable del Worker `app` | Precio mensual. Si falta o es inválida, el código usa 50000. |
+| `MP_ENVIRONMENT` | Worker `app` y `.env` | `test` o `production`. Debe declararse: un token `APP_USR-` puede pertenecer a cualquiera de los dos entornos. |
 
 El preflight (`node scripts/staging-preflight.mjs`) falla si faltan las dos
 primeras. Sin `MP_WEBHOOK_SECRET` el webhook rechaza TODO con 401
@@ -74,16 +74,20 @@ error visible.
 ## Checklist de salida a producción
 
 1. ☐ Credenciales de **producción** de la app Cita Suite → `MP_ACCESS_TOKEN`
-   en Netlify. `MP_SUBSCRIPTION_AMOUNT_ARS=50000`.
+   como secreto del Worker `app` de Cloudflare. `MP_SUBSCRIPTION_AMOUNT_ARS=50000`.
 2. ☐ Webhook de **producción** registrado:
-   URL `https://cita-suite.netlify.app/api/mercadopago/webhook`, topics
+   URL `https://app.cita-suite.workers.dev/api/mercadopago/webhook`, topics
    `payment` + `subscription_preapproval` + `subscription_authorized_payment`
    (en el panel figuran como "Pagos" y "Planes y suscripciones"). Copiar la
-   clave secreta de PRODUCCIÓN → `MP_WEBHOOK_SECRET` en Netlify.
-3. ☐ Cron en cron-job.org: `POST
-   https://cita-suite.netlify.app/internal/jobs/reconcile-mercadopago` cada
-   6 h, header `Authorization: Bearer {INTERNAL_JOB_SECRET}` (igual que los
-   jobs de recordatorios).
+   clave secreta de PRODUCCIÓN → secreto `MP_WEBHOOK_SECRET` del Worker. La
+   copia anterior en Netlify fue retirada el 19 de octubre de 2026: no usar
+   ese host.
+3. ☐ Conciliación programada: la ejecuta el mantenimiento del programador
+   `cita-suite-scheduler` cada 6 h (00:17, 06:17, 12:17 y 18:17 UTC), con su
+   presupuesto por ejecución; ver `docs/architecture/tareas-automaticas.md`.
+   No crear un cron externo: la entrada anterior
+   `/internal/jobs/reconcile-mercadopago` queda sólo para la transición y
+   responde 410 cuando se apagan las entradas antiguas.
 4. ☐ `node scripts/staging-preflight.mjs` en verde (sin FAIL).
 5. ☐ Deploy. La migración ya está aplicada (regla general: migrar SIEMPRE
    antes de deployar código que la usa).

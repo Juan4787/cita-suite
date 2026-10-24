@@ -1,0 +1,46 @@
+{
+  "at": "2026-10-24T13:21:10.373Z",
+  "status": "cleaning-owned-rows",
+  "scope": "Exact two Natalia journey patients/appointments, two provider fixtures, only their shown notification tags and only the verified owned phone tab/forward. No other tab, practice, patient, Auth owner, browser permission or ADB pairing changed.",
+  "ownedTargetUrlSha256": "4de6c2d8dee9d55fbe254d3e8ec9255fe2d030ebc360b7b04fc8690636b356d7",
+  "natalia": {
+    "at": "2026-10-24T13:21:10.491Z",
+    "scope": "Only two explicitly synthetic Natalia journey appointments and their two newly created patients. Never delete Natalia business, members or Auth owners; preserve clinical/files/history and shared phone device.",
+    "targets": [
+      {
+        "appointmentId": "f1372fc0-d801-4aba-b34d-1c3761516bc8",
+        "patientId": "8823fa9d-0963-405a-8af8-987db6ec01e0"
+      },
+      {
+        "appointmentId": "083ca283-3c0f-4587-9dd0-e0e09421c109",
+        "patientId": "e8eb8083-13a1-4f79-a010-a25af725b545"
+      }
+    ],
+    "before": {
+      "businesses": 21,
+      "owners": 44,
+      "patients": 125,
+      "appointments": 111,
+      "calendarConnections": 1,
+      "calendarEvents": 1,
+      "storedObjects": 24
+    },
+    "status": "cleaned-two-owned-appointments-and-patients",
+    "phoneNotificationCleanup": {
+      "closed": 0,
+      "operatorAction": true,
+      "subscriptionUntouched": true
+    },
+    "after": {
+      "businesses": 21,
+      "owners": 44,
+      "patients": 123,
+      "appointments": 109,
+      "calendarConnections": 1,
+      "calendarEvents": 1,
+      "storedObjects": 24
+    },
+    "finishedAt": "2026-10-24T13:21:13.421Z",
+    "passed": true
+  }
+}

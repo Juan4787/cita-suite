@@ -16,9 +16,9 @@
 		updated_at: string;
 	};
 
-	let { data } = $props<{
-		data: { executing: Item[]; canAssign: boolean; todayISO: string; demo: boolean };
-	}>();
+	let { data }: {
+		data: { executing: Item[]; executingTotal: number; canAssign: boolean; todayISO: string; demo: boolean };
+	} = $props();
 
 	let editingItem = $state<Item | null>(null);
 
@@ -53,6 +53,8 @@
 		{/each}
 		{#if data.executing.length === 0}
 			<EmptyState title="Todo al día" description="No hay recordatorios importantes pendientes." />
+		{:else if data.executingTotal > data.executing.length}
+			<p class="text-sm text-white/55">Se muestran los {data.executing.length} más antiguos de {data.executingTotal}.</p>
 		{/if}
 	</div>
 </section>

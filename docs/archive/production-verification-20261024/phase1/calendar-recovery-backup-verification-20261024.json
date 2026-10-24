@@ -1,0 +1,19 @@
+{
+  "runId": "calendar-recovery-backup-verification-20261024",
+  "at": "2026-10-24T08:16:51.840Z",
+  "directory": "/home/usuario/.local/share/cita-suite/backups/production-2026-10-24T08-10-07-072Z",
+  "manifestSha256": "d690a639bb9a07f13f9af5340bfb5421aabec9c92ed432dd443f8c1c51d48a02",
+  "migrations": 126,
+  "lastMigration": "20261022010000",
+  "tables": 105,
+  "rows": 87064,
+  "dumpFilesVerified": 5,
+  "objectsVerified": 26,
+  "objectBytes": 11600051,
+  "objectFailures": 0,
+  "directoryMode": "700",
+  "fileModes": "600",
+  "restorationOfThisExactBackupRehearsed": false,
+  "restorationMechanismPreviouslyRehearsed": true,
+  "passed": true
+}

@@ -1,0 +1,33 @@
+{
+  "at": "2026-10-23T13:36:55.067488+00:00",
+  "source": "User-provided Cloudflare and Vercel screenshots in this conversation; visually inspected. No local image file or pixel hash was available.",
+  "runtime": "478c096e63299b886e640c4627cd25e0db22dbfa",
+  "cloudflare": {
+    "worker": "app",
+    "accountFromPreviousScreenshotAndApi": "52b358653379c162b5a07b10ae5e84b3",
+    "currentScreenshotLabels": [
+      "Builds",
+      "Git repository",
+      "Connect",
+      "Name",
+      "app"
+    ],
+    "repositoryDisplayed": false,
+    "condition1Met": true,
+    "apiVerification": "Previous supported token read returned403 for Builds; panel evidence is distinct, no independent API disconnection proof claimed."
+  },
+  "vercel": {
+    "visibleUrl": "https://vercel.com/juans-projects-76d0ede4/cita-suite/settings/git#git-large-file-storage-(lfs)",
+    "currentScreenshotText": "This Project is not connected to a Git repository.",
+    "connectionProviderChoicesVisible": [
+      "Origin",
+      "GitHub",
+      "GitLab",
+      "Bitbucket"
+    ],
+    "condition2Met": true,
+    "apiVerification": "Old team inaccessible in CLI; user panel screenshot establishes target and disconnected state."
+  },
+  "productionAuthorization": "Already granted17Oct, not requested again",
+  "conditions1And2Met": true
+}

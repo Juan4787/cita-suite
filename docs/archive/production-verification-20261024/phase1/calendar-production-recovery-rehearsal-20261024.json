@@ -1,0 +1,143 @@
+{
+  "runId": "calendar-production-recovery-rehearsal-20261024",
+  "at": "2026-10-24T08:32:36.213Z",
+  "original": "cb8a9bafdf9a07a6b8977e841fa3f401061fda4f",
+  "originalVersion": "f35abec7-bcce-4c5f-b08a-017bb58fe8c9",
+  "baseline": "5ee3fa5a19bcdda49697692fc4c9c3b3702c9eca",
+  "releaseRun": 40075434652,
+  "status": "passed-baseline-and-candidate-verified-scheduler-restored",
+  "scope": "Exact repaired baseline package over the existing126-migration DB, no schema/secret change or destructive restoration. Scheduler removed first; allow15min propagation plus20s job deadline. Restore exact known candidate via native version rollback, then restore five crons. Authenticated reads use only existing synthetic capacity owner.",
+  "schedulerDrain": {
+    "providerConfirmedAt": "2026-10-24T08:17:01.910Z",
+    "safeAt": "2026-10-24T08:32:21.910Z",
+    "checkedAt": "2026-10-24T08:32:36.412Z",
+    "seconds": 934,
+    "inflightDeadlineSeconds": 20,
+    "proof": "Conservative15min propagation plus job20s deadline, not a direct isolate-inflight count."
+  },
+  "databaseBefore": {
+    "migrations": 126,
+    "legacyEnabled": false,
+    "businesses": 23,
+    "patients": 12125,
+    "appointments": 24111,
+    "calendarConnections": 1,
+    "calendarEvents": 1
+  },
+  "backupReceipt": ".verification/calendar-recovery-backup-verification-20261024.json",
+  "convergence": [
+    {
+      "expected": "5ee3fa5a19bcdda49697692fc4c9c3b3702c9eca",
+      "samples": [
+        {
+          "at": "2026-10-24T08:32:54.603Z",
+          "status": 200,
+          "revision": "5ee3fa5a19bcdda49697692fc4c9c3b3702c9eca"
+        }
+      ]
+    },
+    {
+      "expected": "cb8a9bafdf9a07a6b8977e841fa3f401061fda4f",
+      "samples": [
+        {
+          "at": "2026-10-24T08:33:12.662Z",
+          "status": 200,
+          "revision": "5ee3fa5a19bcdda49697692fc4c9c3b3702c9eca"
+        },
+        {
+          "at": "2026-10-24T08:33:15.694Z",
+          "status": 200,
+          "revision": "cb8a9bafdf9a07a6b8977e841fa3f401061fda4f"
+        }
+      ]
+    }
+  ],
+  "baselineProof": {
+    "verification": {
+      "at": "2026-10-24T08:33:07.652Z",
+      "revision": "5ee3fa5a19bcdda49697692fc4c9c3b3702c9eca",
+      "appOrigin": "https://app.cita-suite.workers.dev",
+      "clientFiles": 130,
+      "contentSecurity": {
+        "connect": [
+          "https://yjzferwuzbtgpmdnzlcb.supabase.co",
+          "wss://yjzferwuzbtgpmdnzlcb.supabase.co"
+        ],
+        "images": [
+          "https://yjzferwuzbtgpmdnzlcb.supabase.co"
+        ]
+      },
+      "natalia": "not checked",
+      "anonymousRelations": 70,
+      "exposed": []
+    },
+    "version": "c0692ad0-424f-4e2a-9d83-e1828e865a3b",
+    "deployment": "bacc733e-e0fa-448b-9aa4-aae1ab622e0a",
+    "bindingsPreserved": 33,
+    "authentication": {
+      "legacyEntrypointsDisabled": true,
+      "unauthorizedStatus": 401,
+      "authorizedStatus": 410
+    },
+    "authenticatedAgenda": {
+      "status": 200,
+      "kind": "data",
+      "syntheticBusinessPresent": true,
+      "errorNodes": 0,
+      "at": "2026-10-24T08:33:10.155Z"
+    }
+  },
+  "candidateProof": {
+    "verification": {
+      "at": "2026-10-24T08:33:25.210Z",
+      "revision": "cb8a9bafdf9a07a6b8977e841fa3f401061fda4f",
+      "appOrigin": "https://app.cita-suite.workers.dev",
+      "clientFiles": 130,
+      "contentSecurity": {
+        "connect": [
+          "https://yjzferwuzbtgpmdnzlcb.supabase.co",
+          "wss://yjzferwuzbtgpmdnzlcb.supabase.co"
+        ],
+        "images": [
+          "https://yjzferwuzbtgpmdnzlcb.supabase.co"
+        ]
+      },
+      "natalia": "not checked",
+      "anonymousRelations": 70,
+      "exposed": []
+    },
+    "version": "f35abec7-bcce-4c5f-b08a-017bb58fe8c9",
+    "deployment": "97424723-90fe-4d91-8c75-304176550924",
+    "bindingsPreserved": 33,
+    "authentication": {
+      "legacyEntrypointsDisabled": true,
+      "unauthorizedStatus": 401,
+      "authorizedStatus": 410
+    },
+    "authenticatedAgenda": {
+      "status": 200,
+      "kind": "data",
+      "syntheticBusinessPresent": true,
+      "errorNodes": 0,
+      "at": "2026-10-24T08:33:27.093Z"
+    }
+  },
+  "databaseAfter": {
+    "migrations": 126,
+    "legacyEnabled": false,
+    "businesses": 23,
+    "patients": 12125,
+    "appointments": 24111,
+    "calendarConnections": 1,
+    "calendarEvents": 1
+  },
+  "restoredCrons": [
+    "*/5 * * * *",
+    "1-59/5 * * * *",
+    "17 */3 * * *",
+    "2-59/10 * * * *",
+    "3-59/15 * * * *"
+  ],
+  "userIndexPreserved": true,
+  "finishedAt": "2026-10-24T08:33:34.647Z"
+}

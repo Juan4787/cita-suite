@@ -1,0 +1,15 @@
+{"at":1792766547083,"method":"GET","route":"/login","outcome":"ok","status":200,"cpuTimeMs":17,"wallTimeMs":40,"exceptions":[]}
+{"at":1792766715851,"method":"POST","route":"/internal/jobs/push","outcome":"ok","status":200,"cpuTimeMs":42,"wallTimeMs":894,"exceptions":[]}
+{"at":1792766815768,"method":"POST","route":"/internal/jobs/calendar","outcome":"ok","status":200,"cpuTimeMs":48,"wallTimeMs":49,"exceptions":[]}
+{"at":1792766909478,"method":"POST","route":"/internal/jobs/uploads","outcome":"ok","status":200,"cpuTimeMs":4,"wallTimeMs":450,"exceptions":[]}
+{"at":1792767016210,"method":"POST","route":"/internal/jobs/push","outcome":"ok","status":200,"cpuTimeMs":34,"wallTimeMs":227,"exceptions":[]}
+{"at":1792767115631,"method":"POST","route":"/internal/jobs/calendar","outcome":"ok","status":200,"cpuTimeMs":3,"wallTimeMs":4,"exceptions":[]}
+{"at":1792767146097,"method":"POST","route":"/internal/jobs/reviews","outcome":"ok","status":200,"cpuTimeMs":5,"wallTimeMs":380,"exceptions":[]}
+{"at":1792767316346,"method":"POST","route":"/internal/jobs/push","outcome":"ok","status":200,"cpuTimeMs":5,"wallTimeMs":787,"exceptions":[]}
+{"at":1792767415578,"method":"POST","route":"/internal/jobs/calendar","outcome":"ok","status":200,"cpuTimeMs":18,"wallTimeMs":19,"exceptions":[]}
+{"at":1792767617263,"method":"POST","route":"/internal/jobs/push","outcome":"ok","status":200,"cpuTimeMs":39,"wallTimeMs":1262,"exceptions":[]}
+{"at":1792767716165,"method":"POST","route":"/internal/jobs/calendar","outcome":"ok","status":200,"cpuTimeMs":7,"wallTimeMs":7,"exceptions":[]}
+{"at":1792767746475,"method":"POST","route":"/internal/jobs/reviews","outcome":"ok","status":200,"cpuTimeMs":10,"wallTimeMs":406,"exceptions":[]}
+{"at":1792767808882,"method":"POST","route":"/internal/jobs/uploads","outcome":"ok","status":200,"cpuTimeMs":7,"wallTimeMs":192,"exceptions":[]}
+{"at":1792767916375,"method":"POST","route":"/internal/jobs/push","outcome":"ok","status":200,"cpuTimeMs":21,"wallTimeMs":344,"exceptions":[]}
+{"at":1792768016014,"method":"POST","route":"/internal/jobs/calendar","outcome":"ok","status":200,"cpuTimeMs":63,"wallTimeMs":66,"exceptions":[]}

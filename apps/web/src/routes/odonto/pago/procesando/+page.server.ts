@@ -1,11 +1,12 @@
+import { logServerFailure } from '$lib/server/platform/logging';
 import { env } from '$env/dynamic/private';
-import { resolveActiveBusiness } from '$lib/server/business';
+import { resolveActiveBusiness } from '$lib/server/access/public/business';
 import {
 	confirmMpSubscriptionForBusiness,
 	getSubscriptionAmountArs,
 	type MpReturnSummary
-} from '$lib/server/mercadopago';
-import { createSupabaseAdminClient, createSupabaseServerClient } from '$lib/server/supabase';
+} from '$lib/server/integrations/public/mercadopago';
+import { createSupabaseAdminClient, createSupabaseServerClient } from '$lib/server/platform/supabase';
 import { error as kitError, redirect } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 
@@ -31,15 +32,17 @@ export const load: PageServerLoad = async ({ locals, fetch, cookies, url }) => {
 		try {
 			const admin = await createSupabaseAdminClient('odonto', fetch);
 			mpReturn = await confirmMpSubscriptionForBusiness(admin, fetch, context.business.id);
+			// Una lectura nueva: el pedido ya tiene la de antes de confirmar el pago.
 			const refreshed = await resolveActiveBusiness({
 				supabase,
 				accessToken: locals.auth.access_token,
-				cookies
+				cookies,
+				membershipCache: 'fresh'
 			});
 			if (refreshed) context = refreshed;
 		} catch (error) {
 			mpReturnFailed = true;
-			console.error('No se pudo confirmar el retorno de Mercado Pago', error);
+			logServerFailure('No se pudo confirmar el retorno de Mercado Pago', error);
 		}
 	}
 

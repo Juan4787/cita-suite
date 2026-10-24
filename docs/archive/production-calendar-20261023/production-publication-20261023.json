@@ -1,0 +1,391 @@
+{
+  "runId": "ab3c7cc0-8431-43e5-959b-b04f0a543187",
+  "startedAt": "2026-10-23T13:36:55.067488+00:00",
+  "runtime": "478c096e63299b886e640c4627cd25e0db22dbfa",
+  "releaseRun": 39901784288,
+  "releaseArtifactRun": 39900877833,
+  "rollbackRuntime": "dfb487faa74b8117c46c180c70f368f77f3dbcd2",
+  "rollbackArtifactRun": 39782403651,
+  "gatesReceipt": ".verification/publication-gates-user-screenshots-20261023.json",
+  "events": [
+    {
+      "at": "2026-10-23T13:36:55.067488+00:00",
+      "step": "provider-gates",
+      "status": "passed",
+      "evidence": ".verification/publication-gates-user-screenshots-20261023.json"
+    },
+    {
+      "at": "2026-10-23T13:38:41.454Z",
+      "step": "0-preparation",
+      "status": "passed",
+      "evidence": [
+        ".verification/production-step0-deployment-20261023.json",
+        ".verification/production-step0-previous-scheduler-20261023.log",
+        ".verification/production-step0-version-mismatch-20261023.log"
+      ]
+    },
+    {
+      "at": "2026-10-23T13:40:53.426567+00:00",
+      "step": "1-backup-expansion",
+      "status": "passed",
+      "evidence": ".verification/production-backup-expansion-verification-20261023.json"
+    },
+    {
+      "at": "2026-10-23T13:44:22.085962+00:00",
+      "step": "2-rehearsal-expansion",
+      "status": "passed",
+      "evidence": ".verification/production-migration-rehearsal-2026-10-23T13-41-58-021Z.json",
+      "catalogDelta": "Exactly nine authenticated table grants, list_business_users execution and twelve policies affected by the intentionally unapplied contraction20261022010000; no other unaccepted differences."
+    },
+    {
+      "at": "2026-10-23T13:44:35.052563+00:00",
+      "step": "2-rehearsal-complete",
+      "status": "passed",
+      "evidence": ".verification/production-migration-rehearsal-2026-10-23T13-43-44-644Z.json",
+      "catalog": "All nine sections equal to staging126 after explicitly accepted historical drift"
+    },
+    {
+      "at": "2026-10-23T13:45:10.976Z",
+      "step": "3-expansion",
+      "status": "passed",
+      "before": 97,
+      "after": 125,
+      "evidence": ".verification/production-expansion-apply-20261023.log"
+    },
+    {
+      "at": "2026-10-23T13:46:12.539Z",
+      "step": "4-legacy-off",
+      "status": "passed",
+      "evidence": ".verification/production-legacy-off-20261023.log"
+    },
+    {
+      "at": "2026-10-23T13:50:04.967Z",
+      "step": "5-baseline-installed-and-verified",
+      "status": "passed",
+      "evidence": ".verification/production-compatible-baseline-20261023.json"
+    },
+    {
+      "at": "2026-10-23T13:52:14.815Z",
+      "step": "5-candidate-deployed-and-verified",
+      "status": "passed",
+      "versionId": "fea4d191-8879-4fa0-9eed-9b0271a2b2b3",
+      "evidence": [
+        ".verification/production-candidate-deploy-20261023.log",
+        ".verification/production-candidate-verification-20261023.log"
+      ]
+    },
+    {
+      "at": "2026-10-23T13:57:53.105840+00:00",
+      "step": "6-capacity-seed",
+      "status": "passed",
+      "practices": 2,
+      "patients": 12000,
+      "appointments": 24000,
+      "evidence": [
+        ".verification/production-capacity-seed-20261023.log",
+        ".verification/production-capacity-seed.json"
+      ]
+    },
+    {
+      "at": "2026-10-23T13:58:08.873Z",
+      "step": "6-release-smoke",
+      "status": "passed",
+      "checks": 14,
+      "cleanupAfter": "2026-10-23T16:13:02.750133+00:00",
+      "evidence": ".verification/release-smoke-production-run-2026-10-23T13-58-08-873Z.json"
+    },
+    {
+      "at": "2026-10-23T14:15:21.650931+00:00",
+      "step": "7-scheduler-deployed",
+      "status": "provider-configuration-passed-observation-pending",
+      "stagingVersion": "6a5961c3-81f6-4992-849e-835903ff1654",
+      "productionVersion": "6952e724-5980-485a-9a7a-55b347623c9a",
+      "evidence": [
+        ".verification/production-step7-staging-crons-off-20261023.log",
+        ".verification/production-step7-scheduler-deploy-20261023.log",
+        ".verification/production-step7-scheduler-provider-20261023.json"
+      ]
+    },
+    {
+      "at": "2026-10-23T14:29:57.769574+00:00",
+      "step": "7-real-scheduler-authentication",
+      "status": "failed",
+      "reason": "Two real scheduled requests rejected401; local scheduler credential also rejected by safe legacy probe while entries disabled",
+      "evidence": [
+        ".verification/production-observer-ab3c7cc08433-final.json",
+        ".verification/production-observer-ab3c7cc08433-jobs.jsonl",
+        ".verification/production-step7-authentication-diagnosis-20261023.json"
+      ]
+    },
+    {
+      "at": "2026-10-23T14:29:57.769574+00:00",
+      "step": "7-stop-failing-scheduler",
+      "status": "deployment-completed-provider-read-pending",
+      "version": "7561ee67-184c-4c29-ba1a-5380ff159dd4",
+      "evidence": ".verification/production-step7-auth-failure-crons-off-20261023.log"
+    },
+    {
+      "at": "2026-10-23T14:33:13.763055+00:00",
+      "step": "7-authentication-aligned",
+      "status": "passed-no-job-probe",
+      "evidence": [
+        ".verification/production-step7-auth-preflight-real-red-20261023.log",
+        ".verification/production-step7-app-job-secret-alignment-20261023.json",
+        ".verification/production-step7-authentication-corrected-20261023.json"
+      ],
+      "secretValueOrHashPersisted": false
+    },
+    {
+      "at": "2026-10-23T14:37:43.684815+00:00",
+      "step": "7-aligned-baseline-fully-verified",
+      "status": "passed",
+      "version": "035338f1-9673-49e3-9b32-257d3c4c4364",
+      "evidence": [
+        ".verification/production-step7-aligned-baseline-confirmed-20261023.json",
+        ".verification/production-step7-aligned-baseline-confirmed-verify-20261023.log"
+      ]
+    },
+    {
+      "at": "2026-10-23T14:39:19.927408+00:00",
+      "step": "7-aligned-candidate-fully-verified",
+      "status": "passed",
+      "version": "c7daf16d-fd5d-4bdf-909e-0387f1abfc5d",
+      "evidence": [
+        ".verification/production-step7-aligned-candidate-confirmed-20261023.json",
+        ".verification/production-step7-aligned-candidate-confirmed-verify-20261023.log"
+      ]
+    },
+    {
+      "at": "2026-10-23T14:40:27.150935+00:00",
+      "step": "7-reactivated-with-authentication-preflight",
+      "status": "provider-configuration-passed-real-execution-pending",
+      "version": "9b77dcf3-98bd-4535-8f4f-6a6e171c9188",
+      "evidence": [
+        ".verification/production-step7-scheduler-auth-corrected-deploy-20261023.log",
+        ".verification/production-step7-provider-auth-corrected-20261023.json"
+      ]
+    },
+    {
+      "at": "2026-10-23T15:08:41.905299+00:00",
+      "step": "7-routine-observation20minutes",
+      "status": "operational-passed-free-and-provider-gates-unmet",
+      "evidence": ".verification/production-step7-routine-observation-20261023.json"
+    },
+    {
+      "at": "2026-10-23T15:28:57.800843+00:00",
+      "step": "7-calendar-feature-flag",
+      "status": "enabled-postcondition-annotation-failed-reinstalling-exact-baseline",
+      "evidence": [
+        ".verification/production-calendar-activation-preflight-20261023.json",
+        ".verification/production-calendar-flag-activation-20261023.json",
+        ".verification/production-calendar-historical-bindings-20261023.json"
+      ]
+    },
+    {
+      "at": "2026-10-23T15:31:52.347948+00:00",
+      "step": "7-calendar-enabled-baseline-and-candidate-reverified",
+      "status": "passed-runtime-provider-and-user-consent-pending",
+      "evidence": [
+        ".verification/production-step7-aligned-calendar-baseline-20261023.json",
+        ".verification/production-calendar-baseline-release-20261023.log",
+        ".verification/production-step7-aligned-calendar-candidate-20261023.json",
+        ".verification/production-calendar-candidate-release-20261023.log",
+        ".verification/production-calendar-authorization-probe-20261023.json"
+      ]
+    }
+  ],
+  "currentStep": "7-observe-configured-calendar-and-wait-device",
+  "productionPublished": true,
+  "campaignComplete": false,
+  "backupExpansion": "/home/usuario/.local/share/cita-suite/backups/production-2026-10-23T13-39-07-963Z",
+  "productionDatabaseMigrations": 125,
+  "legacyEntrypointsEnabled": false,
+  "baselineProductionVersion": "658d3ae3-0d3c-4aaa-b686-04578546f337",
+  "baselineProductionRevision": "dfb487faa74b8117c46c180c70f368f77f3dbcd2",
+  "candidateProductionVersion": "a5b21dfd-7915-4b74-85be-b82662408188",
+  "syntheticCapacitySeeded": true,
+  "cleanupAfter": "2026-10-23T16:13:02.750133+00:00",
+  "operationalTelemetryPatch": {
+    "files": {
+      "scripts/lib/worker-tail.mjs": "c39d9b3e176351b882d54ae6c6337de6f65a288f931dcbb6fb29cc39031fb05a",
+      "scripts/lib/worker-tail.test.mjs": "29f8ad1149f111b3b2901d94ec436da72b6875bd19d60f8ca91ba316e8691a75"
+    },
+    "red": ".verification/production-tail-token-red-20261023.log",
+    "green": ".verification/production-tail-token-green-20261023.log",
+    "tests": 8,
+    "appRuntimeStill": "478c096e63299b886e640c4627cd25e0db22dbfa",
+    "privacyRed": ".verification/production-tail-privacy-red-20261023.log",
+    "privacyFirstCorrectionFailure": ".verification/production-tail-privacy-green-20261023.log",
+    "privacyGreen": ".verification/production-tail-privacy-green2-20261023.log",
+    "nodeGuards": {
+      "runId": "0cbe4841-1f47-494b-b5a4-c19f5d49b53f",
+      "passed": 139,
+      "files": 46,
+      "skipped": 0,
+      "log": ".verification/production-telemetry-node-guards-20261023.log",
+      "scope": "Local sequential lightweight Node guards; no app build, SQL, browser or full CI rerun"
+    }
+  },
+  "observerPreparation": {
+    "at": "2026-10-23T14:13:56.388372+00:00",
+    "red": ".verification/production-observer-sanitize-red-20261023.log",
+    "redFailed": 2,
+    "green": ".verification/production-observer-sanitize-green-20261023.log",
+    "greenPassed": 4,
+    "files": {
+      ".verification/observe-production-20261023.mjs": "d8bbd37e065a9c298919633b630f235903f587dda1ab6e600aaee086ec46d90e",
+      ".verification/production-observer-sanitize-20261023.mjs": "cde663890c3019c96fe800729b0bd83142074e024f74c38db75fc63365d5d7d3",
+      ".verification/production-observer-sanitize-20261023.test.mjs": "6932acfe8e804beae1b7997505c814ac78294d2cff9ed40de364572807baa935"
+    },
+    "scope": "One-off read-only observer. Observed path is independent from reported kind; missing receipt and exceededCpu remain visible.",
+    "routeRed": ".verification/production-observer-route-red-20261023.log",
+    "routeFirstCorrectionFailure": ".verification/production-observer-route-green-20261023.log",
+    "routeGreen": ".verification/production-observer-route-green2-20261023.log",
+    "routeTestsPassed": 6,
+    "finalObserverSha256": "d5d8cf2e6b2741b7a9a0cee3b1baa09ae1e9c73d31f5ea42551022b56e736add"
+  },
+  "devicePush": {
+    "status": "waiting-for-user-device",
+    "userAnswer": "Samsung unavailable now; user expects availability in 30 minutes",
+    "fixtureSeeded": false
+  },
+  "productionSchedulerActive": true,
+  "stagingSchedulerCrons": 0,
+  "productionSchedulerCrons": 5,
+  "observer": {
+    "run": "ab3c7cc08435",
+    "status": "started-awaiting-first-event",
+    "minutes": 90,
+    "live": ".verification/production-observer-ab3c7cc08435-live.json",
+    "final": ".verification/production-observer-ab3c7cc08435-final.json"
+  },
+  "priorObservers": [
+    {
+      "run": "ab3c7cc08431",
+      "minutes": 90,
+      "startedAt": "2026-10-23T14:15:21.650931+00:00",
+      "status": "started-not-yet-event-proven",
+      "live": ".verification/production-observer-ab3c7cc08431-live.json",
+      "final": ".verification/production-observer-ab3c7cc08431-final.json"
+    },
+    {
+      "run": "ab3c7cc08432",
+      "minutes": 90,
+      "startedAt": "2026-10-23T14:18:25.776016+00:00",
+      "status": "started-not-yet-event-proven",
+      "live": ".verification/production-observer-ab3c7cc08432-live.json",
+      "final": ".verification/production-observer-ab3c7cc08432-final.json"
+    },
+    {
+      "run": "ab3c7cc08433",
+      "minutes": 90,
+      "startedAt": "2026-10-23T14:23:36.437768+00:00",
+      "status": "stopped-after-two-real401-failures",
+      "live": ".verification/production-observer-ab3c7cc08433-live.json",
+      "final": ".verification/production-observer-ab3c7cc08433-final.json",
+      "code": 0
+    },
+    {
+      "run": "ab3c7cc08434",
+      "minutes": 90,
+      "startedAt": "2026-10-23T14:40:27.150935+00:00",
+      "status": "closed-orderly",
+      "live": ".verification/production-observer-ab3c7cc08434-live.json",
+      "final": ".verification/production-observer-ab3c7cc08434-final.json",
+      "finishedAt": "2026-10-23T15:19:08.117Z"
+    }
+  ],
+  "operationalDeploymentPatch": {
+    "files": {
+      "scripts/deploy-production-workers.mjs": "18e7eec492d4dce93e1f444bb3c1c16f8661dda6481ee2d8d206ea151931f46e",
+      "scripts/lib/production-deploy.mjs": "cf9ef365a61df10e01e205d25aa305552a833366222b39ee03719a39633fe36e",
+      "scripts/lib/production-deploy.test.mjs": "b110bf938a00cc6b419b4036728ab74374de3e916ba77c30c102b4325b69b87c"
+    },
+    "unitRed": ".verification/production-scheduler-auth-preflight-red-20261023.log",
+    "unitGreen": ".verification/production-scheduler-auth-preflight-green-20261023.log",
+    "unitPassed": 3,
+    "realNegative": ".verification/production-step7-auth-preflight-real-red-20261023.log",
+    "appRuntimeStill": "478c096e63299b886e640c4627cd25e0db22dbfa",
+    "nodeGuards": {
+      "runId": "55a6edc0-70db-4379-b89b-434ca6cfa910",
+      "passed": 140,
+      "files": 46,
+      "skipped": 0,
+      "log": ".verification/production-auth-node-guards-20261023.log"
+    }
+  },
+  "previousBaselineWithOldJobSecret": "aa4106df-a030-4dcf-a644-0777c97feafb",
+  "currentProductionAppRevision": "478c096e63299b886e640c4627cd25e0db22dbfa",
+  "currentProductionAppVersion": "a5b21dfd-7915-4b74-85be-b82662408188",
+  "productionSchedulerVersion": "9b77dcf3-98bd-4535-8f4f-6a6e171c9188",
+  "firstCorrectedScheduledJob": {
+    "kind": "push",
+    "status": 200,
+    "cpuTimeMs": 42,
+    "usedCalls": 3,
+    "databaseRequests": 2,
+    "providerRequests": 0,
+    "claimed": 0,
+    "maxCalls": 40,
+    "freeCpuCriterionMet": false,
+    "evidence": ".verification/production-observer-ab3c7cc08434-jobs.jsonl"
+  },
+  "calendarProductionObservation": {
+    "configured": false,
+    "status": 200,
+    "claimed": 0,
+    "providerRequests": 0,
+    "cpuTimeMs": 48,
+    "localPrivateSourceHasCalendarCredentials": false,
+    "localManagedCalendarFlag": false,
+    "remoteMissingFieldNotDetermined": true,
+    "evidence": ".verification/production-observer-ab3c7cc08434-jobs.jsonl"
+  },
+  "identityProjectsReadOnly": ".verification/production-identity-project-names-current-20261023.json",
+  "routineSchedulerObservation": {
+    "receipt": ".verification/production-step7-routine-observation-20261023.json",
+    "operational20MinutesPassed": true,
+    "events": 12,
+    "freeCpuPassed": false,
+    "allThreeProvidersConfigured": false,
+    "launchSchedulerAccepted": false
+  },
+  "productionCheckpointArchive": "docs/archive/production-activation-20261023/manifest.json",
+  "baselineCalendarConfigurationVerification": "metadata-auth-served-client-anonymous-probes-passed",
+  "calendarHistoricalConfiguration": {
+    "fourSecretsPresent": true,
+    "managedFlagAbsentPrepublicationAndCurrent": true,
+    "preflightPendingEvents": 0,
+    "existingEventStatus": "active",
+    "receipt": ".verification/production-calendar-historical-bindings-20261023.json"
+  },
+  "smtp": {
+    "status": "custom-toggle-enabled-configuration-incomplete",
+    "source": "User explicitly confirmed no SMTP details configured",
+    "deliveryVerified": false
+  },
+  "googleAuthentication": {
+    "priorBothJourneysTestedByUser": true,
+    "userRemovedOldUrlsAlsoFromSupabase": true,
+    "currentInitiationReceipt": ".verification/production-google-signin-redirects-20261023.json",
+    "completeCallbackVerified": false
+  },
+  "storageMaintenance": {
+    "observed": true,
+    "at": "2026-10-23T15:17:13.418Z",
+    "cpuTimeMs": 8,
+    "usedCalls": 2,
+    "status": 200,
+    "evidence": ".verification/production-observer-ab3c7cc08434-jobs.jsonl"
+  },
+  "previousBaselineBeforeCalendarFlag": "035338f1-9673-49e3-9b32-257d3c4c4364",
+  "managedCalendarRuntimeConfiguration": {
+    "configured": true,
+    "canonicalCallback": true,
+    "separateOAuthClientFromSignin": true,
+    "existingEncryptionKeyPreserved": true,
+    "newOAuthClientCreated": false,
+    "realConsentAndSynchronizationVerified": false,
+    "receipt": ".verification/production-calendar-authorization-probe-20261023.json"
+  }
+}

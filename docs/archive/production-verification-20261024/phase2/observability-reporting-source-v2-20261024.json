@@ -1,0 +1,28 @@
+{
+  "at": "2026-10-24T12:34:46.585304+00:00",
+  "base": "5f7e4258e143f4353d188f0019642c046981d6a9",
+  "runtimeBase": "cb8a9bafdf9a07a6b8977e841fa3f401061fda4f",
+  "commit": "a5b95809cfbb11ef05bf17f9e5660e45b3f1bd55",
+  "tree": "9aecbc2ad06948e3369c3f6ada2e242cb29f80f1",
+  "branch": "refactor/observability-reporting-20261024",
+  "files": [
+    {
+      "path": "scripts/production-capacity.mjs",
+      "blob": "d4f0c5e882333ea87d48932bfb79a037b41cab31",
+      "sha256": "cbf80c706e9062396e1a457c18d1302bbc6ef68ec268c0401b28be2cfcf4c8e4"
+    },
+    {
+      "path": "scripts/attribute-pauses.mjs",
+      "blob": "197cb191405665e3f944dc16903416df23a2d7fa",
+      "sha256": "9c3c63a867cbb1414b4b856f4af55a08360d00107816e34741261108b8383995"
+    },
+    {
+      "path": "scripts/lib/attribute-pauses.test.mjs",
+      "blob": "eed8fb4496a1202776a2dc349a537991e932013a",
+      "sha256": "38b3aeef47908777d6eacca75f2fe33fb4dd40edd113de44b1cf5f87dd836bfa"
+    }
+  ],
+  "scope": "v2 completes statement identity with userid/toplevel. Runtime application and measurement mode unchanged. Prior fast40082839370 remains the first revision only; run new fast for this exact SHA.",
+  "canonicalRuntimeSnapshotPreserved": true,
+  "userIndexAndHeadPreserved": true
+}

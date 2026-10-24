@@ -7,7 +7,8 @@
 	import { onMount } from 'svelte';
 	import type { SubmitFunction } from '@sveltejs/kit';
 	import { isUpcomingActiveAppointment } from '$lib/utils/appointment-visibility';
-import { BOOKING_MODALITY_LABELS, type BookingModality } from '@turnos-saas/shared/booking-integration';
+	import type { PageData } from './$types';
+import { BOOKING_MODALITY_LABELS, type BookingModality } from '@cita-suite/shared/booking-integration';
 
 	type Slot = { date: string; time: string; starts_at: string; professional_name: string };
 	type AuditLog = {
@@ -18,12 +19,11 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@turnos-saas/shar
 		created_at: string;
 	};
 
-	let { data, form } = $props<{
+	let { data, form }: {
 		data: {
 			context: { canOperate: boolean; role: string };canEditInstructions?:boolean;
-			appointment: any;
-			auditLogs: AuditLog[];
-			messageDispatches: any[];
+			appointment: PageData['appointment'];
+			auditLogs: AuditLog[] | null;
 			userLabels: Record<string, string>;
 			reprogramDate: string;
 			minReprogramDate: string;
@@ -43,7 +43,7 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@turnos-saas/shar
 			demo: boolean;
 		};
 		form?: { success?: boolean; message?: string };
-	}>();
+	} = $props();
 
 	let refinedActivationDevice = $state<DeviceClass | null>(null);
 	const activationDevice = $derived(refinedActivationDevice ?? data.activationDevice);
@@ -63,7 +63,7 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@turnos-saas/shar
 	const canOperate = $derived(data.context.canOperate && !data.demo);
 	const isClosed = $derived(data.appointment?.status === 'cancelled');
 	const canShowCancelAction = $derived(
-		!isClosed && isUpcomingActiveAppointment(data.appointment)
+		!isClosed && data.appointment !== null && isUpcomingActiveAppointment(data.appointment)
 	);
 	const appointmentProfessionals = $derived(data.appointment?.professionals ?? []);
 	const isJoint = $derived(appointmentProfessionals.length > 1);
@@ -97,7 +97,7 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@turnos-saas/shar
 			new Date(value)
 		);
 
-	const durationText = (appointment: any) => {
+	const durationText = (appointment: NonNullable<PageData['appointment']>) => {
 		const minutes =
 			Number(appointment?.duration_minutes_snapshot) ||
 			Math.round((new Date(appointment?.ends_at).getTime() - new Date(appointment?.starts_at).getTime()) / 60_000);
@@ -141,7 +141,7 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@turnos-saas/shar
 	};
 
 	const canUseStatusAction = (status: string) => {
-		if (isClosed || data.appointment.status === status) return false;
+		if (isClosed || !data.appointment || data.appointment.status === status) return false;
 		return canOperate;
 	};
 
@@ -234,7 +234,8 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@turnos-saas/shar
 	const isSelected = (iso: string) => iso === selectedDate;
 
 	const loadSlots = async (date: string) => {
-		if (slotsCache[date]) return;
+		const appointmentId = data.appointment?.id;
+		if (!appointmentId || slotsCache[date]) return;
 		const request = ++slotRequest;
 		loadingSlots = true;
 		slotsError = null;
@@ -244,7 +245,7 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@turnos-saas/shar
 				ignore_break: ignoreBreak ? 'true' : 'false'
 			});
 			const res = await fetch(
-				`/odonto/turnos/${data.appointment.id}/slots?${params.toString()}`
+				`/odonto/turnos/${appointmentId}/slots?${params.toString()}`
 			);
 			const body = await res.json().catch(() => ({}));
 			if (request !== slotRequest) return;
@@ -340,10 +341,10 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@turnos-saas/shar
 		>
 			<div class="pointer-events-none absolute -right-12 -top-16 h-44 w-44 rounded-full bg-violet-400/10 blur-2xl" aria-hidden="true"></div>
 			<div class="relative">
-				<span class="inline-flex rounded-full border border-violet-300/25 bg-violet-300/10 px-3 py-1.5 text-xs font-extrabold uppercase tracking-[0.12em] text-violet-100">
+				<span class="inline-flex rounded-full border border-violet-300/25 bg-violet-300/10 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.12em] text-violet-100">
 					Turno creado
 				</span>
-				<h2 id="activation-title" class="mt-4 text-xl font-extrabold tracking-tight text-white sm:text-2xl">
+				<h2 id="activation-title" class="mt-4 text-xl font-bold tracking-tight text-white sm:text-2xl">
 					Último paso
 				</h2>
 				{#if activationWhatsAppHref}
@@ -351,7 +352,7 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@turnos-saas/shar
 						href={activationWhatsAppHref}
 						target="_blank"
 						rel="noreferrer"
-						class="group mt-5 flex min-h-[4.5rem] w-full items-center justify-center gap-3 rounded-2xl bg-emerald-500 px-5 py-4 text-center text-lg font-extrabold leading-tight text-white shadow-xl shadow-emerald-950/30 ring-1 ring-emerald-300/35 transition hover:bg-emerald-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-emerald-300"
+						class="group mt-5 flex min-h-[4.5rem] w-full items-center justify-center gap-3 rounded-2xl bg-emerald-500 px-5 py-4 text-center text-lg font-bold leading-tight text-white shadow-xl shadow-emerald-950/30 ring-1 ring-emerald-300/35 transition hover:bg-emerald-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-emerald-300"
 					>
 						<svg viewBox="0 0 24 24" fill="none" aria-hidden="true" class="h-6 w-6 shrink-0 transition-transform group-hover:scale-105">
 							<path d="M20.4 11.7a8.4 8.4 0 0 1-12.5 7.3L4 20l1.1-3.7a8.4 8.4 0 1 1 15.3-4.6Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
@@ -364,11 +365,11 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@turnos-saas/shar
 					</p>
 				{:else}
 					<div class="mt-5 rounded-2xl border border-amber-300/25 bg-amber-300/[0.08] p-5">
-						<p class="text-base font-extrabold text-amber-50">Falta completar el teléfono del paciente</p>
+						<p class="text-base font-bold text-amber-50">Falta completar el teléfono del paciente</p>
 						<p class="mt-2 text-sm leading-relaxed text-amber-50/75">
 							Cargá un número argentino completo con código de área para preparar el enlace de WhatsApp.
 						</p>
-						{#if data.appointment.patients?.id}
+						{#if data.appointment?.patients?.id}
 							<a
 								href={`/odonto/pacientes/${data.appointment.patients.id}`}
 								target="_blank"
@@ -707,7 +708,10 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@turnos-saas/shar
 			</summary>
 			<div class="border-t border-white/10 px-5 py-6 sm:px-7">
 				<div class="grid gap-3">
-					{#each data.auditLogs as log}
+					{#if data.auditLogs === null}
+						<p class="ux-alert">No pudimos cargar el historial del turno. Volvé a intentar en unos momentos.</p>
+					{/if}
+					{#each data.auditLogs ?? [] as log}
 						<div class="rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-4 text-sm">
 							<p class="font-semibold text-white">{auditLabel(log)}</p>
 							<p class="mt-1 text-xs font-semibold text-white/45">{formatDateTime(log.created_at)}</p>
@@ -716,7 +720,7 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@turnos-saas/shar
 							{/if}
 						</div>
 					{/each}
-					{#if data.auditLogs.length === 0}
+					{#if data.auditLogs?.length === 0}
 						<p class="rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-4 text-sm text-white/60">
 							Todavía no hay movimientos registrados.
 						</p>

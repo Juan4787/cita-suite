@@ -1,0 +1,22 @@
+{
+  "runId": "owned-calendar-google-ui-deleted-20261024",
+  "at": "2026-10-24T07:30:02.915Z",
+  "scope": "Read only the known synthetic event through a new temporary phone Chrome tab. No Google credentials, cookies, management URL, event ID or broad calendar contents persisted.",
+  "googleUiReadConfirmed": false,
+  "openedBy": "authorized-Android-VIEW-intent",
+  "newOwnTab": true,
+  "observed": {
+    "ready": "complete",
+    "host": "calendar.google.com",
+    "ownedEventTitleVisible": false,
+    "loginPage": false,
+    "notFoundNoticeVisible": false,
+    "timeAndDateValues": [],
+    "calendarEditor": false,
+    "updatedLocalTimeInDescription": false,
+    "syntheticProfessionalInDescription": false
+  },
+  "remoteDeletionConfirmed": false,
+  "status": "not-confirmed-no-claim-of-deletion",
+  "ownTemporaryTabClosed": true
+}

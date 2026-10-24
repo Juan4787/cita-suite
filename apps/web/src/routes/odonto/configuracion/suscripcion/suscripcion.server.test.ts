@@ -12,15 +12,15 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('$env/dynamic/private', () => ({ env: envState.privateEnv }));
-vi.mock('$lib/server/supabase', () => ({
+vi.mock('$lib/server/platform/supabase', () => ({
 	createSupabaseServerClient: mocks.createSupabaseServerClient,
 	createSupabaseAdminClient: mocks.createSupabaseAdminClient
 }));
-vi.mock('$lib/server/business', () => ({
+vi.mock('$lib/server/access/public/business', () => ({
 	resolveActiveBusiness: mocks.resolveActiveBusiness,
 	demoBusinessContext: mocks.demoBusinessContext
 }));
-vi.mock('$lib/server/messaging', () => ({
+vi.mock('$lib/server/integrations/public/messaging', () => ({
 	getExternalCallbackSiteUrl: () => 'https://app.test'
 }));
 
@@ -86,10 +86,11 @@ const createDbMock = (
 					calls.push({ table, method, args });
 					return q;
 				};
-			for (const method of ['select', 'eq', 'in', 'order', 'limit', 'upsert', 'update', 'insert']) {
+			for (const method of ['select', 'eq', 'in', 'order', 'limit', 'upsert', 'update', 'insert', 'retry']) {
 				q[method] = vi.fn(chain(method));
 			}
-			q.maybeSingle = vi.fn(async () => result);
+			// Like the SDK, the single-row builder can be awaited or configured further.
+			q.maybeSingle = vi.fn(() => q);
 			(q as { then?: unknown }).then = (
 				resolve: (value: unknown) => unknown,
 				reject: (reason: unknown) => unknown
@@ -155,7 +156,11 @@ const makeEvent = (opts: {
 	url?: string;
 	formEntries?: Record<string, string>;
 }) => ({
-	locals: { auth: { access_token: 'token', refresh_token: 'r' } },
+	// As hooks leaves it: the identity Auth verified for this request.
+	locals: {
+		auth: { access_token: 'token', refresh_token: 'r' },
+		verifiedUser: { id: 'owner-1', email: 'duena@mail.com' }
+	},
 	fetch: opts.fetchMock,
 	cookies: {},
 	url: new URL(opts.url ?? PAGE_URL),
@@ -174,6 +179,27 @@ beforeEach(() => {
 });
 
 describe('action subscribe', () => {
+	it('usa como pagador la identidad que hooks ya verificó, sin volver a pedirla a Auth', async () => {
+		const server = createDbMock();
+		const admin = createDbMock({
+			mp_subscriptions: [{ data: [], error: null }, { error: null }]
+		});
+		mocks.createSupabaseServerClient.mockResolvedValue(server.client);
+		mocks.createSupabaseAdminClient.mockResolvedValue(admin.client);
+		mocks.resolveActiveBusiness.mockResolvedValue(ownerContext());
+		const { fetchMock, requests } = createMpFetch([
+			[
+				'/preapproval',
+				{ status: 201, body: { id: 'pre-9', status: 'pending', init_point: 'https://mp.test/init/pre-9' } }
+			]
+		]);
+
+		await expect(actions.subscribe(makeEvent({ fetchMock }) as never)).rejects.toMatchObject({ status: 303 });
+
+		expect(requests[0].body).toMatchObject({ payer_email: 'duena@mail.com' });
+		expect(server.client.auth.getUser).not.toHaveBeenCalled();
+	});
+
 	it('crea el preapproval con el contrato acordado y redirige a init_point', async () => {
 		const server = createDbMock();
 		// 1) chequeo de suscripción existente (vacío) 2) upsert del mapeo
@@ -309,7 +335,7 @@ describe('action subscribe', () => {
 		expect(requests).toHaveLength(0);
 		expect(log).toHaveBeenCalledWith(
 			'Error validando rate limit de suscripción MP',
-			expect.any(Error)
+			{}
 		);
 		log.mockRestore();
 	});
@@ -868,6 +894,46 @@ describe('action cancel', () => {
 });
 
 describe('load', () => {
+	type SubscriptionPage = { mpSubscription: unknown; mpSubscriptionUnavailable?: boolean; grants: unknown };
+
+	it('dice que no pudo comprobar la suscripción en vez de ofrecer suscribirse cuando no pudo leerla', async () => {
+		const server = createDbMock({ access_grants: [{ data: [], error: null }] });
+		const admin = createDbMock({ mp_subscriptions: [{ data: null, error: { message: 'synthetic read failure' } }] });
+		mocks.createSupabaseServerClient.mockResolvedValue(server.client);
+		mocks.createSupabaseAdminClient.mockResolvedValue(admin.client);
+		mocks.resolveActiveBusiness.mockResolvedValue(ownerContext());
+		const { fetchMock } = createMpFetch([]);
+
+		const data = (await load(makeEvent({ fetchMock }) as never)) as SubscriptionPage;
+
+		expect(data).toMatchObject({ mpSubscription: null, mpSubscriptionUnavailable: true });
+	});
+
+	it('sin cliente de servicio tampoco presenta la suscripción como inexistente', async () => {
+		const server = createDbMock({ access_grants: [{ data: [], error: null }] });
+		mocks.createSupabaseServerClient.mockResolvedValue(server.client);
+		mocks.createSupabaseAdminClient.mockRejectedValue(new Error('synthetic unavailable admin client'));
+		mocks.resolveActiveBusiness.mockResolvedValue(ownerContext());
+		const { fetchMock } = createMpFetch([]);
+
+		const data = (await load(makeEvent({ fetchMock }) as never)) as SubscriptionPage;
+
+		expect(data).toMatchObject({ mpSubscription: null, mpSubscriptionUnavailable: true });
+	});
+
+	it('distingue un historial de pagos que no pudo leer de uno vacío', async () => {
+		const server = createDbMock({ access_grants: [{ data: null, error: { message: 'synthetic read failure' } }] });
+		const admin = createDbMock({ mp_subscriptions: [{ data: [], error: null }] });
+		mocks.createSupabaseServerClient.mockResolvedValue(server.client);
+		mocks.createSupabaseAdminClient.mockResolvedValue(admin.client);
+		mocks.resolveActiveBusiness.mockResolvedValue(ownerContext());
+		const { fetchMock } = createMpFetch([]);
+
+		const data = (await load(makeEvent({ fetchMock }) as never)) as SubscriptionPage;
+
+		expect(data).toMatchObject({ grants: null, mpSubscriptionUnavailable: false });
+	});
+
 	it('con ?mp=retorno confirma contra MP y acredita el primer cobro idempotentemente', async () => {
 		const server = createDbMock({ access_grants: [{ data: [], error: null }] });
 		const admin = createDbMock({
@@ -950,6 +1016,7 @@ describe('load', () => {
 		expect(data.mpSubscription?.status).toBe('authorized');
 		// Tras acreditar se refresca el contexto para mostrar el acceso al día.
 		expect(mocks.resolveActiveBusiness).toHaveBeenCalledTimes(2);
+		expect(mocks.resolveActiveBusiness).toHaveBeenLastCalledWith(expect.objectContaining({ membershipCache: 'fresh' }));
 	});
 
 	it('con ?mp=retorno refresca el contexto aunque el webhook haya acreditado primero (duplicado)', async () => {
@@ -1001,8 +1068,10 @@ describe('load', () => {
 		expect(data.mpReturn.creditedNow).toBe(false);
 		expect(data.mpReturn.subscriptionStatus).toBe('authorized');
 		// Aun sin acreditar acá, el contexto se refresca para mostrar el acceso
-		// que el webhook ya activó.
+		// que el webhook ya activó: una lectura nueva, no la de antes del pago que
+		// el pedido ya tiene.
 		expect(mocks.resolveActiveBusiness).toHaveBeenCalledTimes(2);
+		expect(mocks.resolveActiveBusiness).toHaveBeenLastCalledWith(expect.objectContaining({ membershipCache: 'fresh' }));
 	});
 
 	it('sin retorno devuelve la suscripción relevante y el precio configurado', async () => {

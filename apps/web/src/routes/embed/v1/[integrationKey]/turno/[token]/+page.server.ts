@@ -1,13 +1,15 @@
+import { createSupabaseAdminClient } from '$lib/server/platform/supabase';
 import { error, redirect } from '@sveltejs/kit';
-import { resolveBookingIntegrationRequest } from '$lib/server/booking-integration-request';
-import { loadPublicAppointmentByToken } from '$lib/server/public-appointments';
+import { resolveBookingIntegrationRequest } from '$lib/server/sites/public/booking-integration-request';
+import { loadPublicAppointmentByToken } from '$lib/server/scheduling/public/public-appointments';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
     const { params, setHeaders, url } = event;
     setHeaders({ 'cache-control': 'no-store' });
     if (!/^[a-f0-9]{64}$/.test(params.token)) error(404, 'No encontramos ese turno. Revisá el enlace que recibiste.');
-    const { supabase, integration, embed } = await resolveBookingIntegrationRequest(event);
+    const { integration, embed } = await resolveBookingIntegrationRequest(event);
+    const supabase = await createSupabaseAdminClient('odonto', event.fetch);
     if (!integration) error(404, 'Este enlace de reserva no está disponible.');
     const appointment = await loadPublicAppointmentByToken(supabase, params.token, new Date(), integration.id);
     if (!appointment) error(404, 'No encontramos ese turno. Revisá el enlace que recibiste.');

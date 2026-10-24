@@ -1,0 +1,46 @@
+{
+  "at": "2026-10-24T13:11:47.995729+00:00",
+  "repository": "Juan4787/dashboard",
+  "id": 1115936156,
+  "nodeId": "R_kgDOQoPVnA",
+  "visibility": "public",
+  "defaultBranch": "main",
+  "permissions": {
+    "admin": true,
+    "maintain": true,
+    "push": true,
+    "triage": true,
+    "pull": true
+  },
+  "heads": {
+    "agent/configuracion-consultorio-y-servicios": "7ac9fe744b0acdc4c8663a7d6becc779b02671a2",
+    "backup/main-20260824": "c98db29f5cd62ed5c2563a15d42e6331df387275",
+    "codex/cita-suite-branding-public-links": "991f5aa3f836456088f822caed72ac1b9b4a76ae",
+    "codex/fix-schedule-input-and-push-reminders": "c4a13fdaa07f5ca9aa73f664c9e8676ec48d859f",
+    "codex/role-authorization-security": "ce7534d0e185755bc4d159aed59dfe54f099014e",
+    "feature/perfiles-profesionales-pendientes": "bd33b56323e65e5fd4d8bd9ecae2b72129a56782",
+    "main": "313355a4403e850379ace72bb4f37cd1c7952142",
+    "prelaunch/cloudflare-20260830": "aac0acafc3ca4f5a8a15f563a305e9daa8d0c7c2",
+    "respaldo-pre-cambio-radical": "d516aadc222d7379df49fb738a091e4ae5075942",
+    "respaldo-pre-limpieza": "502e2a780f050752af178f13880cbd6a9d7d0cb1"
+  },
+  "protectedBranches": [],
+  "classicalHooks": [],
+  "rulesets": [],
+  "tags": {
+    "prelaunch-cloudflare-b1a35ff": "b1a35ff519442b42fb95b99a4f0978f947f1660b",
+    "prelaunch-cloudflare-034ecbd": "034ecbdd0548e1fe45806adcb0efc4747fa4ebf6"
+  },
+  "openIssuesAndPrs": 1,
+  "actions": {
+    "enabled": true,
+    "allowed_actions": "all",
+    "sha_pinning_required": false
+  },
+  "workflowPermissions": {
+    "default_workflow_permissions": "write",
+    "can_approve_pull_request_reviews": false
+  },
+  "targetAvailable404": true,
+  "scope": "Readonly own principal identity baseline, sanitized. Classical hooks list is not a list of installed GitHub Apps. No ref, name, permission, secret or deployment changed."
+}

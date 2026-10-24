@@ -14,7 +14,17 @@ const PUBLIC_PATIENT_E2E_PREFIX = 'Pruebaautomatizada';
 // PostgREST recibe el comodín SQL como `%25` en la URL. El `*` no es un
 // comodín para estos filtros y podía dejar profesionales sintéticos huérfanos
 // después de una corrida completa.
-const E2E_LIKE = 'E2E%25';
+const fixtureSuffix = uniqueSuffix();
+const E2E_LIKE = 'E2E%25' + fixtureSuffix;
+const publicPatientLike = PUBLIC_PATIENT_E2E_PREFIX + '%25' + publicPatientMarker(fixtureSuffix);
+
+const fixtureBusinessId = () => {
+	const id = process.env.CITA_SUITE_TEST_BUSINESS_ID;
+	if (!id || !/^[a-f0-9-]{36}$/i.test(id)) throw new Error('A dedicated CITA_SUITE_TEST_BUSINESS_ID is required before fixture mutations.');
+	return id;
+};
+
+const scopedFixturePath = (value: string) => `${value}${value.includes('?') ? '&' : '?'}business_id=eq.${fixtureBusinessId()}`;
 
 const readEnvFile = () => {
 	let current = process.cwd();
@@ -56,7 +66,7 @@ const cleanupRecentHeadlessBookingAttempts = async () => {
 	if (!url || !key) return;
 	const since = encodeURIComponent(new Date(Date.now() - 15 * 60_000).toISOString());
 	const response = await fetch(
-		`${url}/rest/v1/public_booking_attempts?action=eq.booking_create&created_at=gte.${since}&user_agent=ilike.%25HeadlessChrome%25`,
+		`${url}/rest/v1/public_booking_attempts?business_id=eq.${fixtureBusinessId()}&action=eq.booking_create&created_at=gte.${since}&user_agent=ilike.%25HeadlessChrome%25`,
 		{
 			method: 'DELETE',
 			headers: {
@@ -98,44 +108,43 @@ const restGetSingle = async <T>(path: string): Promise<T> => {
 
 const restGetMany = async <T>(path: string): Promise<T[]> => {
 	const { url, key } = restEnv();
-	const response = await fetch(`${url}/rest/v1/${path}`, { headers: restHeaders(key) });
+	const response = await fetch(`${url}/rest/v1/${scopedFixturePath(path)}`, { headers: restHeaders(key) });
 	if (!response.ok) throw new Error(`GET ${path} falló: ${await response.text()}`);
 	return (await response.json()) as T[];
 };
 
-const restDelete = async (path: string, { optional = false } = {}) => {
+const restDelete = async (path: string) => {
 	const { url, key } = restEnv();
-	const response = await fetch(`${url}/rest/v1/${path}`, {
+	const response = await fetch(`${url}/rest/v1/${scopedFixturePath(path)}`, {
 		method: 'DELETE',
 		headers: { ...restHeaders(key), prefer: 'return=minimal' }
 	});
-	if (!response.ok && !optional) throw new Error(`DELETE ${path} falló: ${await response.text()}`);
+	if (!response.ok) throw new Error(`DELETE ${path} falló: ${await response.text()}`);
 };
 
-// Borra TODO lo marcado "E2E " que este flujo crea en el negocio real (profesionales,
-// servicios, reglas, asignaciones, vínculos, turnos y pacientes). Idempotente: limpia
-// también corridas previas. La service_role se usa sólo dentro de este proceso.
+// Cleanup is limited to this run's suffix and its explicitly selected synthetic
+// business. Other tenants and other runs' E2E records are never cleanup targets.
 const cleanupE2EFixtures = async () => {
 	const profs = await restGetMany<{ id: string }>(`professionals?name=ilike.${E2E_LIKE}&select=id`);
 	const patients = [
 		...(await restGetMany<{ id: string }>(`patients?full_name=ilike.${E2E_LIKE}&select=id`)),
 		...(await restGetMany<{ id: string }>(
-			`patients?full_name=ilike.${PUBLIC_PATIENT_E2E_PREFIX}%25&select=id`
+			`patients?full_name=ilike.${publicPatientLike}&select=id`
 		))
 	];
 	const profIds = profs.map((p) => p.id);
 	const patientIds = patients.map((p) => p.id);
 	const inList = (ids: string[]) => `(${ids.join(',')})`;
-	if (profIds.length) await restDelete(`appointments?professional_id=in.${inList(profIds)}`, { optional: true });
-	if (patientIds.length) await restDelete(`appointments?patient_id=in.${inList(patientIds)}`, { optional: true });
-	if (profIds.length) await restDelete(`availability_rules?professional_id=in.${inList(profIds)}`, { optional: true });
-	if (profIds.length) await restDelete(`professional_services?professional_id=in.${inList(profIds)}`, { optional: true });
-	if (patientIds.length) await restDelete(`professional_patient_links?patient_id=in.${inList(patientIds)}`, { optional: true });
-	if (profIds.length) await restDelete(`professional_patient_links?professional_id=in.${inList(profIds)}`, { optional: true });
-	await restDelete(`services?name=ilike.${E2E_LIKE}`, { optional: true });
-	await restDelete(`professionals?name=ilike.${E2E_LIKE}`, { optional: true });
-	await restDelete(`patients?full_name=ilike.${E2E_LIKE}`, { optional: true });
-	await restDelete(`patients?full_name=ilike.${PUBLIC_PATIENT_E2E_PREFIX}%25`, { optional: true });
+	if (profIds.length) await restDelete(`appointments?professional_id=in.${inList(profIds)}`);
+	if (patientIds.length) await restDelete(`appointments?patient_id=in.${inList(patientIds)}`);
+	if (profIds.length) await restDelete(`availability_rules?professional_id=in.${inList(profIds)}`);
+	if (profIds.length) await restDelete(`professional_services?professional_id=in.${inList(profIds)}`);
+	if (patientIds.length) await restDelete(`professional_patient_links?patient_id=in.${inList(patientIds)}`);
+	if (profIds.length) await restDelete(`professional_patient_links?professional_id=in.${inList(profIds)}`);
+	await restDelete(`services?name=ilike.${E2E_LIKE}`);
+	await restDelete(`professionals?name=ilike.${E2E_LIKE}`);
+	await restDelete(`patients?full_name=ilike.${E2E_LIKE}`);
+	await restDelete(`patients?full_name=ilike.${publicPatientLike}`);
 };
 
 const restInsertSingle = async <T>(table: string, row: Record<string, unknown>, select = 'id'): Promise<T> => {
@@ -166,9 +175,10 @@ const createPublicBookingFixtures = async (input: {
 	// id (UUID) — igual que getPublicBusinessBySlug en la app. Resolvemos por la
 	// columna correcta para no asumir que siempre hay slug.
 	const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(input.slug);
-	const business = await restGetSingle<{ id: string }>(
-		`businesses?${isUuid ? 'id' : 'slug'}=eq.${encodeURIComponent(input.slug)}&select=id`
+	const business = await restGetSingle<{ id: string; timezone: string }>(
+		`businesses?${isUuid ? 'id' : 'slug'}=eq.${encodeURIComponent(input.slug)}&select=id,timezone`
 	);
+	expect(business.id).toBe(fixtureBusinessId());
 
 	const professional = await restInsertSingle<{ id: string }>('professionals', {
 		business_id: business.id,
@@ -247,7 +257,7 @@ const createPublicBookingFixtures = async (input: {
 		}
 	}
 
-	return { businessId: business.id, serviceId: service.id, professionalId: professional.id };
+	return { businessId: business.id, timezone: business.timezone, serviceId: service.id, professionalId: professional.id };
 };
 
 const login = async (page: import('@playwright/test').Page) => {
@@ -259,7 +269,7 @@ const login = async (page: import('@playwright/test').Page) => {
 };
 
 const section = (page: import('@playwright/test').Page, text: string) =>
-	page.locator('section, div.ux-card').filter({ hasText: text }).first();
+	page.locator('section, div.ux-card').filter({ has: page.getByRole('heading', { name: text, exact: true }) }).last();
 
 const openDayAppointmentsPanel = async (page: import('@playwright/test').Page) => {
 	const heading = page.getByRole('heading', { name: /Turnos del día|Resultado de búsqueda/ });
@@ -278,14 +288,14 @@ test.describe('Dental Suite - flujo operativo completo', () => {
 		'Definí E2E_EMAIL/E2E_PASSWORD o CITA_SUITE_TEST_EMAIL/CITA_SUITE_TEST_PASSWORD para correr el flujo completo.'
 	);
 
-	// Limpia las fixtures "E2E " antes y después: deja el negocio real sin basura de prueba.
+	// Only this run's explicitly scoped synthetic fixtures are cleaned.
 	test.beforeAll(cleanupE2EFixtures);
 	test.afterAll(cleanupE2EFixtures);
 
 	test('profesional, servicio, disponibilidad, reserva pública, agenda y protección contra solapamiento', async ({ page }) => {
 		test.setTimeout(300_000);
 
-		const suffix = uniqueSuffix();
+		const suffix = fixtureSuffix;
 		const professionalName = `E2E Profesional ${suffix}`;
 		const unavailableProfessionalName = `E2E Sin horarios ${suffix}`;
 		const unassignedProfessionalName = `E2E No ofrece ${suffix}`;
@@ -304,12 +314,12 @@ test.describe('Dental Suite - flujo operativo completo', () => {
 		await expect(page.getByText('Panel del consultorio')).toHaveCount(0);
 
 		await page.goto('/odonto/configuracion/comunicacion');
-		const linkText = (await page.locator('p').filter({ hasText: '/reservar/' }).first().textContent())?.trim();
+		const linkText = await page.getByLabel('Enlace para pacientes').inputValue();
 		expect(linkText).toBeTruthy();
 		const bookingUrl = new URL(linkText ?? '', page.url());
 		const bookingSlug = bookingUrl.pathname.split('/').filter(Boolean).at(-1);
 		expect(bookingSlug).toBeTruthy();
-		await createPublicBookingFixtures({
+		const publicFixture = await createPublicBookingFixtures({
 			slug: bookingSlug ?? '',
 			professionalName,
 			unavailableProfessionalName,
@@ -331,7 +341,24 @@ test.describe('Dental Suite - flujo operativo completo', () => {
 		await expect(professionalStep.getByText(unavailableProfessionalName)).toHaveCount(0);
 		await expect(professionalStep.getByText(unassignedProfessionalName)).toHaveCount(0);
 		await professionalStep.getByRole('link', { name: new RegExp(professionalName) }).click();
-		await section(page, 'Elegí un día').getByRole('link').first().click();
+		// This scenario deliberately tests 09:00 and its overlap. Today's 09:00
+		// legitimately disappears after the configured notice period; select a
+		// future day without weakening that rule or changing the application clock.
+		const dateParts = new Intl.DateTimeFormat('en', {
+			timeZone: publicFixture.timezone, year: 'numeric', month: '2-digit', day: '2-digit'
+		}).formatToParts(new Date());
+		const today = ['year', 'month', 'day'].map(type => dateParts.find(part => part.type === type)?.value ?? '').join('-');
+		expect(today).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+		const dayLinks = section(page, 'Elegí un día').getByRole('link');
+		// The loading skeleton uses the same heading, but has no day links.
+		// Locator evaluation does not wait for navigation/data to finish.
+		await expect(dayLinks.first()).toBeVisible();
+		const futureDayIndex = await dayLinks.evaluateAll((links, today) => links.findIndex(link => {
+			const date = new URL(link.getAttribute('href') ?? '', window.location.href).searchParams.get('date');
+			return date !== null && date > today;
+		}), today);
+		expect(futureDayIndex, 'El fixture debe ofrecer un día futuro completo.').toBeGreaterThanOrEqual(0);
+		await dayLinks.nth(futureDayIndex).click();
 		await section(page, 'Elegí un horario').getByRole('link', { name: '09:00' }).click();
 
 		const selectedBookingUrl = new URL(page.url());
@@ -344,7 +371,10 @@ test.describe('Dental Suite - flujo operativo completo', () => {
 
 		await page.getByLabel('Nombre y apellido').fill(patientName);
 		await page.getByLabel('Teléfono').fill(patientPhone);
-		await page.getByLabel('Correo electrónico (opcional)').fill(`paciente-${suffix}@example.com`);
+		const optionalEmail = page.getByLabel(/^Correo electrónico/);
+		await expect(optionalEmail).not.toHaveAttribute('required');
+		await optionalEmail.fill(`paciente-${suffix}@example.com`);
+		await page.getByLabel('Obra social y plan', { exact: true }).fill('Particular de prueba');
 		await page.getByRole('button', { name: 'Confirmar reserva' }).click();
 		await expect(page).toHaveURL(/\/turno\/[^/?]+\?creado=1$/, { timeout: 60_000 });
 		await expect(page.getByRole('heading', { name: 'Tu turno quedó reservado' })).toBeVisible();

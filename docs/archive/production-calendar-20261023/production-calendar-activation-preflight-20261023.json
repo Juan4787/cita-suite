@@ -1,0 +1,11 @@
+{
+  "at": "2026-10-23T15:26:08.853Z",
+  "scope": "Read-only aggregate states; no identifiers, Google account, ciphertext, credentials or appointment content selected",
+  "eventsByStatus": {
+    "active": 1
+  },
+  "duePending": 0,
+  "activeConnections": 1,
+  "connectionsWithToken": 1,
+  "legacyEntrypointsEnabled": false
+}

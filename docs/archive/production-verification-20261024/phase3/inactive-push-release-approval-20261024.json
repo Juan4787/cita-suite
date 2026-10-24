@@ -1,0 +1,72 @@
+{
+  "at": "2026-10-24T13:10:59.633Z",
+  "releaseRun": 40096001763,
+  "revision": "0851de59ed7971debe2514e6d6851d142bbc5766",
+  "artifactRun": 40095722950,
+  "rollbackRun": 40095847239,
+  "runId": "475e7921-b8c2-47b6-b5a1-7f0ff11fd06b",
+  "steps": 20,
+  "profiles": [
+    {
+      "profile": "integration",
+      "passed": 44,
+      "skipped": 0,
+      "flaky": 0,
+      "unexpected": 0,
+      "errors": 0
+    },
+    {
+      "profile": "integration-artifact",
+      "passed": 44,
+      "skipped": 0,
+      "flaky": 0,
+      "unexpected": 0,
+      "errors": 0
+    },
+    {
+      "profile": "integration-rollback",
+      "passed": 44,
+      "skipped": 0,
+      "flaky": 0,
+      "unexpected": 0,
+      "errors": 0
+    }
+  ],
+  "stage": {
+    "scope": "Deployed staging: Cloudflare Workers Free and Supabase Free. External Google-account login is not certified by this profile.",
+    "purpose": "candidate",
+    "sourceRevision": "0851de59ed7971debe2514e6d6851d142bbc5766",
+    "revision": "0851de59ed7971debe2514e6d6851d142bbc5766",
+    "appOrigin": "https://cita-suite-staging.cita-suite.workers.dev",
+    "nataliaOrigin": "https://natalia-frutos-staging.cita-suite.workers.dev",
+    "clientFiles": 130,
+    "nataliaFiles": 35,
+    "contentSecurity": {
+      "connect": [
+        "https://ikaudqoilclfnztkxubz.supabase.co",
+        "wss://ikaudqoilclfnztkxubz.supabase.co"
+      ],
+      "images": [
+        "https://ikaudqoilclfnztkxubz.supabase.co"
+      ]
+    },
+    "anonymousRelations": 61,
+    "bookings": [
+      {
+        "name": "desktop",
+        "nativeSameTab": true,
+        "recoveryWithoutDuplicate": true,
+        "cancelled": true
+      },
+      {
+        "name": "mobile",
+        "nativeSameTab": true,
+        "recoveryWithoutDuplicate": true,
+        "cancelled": true
+      }
+    ],
+    "finishedAt": "2026-10-24T13:09:39.308Z"
+  },
+  "canonicalSourceAdvancedFrom": "cb8a9bafdf9a07a6b8977e841fa3f401061fda4f",
+  "userIndexAndHeadUntouched": true
+}

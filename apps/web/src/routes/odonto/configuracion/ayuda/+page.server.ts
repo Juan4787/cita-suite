@@ -1,3 +1,4 @@
+import { logServerFailure } from '$lib/server/platform/logging';
 import { env } from '$env/dynamic/private';
 import {
 	accountAssistanceErrorMessage,
@@ -7,19 +8,18 @@ import {
 	loadAccountAssistanceView,
 	revokeAccountAssistance,
 	safeAssistanceReturnTo
-} from '$lib/server/account-assistance';
-import { demoBusinessContext, resolveActiveBusiness } from '$lib/server/business';
+} from '$lib/server/access/public/account-assistance';
+import { demoBusinessContext, resolveActiveBusiness } from '$lib/server/access/public/business';
 import {
 	createSupabaseAdminClient,
 	createSupabaseServerClient,
-	getEmailFromAccessToken,
 	isMasterEmail
-} from '$lib/server/supabase';
+} from '$lib/server/platform/supabase';
+import { verifiedRequestEmail } from '$lib/server/access/public/odonto-context';
 import { error as kitError, fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 
-const isMasterSession = (locals: App.Locals) =>
-	isMasterEmail(getEmailFromAccessToken(locals.auth?.access_token));
+const isMasterSession = (locals: App.Locals) => isMasterEmail(verifiedRequestEmail(locals));
 
 const loadContext = async ({
 	locals,
@@ -63,14 +63,20 @@ export const load: PageServerLoad = async ({ locals, fetch, cookies }) => {
 	if (context.role === 'professional') throw redirect(303, '/odonto/mis-turnos');
 	if (context.role !== 'owner' && context.role !== 'admin') throw redirect(303, '/odonto/agenda');
 
-	const assistance = await loadAccountAssistanceView({
-		supabase,
-		businessId: context.business.id,
-		role: context.role,
-		timeZone: context.business.timezone,
-		canUseBusiness: context.access.canUseBusiness,
-		isAssisting: Boolean(context.assistance)
-	});
+	let assistance;
+	try {
+		assistance = await loadAccountAssistanceView({
+			supabase,
+			businessId: context.business.id,
+			role: context.role,
+			timeZone: context.business.timezone,
+			canUseBusiness: context.access.canUseBusiness,
+			isAssisting: Boolean(context.assistance)
+		});
+	} catch (assistanceError) {
+		logServerFailure('Error cargando ayuda para configurar', assistanceError);
+		throw kitError(503, 'No pudimos cargar la ayuda para configurar. Volvé a intentar.');
+	}
 
 	return {
 		context,
@@ -102,7 +108,7 @@ export const actions: Actions = {
 			const admin = await createSupabaseAdminClient('odonto', fetch);
 			await activateAccountAssistance({ supabase, admin, businessId: context.business.id });
 		} catch (error) {
-			console.error('Error activando ayuda para configurar', error);
+			logServerFailure('Error activando ayuda para configurar', error);
 			return fail(500, { message: accountAssistanceErrorMessage(error) });
 		}
 
@@ -126,7 +132,7 @@ export const actions: Actions = {
 			}
 			await revokeAccountAssistance({ supabase, businessId: context.business.id });
 		} catch (error) {
-			console.error('Error revocando ayuda para configurar', error);
+			logServerFailure('Error revocando ayuda para configurar', error);
 			return fail(500, { message: accountAssistanceErrorMessage(error) });
 		}
 
@@ -156,7 +162,7 @@ export const actions: Actions = {
 				grantId
 			});
 		} catch (error) {
-			console.error('Error cerrando aviso de ayuda para configurar', error);
+			logServerFailure('Error cerrando aviso de ayuda para configurar', error);
 			return fail(500, { message: accountAssistanceErrorMessage(error) });
 		}
 

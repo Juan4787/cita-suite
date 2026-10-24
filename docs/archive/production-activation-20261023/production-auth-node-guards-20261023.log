@@ -1,0 +1,851 @@
+TAP version 13
+# Subtest: objects of other products in the project are reported apart, never as differences
+ok 1 - objects of other products in the project are reported apart, never as differences
+  ---
+  duration_ms: 4.79669
+  type: 'test'
+  ...
+# Subtest: accepted drift is accepted only as an object production alone holds, by its exact name
+ok 2 - accepted drift is accepted only as an object production alone holds, by its exact name
+  ---
+  duration_ms: 6.414325
+  type: 'test'
+  ...
+# Subtest: every kind of drift on the objects of Cita Suite is reported
+ok 3 - every kind of drift on the objects of Cita Suite is reported
+  ---
+  duration_ms: 0.815929
+  type: 'test'
+  ...
+# Subtest: every relation the API exposes is read with the anonymous key and must be refused
+ok 4 - every relation the API exposes is read with the anonymous key and must be refused
+  ---
+  duration_ms: 14.995233
+  type: 'test'
+  ...
+# Subtest: a relation that answers rows, even none, or another error is reported as exposed
+ok 5 - a relation that answers rows, even none, or another error is reported as exposed
+  ---
+  duration_ms: 0.897014
+  type: 'test'
+  ...
+# Subtest: an API that lists nothing cannot pass as unexposed
+ok 6 - an API that lists nothing cannot pass as unexposed
+  ---
+  duration_ms: 6.934908
+  type: 'test'
+  ...
+# Subtest: public cross-area interfaces are permitted
+ok 7 - public cross-area interfaces are permitted
+  ---
+  duration_ms: 1664.347028
+  type: 'test'
+  ...
+# Subtest: a cross-area private import is rejected
+ok 8 - a cross-area private import is rejected
+  ---
+  duration_ms: 1396.940235
+  type: 'test'
+  ...
+# Subtest: browser code cannot import a server public interface
+ok 9 - browser code cannot import a server public interface
+  ---
+  duration_ms: 1691.589062
+  type: 'test'
+  ...
+# Subtest: a real Svelte component cannot import server code at runtime
+ok 10 - a real Svelte component cannot import server code at runtime
+  ---
+  duration_ms: 1743.323411
+  type: 'test'
+  ...
+# Subtest: runtime dependency cycles are rejected
+ok 11 - runtime dependency cycles are rejected
+  ---
+  duration_ms: 1533.248622
+  type: 'test'
+  ...
+# Subtest: type-only dependency cycles are rejected
+ok 12 - type-only dependency cycles are rejected
+  ---
+  duration_ms: 1239.183427
+  type: 'test'
+  ...
+# Subtest: browser code cannot depend on server implementation types
+ok 13 - browser code cannot depend on server implementation types
+  ---
+  duration_ms: 1215.223538
+  type: 'test'
+  ...
+# Subtest: a cross-area private type import is rejected
+ok 14 - a cross-area private type import is rejected
+  ---
+  duration_ms: 1236.440986
+  type: 'test'
+  ...
+# Subtest: a browser utility cannot bridge into a server public interface
+ok 15 - a browser utility cannot bridge into a server public interface
+  ---
+  duration_ms: 1251.397525
+  type: 'test'
+  ...
+# Subtest: an existing bucket is not adopted or changed by a backup rehearsal
+ok 16 - an existing bucket is not adopted or changed by a backup rehearsal
+  ---
+  duration_ms: 3.726245
+  type: 'test'
+  ...
+# Subtest: separate rehearsals own separate buckets and clean only their own object
+ok 17 - separate rehearsals own separate buckets and clean only their own object
+  ---
+  duration_ms: 1.213418
+  type: 'test'
+  ...
+# Subtest: a data dump is counted by its COPY blocks, with quoted names and escaped newlines
+ok 18 - a data dump is counted by its COPY blocks, with quoted names and escaped newlines
+  ---
+  duration_ms: 2.904856
+  type: 'test'
+  ...
+# Subtest: a restore that lost, added or missed rows or tables is reported
+ok 19 - a restore that lost, added or missed rows or tables is reported
+  ---
+  duration_ms: 0.380467
+  type: 'test'
+  ...
+# Subtest: a stored object that was not downloaded whole is reported
+ok 20 - a stored object that was not downloaded whole is reported
+  ---
+  duration_ms: 0.517124
+  type: 'test'
+  ...
+# Subtest: a restore skips what configures the platform roles and keeps the project settings and roles
+ok 21 - a restore skips what configures the platform roles and keeps the project settings and roles
+  ---
+  duration_ms: 11.388899
+  type: 'test'
+  ...
+# Subtest: the integration CLI reaches its usage validation under the pinned Node runtime
+ok 22 - the integration CLI reaches its usage validation under the pinned Node runtime
+  ---
+  duration_ms: 192.056547
+  type: 'test'
+  ...
+# Subtest: browser diagnostics remove credentials, private booking paths and signed query parameters
+ok 23 - browser diagnostics remove credentials, private booking paths and signed query parameters
+  ---
+  duration_ms: 1.878538
+  type: 'test'
+  ...
+# Subtest: local module version evidence survives without retaining arbitrary query values
+ok 24 - local module version evidence survives without retaining arbitrary query values
+  ---
+  duration_ms: 0.58696
+  type: 'test'
+  ...
+# Subtest: diagnostic text has an explicit bound
+ok 25 - diagnostic text has an explicit bound
+  ---
+  duration_ms: 0.168897
+  type: 'test'
+  ...
+# Subtest: only an actually executed successful browser result closes verification
+ok 26 - only an actually executed successful browser result closes verification
+  ---
+  duration_ms: 1.074342
+  type: 'test'
+  ...
+# Subtest: an empty, omitted or contradictory suite cannot pass verification
+ok 27 - an empty, omitted or contradictory suite cannot pass verification
+  ---
+  duration_ms: 0.54547
+  type: 'test'
+  ...
+# Subtest: failure, interruption, skipped execution and retry cannot be reported as success
+ok 28 - failure, interruption, skipped execution and retry cannot be reported as success
+  ---
+  duration_ms: 0.502704
+  type: 'test'
+  ...
+# Subtest: the mix is 80 % reads and 20 % writes, and a seed always gives the same choices
+ok 29 - the mix is 80 % reads and 20 % writes, and a seed always gives the same choices
+  ---
+  duration_ms: 14.599768
+  type: 'test'
+  ...
+# Subtest: the cookie jar keeps the session like a browser and drops expired cookies
+ok 30 - the cookie jar keeps the session like a browser and drops expired cookies
+  ---
+  duration_ms: 42.847729
+  type: 'test'
+  ...
+# Subtest: only the system answers expected by the plan count as successes
+ok 31 - only the system answers expected by the plan count as successes
+  ---
+  duration_ms: 0.515235
+  type: 'test'
+  ...
+# Subtest: every error keeps its cause: platform page, server status, failed load, refusal, lost session, timeout or network
+ok 32 - every error keeps its cause: platform page, server status, failed load, refusal, lost session, timeout or network
+  ---
+  duration_ms: 107.226553
+  type: 'test'
+  ...
+# Subtest: a hung request fails at its deadline and the virtual user goes on with its work
+ok 33 - a hung request fails at its deadline and the virtual user goes on with its work
+  ---
+  duration_ms: 26.317175
+  type: 'test'
+  ...
+# Subtest: percentiles and the acceptance thresholds of the plan are strict
+ok 34 - percentiles and the acceptance thresholds of the plan are strict
+  ---
+  duration_ms: 1.750346
+  type: 'test'
+  ...
+# Subtest: dates follow the practice zone and requests name the synthetic data of the practice
+ok 35 - dates follow the practice zone and requests name the synthetic data of the practice
+  ---
+  duration_ms: 1.808106
+  type: 'test'
+  ...
+# Subtest: a virtual user logs in once, keeps its session, records only the measured window and cancels what it created
+ok 36 - a virtual user logs in once, keeps its session, records only the measured window and cancels what it created
+  ---
+  duration_ms: 30.305089
+  type: 'test'
+  ...
+# Subtest: public page data is decoded like the SvelteKit client does
+ok 37 - public page data is decoded like the SvelteKit client does
+  ---
+  duration_ms: 16.361634
+  type: 'test'
+  ...
+# Subtest: the public generator reads both entry points, books once every four minutes with a different phone and reports only real refusals
+ok 38 - the public generator reads both entry points, books once every four minutes with a different phone and reports only real refusals
+  ---
+  duration_ms: 148.323698
+  type: 'test'
+  ...
+# Subtest: the abuse checks find free slots like a person and book until the exact refusal, by the fourth attempt
+ok 39 - the abuse checks find free slots like a person and book until the exact refusal, by the fourth attempt
+  ---
+  duration_ms: 169.04761
+  type: 'test'
+  ...
+# Subtest: the cleanup removes only the synthetic owners, by their deterministic ids and emails
+ok 40 - the cleanup removes only the synthetic owners, by their deterministic ids and emails
+  ---
+  duration_ms: 1.66948
+  type: 'test'
+  ...
+# Subtest: a cleanup passes only when it removed the whole scenario, including what the load added
+ok 41 - a cleanup passes only when it removed the whole scenario, including what the load added
+  ---
+  duration_ms: 0.244771
+  type: 'test'
+  ...
+# Subtest: a public booking echoes the hidden fields the page sent, like the confirmation form
+ok 42 - a public booking echoes the hidden fields the page sent, like the confirmation form
+  ---
+  duration_ms: 0.400323
+  type: 'test'
+  ...
+# Subtest: the owners of a seeded run keep the password its measurement derives, in each environment
+ok 43 - the owners of a seeded run keep the password its measurement derives, in each environment
+  ---
+  duration_ms: 1.085508
+  type: 'test'
+  ...
+# Subtest: a profile becomes self and total time per function, without anything but names, files and lines
+ok 44 - a profile becomes self and total time per function, without anything but names, files and lines
+  ---
+  duration_ms: 2.778971
+  type: 'test'
+  ...
+# Subtest: recursion counts a function once per sample in its total time
+ok 45 - recursion counts a function once per sample in its total time
+  ---
+  duration_ms: 0.429292
+  type: 'test'
+  ...
+# Subtest: a device run belongs to one environment and one 12-hex identifier
+ok 46 - a device run belongs to one environment and one 12-hex identifier
+  ---
+  duration_ms: 1.618918
+  type: 'test'
+  ...
+# Subtest: every row the check writes or removes is of its own practice and owner
+ok 47 - every row the check writes or removes is of its own practice and owner
+  ---
+  duration_ms: 3.24114
+  type: 'test'
+  ...
+# Subtest: production credentials cannot implicitly select an E2E environment
+ok 48 - production credentials cannot implicitly select an E2E environment
+  ---
+  duration_ms: 1.352368
+  type: 'test'
+  ...
+# Subtest: demo E2E refuses remote origins and non-demo servers
+ok 49 - demo E2E refuses remote origins and non-demo servers
+  ---
+  duration_ms: 0.334934
+  type: 'test'
+  ...
+# Subtest: local Supabase opt-in refuses a remote SQL connection
+ok 50 - local Supabase opt-in refuses a remote SQL connection
+  ---
+  duration_ms: 0.268968
+  type: 'test'
+  ...
+# Subtest: an unowned receipt cannot trigger Docker inspection or authorize remote fixture use
+ok 51 - an unowned receipt cannot trigger Docker inspection or authorize remote fixture use
+  ---
+  duration_ms: 0.39621
+  type: 'test'
+  ...
+# Subtest: cleanup checks both ownership labels and internal network before removing owned resources
+ok 52 - cleanup checks both ownership labels and internal network before removing owned resources
+  ---
+  duration_ms: 3.622394
+  type: 'test'
+  ...
+# Subtest: foreign containers are preserved and cleanup still examines the remaining owned network
+ok 53 - foreign containers are preserved and cleanup still examines the remaining owned network
+  ---
+  duration_ms: 0.785366
+  type: 'test'
+  ...
+# Subtest: malformed owners make no calls and removal failures cannot report success
+ok 54 - malformed owners make no calls and removal failures cannot report success
+  ---
+  duration_ms: 0.344607
+  type: 'test'
+  ...
+# Subtest: the complete service stack fits ordinary connections with superuser capacity preserved
+ok 55 - the complete service stack fits ordinary connections with superuser capacity preserved
+  ---
+  duration_ms: 1.043215
+  type: 'test'
+  ...
+# Subtest: an unlimited pool or independently increased service budget is rejected
+ok 56 - an unlimited pool or independently increased service budget is rejected
+  ---
+  duration_ms: 0.8646
+  type: 'test'
+  ...
+# Subtest: styles ask only for the Inter weights the application loads
+ok 57 - styles ask only for the Inter weights the application loads
+  ---
+  duration_ms: 36.287395
+  type: 'test'
+  ...
+# Subtest: views draw their icons instead of typing glyphs
+ok 58 - views draw their icons instead of typing glyphs
+  ---
+  duration_ms: 19.810843
+  type: 'test'
+  ...
+# Subtest: headings have no kicker or eyebrow above them
+ok 59 - headings have no kicker or eyebrow above them
+  ---
+  duration_ms: 20.614871
+  type: 'test'
+  ...
+# Subtest: a baseline cannot stand in for the candidate, even with an explicit baseline revision
+ok 60 - a baseline cannot stand in for the candidate, even with an explicit baseline revision
+  ---
+  duration_ms: 1.58258
+  type: 'test'
+  ...
+# Subtest: rollback compatibility requires the exact distinct baseline and its production bundle
+ok 61 - rollback compatibility requires the exact distinct baseline and its production bundle
+  ---
+  duration_ms: 0.624706
+  type: 'test'
+  ...
+# Subtest: Natalia comparison requires all cold loads with actual transfer and keeps hydration distinct from JS execution
+ok 62 - Natalia comparison requires all cold loads with actual transfer and keeps hydration distinct from JS execution
+  ---
+  duration_ms: 7.128423
+  type: 'test'
+  ...
+# Subtest: added JS, altered bytecode or extra transfer cannot be reported as unchanged
+ok 63 - added JS, altered bytecode or extra transfer cannot be reported as unchanged
+  ---
+  duration_ms: 1.937972
+  type: 'test'
+  ...
+# Subtest: a declared change is accepted only with its reason, its exact artifact and a consistent transfer
+ok 64 - a declared change is accepted only with its reason, its exact artifact and a consistent transfer
+  ---
+  duration_ms: 3.121866
+  type: 'test'
+  ...
+# Subtest: development, candidate and rollback profiles preserve separate native booking evidence
+ok 65 - development, candidate and rollback profiles preserve separate native booking evidence
+  ---
+  duration_ms: 1.635063
+  type: 'test'
+  ...
+# Subtest: a custom evidence directory cannot escape verification or use the shared root
+ok 66 - a custom evidence directory cannot escape verification or use the shared root
+  ---
+  duration_ms: 0.908503
+  type: 'test'
+  ...
+# Subtest: each required file and the final summary must agree on executed successful tests
+ok 67 - each required file and the final summary must agree on executed successful tests
+  ---
+  duration_ms: 2.553922
+  type: 'test'
+  ...
+# Subtest: empty files, skips, todos, cancelled or failed tests cannot produce a green guard suite
+ok 68 - empty files, skips, todos, cancelled or failed tests cannot produce a green guard suite
+  ---
+  duration_ms: 2.850982
+  type: 'test'
+  ...
+# Subtest: omitted, duplicated, unexpected or truncated file summaries cannot pass
+ok 69 - omitted, duplicated, unexpected or truncated file summaries cannot pass
+  ---
+  duration_ms: 1.444085
+  type: 'test'
+  ...
+# Subtest: a forged cumulative count or pass count is rejected
+ok 70 - a forged cumulative count or pass count is rejected
+  ---
+  duration_ms: 0.576044
+  type: 'test'
+  ...
+# Subtest: actual Node receipts reject empty files and skipped tests even though Node exits successfully
+ok 71 - actual Node receipts reject empty files and skipped tests even though Node exits successfully
+  ---
+  duration_ms: 569.439882
+  type: 'test'
+  ...
+# Subtest: explicit later authorization preserves every earlier approved segment
+ok 72 - explicit later authorization preserves every earlier approved segment
+  ---
+  duration_ms: 1.816792
+  type: 'test'
+  ...
+# Subtest: altered plan, execution, continuity or either amendment is rejected
+ok 73 - altered plan, execution, continuity or either amendment is rejected
+  ---
+  duration_ms: 1.856425
+  type: 'test'
+  ...
+# Subtest: missing, repeated or reordered amendment headings are rejected
+ok 74 - missing, repeated or reordered amendment headings are rejected
+  ---
+  duration_ms: 0.64025
+  type: 'test'
+  ...
+# Subtest: a third amendment names the document it was appended to, and no earlier segment can change under it
+ok 75 - a third amendment names the document it was appended to, and no earlier segment can change under it
+  ---
+  duration_ms: 1.08488
+  type: 'test'
+  ...
+# Subtest: changing or dropping an earlier amendment receipt cannot pass as a later authorization
+ok 76 - changing or dropping an earlier amendment receipt cannot pass as a later authorization
+  ---
+  duration_ms: 0.440096
+  type: 'test'
+  ...
+# Subtest: preserves OOM/connection evidence without raw errors, logs or credentials
+ok 77 - preserves OOM/connection evidence without raw errors, logs or credentials
+  ---
+  duration_ms: 4.635185
+  type: 'test'
+  ...
+# Subtest: a functionally green run cannot conceal connection exhaustion or missing platform evidence
+ok 78 - a functionally green run cannot conceal connection exhaustion or missing platform evidence
+  ---
+  duration_ms: 1.476797
+  type: 'test'
+  ...
+# Subtest: missing diagnostic sources are explicitly unavailable and never fabricated healthy
+ok 79 - missing diagnostic sources are explicitly unavailable and never fabricated healthy
+  ---
+  duration_ms: 0.42766
+  type: 'test'
+  ...
+# Subtest: a browser pass cannot conceal the observed workerd SQLite crash or a V8 memory failure
+ok 80 - a browser pass cannot conceal the observed workerd SQLite crash or a V8 memory failure
+  ---
+  duration_ms: 1.548891
+  type: 'test'
+  ...
+# Subtest: snapshot preparation itself refuses a changed approved plan before creating Git state or evidence
+ok 81 - snapshot preparation itself refuses a changed approved plan before creating Git state or evidence
+  ---
+  duration_ms: 80.386144
+  type: 'test'
+  ...
+# Subtest: public source snapshots exclude tracked environment variants while preserving public examples
+ok 82 - public source snapshots exclude tracked environment variants while preserving public examples
+  ---
+  duration_ms: 446.09503
+  type: 'test'
+  ...
+# Subtest: the production session is the São Paulo pooler of the project, always on the session port
+ok 83 - the production session is the São Paulo pooler of the project, always on the session port
+  ---
+  duration_ms: 2.099872
+  type: 'test'
+  ...
+# Subtest: staging, other projects, regions, hosts, databases and malformed values are refused without repeating them
+ok 84 - staging, other projects, regions, hosts, databases and malformed values are refused without repeating them
+  ---
+  duration_ms: 0.793686
+  type: 'test'
+  ...
+# Subtest: the private env file is read as KEY=value lines, and its connection is checked
+ok 85 - the private env file is read as KEY=value lines, and its connection is checked
+  ---
+  duration_ms: 4.090007
+  type: 'test'
+  ...
+# Subtest: the API keys must be of the production project and of their own roles
+ok 86 - the API keys must be of the production project and of their own roles
+  ---
+  duration_ms: 0.873225
+  type: 'test'
+  ...
+# Subtest: the production deployment accepts only the production app and scheduler
+ok 87 - the production deployment accepts only the production app and scheduler
+  ---
+  duration_ms: 2.074165
+  type: 'test'
+  ...
+# Subtest: a deployment that would run without a required secret is refused
+ok 88 - a deployment that would run without a required secret is refused
+  ---
+  duration_ms: 1.556467
+  type: 'test'
+  ...
+# Subtest: scheduler activation proves the private credential without running a job and fails closed on disagreement
+ok 89 - scheduler activation proves the private credential without running a job and fails closed on disagreement
+  ---
+  duration_ms: 3.475447
+  type: 'test'
+  ...
+# Subtest: one transaction: reconciliation once, migrations without their own transaction lines, then history
+ok 90 - one transaction: reconciliation once, migrations without their own transaction lines, then history
+  ---
+  duration_ms: 7.494085
+  type: 'test'
+  ...
+# Subtest: a batch stops at its version, and an empty batch or another history is refused
+ok 91 - a batch stops at its version, and an empty batch or another history is refused
+  ---
+  duration_ms: 2.300635
+  type: 'test'
+  ...
+# Subtest: a migration that would close the shared transaction is refused before anything is sent
+ok 92 - a migration that would close the shared transaction is refused before anything is sent
+  ---
+  duration_ms: 2.060805
+  type: 'test'
+  ...
+# Subtest: only the absent Realtime handshake of the owned fixture is classified
+ok 93 - only the absent Realtime handshake of the owned fixture is classified
+  ---
+  duration_ms: 2.243911
+  type: 'test'
+  ...
+# Subtest: navigation may cancel a connecting fixture socket without making a healthy-server claim
+ok 94 - navigation may cancel a connecting fixture socket without making a healthy-server claim
+  ---
+  duration_ms: 0.448992
+  type: 'test'
+  ...
+# Subtest: hosted, unrelated, unauthorized and malformed sockets remain unexpected failures
+ok 95 - hosted, unrelated, unauthorized and malformed sockets remain unexpected failures
+  ---
+  duration_ms: 0.540073
+  type: 'test'
+  ...
+# Subtest: request identity comes from the verified session, never from decoding the token elsewhere
+ok 96 - request identity comes from the verified session, never from decoding the token elsewhere
+  ---
+  duration_ms: 22.665079
+  type: 'test'
+  ...
+# Subtest: a served file must answer 200 without a redirect and within its bounded size
+ok 97 - a served file must answer 200 without a redirect and within its bounded size
+  ---
+  duration_ms: 68.517203
+  type: 'test'
+  ...
+# Subtest: a served body is cancelled as soon as its byte budget is exceeded
+ok 98 - a served body is cancelled as soon as its byte budget is exceeded
+  ---
+  duration_ms: 3.642217
+  type: 'test'
+  ...
+# Subtest: every release file must be served identically, and a different one is named
+ok 99 - every release file must be served identically, and a different one is named
+  ---
+  duration_ms: 14.153153
+  type: 'test'
+  ...
+# Subtest: client and site files map to the paths their host serves
+ok 100 - client and site files map to the paths their host serves
+  ---
+  duration_ms: 1.71636
+  type: 'test'
+  ...
+# Subtest: the app must serve the revision, its login page and the private redirect
+ok 101 - the app must serve the revision, its login page and the private redirect
+  ---
+  duration_ms: 2.461103
+  type: 'test'
+  ...
+# Subtest: a private redirect to another origin does not certify the login flow
+ok 102 - a private redirect to another origin does not certify the login flow
+  ---
+  duration_ms: 0.629092
+  type: 'test'
+  ...
+# Subtest: the policy admits exactly the configured Supabase project
+ok 103 - the policy admits exactly the configured Supabase project
+  ---
+  duration_ms: 1.002283
+  type: 'test'
+  ...
+# Subtest: a policy with its own project also rejects extra projects and broad sources
+ok 104 - a policy with its own project also rejects extra projects and broad sources
+  ---
+  duration_ms: 1.464442
+  type: 'test'
+  ...
+# Subtest: server diagnostics cannot bypass metadata redaction with raw error objects, templates or console aliases
+ok 105 - server diagnostics cannot bypass metadata redaction with raw error objects, templates or console aliases
+  ---
+  duration_ms: 569.029301
+  type: 'test'
+  ...
+# Subtest: staging inspection rejects production, other projects and malformed targets before connecting
+ok 106 - staging inspection rejects production, other projects and malformed targets before connecting
+  ---
+  duration_ms: 425.332465
+  type: 'test'
+  ...
+# Subtest: a bulk statement that prints more warnings than a pipe holds still runs to its end, and its error comes first
+ok 107 - a bulk statement that prints more warnings than a pipe holds still runs to its end, and its error comes first
+  ---
+  duration_ms: 175.532313
+  type: 'test'
+  ...
+# Subtest: diagnostics keep only psql messages and never more than a bounded summary
+ok 108 - diagnostics keep only psql messages and never more than a bounded summary
+  ---
+  duration_ms: 0.357223
+  type: 'test'
+  ...
+# Subtest: the staging app configuration is accepted and production or altered targets are refused
+ok 109 - the staging app configuration is accepted and production or altered targets are refused
+  ---
+  duration_ms: 1.553202
+  type: 'test'
+  ...
+# Subtest: only the staging environment of the scheduler, bound to the staging app with the plan crons, is accepted
+ok 110 - only the staging environment of the scheduler, bound to the staging app with the plan crons, is accepted
+  ---
+  duration_ms: 0.460634
+  type: 'test'
+  ...
+# Subtest: Supabase keys must name the staging project and their role, and errors never show a key
+ok 111 - Supabase keys must name the staging project and their role, and errors never show a key
+  ---
+  duration_ms: 1.030639
+  type: 'test'
+  ...
+# Subtest: the app secrets are complete, consistent and malformed private files are refused
+ok 112 - the app secrets are complete, consistent and malformed private files are refused
+  ---
+  duration_ms: 2.173756
+  type: 'test'
+  ...
+# Subtest: the downloaded build must match its manifest exactly and keep the server bundle out of the assets
+ok 113 - the downloaded build must match its manifest exactly and keep the server bundle out of the assets
+  ---
+  duration_ms: 3.103635
+  type: 'test'
+  ...
+# Subtest: a downloaded build is read whole from disk, and a link inside it is refused
+ok 114 - a downloaded build is read whole from disk, and a link inside it is refused
+  ---
+  duration_ms: 5.057094
+  type: 'test'
+  ...
+# Subtest: release preflight requires the downloaded release of the revision under test
+ok 115 - release preflight requires the downloaded release of the revision under test
+  ---
+  duration_ms: 11.685023
+  type: 'test'
+  ...
+# Subtest: the configured production project is refused before release work
+ok 116 - the configured production project is refused before release work
+  ---
+  duration_ms: 2.732742
+  type: 'test'
+  ...
+# Subtest: keys of another project or role are refused without echoing them
+ok 117 - keys of another project or role are refused without echoing them
+  ---
+  duration_ms: 2.288197
+  type: 'test'
+  ...
+# Subtest: a release whose Natalia books elsewhere is refused
+ok 118 - a release whose Natalia books elsewhere is refused
+  ---
+  duration_ms: 4.921063
+  type: 'test'
+  ...
+# Subtest: props have a binding annotation so Svelte checks internals as well as the external component signature
+ok 119 - props have a binding annotation so Svelte checks internals as well as the external component signature
+  ---
+  duration_ms: 365.234064
+  type: 'test'
+  ...
+# Subtest: task text wraps instead of being cut, except reviewed exceptions
+ok 120 - task text wraps instead of being cut, except reviewed exceptions
+  ---
+  duration_ms: 16.157767
+  type: 'test'
+  ...
+# Subtest: application code has no any and no double assertion through unknown
+ok 121 - application code has no any and no double assertion through unknown
+  ---
+  duration_ms: 862.25446
+  type: 'test'
+  ...
+# Subtest: views take their type sizes from the scale
+ok 122 - views take their type sizes from the scale
+  ---
+  duration_ms: 14.077643
+  type: 'test'
+  ...
+# Subtest: requires counted results, rejecting success with skipped or missing tests
+ok 123 - requires counted results, rejecting success with skipped or missing tests
+  ---
+  duration_ms: 1.305997
+  type: 'test'
+  ...
+# Subtest: identifier patterns are not copied
+ok 124 - identifier patterns are not copied
+  ---
+  duration_ms: 24.939856
+  type: 'test'
+  ...
+# Subtest: rate limiting retries sequentially without changing the image, then records its digest
+ok 125 - rate limiting retries sequentially without changing the image, then records its digest
+  ---
+  duration_ms: 2.776512
+  type: 'test'
+  ...
+# Subtest: persistent throttling exhausts its bound and a missing tag fails immediately
+ok 126 - persistent throttling exhausts its bound and a missing tag fails immediately
+  ---
+  duration_ms: 1.297578
+  type: 'test'
+  ...
+# Subtest: a separate runner is rejected while an inherited child can use the same lease
+ok 127 - a separate runner is rejected while an inherited child can use the same lease
+  ---
+  duration_ms: 123.103696
+  type: 'test'
+  ...
+# Subtest: releasing the owner allows a later independent runner to acquire its lease
+ok 128 - releasing the owner allows a later independent runner to acquire its lease
+  ---
+  duration_ms: 2.915673
+  type: 'test'
+  ...
+# Subtest: the verifier propagates an actual critical assertion failure
+ok 129 - the verifier propagates an actual critical assertion failure
+  ---
+  duration_ms: 50.014753
+  type: 'test'
+  ...
+# Subtest: an interrupted step cannot report success and no later step is started
+ok 130 - an interrupted step cannot report success and no later step is started
+  ---
+  duration_ms: 4.488204
+  type: 'test'
+  ...
+# Subtest: integration cannot consume the local computer even when it currently has free RAM
+ok 131 - integration cannot consume the local computer even when it currently has free RAM
+  ---
+  duration_ms: 1.324485
+  type: 'test'
+  ...
+# Subtest: resource preflight rejects a constrained hosted runner and a saturated local host
+ok 132 - resource preflight rejects a constrained hosted runner and a saturated local host
+  ---
+  duration_ms: 0.721405
+  type: 'test'
+  ...
+# Subtest: tail events split across chunks and lines are parsed one by one, including braces and quotes inside strings
+ok 133 - tail events split across chunks and lines are parsed one by one, including braces and quotes inside strings
+  ---
+  duration_ms: 2.32094
+  type: 'test'
+  ...
+# Subtest: only scheduled job requests are measured and nothing beyond their counts survives
+ok 134 - only scheduled job requests are measured and nothing beyond their counts survives
+  ---
+  duration_ms: 1.091596
+  type: 'test'
+  ...
+# Subtest: the summary reports outcomes and CPU and wall distributions per job
+ok 135 - the summary reports outcomes and CPU and wall distributions per job
+  ---
+  duration_ms: 0.924609
+  type: 'test'
+  ...
+# Subtest: every app request is measured by route template, without identifiers, keys, tokens, queries, headers or logs
+ok 136 - every app request is measured by route template, without identifiers, keys, tokens, queries, headers or logs
+  ---
+  duration_ms: 3.368227
+  type: 'test'
+  ...
+# Subtest: management tokens are redacted by their route even when they contain no digits
+ok 137 - management tokens are redacted by their route even when they contain no digits
+  ---
+  duration_ms: 1.098672
+  type: 'test'
+  ...
+# Subtest: the request summary groups outcomes, statuses and CPU per method and route
+ok 138 - the request summary groups outcomes, statuses and CPU per method and route
+  ---
+  duration_ms: 10.497287
+  type: 'test'
+  ...
+# Subtest: unknown paths and every code-declared dynamic parameter stay private, including short names
+ok 139 - unknown paths and every code-declared dynamic parameter stay private, including short names
+  ---
+  duration_ms: 0.75021
+  type: 'test'
+  ...
+# Subtest: job records discard new primitive data fields and unrecognized exception names without changing the observed category
+ok 140 - job records discard new primitive data fields and unrecognized exception names without changing the observed category
+  ---
+  duration_ms: 0.438489
+  type: 'test'
+  ...
+1..140
+# tests 140
+# suites 0
+# pass 140
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 24325.855079
+{"profile":"node-guards","passed":140,"files":46,"skipped":0,"report":"/home/usuario/CascadeProjects/Base de Datos Sabrina/.verification/runs/55a6edc0-70db-4379-b89b-434ca6cfa910/units/node-d9085706-f728-49cb-ae25-bf42a2a3a777.log"}

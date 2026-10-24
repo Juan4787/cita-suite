@@ -1,0 +1,16 @@
+{
+  "at": "2026-10-23T15:28:12.681Z",
+  "worker": "app",
+  "version": "658d3ae3-0d3c-4aaa-b686-04578546f337",
+  "deployment": "31377281-5757-485c-800d-4136ce013e20",
+  "percentage": 100,
+  "message": "Cita Suite dfb487faa74b8117c46c180c70f368f77f3dbcd2",
+  "revision": "dfb487faa74b8117c46c180c70f368f77f3dbcd2",
+  "artifactRun": 39782403651,
+  "authentication": {
+    "legacyEntrypointsDisabled": true,
+    "unauthorizedStatus": 401,
+    "authorizedStatus": 410
+  },
+  "secretPrintedOrPersisted": false
+}

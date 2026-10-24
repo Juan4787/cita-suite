@@ -1,0 +1,21 @@
+{
+  "runId": "owned-provider-fixtures-cleanup-20261024",
+  "at": "2026-10-24T13:21:13.491Z",
+  "scope": "Only two exact newly seeded provider fixtures and their fake owners. Calendar event already deleted through public action and independent Google UI. Preserve pre-existing Calendar IDs and any shared push device. Phone notification cleanup is operator action, not application deduplication evidence.",
+  "status": "cleaning-production-calendar-1a4b7003690d",
+  "historicalCalendarBefore": {
+    "connections": 1,
+    "connectionIdentity": "825f446e81a29b71aabb8830d24d637f",
+    "events": 1,
+    "eventIdentity": "5efc6d00b69c7a8e16ae426654e44662"
+  },
+  "phoneCleanup": {
+    "ownShown": 1,
+    "closed": 1,
+    "unsubscribed": false,
+    "registrationPresent": true,
+    "permission": "granted"
+  },
+  "targets": [],
+  "currentTarget": "production-calendar-1a4b7003690d"
+}

@@ -1,10 +1,12 @@
 <script lang="ts">
+	import type { PageProps } from './$types';
+
  import {formatQuotedPrice} from '$lib/booking/pricing';
     import BookingAppearance from '$lib/booking/BookingAppearance.svelte';
     import BookingFrameBridge from '$lib/booking/BookingFrameBridge.svelte';
     import { formatInTimeZone } from '$lib/utils/format';
-    import { BOOKING_MODALITY_LABELS } from '@turnos-saas/shared/booking-integration';
-    let { data } = $props();
+    import { BOOKING_MODALITY_LABELS } from '@cita-suite/shared/booking-integration';
+    let { data }: PageProps = $props();
     const appointment = $derived(data.appointment);
 </script>
 
@@ -14,8 +16,8 @@
     <main class="min-h-screen bg-[#06111f] px-4 py-5 text-white sm:py-8">{#if data.appointment.price_quote_snapshot}<section class="ux-card mb-5"><h2 class="ux-section-title">Arancel registrado al reservar</h2><p class="mt-2 font-bold">{formatQuotedPrice(data.appointment.price_quote_snapshot)}</p></section>{/if}{#if data.appointment.patient_instructions_snapshot}<section class="ux-card mb-5"><h2 class="ux-section-title">Indicaciones para tu turno</h2><p class="mt-2 whitespace-pre-wrap break-words">{data.appointment.patient_instructions_snapshot}</p></section>{/if}
         <div class="mx-auto flex max-w-3xl flex-col gap-4">
             <section class="ux-card">
-                <p class="ux-badge">{appointment.public_status_label}</p>
-                <h1 class="ux-title mt-4">{appointment.status === 'cancelled' ? 'Este turno está cancelado' : appointment.is_past ? 'Tu turno' : data.recovered ? 'Recuperamos tu reserva' : 'Tu turno quedó reservado'}</h1>
+                <h1 class="ux-title">{appointment.status === 'cancelled' ? 'Este turno está cancelado' : appointment.is_past ? 'Tu turno' : data.recovered ? 'Recuperamos tu reserva' : 'Tu turno quedó reservado'}</h1>
+                <p class="ux-badge mt-3">{appointment.public_status_label}</p>
                 <p class="ux-subtitle mt-3">{formatInTimeZone(appointment.starts_at, appointment.business.timezone).full} h</p>
                 <p class="mt-2">Horario local del consultorio.</p>
                 {#if appointment.patient_name}<p class="mt-2">Reserva para {appointment.patient_name}.</p>{/if}

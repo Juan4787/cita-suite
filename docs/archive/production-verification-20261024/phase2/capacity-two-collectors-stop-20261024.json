@@ -1,0 +1,13 @@
+{
+  "at": "2026-10-24T09:33:12.311746+00:00",
+  "scope": "Stop only exact owned observer and isolated sampler group after completed run40078561771. Terminated sampler is an intentional collector stop, not a failed app test or an80-minute completion. Full49-minute workload window already frozen.",
+  "observerPid": 564768,
+  "samplerPids": [
+    564798,
+    564811
+  ],
+  "remainingOwnedPids": [],
+  "run": 40078561771,
+  "measurementWindowFrom": "2026-10-24T08:35:00.498Z",
+  "measurementWindowUntil": "2026-10-24T09:24:15Z"
+}

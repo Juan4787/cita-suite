@@ -1,0 +1,15 @@
+{
+  "at": "2026-10-24T12:57:15.740Z",
+  "before": {
+    "migrations": 126,
+    "legacyEnabled": false,
+    "pendingCalendar": 0
+  },
+  "crons": {
+    "cita-suite-scheduler": 0,
+    "cita-suite-scheduler-staging": 0
+  },
+  "appVersion": "f35abec7-bcce-4c5f-b08a-017bb58fe8c9",
+  "waitUntil": "2026-10-24T13:12:35.740Z",
+  "scope": "Pause native scheduler once for a new exact-artifact recovery rehearsal. Application/DB/credentials unchanged. Conservative15min propagation plus20s deadline; not direct observation of inflight isolates."
+}

@@ -1,0 +1,17 @@
+{
+  "at": "2026-10-24T12:46:23.916663+00:00",
+  "phase": "red",
+  "base": "a5b95809cfbb11ef05bf17f9e5660e45b3f1bd55",
+  "runtimeBase": "cb8a9bafdf9a07a6b8977e841fa3f401061fda4f",
+  "commit": "5e2b48cb126f8b5175b91660ba76dfece38e7b34",
+  "tree": "80d4a20117453aab6bf517e89a68f593d76a8916",
+  "branch": "refactor/inactive-push-red-20261024",
+  "files": [
+    {
+      "path": "apps/web/src/routes/turno/[token]/page.client.test.ts",
+      "blob": "d93ba3df3572a2db67bd53f8eafe6e847be99000",
+      "sha256": "17f275e24c695ed93f175538a7b409b51e0f4bcc5e1a315e7fdca76bef651ae2"
+    }
+  ],
+  "userIndexAndHeadPreserved": true
+}

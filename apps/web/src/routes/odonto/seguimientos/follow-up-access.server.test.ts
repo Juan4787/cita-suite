@@ -7,20 +7,26 @@ const envState = vi.hoisted(() => ({
 const mocks = vi.hoisted(() => ({
 	getOdontoContext: vi.fn(),
 	createSupabaseAdminClient: vi.fn(),
-	roleParticipatesInFollowUps: vi.fn()
+	roleParticipatesInFollowUps: vi.fn(),
+	createFollowUp: vi.fn(),
+	updateFollowUp: vi.fn(),
+	snoozeFollowUp: vi.fn(),
+	markFollowUpDone: vi.fn()
 }));
 
 vi.mock('$env/dynamic/private', () => ({ env: envState.privateEnv }));
-vi.mock('$lib/server/odonto-context', () => ({
+vi.mock('$lib/server/access/public/odonto-context', () => ({
 	getOdontoContext: mocks.getOdontoContext
 }));
-vi.mock('$lib/server/supabase', () => ({
+vi.mock('$lib/server/platform/supabase', () => ({
 	createSupabaseAdminClient: mocks.createSupabaseAdminClient
 }));
-vi.mock('$lib/server/follow-ups', () => ({
-	buildFollowUpScope: vi.fn(),
+vi.mock('$lib/server/patients/public/follow-ups', () => ({
+	buildFollowUpScope: vi.fn(async () => ({
+		businessId: 'business-1', role: 'owner', professionalId: null, timezone: 'America/Argentina/Buenos_Aires'
+	})),
 	businessTodayISO: vi.fn(() => '2026-07-07'),
-	createFollowUp: vi.fn(),
+	createFollowUp: mocks.createFollowUp,
 	FollowUpError: class FollowUpError extends Error {
 		code: string;
 		constructor(code: string) {
@@ -30,11 +36,11 @@ vi.mock('$lib/server/follow-ups', () => ({
 	},
 	getFollowUpErrorMessage: vi.fn(() => 'Error de seguimiento'),
 	getFollowUpErrorStatus: vi.fn(() => 400),
-	markFollowUpDone: vi.fn(),
+	markFollowUpDone: mocks.markFollowUpDone,
 	roleParticipatesInFollowUps: mocks.roleParticipatesInFollowUps,
-	snoozeFollowUp: vi.fn(),
+	snoozeFollowUp: mocks.snoozeFollowUp,
 	snoozePresetDate: vi.fn(() => '2026-07-08'),
-	updateFollowUp: vi.fn()
+	updateFollowUp: mocks.updateFollowUp
 }));
 
 const { POST: createFollowUpPost } = await import('./crear/+server');
@@ -49,7 +55,7 @@ const restrictedBusiness = {
 	}
 };
 
-const event = (body: Record<string, unknown> = {}) => ({
+const event = (body: unknown = {}) => ({
 	params: { id: 'follow-up-1' },
 	request: new Request('http://localhost/odonto/seguimientos', {
 		method: 'POST',
@@ -98,5 +104,52 @@ describe('seguimientos bloquea operaciones con acceso comercial vencido', () => 
 	it('bloquea marcar seguimiento como gestionado', async () => {
 		const response = (await manageFollowUpPost(event() as never)) as Response;
 		await expectRestricted(response);
+	});
+});
+
+describe('seguimientos valida la estructura JSON antes de operar', () => {
+	it.each([null, [], true, 'texto'])(
+		'rechaza cuerpos que no son objetos: %j',
+		async (body) => {
+			mocks.getOdontoContext.mockResolvedValue({
+				business: { ...restrictedBusiness, access: { canUseBusiness: true } },
+				userId: 'user-1', supabase: {}
+			});
+			for (const handler of [createFollowUpPost, editFollowUpPost, snoozeFollowUpPost, manageFollowUpPost]) {
+				const response = await handler(event(body) as never);
+				expect(response.status).toBe(400);
+				await expect(response.json()).resolves.toEqual({ message: 'Solicitud inválida.' });
+			}
+		}
+	);
+});
+
+// The database owns the follow-up rules: every change goes through the user's own
+// client and its functions, never the service role.
+describe('seguimientos opera con las reglas del propio usuario', () => {
+	const userClient = { from: vi.fn(), rpc: vi.fn() };
+	beforeEach(() => {
+		mocks.getOdontoContext.mockResolvedValue({
+			business: {
+				role: 'owner',
+				business: { id: 'business-1', timezone: 'America/Argentina/Buenos_Aires' },
+				access: { canUseBusiness: true }
+			},
+			userId: 'user-1',
+			supabase: userClient
+		});
+	});
+
+	it.each([
+		['crear', () => createFollowUpPost(event({ patient_id: 'patient-1', remind_on: '2026-07-08', assigned_professional_id: 'professional-1' }) as never), mocks.createFollowUp],
+		['editar', () => editFollowUpPost(event({ remind_on: '2026-07-08', expected_updated_at: '2026-07-07T12:00:00.000Z' }) as never), mocks.updateFollowUp],
+		['posponer', () => snoozeFollowUpPost(event({ preset: 'manana', expected_updated_at: '2026-07-07T12:00:00.000Z' }) as never), mocks.snoozeFollowUp],
+		['gestionar', () => manageFollowUpPost(event({ expected_updated_at: '2026-07-07T12:00:00.000Z' }) as never), mocks.markFollowUpDone]
+	])('%s cambia el seguimiento con el cliente del usuario', async (_name, call, change) => {
+		change.mockResolvedValue('follow-up-1');
+		const response = await call();
+		expect(response.status).toBe(200);
+		expect(change).toHaveBeenCalledWith(userClient, expect.anything());
+		expect(mocks.createSupabaseAdminClient).not.toHaveBeenCalled();
 	});
 });

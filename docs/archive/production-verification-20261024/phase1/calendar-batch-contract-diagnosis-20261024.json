@@ -1,0 +1,11 @@
+{
+  "runId": "calendar-batch-contract-diagnosis-20261024",
+  "at": "2026-10-24T03:48:29.597Z",
+  "status": 200,
+  "ownRowCount": 1,
+  "errorCode": null,
+  "hasContextProperty": true,
+  "contextShape": "null",
+  "businessShape": "object",
+  "patientTokensOrDataSaved": false
+}

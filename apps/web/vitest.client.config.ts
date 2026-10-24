@@ -8,6 +8,9 @@ export default defineConfig({
 		conditions: ['browser']
 	},
 	test: {
+		maxWorkers: 1,
+		fileParallelism: false,
+		passWithNoTests: false,
 		environment: 'jsdom',
 		include: ['src/**/*.client.test.ts'],
 		exclude: ['node_modules/**', '.svelte-kit/**', 'build/**']

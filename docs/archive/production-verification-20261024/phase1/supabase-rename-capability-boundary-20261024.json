@@ -1,0 +1,16 @@
+{
+  "at": "2026-10-24T04:00:59.523753+00:00",
+  "documentedEndpoint": "https://supabase.com/docs/reference/api/v1-update-a-project",
+  "documentedMethod": "PATCH /v1/projects/{ref}, body name only",
+  "supportedCliVersion": "2.115.0",
+  "cliProjectsCommands": [
+    "list",
+    "create",
+    "api-keys",
+    "delete"
+  ],
+  "supportedCliRenameCommandAvailable": false,
+  "managementTokenInEnvironment": false,
+  "credentialStoresRead": false,
+  "decision": "Use only a supported authorized management path; do not extract CLI credentials or invent an update command. Visible project renaming stays pending while independent work continues."
+}

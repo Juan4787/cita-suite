@@ -1,5 +1,5 @@
 {
-	"name": "@turnos-saas/shared",
+	"name": "@cita-suite/shared",
 	"private": true,
 	"version": "0.0.1",
 	"type": "module",
@@ -12,7 +12,9 @@
 		"./dates": "./src/dates.ts",
 		"./messaging": "./src/messaging.ts",
 		"./phone": "./src/phone.ts",
-		"./booking-integration": "./src/booking-integration.ts"
+		"./booking-integration": "./src/booking-integration.ts",
+		"./scheduled-jobs": "./src/scheduled-jobs.ts",
+		"./uuid": "./src/uuid.ts"
 	},
 	"devDependencies": {
 		"typescript": "^5.9.3"

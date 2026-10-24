@@ -1,4 +1,5 @@
 import { expect, type BrowserContext, type Page } from '@playwright/test';
+import { observeBrowserDiagnostics } from './browser-diagnostics';
 
 type StoredSession = Awaited<ReturnType<BrowserContext['storageState']>>;
 
@@ -38,6 +39,19 @@ const restoreSession = async (page: Page, session: StoredSession, readyLinkNames
 		.catch(() => false);
 };
 
+export async function signInWithPassword(page: Page, email: string, password: string, loginPath = '/login') {
+	observeBrowserDiagnostics(page);
+	await page.goto(loginPath);
+	await page.getByLabel('Correo electrónico').fill(email);
+	await page.getByLabel('Contraseña').fill(password);
+	await Promise.all([
+		page.waitForURL(url => !url.pathname.startsWith('/login')),
+		// The URL wait owns navigation. The action deadline only governs finding
+		// and clicking the button, including on a cold development server.
+		page.locator('form').first().getByRole('button', { name: 'Ingresar', exact: true }).click({ noWaitAfter: true })
+	]);
+}
+
 export const loginWithSharedSession = async (
 	page: Page,
 	{
@@ -47,15 +61,13 @@ export const loginWithSharedSession = async (
 		loginPath = '/login'
 	}: SharedLoginOptions
 ) => {
+	observeBrowserDiagnostics(page);
 	const cacheKey = email.trim().toLocaleLowerCase('es-AR');
 	const cached = sessionsByEmail.get(cacheKey);
 	if (cached && (await restoreSession(page, cached, readyLinkNames))) return;
 	if (cached) sessionsByEmail.delete(cacheKey);
 
-	await page.goto(loginPath);
-	await page.getByLabel('Correo electrónico').fill(email);
-	await page.getByLabel('Contraseña').fill(password);
-	await page.locator('form').getByRole('button', { name: 'Ingresar', exact: true }).click();
+	await signInWithPassword(page, email, password, loginPath);
 	await expect(readyNavigation(page, readyLinkNames)).toBeVisible({ timeout: 15_000 });
 	sessionsByEmail.set(cacheKey, await page.context().storageState());
 };

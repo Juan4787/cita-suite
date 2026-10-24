@@ -1,0 +1,68 @@
+TAP version 13
+# Subtest: tail events split across chunks and lines are parsed one by one, including braces and quotes inside strings
+ok 1 - tail events split across chunks and lines are parsed one by one, including braces and quotes inside strings
+  ---
+  duration_ms: 3.517169
+  type: 'test'
+  ...
+# Subtest: only scheduled job requests are measured and nothing beyond their counts survives
+ok 2 - only scheduled job requests are measured and nothing beyond their counts survives
+  ---
+  duration_ms: 1.067654
+  type: 'test'
+  ...
+# Subtest: the summary reports outcomes and CPU and wall distributions per job
+ok 3 - the summary reports outcomes and CPU and wall distributions per job
+  ---
+  duration_ms: 2.150455
+  type: 'test'
+  ...
+# Subtest: every app request is measured by route template, without identifiers, keys, tokens, queries, headers or logs
+ok 4 - every app request is measured by route template, without identifiers, keys, tokens, queries, headers or logs
+  ---
+  duration_ms: 0.97455
+  type: 'test'
+  ...
+# Subtest: management tokens are redacted by their route even when they contain no digits
+not ok 5 - management tokens are redacted by their route even when they contain no digits
+  ---
+  duration_ms: 1.324253
+  type: 'test'
+  location: '/home/usuario/CascadeProjects/Base de Datos Sabrina/scripts/lib/worker-tail.test.mjs:63:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    
+    + '/turno/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+    - '/turno/:token'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: '/turno/:token'
+  actual: '/turno/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+  operator: 'strictEqual'
+  stack: |-
+    TestContext.<anonymous> (file:///home/usuario/CascadeProjects/Base%20de%20Datos%20Sabrina/scripts/lib/worker-tail.test.mjs:68:11)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: the request summary groups outcomes, statuses and CPU per method and route
+ok 6 - the request summary groups outcomes, statuses and CPU per method and route
+  ---
+  duration_ms: 12.083517
+  type: 'test'
+  ...
+1..6
+# tests 6
+# suites 0
+# pass 5
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 172.803036

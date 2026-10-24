@@ -1,0 +1,11 @@
+{
+  "at": "2026-10-23T15:13:20.662Z",
+  "scope": "Public Auth settings only; no SMTP fields or secrets; Google sign-in is distinct from managed Calendar configuration",
+  "project": "yjzferwuzbtgpmdnzlcb",
+  "googleSignInEnabled": true,
+  "emailSignInEnabled": true,
+  "disableSignup": false,
+  "mailerAutoConfirm": true,
+  "smtpConfigured": "not exposed by this endpoint",
+  "managedCalendarConfigured": "false in observed production job; exact missing field not remotely inspected"
+}

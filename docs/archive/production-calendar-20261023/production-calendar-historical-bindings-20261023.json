@@ -1,0 +1,114 @@
+{
+  "at": "2026-10-23T15:19:14.434Z",
+  "scope": "Historical/current provider binding names/types only, plus exact true/false of a plain-text feature flag; no secret value, hash or other environment value read into evidence",
+  "versions": [
+    {
+      "phase": "prepublication313",
+      "id": "9b2df65c-f89c-4940-a625-4d7b3e5858f2",
+      "revisionMessage": null,
+      "calendar": {
+        "GOOGLE_CALENDAR_MANAGED_ENABLED": {
+          "present": false,
+          "type": null
+        },
+        "GOOGLE_CALENDAR_CLIENT_ID": {
+          "present": true,
+          "type": "secret_text"
+        },
+        "GOOGLE_CALENDAR_CLIENT_SECRET": {
+          "present": true,
+          "type": "secret_text"
+        },
+        "GOOGLE_CALENDAR_TOKEN_ENCRYPTION_KEY": {
+          "present": true,
+          "type": "secret_text"
+        },
+        "GOOGLE_CALENDAR_REDIRECT_URI": {
+          "present": true,
+          "type": "secret_text"
+        }
+      }
+    },
+    {
+      "phase": "firstBaseline",
+      "id": "aa4106df-a030-4dcf-a644-0777c97feafb",
+      "revisionMessage": "Cita Suite dfb487faa74b8117c46c180c70f368f77f3dbcd2",
+      "calendar": {
+        "GOOGLE_CALENDAR_MANAGED_ENABLED": {
+          "present": false,
+          "type": null
+        },
+        "GOOGLE_CALENDAR_CLIENT_ID": {
+          "present": true,
+          "type": "secret_text"
+        },
+        "GOOGLE_CALENDAR_CLIENT_SECRET": {
+          "present": true,
+          "type": "secret_text"
+        },
+        "GOOGLE_CALENDAR_TOKEN_ENCRYPTION_KEY": {
+          "present": true,
+          "type": "secret_text"
+        },
+        "GOOGLE_CALENDAR_REDIRECT_URI": {
+          "present": true,
+          "type": "secret_text"
+        }
+      }
+    },
+    {
+      "phase": "firstCandidate",
+      "id": "fea4d191-8879-4fa0-9eed-9b0271a2b2b3",
+      "revisionMessage": "Cita Suite 478c096e63299b886e640c4627cd25e0db22dbfa",
+      "calendar": {
+        "GOOGLE_CALENDAR_MANAGED_ENABLED": {
+          "present": false,
+          "type": null
+        },
+        "GOOGLE_CALENDAR_CLIENT_ID": {
+          "present": true,
+          "type": "secret_text"
+        },
+        "GOOGLE_CALENDAR_CLIENT_SECRET": {
+          "present": true,
+          "type": "secret_text"
+        },
+        "GOOGLE_CALENDAR_TOKEN_ENCRYPTION_KEY": {
+          "present": true,
+          "type": "secret_text"
+        },
+        "GOOGLE_CALENDAR_REDIRECT_URI": {
+          "present": true,
+          "type": "secret_text"
+        }
+      }
+    },
+    {
+      "phase": "currentCandidate",
+      "id": "c7daf16d-fd5d-4bdf-909e-0387f1abfc5d",
+      "revisionMessage": "Cita Suite 478c096e63299b886e640c4627cd25e0db22dbfa",
+      "calendar": {
+        "GOOGLE_CALENDAR_MANAGED_ENABLED": {
+          "present": false,
+          "type": null
+        },
+        "GOOGLE_CALENDAR_CLIENT_ID": {
+          "present": true,
+          "type": "secret_text"
+        },
+        "GOOGLE_CALENDAR_CLIENT_SECRET": {
+          "present": true,
+          "type": "secret_text"
+        },
+        "GOOGLE_CALENDAR_TOKEN_ENCRYPTION_KEY": {
+          "present": true,
+          "type": "secret_text"
+        },
+        "GOOGLE_CALENDAR_REDIRECT_URI": {
+          "present": true,
+          "type": "secret_text"
+        }
+      }
+    }
+  ]
+}

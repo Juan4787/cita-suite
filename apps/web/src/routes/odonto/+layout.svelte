@@ -1,4 +1,6 @@
 <script lang="ts">
+	import type { LayoutProps } from './$types';
+
 	import { goto, invalidate, invalidateAll } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { navigating } from '$app/stores';
@@ -7,10 +9,13 @@
 	import OdontoRouteSkeleton from '$lib/components/skeleton/OdontoRouteSkeleton.svelte';
 	import FollowUpsNotice from '$lib/components/seguimientos/FollowUpsNotice.svelte';
 	import { createStalledNavigationRecovery } from '$lib/client/stalled-navigation-recovery';
+	import { createClientReadiness } from '$lib/client/readiness.svelte';
 	import { formatAccessRemaining, formatDateTime } from '$lib/utils/format';
 	import { allowsRestrictedClinicalRead } from '$lib/utils/restricted-clinical-read';
 
-	let { data, children } = $props();
+	let { data, children }: LayoutProps = $props();
+	// Shell menus need their handlers: inert until hydrated so a first tap is never silently lost.
+	const client = createClientReadiness();
 	let mobileMenuOpen = $state(false);
 	let showReportHelp = $state(false);
 	let configMenuOpen = $state(false);
@@ -122,7 +127,7 @@
 		`cita-suite:notice:v1:${noticeViewerKey}:${activeBusiness?.business?.id ?? 'sin-consultorio'}`
 	);
 	const masterAssistanceNoticeKey = $derived.by(() => {
-		const grantIds = masterAssistanceRequests.map((request: any) => String(request.id)).sort();
+		const grantIds = masterAssistanceRequests.map((request) => String(request.id)).sort();
 		return `cita-suite:notice:v1:${noticeViewerKey}:master-assistance:${grantIds.join('.')}`;
 	});
 	const missingAddressNoticeKey = $derived(`${businessNoticeStoragePrefix}:missing-address`);
@@ -176,6 +181,29 @@
 			access.commercialStatus === 'archived'
 		);
 	});
+	// Notices the server could not check: each says so where it would have appeared.
+	const UNAVAILABLE_NOTICE_COPY = {
+		'follow-ups': {
+			message: 'No pudimos comprobar los recordatorios de seguimiento.',
+			href: '/odonto/seguimientos/importantes',
+			link: 'Ver recordatorios'
+		},
+		'help-requests': {
+			message: 'No pudimos comprobar las solicitudes de ayuda.',
+			href: '/odonto/maestro#solicitudes-ayuda',
+			link: 'Ver en el panel maestro'
+		},
+		assistance: {
+			message: 'No pudimos comprobar la ayuda de Cita Suite.',
+			href: '/odonto/configuracion/ayuda',
+			link: 'Ver detalle'
+		}
+	} as const;
+	const unavailableNotices = $derived(
+		(data?.unavailableNotices ?? []).filter(
+			(notice) => notice !== 'follow-ups' || !commercialAccessRestricted
+		)
+	);
 	const restrictedClinicalReadContext = $derived({
 		role: activeBusiness?.role,
 		commercialStatus: activeBusiness?.access?.commercialStatus,
@@ -449,7 +477,7 @@
 
 	$effect(() => {
 		const expirations = masterAssistanceRequests
-			.map((request: any) => Date.parse(String(request.expiresAt ?? '')))
+			.map((request) => Date.parse(String(request.expiresAt ?? '')))
 			.filter((value: number) => Number.isFinite(value) && value > Date.now());
 		if (expirations.length === 0) return;
 		const timer = window.setTimeout(
@@ -612,6 +640,7 @@
 					type="button"
 					class="flex h-11 w-11 items-center justify-center rounded-full text-neutral-700 transition hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-[#13243d]"
 					aria-label="Abrir menú"
+					disabled={!client.ready}
 					onclick={() => (mobileMenuOpen = true)}
 				>
 					<svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -619,7 +648,7 @@
 					</svg>
 				</button>
 			{/if}
-			<h1 class="min-w-0 flex-1 truncate text-base font-semibold text-neutral-900 dark:text-white">
+			<h1 class="min-w-0 flex-1 truncate text-base font-semibold text-neutral-900 dark:text-white" data-truncation="allowed">
 				{mobileTitle}
 			</h1>
 			{#if showBack}
@@ -627,6 +656,7 @@
 					type="button"
 					class="flex h-11 w-11 items-center justify-center rounded-full text-neutral-700 transition hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-[#13243d]"
 					aria-label="Abrir menú"
+					disabled={!client.ready}
 					onclick={() => (mobileMenuOpen = true)}
 				>
 					<svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -793,9 +823,9 @@
 				></button>
 			</div>
 		{/if}
-		<div class="mx-auto hidden max-w-7xl items-center justify-between gap-6 px-6 py-4 md:flex">
-			<div class="flex min-w-0 items-center gap-3">
-				<picture>
+		<div class="mx-auto hidden max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-x-6 gap-y-3 px-6 py-4 md:grid xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
+			<div class="col-start-1 row-start-1 flex min-w-0 items-center gap-3">
+				<picture class="shrink-0">
 					<img
 						src="/logo-cita-suite.png"
 						alt="Cita Suite"
@@ -808,32 +838,33 @@
 				</picture>
 				{#if isMasterPage}
 					<div class="min-w-0">
-						<p class="truncate text-sm font-semibold text-neutral-900 dark:text-white">Administración Cita Suite</p>
+						<p class="truncate text-sm font-semibold text-neutral-900 dark:text-white" data-truncation="allowed">Administración Cita Suite</p>
 					</div>
 				{:else if activeBusiness?.business}
 					<div class="min-w-0">
-						<p class="truncate text-sm font-semibold text-neutral-900 dark:text-white">
+						<p class="truncate text-sm font-semibold text-neutral-900 dark:text-white" title={activeBusiness.business.name} data-truncation="allowed">
 							{activeBusiness.business.name}
 						</p>
 					</div>
 				{/if}
 			</div>
 			<nav
-				class="flex min-w-0 flex-1 items-center justify-center gap-2 text-sm font-semibold"
+				class="col-span-2 col-start-1 row-start-2 flex min-w-0 flex-wrap items-center justify-center gap-2 text-sm font-semibold xl:col-span-1 xl:col-start-2 xl:row-start-1 xl:flex-nowrap"
 				data-sveltekit-preload-code="viewport"
 			>
 				{#each visibleNav as item}
 					{#if item.label === 'Configuración' && canShowConfigMenu}
-							<div class="relative" data-menu-root>
+							<div class="relative shrink-0" data-menu-root>
 							<button
 								type="button"
-								class={`group rounded-2xl px-4 py-3 transition-all duration-200 ${
+								class={`group whitespace-nowrap rounded-2xl px-4 py-3 transition-all duration-200 ${
 									isNavItemActive(item)
 										? 'bg-[#7c3aed]/90 text-white shadow-sm shadow-[#7c3aed]/20'
 										: 'text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-white/10 dark:hover:text-white'
 								}`}
 								aria-haspopup="menu"
 								aria-expanded={configMenuOpen}
+								disabled={!client.ready}
 								onclick={() => {
 									configMenuOpen = !configMenuOpen;
 									userMenuOpen = false;
@@ -876,7 +907,7 @@
 						<a
 							href={item.href}
 							data-sveltekit-preload-data="hover"
-							class={`group rounded-2xl px-4 py-3 transition-all duration-200 ${
+							class={`group shrink-0 whitespace-nowrap rounded-2xl px-4 py-3 transition-all duration-200 ${
 								isNavItemActive(item)
 									? 'bg-[#7c3aed]/90 text-white shadow-sm shadow-[#7c3aed]/20'
 									: 'text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-white/10 dark:hover:text-white'
@@ -895,12 +926,13 @@
 					{/if}
 				{/each}
 			</nav>
-				<div class="relative flex min-w-0 justify-end" data-menu-root>
+				<div class="relative col-start-2 row-start-1 flex min-w-0 justify-end xl:col-start-3" data-menu-root>
 				<button
 					type="button"
 					class="flex max-w-64 items-center gap-3 rounded-2xl border border-neutral-200 bg-white/70 px-3 py-2 text-left shadow-sm transition hover:border-[#7c3aed]/40 hover:bg-white dark:border-white/10 dark:bg-white/[0.03] dark:hover:bg-white/[0.07]"
 					aria-haspopup="menu"
 					aria-expanded={userMenuOpen}
+					disabled={!client.ready}
 					onclick={() => {
 						userMenuOpen = !userMenuOpen;
 						configMenuOpen = false;
@@ -918,14 +950,14 @@
 						/>
 					</picture>
 						<span class="min-w-0">
-							<span class="block truncate text-sm font-semibold text-neutral-900 dark:text-white">
+							<span class="block truncate text-sm font-semibold text-neutral-900 dark:text-white" data-truncation="allowed">
 								{isMasterPage ? 'Panel maestro' : (activeBusiness?.business?.name ?? 'Cuenta')}
 							</span>
-						<span class="flex items-center gap-2 truncate text-xs text-neutral-500 dark:text-neutral-300">
+						<span class="flex items-center gap-2 truncate text-xs text-neutral-500 dark:text-neutral-300" data-truncation="allowed">
 							<span>{isMasterPage ? 'Administrador del sistema' : roleLabel}</span>
 							{#if shouldShowAccessChip}
 								<span
-									class={`rounded-full px-2 py-0.5 text-[10px] font-black ${
+									class={`rounded-full px-2 py-0.5 text-micro font-bold ${
 										accessTone === 'danger'
 											? 'bg-red-500/15 text-red-200'
 											: accessTone === 'warning'
@@ -997,7 +1029,7 @@
 				{data.businessError}
 			</div>
 		{/if}
-		{#if (commercialNotice && !commercialAccessRestricted) || masterAssistanceRequests.length > 0 || shouldShowMissingAddress || shouldShowAccountAssistanceNotice || (!commercialAccessRestricted && data?.followUps?.count > 0)}
+		{#if (commercialNotice && !commercialAccessRestricted) || masterAssistanceRequests.length > 0 || shouldShowMissingAddress || shouldShowAccountAssistanceNotice || (!commercialAccessRestricted && data?.followUps?.count > 0) || unavailableNotices.length > 0}
 			<div class="mb-6 grid gap-3" aria-label="Avisos importantes">
 				{#if commercialNotice && !commercialAccessRestricted}
 					<div
@@ -1014,7 +1046,6 @@
 				{#if masterAssistanceRequests.length > 0}
 					<DismissibleNotice
 						storageKey={masterAssistanceNoticeKey}
-						eyebrow="Panel maestro"
 						title={masterAssistanceRequests.length === 1
 							? '1 consultorio pidió ayuda para configurar'
 							: `${masterAssistanceRequests.length} consultorios pidieron ayuda para configurar`}
@@ -1025,7 +1056,7 @@
 							{#each masterAssistanceRequests as request (request.id)}
 								<div class="flex flex-col gap-3 rounded-xl border border-white/10 bg-white/[0.04] p-3 sm:flex-row sm:items-center sm:justify-between">
 									<div class="min-w-0">
-										<p class="truncate font-black text-white">{request.businessName}</p>
+										<p class="break-words font-bold text-white">{request.businessName}</p>
 										<p class="mt-1 text-xs font-bold text-emerald-200">
 											{formatAccessRemaining(request.expiresAt) ?? 'La autorización vence pronto'}
 										</p>
@@ -1038,7 +1069,7 @@
 								</div>
 							{/each}
 						</div>
-						<a href="/odonto/maestro#solicitudes-ayuda" class="mt-3 inline-flex text-sm font-black text-violet-200 hover:text-white">
+						<a href="/odonto/maestro#solicitudes-ayuda" class="mt-3 inline-flex text-sm font-bold text-violet-200 hover:text-white">
 							Ver en el panel maestro
 						</a>
 					</DismissibleNotice>
@@ -1047,7 +1078,6 @@
 				{#if shouldShowMissingAddress}
 					<DismissibleNotice
 						storageKey={missingAddressNoticeKey}
-						eyebrow="Datos visibles"
 						title="Falta la dirección del consultorio."
 						message={'Los pacientes no van a saber dónde asistir al turno. Cargala en "Datos visibles" y guardá.'}
 						tone="warning"
@@ -1061,7 +1091,6 @@
 				{#if shouldShowAccountAssistanceNotice}
 					<DismissibleNotice
 						storageKey={accountAssistanceNoticeKey}
-						eyebrow={isAssistingAccount ? 'Asistencia temporal' : 'Ayuda para configurar'}
 						title={accountAssistanceTitle}
 						message={accountAssistanceMessage}
 						tone={accountAssistance?.status === 'active' ? 'success' : 'neutral'}
@@ -1094,14 +1123,23 @@
 						storageKeyPrefix={businessNoticeStoragePrefix}
 					/>
 				{/if}
+
+				{#each unavailableNotices as notice (notice)}
+					<div class="ux-alert ux-alert-warning">
+						{UNAVAILABLE_NOTICE_COPY[notice].message}
+						<a href={UNAVAILABLE_NOTICE_COPY[notice].href} class="font-bold underline">
+							{UNAVAILABLE_NOTICE_COPY[notice].link}
+						</a>
+					</div>
+				{/each}
 			</div>
 		{/if}
 		{#if commercialLockActive}
 			<section class="mx-auto mt-8 max-w-2xl rounded-3xl border border-amber-300/40 bg-amber-400/12 p-8 text-center shadow-2xl shadow-amber-950/10 dark:border-amber-400/25 dark:bg-amber-400/10">
-				<p class="mx-auto inline-flex rounded-full bg-amber-400/15 px-3 py-1 text-xs font-black uppercase tracking-wide text-amber-900 dark:text-amber-100">
+				<p class="mx-auto inline-flex rounded-full bg-amber-400/15 px-3 py-1 text-xs font-bold uppercase tracking-wide text-amber-900 dark:text-amber-100">
 					Cita Suite
 				</p>
-				<h1 class="mt-5 text-3xl font-black text-neutral-950 dark:text-white">
+				<h1 class="mt-5 text-3xl font-bold text-neutral-950 dark:text-white">
 					{isInitialActivation ? 'Activá tu suscripción' : 'Tu acceso a Cita Suite venció'}
 				</h1>
 				<p class="mx-auto mt-3 max-w-lg text-base font-semibold text-neutral-700 dark:text-amber-50/80">
@@ -1127,8 +1165,8 @@
 				{/if}
 				{#if canSelfServiceActivation}
 					<div class="mx-auto mt-6 max-w-sm rounded-2xl border border-amber-300/30 bg-white/70 p-4 text-left shadow-sm dark:bg-[#13243d]/70">
-						<p class="text-sm font-black text-amber-950 dark:text-amber-100">Cita Suite</p>
-						<p class="mt-1 text-2xl font-black text-neutral-950 dark:text-white">{money(data?.mpAmount)} por mes</p>
+						<p class="text-sm font-bold text-amber-950 dark:text-amber-100">Cita Suite</p>
+						<p class="mt-1 text-2xl font-bold text-neutral-950 dark:text-white">{money(data?.mpAmount)} por mes</p>
 						<p class="mt-2 text-sm font-semibold text-neutral-700 dark:text-amber-50/75">
 							Serás redirigido a Mercado Pago para completar el pago de forma segura.
 						</p>
@@ -1144,7 +1182,7 @@
 						<button
 							type="submit"
 							disabled={mpSubmitting}
-							class="inline-flex items-center justify-center rounded-2xl bg-amber-400 px-6 py-3 text-sm font-black text-amber-950 shadow-lg transition hover:bg-amber-300 disabled:cursor-not-allowed disabled:opacity-70"
+							class="inline-flex items-center justify-center rounded-2xl bg-amber-400 px-6 py-3 text-sm font-bold text-amber-950 shadow-lg transition hover:bg-amber-300 disabled:cursor-not-allowed disabled:opacity-70"
 						>
 							{mpSubmitting ? 'Creando enlace seguro en Mercado Pago…' : 'Activar suscripción con Mercado Pago'}
 						</button>
@@ -1172,10 +1210,10 @@
 			</section>
 		{:else if accountPendingManualSetup}
 			<section class="mx-auto mt-8 max-w-2xl rounded-3xl border border-sky-300/35 bg-sky-400/10 p-8 text-center shadow-2xl shadow-sky-950/10 dark:border-sky-300/25">
-				<p class="mx-auto inline-flex rounded-full bg-sky-300/15 px-3 py-1 text-xs font-black uppercase tracking-wide text-sky-900 dark:text-sky-100">
+				<p class="mx-auto inline-flex rounded-full bg-sky-300/15 px-3 py-1 text-xs font-bold uppercase tracking-wide text-sky-900 dark:text-sky-100">
 					Cita Suite
 				</p>
-				<h1 class="mt-5 text-3xl font-black text-neutral-950 dark:text-white">
+				<h1 class="mt-5 text-3xl font-bold text-neutral-950 dark:text-white">
 					Estamos configurando tu consultorio
 				</h1>
 				<p class="mx-auto mt-3 max-w-lg text-base font-semibold text-neutral-700 dark:text-sky-50/80">
@@ -1183,7 +1221,7 @@
 					el consultorio que vas a usar.
 				</p>
 				<div class="mx-auto mt-6 max-w-sm rounded-2xl border border-sky-300/30 bg-white/70 p-4 text-left shadow-sm dark:bg-[#13243d]/70">
-					<p class="text-sm font-black text-sky-950 dark:text-sky-100">Sin pago pendiente</p>
+					<p class="text-sm font-bold text-sky-950 dark:text-sky-100">Sin pago pendiente</p>
 					<p class="mt-2 text-sm font-semibold text-neutral-700 dark:text-sky-50/75">
 						Esta alta está en modo manual. No te vamos a enviar a Mercado Pago hasta que el
 						consultorio exista y el flujo comercial corresponda.
@@ -1244,7 +1282,7 @@
 						href={item.href}
 						aria-current={isNavItemActive(item) ? 'page' : undefined}
 						aria-label={item.label}
-						class={`flex min-w-0 flex-1 flex-col items-center gap-1 px-1 py-2 text-[11px] font-bold transition ${
+						class={`flex min-w-0 flex-1 flex-col items-center gap-1 px-1 py-2 text-micro font-bold transition ${
 							isNavItemActive(item) ? 'text-white' : 'text-white/70'
 						}`}
 					>
@@ -1255,13 +1293,14 @@
 						>
 							{@render navIcon(item.label)}
 						</span>
-						<span class="max-w-full truncate">{item.shortLabel ?? item.label}</span>
+						<span class="max-w-full truncate" data-truncation="allowed">{item.shortLabel ?? item.label}</span>
 					</a>
 				{/each}
 				<button
 					type="button"
 					onclick={() => (mobileMenuOpen = true)}
-					class="flex min-w-0 flex-1 flex-col items-center gap-1 px-1 py-2 text-[11px] font-bold text-white/70 transition"
+					disabled={!client.ready}
+					class="flex min-w-0 flex-1 flex-col items-center gap-1 px-1 py-2 text-micro font-bold text-white/70 transition"
 					aria-label="Abrir menú"
 				>
 					<span class="flex h-8 w-14 items-center justify-center rounded-full bg-white/5">

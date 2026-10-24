@@ -1,5 +1,5 @@
 import { error, redirect } from "@sveltejs/kit";
-import { getOdontoContext } from "$lib/server/odonto-context";
+import { getOdontoContext } from "$lib/server/access/public/odonto-context";
 import type { PageServerLoad } from "./$types";
 export const load: PageServerLoad = async (event) => {
   const context = await getOdontoContext(event);
@@ -17,12 +17,12 @@ export const load: PageServerLoad = async (event) => {
     .eq("user_id", context.userId);
   if (own.error) error(503, "No pudimos cargar tu perfil. Volvé a intentar.");
   const professionals = (own.data ?? [])
-    .map((row: any) =>
+    .map((row) =>
       Array.isArray(row.professionals)
         ? row.professionals[0]
         : row.professionals,
     )
-    .filter(Boolean) as Array<{ id: string; name: string }>;
+    .filter((professional) => professional !== null && professional !== undefined);
   if (professionals.length === 1)
     redirect(303, `/odonto/profesionales/${professionals[0].id}/preguntas`);
   return { professionals };
