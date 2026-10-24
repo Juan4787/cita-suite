@@ -1,0 +1,21 @@
+{
+  "at": "2026-10-24T13:37:08.780104+00:00",
+  "projects": [
+    {
+      "id": "yjzferwuzbtgpmdnzlcb",
+      "name": "Odontologia",
+      "organization_id": "mstbrfonbbsbgracxfge",
+      "region": "sa-east-1",
+      "status": "ACTIVE_HEALTHY"
+    },
+    {
+      "id": "ikaudqoilclfnztkxubz",
+      "name": "Staging 455",
+      "organization_id": "waoipxhhnbpnpjhbdssn",
+      "region": "us-west-2",
+      "status": "ACTIVE_HEALTHY"
+    }
+  ],
+  "visibleNamesChanged": false,
+  "scope": "Supported CLI readonly list, filtered to exact campaign refs. No management credential exported or project/name changed."
+}

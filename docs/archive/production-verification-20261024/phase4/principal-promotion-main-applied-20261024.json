@@ -1,0 +1,15 @@
+{
+  "at": "2026-10-24T13:34:19.632346+00:00",
+  "repositoryId": 1115936156,
+  "repository": "Juan4787/dashboard",
+  "previousHead": "313355a4403e850379ace72bb4f37cd1c7952142",
+  "head": "37f625b183dabcb50fff6ff4d229789fb3c0c111",
+  "tree": "ada24e4f996ff9f775821d293797f1a357bb109b",
+  "compiledSource": "0851de59ed7971debe2514e6d6851d142bbc5766",
+  "mechanism": "Native Git direct-child fast-forward with exact expected head lease; plugin permissions were readonly. --force-with-lease supplies atomic expected-head protection, while an independent parent guard prohibits history rewriting.",
+  "adversarialWrongHeadDryRunRejected": true,
+  "historyRewritten": false,
+  "userIndexAndHeadPreserved": true,
+  "launchApproved": false,
+  "status": "main-promoted-name-change-pending"
+}

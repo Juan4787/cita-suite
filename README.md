@@ -4,6 +4,8 @@ Monorepo con la aplicación SvelteKit, la web Astro de Natalia y Supabase: agend
 
 La campaña actual se rige por el [plan aprobado íntegro](docs/plans/refactorizacion-cita-suite.md). Su [registro de ejecución](docs/plans/registro-refactorizacion-cita-suite.md) distingue avances, pruebas, resultados y pendientes. Las notificaciones por WhatsApp están descartadas; cursos y noticias siguen pospuestos.
 
+Repositorio principal: [Juan4787/cita-suite](https://github.com/Juan4787/cita-suite). El directorio físico es `Cita Suite`; la ruta anterior conserva un enlace de compatibilidad. La fuente compilada0851 y la revisión de promoción37f625b tienen funciones distintas: el marcador servido identifica el artefacto, mientras la promoción conserva historia y documentación. El [dictamen actual](docs/architecture/auditoria-final.md) mantiene el lanzamiento sin aprobar por la medición de latencia y las dependencias externas descritas.
+
 ## Estructura
 
 ```text

@@ -1,0 +1,23 @@
+{
+  "at": "2026-10-24T13:37:40.206Z",
+  "migrations": 126,
+  "legacyEnabled": false,
+  "businesses": 19,
+  "patients": 121,
+  "appointments": 107,
+  "providerOwnedPractices": 0,
+  "providerOwnedUsers": 0,
+  "capacityPractices": 0,
+  "ownedNataliaAppointments": 0,
+  "ownedNataliaPatients": 0,
+  "calendarConnections": 1,
+  "calendarEvents": 1,
+  "pendingCalendar": 0,
+  "storedObjects": 24,
+  "storedObjectBytes": 11599541,
+  "commercialEligible": 4,
+  "commercialPending": 4,
+  "commercialLatestSynchronization": "2026-10-24T12:17:05.144+00:00",
+  "scope": "Readonly final core/integrity-cleanup state. Commercial timestamp is durable state, not a direct scheduler receipt or an approved-payment credit case.",
+  "passed": true
+}

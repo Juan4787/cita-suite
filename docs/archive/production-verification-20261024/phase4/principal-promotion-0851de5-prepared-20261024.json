@@ -1,0 +1,33 @@
+{
+  "at": "2026-10-24T13:32:58.591971+00:00",
+  "repository": "Juan4787/dashboard",
+  "repositoryId": 1115936156,
+  "base": "313355a4403e850379ace72bb4f37cd1c7952142",
+  "tree": "ada24e4f996ff9f775821d293797f1a357bb109b",
+  "commit": "37f625b183dabcb50fff6ff4d229789fb3c0c111",
+  "compiledSource": "0851de59ed7971debe2514e6d6851d142bbc5766",
+  "sourceFiles": 1137,
+  "totalFiles": 1480,
+  "historicalPreserved": 147,
+  "explicitlyDeleted": 109,
+  "documentationOverlays": [
+    "README.md",
+    "docs/architecture/acceso-google-calendar.md",
+    "docs/architecture/accesos-google.md",
+    "docs/architecture/auditoria-final.md",
+    "docs/architecture/capacidad.md",
+    "docs/architecture/identidad-cita-suite.md",
+    "docs/architecture/publicacion-y-reversion.md",
+    "docs/architecture/respaldo-y-recuperacion.md",
+    "docs/architecture/tareas-automaticas.md",
+    "docs/architecture/verificacion.md",
+    "docs/plans/registro-refactorizacion-cita-suite.md",
+    "docs/plans/traspaso-refactorizacion-cita-suite.md"
+  ],
+  "branch": "refactor/verified-release-0851de5-20261024",
+  "status": "isolated-branch-pushed-main-not-updated",
+  "userIndexSha256": "55cd8f7975542b806308d3e067f81660fe107ed1c5cdbed88962dbe614a1faba",
+  "userHead": "80268e2a501198243996e1bdb0048ce066434727",
+  "scope": "Verified source plus reviewed documentation/immutable evidence, over original main history. No user index/HEAD change or full replacement by auxiliary snapshot. Launch remains unapproved.",
+  "userIndexAndHeadPreserved": true
+}

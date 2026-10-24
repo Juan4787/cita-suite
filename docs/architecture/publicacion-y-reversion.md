@@ -31,7 +31,7 @@ Los ensayos y versiones anteriores se conservan en sus recibos. El resto del pro
 | Producción Supabase |`yjzferwuzbtgpmdnzlcb`,sa-east-1; conservar API/Auth/Storage/refs, nombres visibles se tratan por separado |
 | Staging |`cita-suite-staging`, `ikaudqoilclfnztkxubz`,us-west-2; programador de staging sin cron durante la observación productiva |
 | Natalia Vercel |`natalia-frutos.vercel.app`, proyecto `prj_ddhAhez9VNro373XWSykLkhU5vBS`, equipo `team_CGSlkRXKKlw98jb3O2wSmcyt`,Hobby |
-| Repositorios |Principal `Juan4787/dashboard`,ID1115936156; auxiliar `Juan4787/cita-suite-verificacion`; Natalia `juan-altamira/web-natalia`,ID1416254094 |
+| Repositorios |Principal `Juan4787/cita-suite`,ID1115936156; auxiliar `Juan4787/cita-suite-verificacion`; Natalia `juan-altamira/web-natalia`,ID1416254094 |
 
 Workers Builds de `app` y Git del Vercel viejo fueron desconectados según las capturas del usuario del23-oct; no pedirlos otra vez. El Worker sigue alojado. No reconectar builds que compilen una revisión distinta del paquete probado. Verificar destino, SHA, DB y credenciales por sus nombres/función; jamás copiar valores a logs o CI. Un solo Wrangler activo; no compartirlo con tail. Pruebas pesadas sólo en CI y secuenciales.
 
@@ -127,3 +127,8 @@ La auditoría final contrasta todos los requisitos, distingue CI/simulación/pro
 ## Antecedentes conservados
 
 La expansión/reconciliación/contracción, las versiones antiguas, sus comandos y evidencias están en el [procedimiento anterior archivado](../archive/procedimientos-historicos/publicacion-y-reversion-20261024-0827.md), SHA-256 cfc3ea94229b35decb2c3a57f84f40c552156934a36437140df1b0f31d3e04b9. **Es histórico, no una receta para repetir migraciones, reinstalar secretos o volver al baseline defectuoso.** El plan y el registro originales se preservan íntegros.
+
+
+## Identidad aplicada: alcance y comprobación
+
+El principal se promovió a37f625b y se renombró a `Juan4787/cita-suite` manteniendoID1115936156, historia, otras ramas, tags, issues/PR y políticas. Origin apunta a `github-secundaria:Juan4787/cita-suite.git`; ambas direccionesGit se comprobaron. Plugin sinpermiso deescritura enprincipal: Git nativo usó expectativaexacta deHEAD y padre directo comprobado, con dry-run adversario rechazado; no se reescribió historia. App, programador y Natalia conservaron sus deploymentIDs después de la transición, sin builds reconectados. Directorio físicoCitaSuite con enlace anterior compatible. Los recibos de identidad identifican elSHA ejecutado; actualizaciones documentales posteriores conservan exactamente las fuentes verificadas.

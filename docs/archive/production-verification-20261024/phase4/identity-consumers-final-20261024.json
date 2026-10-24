@@ -1,0 +1,31 @@
+{
+  "at": "2026-10-24T13:36:20.680Z",
+  "principalRepository": "Juan4787/cita-suite",
+  "principalHead": "37f625b183dabcb50fff6ff4d229789fb3c0c111",
+  "compiledSource": "0851de59ed7971debe2514e6d6851d142bbc5766",
+  "appVersion": "70f0cdc0-c2fd-4b7d-93e6-d6a68e2529be",
+  "appDeployment": "0515d135-8044-47fe-964d-6476a6be260d",
+  "applicationDeploymentUnchanged": true,
+  "schedulerVersion": "94bed118-58f7-4608-b543-202812184fda",
+  "schedules": {
+    "cita-suite-scheduler": [
+      "*/5 * * * *",
+      "1-59/5 * * * *",
+      "17 */3 * * *",
+      "2-59/10 * * * *",
+      "3-59/15 * * * *"
+    ],
+    "cita-suite-scheduler-staging": []
+  },
+  "nataliaDeployment": "dpl_6zBnr7E2FVg11SQ5mHiHv8rdPPKk",
+  "nataliaCommit": "e3530eda43fd6ddc82b093a166eb49f83bf7815a",
+  "nataliaReady": true,
+  "nataliaDeploymentUnchanged": true,
+  "legacyHosts": {
+    "cita-suite.netlify.app": 404,
+    "cita-suite-app.vercel.app": 503
+  },
+  "buildsReconnected": false,
+  "paidServiceActivated": false,
+  "passed": true
+}
