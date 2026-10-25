@@ -2,6 +2,46 @@
 
 Este documento describe cómo se mide la capacidad de Cita Suite según la sección 4 del [plan](../plans/refactorizacion-cita-suite.md), qué herramientas lo hacen y qué se encontró. El detalle de cada corrida está en el [registro](../plans/registro-refactorizacion-cita-suite.md).
 
+## Lanzamiento con un consultorio — decisión y protocolo del 25 de octubre
+
+**Decisión del usuario** (literal al final del [plan](../plans/refactorizacion-cita-suite.md)): no se ensayan más dos consultorios sobre los planes gratuitos, se optimiza para uno y, desde el segundo, el usuario pagará Supabase Pro. Las dos cargas fallidas de dos consultorios siguen abajo como evidencia. Los umbrales del plan no cambian.
+
+### Estado de producción antes de optimizar
+
+Lectura de sólo consulta del 25 de octubre a las 05:33 UTC, sobre la app `0851de5` y 126 migraciones:
+
+| Medida | Valor |
+|---|---|
+| Base | 223.505.555 bytes, con 19 negocios, 121 pacientes y 107 turnos |
+| Espacio que dejaron los ensayos | Turnos: 40,3 MB (30,1 MB de índices) para 107 filas. Pacientes: 33,9 MB (33,8 MB de índices) para 121. Profesionales de cada turno: 32,9 MB para 109. Vínculos entre profesional y paciente: 7,3 MB para 89. |
+| Mensajes de Realtime | 77,5 MB en las particiones diarias del 23 al 25 de octubre. Los generaron las siembras, a unos dos mensajes por fila, y Realtime retira esas particiones solo. |
+| Memoria de la instancia | 431 MB en total, 213 MB disponibles y 505 MB en swap. Sin carga, trae 77 páginas por segundo desde swap y tiene 66 fallos de página mayores por segundo. |
+| `shared_buffers` | 280 MB: el valor predeterminado de Supabase, sin configuración propia (`supabase postgres-config get`). |
+| Conexiones | 21: nueve de PostgREST y las demás de servicios de Supabase. |
+
+Evidencia: `.verification/un-consultorio-20261025/production-state-before.json` e `instance-memory-at-rest.json`.
+
+### Optimizaciones para un consultorio
+
+1. **Compactación** (`production-capacity.mjs compact`). Reescribe con `VACUUM (FULL, ANALYZE)` las tablas propias de 1 MB o más, después de una limpieza y nunca durante una medición. Compara antes y después el recuento de filas y una huella del contenido de cada tabla. Si no consigue un bloqueo en 5 s, se detiene en vez de dejar a la aplicación esperando detrás de él. Devuelve a la cuota de 500 MB el espacio que dejan los ensayos, y el consultorio real empieza en tablas del tamaño de sus datos.
+2. **Siembra en estado de uso normal** (`production-capacity.mjs vacuum`). Después de sembrar, hace `VACUUM (ANALYZE)` de las tablas que cambiaron. Hasta ahora, la carga empezaba dos minutos después de insertar 18.000 filas y unos 33.000 mensajes de Realtime, con el mantenimiento automático de esa siembra todavía pendiente. Era un confusor ya registrado, que la operación real no tiene.
+3. **Observación liviana** (`instance-sampler.mjs production <minutos> <etiqueta> light`). Toma las métricas de la instancia una vez por minuto y no abre ninguna sesión de base, así que permite atribuir una falla a memoria, swap o disco sin agregar carga propia.
+4. **Hipótesis para un cambio posterior, no aplicada.** Con 280 MB de `shared_buffers` en 431 MB, parte del caché de PostgreSQL vive en swap, y entonces un acierto del caché puede costar una lectura de disco. Bajarlo es gratis (`supabase postgres-config update --config shared_buffers=… --project-ref yjzferwuzbtgpmdnzlcb --experimental`), reinicia la base y se revierte con `postgres-config delete --config shared_buffers`. Sólo se aplica si la medición de un consultorio falla por pausas de memoria o disco, y después se mide una vez con el mismo protocolo. Supabase mantiene esa configuración por encima de sus valores predeterminados aunque cambie el cómputo: al pasar a Pro hay que revisarla.
+
+### Protocolo de aceptación, fijado antes de sembrar
+
+Una sola corrida, con los criterios del plan sin cambios. Si falla, no se repite sin un cambio concreto que explique la falla.
+
+1. `node scripts/production-capacity.mjs compact`. Precondición: ningún consultorio `capacity-`.
+2. `node scripts/production-capacity.mjs secret`, y el mismo secreto en Actions con `gh secret set CITA_PRODUCTION_CAPACITY_SECRET --repo Juan4787/cita-suite < ~/.config/cita-suite/production/capacity-secret`.
+3. Un solo proceso del muestreador liviano durante todo el ensayo: `node scripts/instance-sampler.mjs production 180 <etiqueta> light`.
+4. `seed`, `vacuum`, `integrity` y `report` de `production-capacity.mjs`, en ese orden.
+5. Treinta minutos de asentamiento sin carga.
+6. `gh workflow run production-measurement.yml --repo Juan4787/cita-suite --ref <rama>`: tres repeticiones de 2 minutos de preparación y 10 de medición con un usuario, la fase pública de 2 + 10 minutos y las pruebas de abuso.
+7. `integrity` y `report`, después `cleanup` y `compact`. Al final se borran el secreto de Actions (`gh secret delete CITA_PRODUCTION_CAPACITY_SECRET --repo Juan4787/cita-suite`) y el archivo local.
+
+**Límites conocidos.** No se observa la CPU por pedido, porque la sesión de Wrangler de esta máquina está en otra cuenta; un corte por CPU aparece igual como error 503 en el generador. El generador corre en GitHub Actions, en EE. UU., y el Worker está ubicado en `aws:sa-east-1`, junto a la base.
+
 ## Diagnóstico dirigido del 25 de octubre
 
 La [investigación de disponibilidad, ficha y creación](diagnostico-rendimiento-20261025.md) terminó con 43 planes SQL, 22 pedidos productivos, 24 componentes REST y un perfil aislado de workerd. El fixture productivo se limpió con los conteos anteriores preservados. Se corrigió un defecto del cliente del inspector con rojo/verde; fast 40160945501 y diagnóstico 40161186500 aprobaron sobre la revisión operativa 5930f73. No cambió la aplicación 0851 ni se contrató nada.

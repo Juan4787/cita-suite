@@ -2,11 +2,28 @@
 
 ## Estado de este documento
 
-**Actualizado por Codex — 25 de octubre de 2026, después del diagnóstico 40161186500.** El punto vigente siguiente prevalece sobre los antecedentes fechados inferiores. La campaña sigue abierta; no confundir pruebas funcionales aprobadas con aptitud de Workers Free para el lanzamiento.
+**Actualizado por Claude — 25 de octubre de 2026, después de la decisión de lanzar con un consultorio.** El punto vigente siguiente prevalece sobre los antecedentes fechados inferiores. La campaña sigue abierta; no confundir pruebas funcionales aprobadas con aptitud de Workers Free para el lanzamiento.
 
 **Alcance vigente (instrucción del usuario del 19 de octubre al retomar con Opus 5.5):** completar y verificar íntegramente la fase 5, avisar al usuario cuando esté realmente cerrada y **continuar automáticamente con la fase 6 y todas las etapas restantes** hasta terminar la campaña, incluida la auditoría transversal, release, publicación y comprobaciones posteriores según las autorizaciones vigentes. Esta instrucción sustituye la restricción anterior de «detenerse antes de fase 6», que se conserva abajo sólo como antecedente de la intervención de GPT-6.1 Sol. Cambia únicamente el punto de detención: no reduce requisitos, garantías, controles ni procedimientos de seguridad.
 
 *Antecedente reemplazado:* la intervención anterior tenía como instrucción cerrar la fase 5, avisar y detenerse antes de fase 6. Ya no está vigente.
+
+## Punto vigente — lanzamiento con un consultorio, 25 de octubre (desde 05:30 UTC)
+
+**Prevalece sobre los puntos inferiores.** Pedido literal del usuario: «no probes mas 2 consultorios. optimicemos para 1, a partir del 2 pago supabase pro. avanza en eso». Quedó como ampliación al final del plan, con su huella en el registro de integridad (documento `80acfef5…`, ampliación `de2d7a1c…`, documento anterior `796853d3…`), y en `AGENTS.md`, control de consumo, capacidad y auditoría final. No ensayar más dos consultorios sobre los planes gratuitos: las cargas 40078561771 y 40099997857 se conservan fallidas. Supabase Pro desde el segundo consultorio lo contrata el usuario, con tope de gasto; el agente no contrata.
+
+- **Estado medido (sólo lectura, 05:33 UTC):** base de 223,5 MB para 19 negocios, 121 pacientes y 107 turnos, inflada por los ensayos: unos 114 MB en tablas e índices de turnos, pacientes y sus vínculos, y 77,5 MB de mensajes de Realtime de las siembras. La instancia tiene 431 MB, 505 MB en swap y paginación constante sin carga; `shared_buffers` vale 280 MB, el predeterminado. Evidencia en `.verification/un-consultorio-20261025/`.
+- **Accesos comprobados:** la CLI de Supabase tiene sesión (lee proyectos y `postgres-config get` de producción: sin configuración propia). Wrangler sigue en la cuenta ajena `af93593d…`: sin observación de CPU por pedido hasta que el usuario inicie sesión en `52b358…`.
+- **Cambios de esta intervención, sin publicar todavía:** `scripts/lib/table-maintenance.mjs` y su prueba (6/6; cuatro mutaciones detectadas), operaciones `vacuum` y `compact` y un consultorio en `scripts/production-capacity.mjs`, modo `light` de `scripts/instance-sampler.mjs` y comentario del workflow de medición. Protocolo fijado en [capacidad](../architecture/capacidad.md#lanzamiento-con-un-consultorio--decisión-y-protocolo-del-25-de-octubre).
+- **Siguiente exacto:** commit hijo de `origin/main` con estos archivos y la documentación pendiente, rama `refactor/one-practice-launch-20261025`; fast en CI; `compact` en producción con su evidencia; después el protocolo de un consultorio. HEAD `80268e2` e índice `55cd8f79…` del usuario no se tocan.
+
+## Restricción económica vigente — 25 de octubre, 05:13 UTC
+
+El usuario confirmó una venta de pago único y fijó que **comprará el dominio, pero no asumirá servicios pagos recurrentes para un consultorio**. Recién desde el segundo consultorio podrá evaluarse pagar infraestructura. Sustituye la previsión económica del tercero; no autoriza automáticamente contratar, migrar ni cambiar planes. La compra del dominio queda a cargo del usuario. Decisión literal y aplicación en [control de consumo](../architecture/control-de-consumo.md#decisión-económica-del-usuario-y-aplicación).
+
+Priorizar los pendientes que puedan resolverse sin nuevos cargos recurrentes. Para el primer consultorio, un plan pago no es la solución operativa autorizada. Si Free no satisface los requisitos, conservar el impedimento y estudiar alternativas compatibles con la restricción; no rebajar criterios ni prometer que un plan pago solucionaría la causa. Las dos cargas fallidas siguen vigentes y el diagnóstico breve de un consultorio no es aceptación de su operación. No se modificaron pruebas, criterios ni el plan original para adaptar el resultado a esta decisión. **Campaña y lanzamiento siguen abiertos.**
+
+Intervención exclusivamente documental `decision-costos-primer-consultorio-20261025`; preestado, copias de los cuatro documentos y verificación de preservación en `.verification/decision-costos-primer-consultorio-20261025/`. No se inició otro ensayo ni se cambió producción.
 
 ## Punto vigente — ronda dirigida terminada, 25 de octubre
 

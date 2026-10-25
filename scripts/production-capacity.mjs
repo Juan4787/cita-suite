@@ -12,20 +12,27 @@ import {
 	INTEGRITY_SQL, capacityOwnersPassword, createRandom, evaluateAcceptance, login, practiceData, removeCapacityOwners, runPublicAbuse, runPublicGenerator,
 	runVirtualUser, summarize, uuidFrom
 } from './lib/capacity-load.mjs';
+import {
+	changedTables, compactionCandidatesSql, compactionScript, tableDigestsSql, tableSizesSql, vacuumCandidatesSql, vacuumScript
+} from './lib/table-maintenance.mjs';
 
-// The two-practice measurement on production, the criterion of the 20 October decision, with
+// The one-practice measurement on production, the launch criterion of the 25 October decision
+// (two practices on the free plans are no longer measured; the failed runs stay as evidence), with
 // the generator, virtual users and public generator of the staging measurement. Production's
 // database is never reachable from CI: `measure` is only the HTTP load, run from an external
-// runner against the public app; `seed`, `integrity`, `report` and `cleanup` run from this
-// machine with the private configuration. The synthetic owners' password is derived from a
-// secret of this measurement (~/.config/cita-suite/production/capacity-secret, mode 600, also a
-// temporary Actions secret), never from a production credential. Every row belongs to a
-// `capacity-` practice, and `cleanup` removes them and the owners.
-const PRACTICES = 2;
+// runner against the public app; `seed`, `vacuum`, `integrity`, `report`, `cleanup` and `compact`
+// run from this machine with the private configuration. The synthetic owners' password is derived
+// from a secret of this measurement (~/.config/cita-suite/production/capacity-secret, mode 600, also
+// a temporary Actions secret), never from a production credential. Every row belongs to a
+// `capacity-` practice, and `cleanup` removes them and the owners. `vacuum` leaves the seed
+// vacuumed and analyzed before it is measured; `compact` gives back the space a cleanup leaves.
+const PRACTICES = 1;
 const root = fileURLToPath(new URL('../', import.meta.url));
 const [operation] = process.argv.slice(2);
-if (!['secret', 'seed', 'integrity', 'measure', 'report', 'cleanup'].includes(operation) || process.argv.length !== 3)
-	throw new Error('Usage: production-capacity.mjs secret|seed|integrity|measure|report|cleanup');
+if (!['secret', 'seed', 'vacuum', 'integrity', 'measure', 'report', 'cleanup', 'compact'].includes(operation) || process.argv.length !== 3)
+	throw new Error('Usage: production-capacity.mjs secret|seed|vacuum|integrity|measure|report|cleanup|compact');
+// Table maintenance needs no measurement: it runs with or without one prepared.
+const maintenance = operation === 'vacuum' || operation === 'compact';
 const evidence = join(root, '.verification');
 mkdirSync(evidence, { recursive: true });
 const secretPath = join(homedir(), '.config/cita-suite/production/capacity-secret');
@@ -38,9 +45,9 @@ if (operation === 'secret') {
 	console.log(JSON.stringify({ created: secretPath }));
 	process.exit(0);
 }
-const measurementSecret = operation === 'measure' ? process.env.CITA_PRODUCTION_CAPACITY_SECRET ?? '' : readFileSync(secretPath, 'utf8').trim();
-if (measurementSecret.length < 32) throw new Error('The measurement secret is missing. Nothing was done.');
-const password = capacityOwnersPassword(measurementSecret, 'production');
+const measurementSecret = maintenance ? null : operation === 'measure' ? process.env.CITA_PRODUCTION_CAPACITY_SECRET ?? '' : readFileSync(secretPath, 'utf8').trim();
+if (measurementSecret !== null && measurementSecret.length < 32) throw new Error('The measurement secret is missing. Nothing was done.');
+const password = measurementSecret === null ? null : capacityOwnersPassword(measurementSecret, 'production');
 
 if (operation === 'measure') {
 	const kitRequire = createRequire(createRequire(join(root, 'apps/web/package.json')).resolve('@sveltejs/kit/package.json'));
@@ -107,7 +114,7 @@ const DATABASE_STATE = `select jsonb_build_object('databaseBytes',pg_database_si
  'deadlocks',(select deadlocks from pg_stat_database where datname=current_database()))::text;`;
 
 if (operation === 'seed') {
-	// Supabase Free turns a project read-only past 500 MB: two practices add about 95 MB.
+	// Supabase Free turns a project read-only past 500 MB: a practice adds about 50 MB.
 	const before = JSON.parse(sql(`select jsonb_build_object('databaseBytes',pg_database_size(current_database()),
  'practices',(select count(*) from public.businesses where slug like 'capacity-%'))::text;`, { readOnly: true }));
 	if (before.practices) throw new Error('Production already holds capacity practices. Nothing was done.');
@@ -125,6 +132,40 @@ if (operation === 'seed') {
 	const seed = { ...JSON.parse(marked.slice('capacity-seed '.length)), before, durationMs: Math.round(performance.now() - started) };
 	writeFileSync(join(evidence, 'production-capacity-seed.json'), JSON.stringify(seed, null, 2) + '\n');
 	console.log('production-capacity-seed ' + JSON.stringify(seed));
+} else if (operation === 'vacuum') {
+	// After the seed: vacuumed and analyzed, as autovacuum keeps a database in steady use, so the
+	// measurement does not run over the maintenance of thousands of rows inserted minutes before.
+	const tables = JSON.parse(sql(vacuumCandidatesSql + ';', { readOnly: true }));
+	const started = performance.now();
+	if (tables.length) sql(vacuumScript(tables));
+	const vacuumed = { at: new Date().toISOString(), tables, durationMs: Math.round(performance.now() - started) };
+	writeFileSync(join(evidence, 'production-capacity-vacuum.json'), JSON.stringify(vacuumed, null, 2) + '\n');
+	console.log('production-capacity-vacuum ' + JSON.stringify(vacuumed));
+} else if (operation === 'compact') {
+	// After a cleanup, never during a measurement, which the rewrite's locks would stall. The
+	// content of every rewritten table is compared before and after.
+	const state = () => JSON.parse(sql(`select jsonb_build_object('practices',(select count(*) from public.businesses where slug like 'capacity-%'),
+ 'databaseBytes',pg_database_size(current_database()))::text;`, { readOnly: true }));
+	const before = state();
+	if (before.practices) throw new Error('Production holds capacity practices; compact only after their cleanup. Nothing was done.');
+	const candidates = JSON.parse(sql(compactionCandidatesSql() + ';', { readOnly: true }));
+	const tables = candidates.map((candidate) => candidate.table);
+	const compacted = { at: new Date().toISOString(), before: { databaseBytes: before.databaseBytes, tables: candidates }, changed: [] };
+	if (tables.length) {
+		const digests = JSON.parse(sql(tableDigestsSql(tables) + ';', { readOnly: true }));
+		const started = performance.now();
+		sql(compactionScript(tables));
+		compacted.durationMs = Math.round(performance.now() - started);
+		const after = JSON.parse(sql(tableDigestsSql(tables) + ';', { readOnly: true }));
+		compacted.changed = changedTables(digests, after);
+		compacted.rows = Object.fromEntries(tables.map((table) => [table, after[table]?.rows ?? null]));
+		compacted.after = JSON.parse(sql(tableSizesSql(tables) + ';', { readOnly: true }));
+	} else compacted.after = { databaseBytes: before.databaseBytes, tables: {} };
+	const path = join(evidence, `production-compact-${compacted.at.replace(/[:.]/g, '-')}.json`);
+	writeFileSync(path, JSON.stringify(compacted, null, 2) + '\n');
+	console.log('production-compact ' + JSON.stringify({ evidence: path, tables: tables.length, changed: compacted.changed,
+		databaseBytes: [before.databaseBytes, compacted.after.databaseBytes] }));
+	if (compacted.changed.length) throw new Error('The content of a compacted table changed: ' + compacted.changed.join(', '));
 } else if (operation === 'integrity') {
 	// Read only, before and after the load.
 	const integrity = { at: new Date().toISOString(), ...JSON.parse(sql(INTEGRITY_SQL + ';', { readOnly: true })), database: JSON.parse(sql(DATABASE_STATE, { readOnly: true })) };
