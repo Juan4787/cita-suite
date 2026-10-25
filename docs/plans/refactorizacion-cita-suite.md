@@ -677,3 +677,21 @@ Esta decisión reemplaza la cantidad de consultorios del lanzamiento fijada el 2
 4. **Segundo consultorio con Supabase Pro.** El usuario decidió pagar Supabase Pro a partir del segundo consultorio. La contratación la hace el usuario: esta decisión no autoriza al agente a contratar, migrar ni cambiar planes. Se usa con el tope de gasto activado, porque no se aceptan servicios con cobro variable sin tope. Antes de incorporar el segundo consultorio, con Supabase Pro activo, corresponde demostrar los criterios de la sección 4 con dos consultorios en ese destino. Workers Paid u otros servicios no forman parte de esta decisión.
 5. **Restricción económica.** Sigue vigente la del 25 de octubre: ningún servicio pago recurrente para un consultorio, y el dominio lo compra el usuario.
 6. **Escala y cierre.** Se conserva la arquitectura multiempresa para crecer a 2, 5, 10, 25 o más consultorios sin rehacer componentes centrales. El resto del plan sigue vigente. Para este lanzamiento, la condición de capacidad se cumple con la demostración de un consultorio en el despliegue gratuito, la evidencia de CI ya obtenida y una arquitectura que permita ampliar recursos sin cambiar el modelo multiempresa.
+
+---
+
+# Decisión del usuario: aceptación del lanzamiento del primer consultorio en los planes gratuitos
+
+## Pedido original íntegro — 25 de octubre de 2026
+
+Lanzar en el plan gratuito aceptando esperas ocasionales de 2 a 3 segundos. no puedo pagar para el 1er consultorio
+
+## Contexto y aplicación a la campaña
+
+El usuario eligió esta opción entre tres alternativas presentadas después de dos corridas productivas de un consultorio: 40169634680 con la configuración predeterminada y 40175346833 con `shared_buffers` en 128 MB, cambio que aplicó el usuario. En ambas se cumplieron dos de tres repeticiones y la fase pública, con 0 errores técnicos, 0 cruces entre consultorios, 0 superposiciones de turnos, reserva pública y pruebas de abuso correctas, y ningún corte de CPU de Cloudflare. En cada corrida, una repetición incumplió los percentiles de latencia. La causa fueron pausas de 1 a 3,5 s que la instancia Nano de Supabase Free produce cada 9 a 10 minutos de uso continuo: tormentas de swap que sólo ocurren con carga. Se aplica así:
+
+1. **Desviación aceptada, sólo para el primer consultorio.** Se acepta lanzar el primer consultorio en Workers Free y Supabase Free con esa desviación de latencia medida. Es una decisión del usuario, no un criterio cumplido: las dos corridas se conservan como fallidas y los umbrales de la sección 4 no cambian.
+2. **Los demás criterios y garantías siguen vigentes:** errores técnicos menores al 1 %, ninguna violación de aislamiento, doble reserva o cuotas, disponibilidad completa o error explícito, push y calendario dentro de diez minutos, seguridad, integridad y preservación de datos. Esta aceptación no cubre una regresión en ninguno de ellos.
+3. **Sin pagos para el primer consultorio.** No se contrata nada. Supabase Pro llega con el segundo consultorio, contratado por el usuario con tope de gasto, y antes de incorporar ese consultorio se demuestran los criterios completos con dos consultorios en ese destino. La aceptación no se extiende al segundo consultorio ni a escalas mayores.
+4. **Riesgo residual documentado.** Habrá esperas ocasionales de 1 a 3,5 s, que pueden crecer con más datos, con más usuarios simultáneos o por cambios del proveedor. Corresponde volver a evaluar con los mismos criterios, antes de lo previsto, si el consultorio las percibe como un problema, si aparecen errores o cortes, o si las esperas crecen.
+5. **Pendientes que no se eximen.** Siguen abiertos los requisitos de lanzamiento que dependen de acciones externas: correo para recuperar contraseñas, custodia de respaldos antes de cargar datos clínicos reales, dominio y verificación de Google, y nombres de los proyectos de Supabase.

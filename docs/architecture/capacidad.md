@@ -73,7 +73,9 @@ El usuario aplicó el cambio a las 07:34 UTC. La corrida usó el mismo protocolo
 - **Lo más probable** es un servicio de la instancia cuya memoria crece con el tráfico y se reorganiza cada 9 a 10 minutos sobre memoria en swap. El candidato principal es la recolección de basura de PostgREST, que mantiene en memoria 407 funciones, 70 relaciones y 151 claves foráneas. Supabase no publica métricas por proceso, así que la hipótesis no está demostrada.
 - **La app funciona correctamente:** 0 errores, 0 cortes por CPU de Cloudflare y ninguna violación de integridad. Lo que no se cumple son los percentiles: hay pausas de 1 a 3,5 s cada unos 10 minutos de uso continuo.
 
-**Estado:** impedimento del proveedor para el criterio de un consultorio en la infraestructura gratuita. Las alternativas están en el registro y en el traspaso, y la decisión es del usuario. Producción quedó limpia: sin consultorios sintéticos, con las tablas compactadas y los secretos borrados. El ajuste de 128 MB sigue aplicado, y se recomienda revertirlo porque no mostró beneficio bajo carga.
+**Estado:** impedimento del proveedor para el criterio de latencia de un consultorio en la infraestructura gratuita. **El usuario aceptó lanzar el primer consultorio con esa desviación** (decisión literal al final del plan): «Lanzar en el plan gratuito aceptando esperas ocasionales de 2 a 3 segundos. no puedo pagar para el 1er consultorio». Las corridas siguen registradas como fallidas y los umbrales no cambian. La aceptación no se extiende al segundo consultorio: con Supabase Pro se vuelven a medir dos consultorios con los criterios completos. Producción quedó limpia, sin consultorios sintéticos, con las tablas compactadas y los secretos borrados. El ajuste de 128 MB sigue aplicado; se recomienda revertirlo porque no mostró beneficio bajo carga, y en todo caso hay que quitarlo al pasar a Pro.
+
+**Cuándo volver a medir antes de lo previsto:** si el consultorio percibe las esperas como un problema, si aparecen errores o cortes, o si las pausas crecen con los datos o el uso.
 
 ## Diagnóstico dirigido del 25 de octubre
 
