@@ -55,7 +55,25 @@ Una sola corrida, con los criterios del plan sin cambios. Si falla, no se repite
 
 Cero errores técnicos, abuso aprobado, 0 cruces y 0 superposiciones, y ningún interbloqueo nuevo. Con unas 16 escrituras por repetición, el p95 coincide con el máximo: un solo episodio de 06:53:57 a 06:54:21 hizo fallar la repetición 2. Cloudflare no cortó ningún pedido por CPU: 898 pedidos «ok», con p99 de 22 ms y máximo de 46 ms. Los pedidos lentos esperaron a Supabase (de 1,1 a 3,3 s de pared con 6 a 12 ms de CPU), y durante la pausa la instancia no respondió sus propias métricas. Los minutos con pedidos lentos traen de swap 256 páginas por segundo frente a 95, y tienen el doble de espera de disco, con la CPU ociosa. Hubo tormentas de swap cada 8 a 11 minutos.
 
-**Siguiente según el protocolo:** bajar `shared_buffers` a 128 MB y repetir una vez. El clasificador de seguridad de Claude Code bloqueó ese cambio de producción, y queda a decisión del usuario. Producción quedó limpia: sin consultorios sintéticos, con las tablas compactadas y los secretos de la medición borrados.
+### Segunda corrida: 40175346833, con `shared_buffers` en 128 MB
+
+El usuario aplicó el cambio a las 07:34 UTC. La corrida usó el mismo protocolo y los mismos criterios, de 08:07:23 a 08:56:11 UTC. **Tampoco aprobó, por la misma razón.**
+
+| Fase | Lecturas p95 / p99 (ms) | Escrituras p95 / p99 (ms) | Resultado |
+|---|---:|---:|---|
+| Repetición 1 | 722 / 1.528 | 861 / 861 | Cumple |
+| Repetición 2 | 1.141 / 3.408 | 1.315 / 1.315 | Falla lecturas |
+| Repetición 3 | 893 / 1.977 | 1.319 / 1.319 | Cumple |
+| Pública | 437 / 898 | 1.306 / 1.306 | Cumple; 2 reservas, 0 fallas |
+
+### Qué muestran las dos corridas
+
+- **Las pausas vienen de la instancia, y sólo con carga.** Cada pausa coincide con una tormenta de swap: 450 a 750 páginas por segundo entrando y 400 a 840 saliendo en el mismo minuto, con 12 a 19 % de espera de disco. Hubo cinco tormentas en cada corrida y ninguna en los 65 minutos sin carga, con el consultorio sembrado.
+- **No es el SQL ni el caché de PostgreSQL.** Las sentencias de la carga son livianas, ninguna consulta periódica es pesada, y bajar `shared_buffers` mejoró el reposo pero no cambió las tormentas ni las pausas (máximos de 3.427 y 3.408 ms).
+- **Lo más probable** es un servicio de la instancia cuya memoria crece con el tráfico y se reorganiza cada 9 a 10 minutos sobre memoria en swap. El candidato principal es la recolección de basura de PostgREST, que mantiene en memoria 407 funciones, 70 relaciones y 151 claves foráneas. Supabase no publica métricas por proceso, así que la hipótesis no está demostrada.
+- **La app funciona correctamente:** 0 errores, 0 cortes por CPU de Cloudflare y ninguna violación de integridad. Lo que no se cumple son los percentiles: hay pausas de 1 a 3,5 s cada unos 10 minutos de uso continuo.
+
+**Estado:** impedimento del proveedor para el criterio de un consultorio en la infraestructura gratuita. Las alternativas están en el registro y en el traspaso, y la decisión es del usuario. Producción quedó limpia: sin consultorios sintéticos, con las tablas compactadas y los secretos borrados. El ajuste de 128 MB sigue aplicado, y se recomienda revertirlo porque no mostró beneficio bajo carga.
 
 ## Diagnóstico dirigido del 25 de octubre
 
