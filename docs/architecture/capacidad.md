@@ -40,7 +40,22 @@ Una sola corrida, con los criterios del plan sin cambios. Si falla, no se repite
 6. `gh workflow run production-measurement.yml --repo Juan4787/cita-suite --ref <rama>`: tres repeticiones de 2 minutos de preparación y 10 de medición con un usuario, la fase pública de 2 + 10 minutos y las pruebas de abuso.
 7. `integrity` y `report`, después `cleanup` y `compact`. Al final se borran el secreto de Actions (`gh secret delete CITA_PRODUCTION_CAPACITY_SECRET --repo Juan4787/cita-suite`) y el archivo local.
 
-**Límites conocidos.** No se observa la CPU por pedido, porque la sesión de Wrangler de esta máquina está en otra cuenta; un corte por CPU aparece igual como error 503 en el generador. El generador corre en GitHub Actions, en EE. UU., y el Worker está ubicado en `aws:sa-east-1`, junto a la base.
+**Límites conocidos.** El generador corre en GitHub Actions, en EE. UU., y el Worker está ubicado en `aws:sa-east-1`, junto a la base. Antes de la corrida, el usuario volvió a iniciar sesión en Wrangler en la cuenta de Cita Suite, y la CPU por pedido se observó con `tail-metrics.mjs`.
+
+### Primera corrida: 40169634680, con la configuración predeterminada
+
+**No aprobada, por una sola pausa.** Compactación a las 05:54, siembra a las 05:57, `vacuum`, 37 minutos de asentamiento, y generador de 06:36:13 a 07:25:12 UTC sobre `356cfbc`.
+
+| Fase | Lecturas p95 / p99 (ms) | Escrituras p95 / p99 (ms) | Resultado |
+|---|---:|---:|---|
+| Repetición 1 | 751 / 1.513 | 1.097 / 1.097 | Cumple |
+| Repetición 2 | 738 / 1.404 | 3.427 / 3.427 | Falla escrituras |
+| Repetición 3 | 782 / 1.176 | 1.213 / 1.213 | Cumple |
+| Pública | 453 / 944 | 1.339 / 1.339 | Cumple; 2 reservas, 0 fallas |
+
+Cero errores técnicos, abuso aprobado, 0 cruces y 0 superposiciones, y ningún interbloqueo nuevo. Con unas 16 escrituras por repetición, el p95 coincide con el máximo: un solo episodio de 06:53:57 a 06:54:21 hizo fallar la repetición 2. Cloudflare no cortó ningún pedido por CPU: 898 pedidos «ok», con p99 de 22 ms y máximo de 46 ms. Los pedidos lentos esperaron a Supabase (de 1,1 a 3,3 s de pared con 6 a 12 ms de CPU), y durante la pausa la instancia no respondió sus propias métricas. Los minutos con pedidos lentos traen de swap 256 páginas por segundo frente a 95, y tienen el doble de espera de disco, con la CPU ociosa. Hubo tormentas de swap cada 8 a 11 minutos.
+
+**Siguiente según el protocolo:** bajar `shared_buffers` a 128 MB y repetir una vez. El clasificador de seguridad de Claude Code bloqueó ese cambio de producción, y queda a decisión del usuario. Producción quedó limpia: sin consultorios sintéticos, con las tablas compactadas y los secretos de la medición borrados.
 
 ## Diagnóstico dirigido del 25 de octubre
 
