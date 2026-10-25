@@ -2436,3 +2436,21 @@ Reproducción ligera deparser+calculadorreales enNode delhost,30iteracionessecue
 Integridad0cruces/0overlaps/3HTTPcreaciones, luego limpieza exitosa:1negocio/6000pacientes/12003turnos/1dueño,conteosprevios19/121/107,Calendar1/1 y24objetos/11.599.541Brestaurados;secretotemporallocalretirado. Estado targeted-performance-fixture-20261025.json=cleaned; no repetir seed/cleanup niabrirpreguntasajenas.
 
 Se prepara perfilCI aislado workerd para losmismos3flujos/1fixture:8lecturasdecada tipo y3creates,22pedidos,inspector3fases, sinproveedores ni credencialesproductivas. helper scripts/lib/targeted-performance.mjs y6pruebas adversarias pasaronlocal secuencial; detectanHTTP200connodoerror,identidadajena,slotsvacíos/ajenos,redirectincorrecto,timingausente/duplicado yperfilCPUvacío. Se añade --targeted y opciónmanualcapacity-targeted; modos existentes y sus umbrales seconservan, nuevo modo nunca certificacapacidad. Sóloops/workflow,0app/SQL/configdeproducción. Fast de larevisiónexacta primero, luegoCI; resultado aúnpendiente.
+
+
+### Perfil dirigido enviado a CI — 25-oct 04:03 UTC
+
+Rama aislada `refactor/targeted-performance-20261025`, revisión `f2dcb7aafec53914e68700369737e659088c84f7`, hija directa de bc307f5. Sólo cuatro archivos operativos nuevos/modificados y dos documentos; 0 diferencias en fuentes de app, paquetes, migraciones y configuración. Comparación adicional contra el runtime 0851: bajo apps sólo difieren 15 capturas históricas. HEAD e índice del usuario preservados; canónico 0851 intacto.
+
+Fast 40160236590 terminó exitoso a 04:03:02: 13/13 controles, 1.395 servidor / 175 cliente, 150 guardas Node (incluidas las seis nuevas) y 11 del programador, 0 fallos/omisiones/pendientes. Siete evidencias recuperadas; paquete SHA256 `76abfcc921db04449ad6aab686890e1e3f0ac3f6af999be6831c8c83978fc674`. Colector y recibo targeted-performance-fast conservan el detalle.
+
+El dispatch único de `capacity-targeted` fue aceptado desde la rama a 04:03:35, run 40160488305 sobre el mismo SHA. Refuta la suposición operativa de que era necesario promover el nuevo modo a main antes de ejecutarlo: **no se promovió**. Main bc307f5 y producción 0851 se conservan. Diagnóstico aislado aún pendiente; un fast verde no lo sustituye. No se repetirán carga productiva, semilla ni limpieza ya comprobadas.
+
+
+### Defecto del inspector reproducido y corregido — 25-oct 04:11 UTC
+
+El diagnóstico 40160488305 sobre f2dcb7a falló antes de iniciar los 22 pedidos. Build y reconstrucción de las 126 migraciones aprobaron; la aplicación contestó /login 200. El inspector rechazó el handshake WebSocket; la captura anterior guardaba sólo el nombre genérico Error y había ocultado esa causa. Cinco evidencias recuperadas, paquete SHA256 `213100611e7ce87b196ecaaa8889bc1ef6867e6c98cfbbbfab4842946a95ccf6`. Los cuatro servicios de CI seguían sanos, sin OOM ni deadlocks; finally terminó sin error adicional de limpieza. No es una medición de la aplicación ni una falla productiva.
+
+Se contrastó el código instalado de Wrangler 4.86.0, InspectorProxyWorker.ts: exige Origin si existe User-Agent. El WebSocket nativo de Node envía User-Agent=node sin Origin; connectInspector no lo agregaba. Prueba de handshake HTTP/WebSocket real en loopback reprodujo el rechazo: rojo 3 aprobadas / 1 fallida antes de tocar implementación. Se añadió únicamente Origin derivado del endpoint del inspector. Verde secuencial: 10/10 pruebas de CPU/diagnóstico, incluidos rechazo sin Origin y rechazo con Origin ajeno. No se deshabilitó la protección, no se agregó dependencia ni se cambió app/SQL/configuración productiva. Evidencias targeted-inspector-origin-{red,green}-20261025.log y targeted-performance-ci-failure-v1-20261025.json.
+
+Preparar hijo aislado de f2 con esos dos archivos operativos y los registros; fast exacto y luego repetir el diagnóstico por esta corrección demostrada. Conservar la falla original, no promoverla como resultado. Producción y main siguen intactos.

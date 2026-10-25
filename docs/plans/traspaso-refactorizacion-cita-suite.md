@@ -8,15 +8,19 @@
 
 *Antecedente reemplazado:* la intervención anterior tenía como instrucción cerrar la fase 5, avisar y detenerse antes de fase 6. Ya no está vigente.
 
-## Punto vigente — diagnóstico dirigido25-oct, 2026-10-25T03:58:58.064376+00:00
+## Punto vigente — diagnóstico dirigido de rendimiento, 25 de octubre
 
-Usuarioautorizó la rondadirigida de rendimiento, no contratación. Sólo ese tema. Producción0851/DB126 intacta; principalbasebc307f5. Fixturepropio1x6000/12000 yausado ylimpiado, secretolocalretirado, 0restos/conteos19/121/107/Calendar1/1/24objetos preservados. No repetir seed/cleanup. Evidencias targeted-performance-{start,preflight,protocol,http-baseline,sql-baseline-v3,pure-cpu,integrity,fixture,nested-boundary}-20261025.json; fuentes/planes yfallosdelarnés privados en.verification.
+**Producción ya medida y limpiada.** El fixture propio de un consultorio con 6.000 pacientes y 12.000 turnos se usó una sola vez. Se eliminaron sus 12.003 turnos y su dueño; quedaron los conteos previos 19 negocios / 121 pacientes / 107 turnos, Calendar 1/1 y 24 objetos. El secreto temporal local fue retirado. No repetir semilla ni limpieza. Fuente productiva `0851de59ed7971debe2514e6d6851d142bbc5766`, DB 126; no se desplegó ni modificó SQL de la aplicación.
 
-SQL43planes:medianasdelecturas~0,03–11ms, máximo95,879ms enventana15días3prof;creación20,03msmediana/139,434máximo.22HTTPapp0errores y3writespropiospersistidos;telemetríaexistente4/9/7HTTPaSupa. NodepureCPU7,408msinicial/1,815caliente, noWorkerCPU. Ningúndefectoconcreto deappjustificadotodavía; nocambiarcódigo porconjetura. CPUFree yfallosde2consultorios permanecen sinaprobar.
+**Último punto comprobado:** 43 planes SQL, 22 pedidos por la app y 24 componentes REST. Las consultas medidas no reprodujeron pausas de segundos; tampoco la muestra HTTP breve. No hay defecto de aplicación confirmado que justifique cambiarla. La capacidad de dos consultorios y el presupuesto de CPU Free siguen sin aprobar.
 
-**Enpreparación:**4archivosops/workflow (helper,test,runner,workflow) yregistros; perfilworkerdCIcapacity-targeted1fixture/22pedidos/3fasesCPU, sinredproductiva. Testsadversarios6/6 ysyntaxcheckaprobados local, sinheavyhost. Publicar ramaaislada basadaenbc, fast exactoprimero; sólo después incorporarmodosoperativos comprobadosalmain para queActionsreconozcacapacity-targeted y correrundiagnóstico aislado. No redeployapp, no tocarcanonicalci-source0851, no otro48min. ResultadoCIaúnpendiente.
+**CI: primera ejecución fallida y causa corregida.** La revisión aislada `f2dcb7aafec53914e68700369737e659088c84f7` aprobó fast **40160236590** (13/13 controles; 1.395 servidor / 175 cliente / 150 guardas Node / 11 programador). El diagnóstico **40160488305** falló al conectar el inspector, antes de los pedidos medidos. Cinco evidencias recuperadas, paquete `21310061…`. No ejecutarlo otra vez sobre ese SHA.
 
-Los checkpoints inferiores de cierre ydependencias son antecedentes; mantener dominio/SMTP/identidad fuera de esta ronda. No preguntas intermedias.
+Wrangler 4.86 exige Origin cuando Node envía User-Agent; el cliente existente lo omitía. Reproducción liviana en loopback rojo 3/1, luego corrección de `scripts/lib/cpu-profile.mjs`: Origin derivado del endpoint. Verde 10/10 incluyendo rechazos sin Origin y con Origin ajeno, sin bajar la guarda ni agregar dependencias. Archivos de prueba y recibo `targeted-performance-ci-failure-v1-20261025.json` conservados. Siguiente: hijo aislado de f2 con los dos archivos CPU y documentación; fast exacto primero, luego un nuevo diagnóstico. Colector preparado pendiente de actualizar a nuevo run/SHA, no ejecutar el anterior que apunta a 40160488305.
+
+Actions aceptó `capacity-targeted` desde la rama sin cambiar main; la promoción previa prevista se descartó. Main sigue `bc307f5c8859fe9508ea524780bee52f91d98bfd`. No promover hasta verificar el diagnóstico. Producción, semilla y limpieza ya terminadas no se repiten. Después recuperar las evidencias, analizar perfiles, documentar conclusión y archivar una selección saneada. No usar `busyMs` como CPU facturable ni restar intervalos HTTP solapados para inventar CPU.
+
+Se preservan HEAD del usuario `80268e2`, índice `55cd8f79`, plan original `796853d3` y `.verification/ci-source.json` canónico 0851/1.137 archivos. No compilar ni levantar DB/navegador en este host. Sólo este tema; sin preguntas intermedias ni contratación. Los antecedentes inferiores no sustituyen este punto.
 
 ### Cierre documental verificado —25-oct01:47UTC
 
