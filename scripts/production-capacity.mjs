@@ -10,7 +10,7 @@ import { psqlDiagnostics } from './lib/staging-database.mjs';
 import { PRODUCTION_APP_ORIGIN } from './lib/production-deploy.mjs';
 import {
 	INTEGRITY_SQL, capacityOwnersPassword, createRandom, evaluateAcceptance, login, practiceData, removeCapacityOwners, runPublicAbuse, runPublicGenerator,
-	runVirtualUser, summarize, uuidFrom
+	runVirtualUser, slowSample, summarize, uuidFrom
 } from './lib/capacity-load.mjs';
 import {
 	changedTables, compactionCandidatesSql, compactionScript, tableDigestsSql, tableSizesSql, vacuumCandidatesSql, vacuumScript
@@ -52,8 +52,14 @@ const password = measurementSecret === null ? null : capacityOwnersPassword(meas
 if (operation === 'measure') {
 	const kitRequire = createRequire(createRequire(join(root, 'apps/web/package.json')).resolve('@sveltejs/kit/package.json'));
 	const devalue = await import(pathToFileURL(kitRequire.resolve('devalue')).href);
-	const result = { origin: PRODUCTION_APP_ORIGIN, practices: PRACTICES, startedAt: new Date().toISOString(), repetitions: [] };
+	const result = { origin: PRODUCTION_APP_ORIGIN, practices: PRACTICES, startedAt: new Date().toISOString(), repetitions: [], slow: [] };
 	const save = () => writeFileSync(join(evidence, 'production-capacity-measure.json'), JSON.stringify(result, null, 2) + '\n');
+	// Every sample of a phase, and the slow ones also with their start, to place pauses in time.
+	const recorder = (samples, phase) => (sample) => {
+		samples.push(sample);
+		const slow = slowSample(sample, phase);
+		if (slow) result.slow.push(slow);
+	};
 	const causes = (summary) => Object.fromEntries(Object.entries(summary.byOperation).filter(([, group]) => group.errors > 0)
 		.map(([name, group]) => [name, group.errorReasons]));
 	const jars = [];
@@ -63,7 +69,7 @@ if (operation === 'measure') {
 		const until = measureFrom + 10 * 60_000;
 		const samples = [];
 		await Promise.all(jars.map((jar, index) => runVirtualUser({ origin: PRODUCTION_APP_ORIGIN, jar, data: practiceData(index + 1),
-			random: createRandom(`production-${repetition}-${index + 1}`), measureFrom, until, record: (sample) => samples.push(sample) })));
+			random: createRandom(`production-${repetition}-${index + 1}`), measureFrom, until, record: recorder(samples, `repetition-${repetition}`) })));
 		const summary = summarize(samples);
 		result.repetitions.push({ repetition, summary, acceptance: evaluateAcceptance(summary) });
 		save();
@@ -73,7 +79,7 @@ if (operation === 'measure') {
 	const publicSamples = [];
 	const publicFrom = Date.now() + 2 * 60_000;
 	const generated = await runPublicGenerator({ origin: PRODUCTION_APP_ORIGIN, practices: PRACTICES, random: createRandom('production-public'),
-		measureFrom: publicFrom, until: publicFrom + 10 * 60_000, record: (sample) => publicSamples.push(sample), unflatten: devalue.unflatten, parse: devalue.parse,
+		measureFrom: publicFrom, until: publicFrom + 10 * 60_000, record: recorder(publicSamples, 'public'), unflatten: devalue.unflatten, parse: devalue.parse,
 		phone: '+5491177100000' });
 	const publicSummary = summarize(publicSamples);
 	result.publicBooking = { summary: publicSummary, acceptance: evaluateAcceptance(publicSummary), bookingFailures: generated.failures };
