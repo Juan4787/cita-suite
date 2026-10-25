@@ -1,0 +1,141 @@
+{
+  "at": "2026-10-25T01:38:14.654080+00:00",
+  "sourceRevision": "0851de59ed7971debe2514e6d6851d142bbc5766",
+  "comparisonRun": 40099997857,
+  "scope": "Single prespecified unsampled comparison, failed acceptance retained, conservative interpretation and guarded cleanup. No launch approval.",
+  "privatePatternAndActualEnvironmentSecretScanPassed": true,
+  "adversarialScannerChecksPassed": true,
+  "files": [
+    {
+      "path": "docs/archive/production-verification-20261024/phase5/capacity-two-unsampled-comparison-protocol-20261024.json",
+      "source": ".verification/capacity-two-unsampled-comparison-protocol-20261024.json",
+      "bytes": 1689,
+      "sha256": "2bc5eeb16f4e02bbd0ff9fc978842178b42cf9546dfdf2fdc6bfc2eb681ff9be"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase5/principal-identity-fast-approval-20261024.json",
+      "source": ".verification/principal-identity-fast-approval-20261024.json",
+      "bytes": 350,
+      "sha256": "ee21655a65899332ff259356ae742bac23a47bc7fc82f13b2b421dc46688fe6b"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase5/capacity-two-control-completion-20261024.json",
+      "source": ".verification/capacity-two-control-completion-20261024.json",
+      "bytes": 958,
+      "sha256": "737dce291f5284aeac15b695912998e66a91f97ebe8685670b5b58ac7d4bfe71"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase5/capacity-two-control-ci-phase-markers-20261024.json",
+      "source": ".verification/capacity-two-control-ci-phase-markers-20261024.json",
+      "bytes": 5117,
+      "sha256": "598b234956ec637e1fdfbe08712bfca8199e6da7f3ec6e51736af191bd801d35"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase5/capacity-two-control-analysis-20261024.json",
+      "source": ".verification/capacity-two-control-analysis-20261024.json",
+      "bytes": 31801,
+      "sha256": "cd09ed6fd15d478547b92a196f6b87f0e39ffb2edc042e15d9b8aba9bb3135d9"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase5/capacity-two-control-analysis-v2-20261024.json",
+      "source": ".verification/capacity-two-control-analysis-v2-20261024.json",
+      "bytes": 23753,
+      "sha256": "3acf35ffc34223d299f50c49c78b9884bf5285feb3ef5e3986a536d0d3952766"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase5/capacity-two-control-reset-null-red-green-20261024.json",
+      "source": ".verification/capacity-two-control-reset-null-red-green-20261024.json",
+      "bytes": 270,
+      "sha256": "cfd6001ef22e796623cd80a92acb9d0a5b54a5499256ebba63756c6566b38d4c"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase5/capacity-two-control-cleanup-receipt-20261024.json",
+      "source": ".verification/capacity-two-control-cleanup-receipt-20261024.json",
+      "bytes": 1167,
+      "sha256": "89858dffb05ac0d234db7dc21c40e3c9b67d5faaead33ccaf6de5d5d9eb344f5"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase5/capacity-two-control-consolidation-20261025.json",
+      "source": ".verification/capacity-two-control-consolidation-20261025.json",
+      "bytes": 3296,
+      "sha256": "926ea84605dc61898c3d6604f85145031947cd4c037d2f43a254c15505e697c1"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase5/capacity-two-control-tail-summary-20261025.json",
+      "source": ".verification/capacity-two-control-tail-summary-20261025.json",
+      "bytes": 8531,
+      "sha256": "6d11b695a5a75dd2e39d6bc24825ad0e47acbd59718260bf8107f160460f4629"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase5/capacity-two-control-provider-boundary-20261025.json",
+      "source": ".verification/capacity-two-control-provider-boundary-20261025.json",
+      "bytes": 767,
+      "sha256": "d4c9533bc71c8130fed6d6c53540d9b6841da2c0a18edf2b0d525e62cabde596"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase5/production-release-2026-10-25T01-36-11-182Z.json",
+      "source": ".verification/production-release-2026-10-25T01-36-11-182Z.json",
+      "bytes": 524,
+      "sha256": "0424a5146dc0ae8699dafd653c6186db00c98254f3e2632390647543b1194897"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase5/production-observer-b24c0f1b0006-final.json",
+      "source": ".verification/production-observer-b24c0f1b0006-final.json",
+      "bytes": 9333,
+      "sha256": "bd8a81666c3bb81b4c844bbfac456ee6de5dba9d92d5a1691108d143ad56c5bc"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase5/capacity-two-control-before-integrity-20261024.log",
+      "source": ".verification/capacity-two-control-before-integrity-20261024.log",
+      "bytes": 184,
+      "sha256": "3898df304eca0266b61b750836380544a23b75f8d03f161c6b255d28932e5ad0"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase5/capacity-two-control-after-integrity-20261024.log",
+      "source": ".verification/capacity-two-control-after-integrity-20261024.log",
+      "bytes": 185,
+      "sha256": "8fe4cbc5022177b6116cf723bedad77a0f716169f18633268b224f3e1cc12f4d"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase5/capacity-two-control-cleanup-20261024.log",
+      "source": ".verification/capacity-two-control-cleanup-20261024.log",
+      "bytes": 165,
+      "sha256": "59ef960c99e4f4d9d09b52c58732259d2984f6ab1b857a19ba2faf5afb7cf727"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase5/collect-capacity-two-control-20261024.py",
+      "source": ".verification/collect-capacity-two-control-20261024.py",
+      "bytes": 3244,
+      "sha256": "580e72a46074404be220a9f475603d4a21821376b52594c3e6db44e6405fa049"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase5/analyze-capacity-two-control-v2-20261024.mjs",
+      "source": ".verification/analyze-capacity-two-control-v2-20261024.mjs",
+      "bytes": 6476,
+      "sha256": "d8b6a8d0e94dc79be117e930f45e16cf47cd12cd243ed37567e906503ab910b8"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase5/cleanup-capacity-two-control-20261024.mjs",
+      "source": ".verification/cleanup-capacity-two-control-20261024.mjs",
+      "bytes": 4057,
+      "sha256": "7e158edabf42b90f8d1469c4cf69dd586b562a8726ccfcdb746fe4cfdb9bb00c"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase5/summarize-capacity-two-control-20261025.mjs",
+      "source": ".verification/summarize-capacity-two-control-20261025.mjs",
+      "bytes": 3024,
+      "sha256": "b5e0406c72733b2b63460986e005b2e010508c13211cf990d78d9976ac2b851b"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase5/production-capacity-measure.json",
+      "source": ".verification/production-measure-40099997857/production-capacity-measure.json",
+      "bytes": 14862,
+      "sha256": "43ab9eb8e485cfc27c83bcd5d935ce10acc59e19e36ba4baa5a45157bab66386"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase5/README.md",
+      "bytes": 3353,
+      "sha256": "e3513e1b0361dfd096c306041f7694acc1125f3fd20892427fb56a9792670c62"
+    }
+  ]
+}

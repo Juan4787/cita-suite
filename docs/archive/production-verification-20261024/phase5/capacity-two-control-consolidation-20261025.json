@@ -1,0 +1,84 @@
+{
+  "at": "2026-10-25T01:37:24.281915+00:00",
+  "run": 40099997857,
+  "source": "0851de59ed7971debe2514e6d6851d142bbc5766",
+  "httpAcceptancePassed": false,
+  "previousFailureRetained": true,
+  "sameThresholds": true,
+  "loadRepeatedAfterThisComparison": false,
+  "cleanupPassed": true,
+  "countsRestored": {
+    "businesses": 19,
+    "patients": 121,
+    "appointments": 107,
+    "calendarConnections": 1,
+    "calendarEvents": 1,
+    "storedObjects": 24,
+    "storedObjectBytes": 11599541,
+    "migrations": 126,
+    "legacyEnabled": false
+  },
+  "observerClosed": true,
+  "newCumulativeDeltasCertified": false,
+  "priorCumulativeDeltasCorrection": "Initial run40078561771 also had null database stats_reset. Historical zero-deadlock/increment and SQL-delta claims are observations under assumed continuity, not certified window deltas; raw evidence retained unchanged. No retrospective reset continuity invented.",
+  "delayedReadback": "HTTP test ended24Oct14:41:11; post-integrity/report only25Oct01:32. They include intervening normal activity and do not localize SQL cost to the test.",
+  "appServedCheck": {
+    "at": "2026-10-25T01:36:11.182Z",
+    "revision": "0851de59ed7971debe2514e6d6851d142bbc5766",
+    "appOrigin": "https://app.cita-suite.workers.dev",
+    "clientFiles": 130,
+    "contentSecurity": {
+      "connect": [
+        "https://yjzferwuzbtgpmdnzlcb.supabase.co",
+        "wss://yjzferwuzbtgpmdnzlcb.supabase.co"
+      ],
+      "images": [
+        "https://yjzferwuzbtgpmdnzlcb.supabase.co"
+      ]
+    },
+    "natalia": {
+      "origin": "https://natalia-frutos.vercel.app",
+      "files": 35
+    },
+    "anonymousRelations": 70,
+    "exposed": []
+  },
+  "cloudflareManagementCurrent": {
+    "accounts": {
+      "status": 200,
+      "success": true,
+      "errorCodes": [],
+      "listed": 1,
+      "targetAccountPresent": false
+    },
+    "app": {
+      "status": 403,
+      "success": false,
+      "errorCodes": [
+        10000
+      ]
+    }
+  },
+  "lastSuccessfulCloudflareMetadataAt": "2026-10-24T13:36:20.680Z",
+  "vercelCurrent": {
+    "readExitCode": 0,
+    "deployment": "dpl_6zBnr7E2FVg11SQ5mHiHv8rdPPKk",
+    "revision": "e3530eda43fd6ddc82b093a166eb49f83bf7815a",
+    "ready": "READY",
+    "unchanged": true
+  },
+  "preserved": {
+    "originalPlanSha256": "796853d3fca1d82dfe3a8c0129d80f937180948cb0a75a24518c1721d20e60b9",
+    "originalPlanLines": 660,
+    "userHead": "80268e2a501198243996e1bdb0048ce066434727",
+    "userIndexSha256": "55cd8f7975542b806308d3e067f81660fe107ed1c5cdbed88962dbe614a1faba",
+    "privateGoogleCredentialContentsReadOrModified": false,
+    "privateGoogleJsonModes": "600",
+    "privateGoogleJsonIgnored": true,
+    "oldCompatibilityLinkResolves": true
+  },
+  "launchApproved": false,
+  "paidServiceActivated": false,
+  "initialConsolidatorFailure": "Expected all JSON files in private folder to be2; inventory also has4metadata JSON. Corrected to exact2credential paths from LEEME without reading credential contents. No mutation before failed assertion.",
+  "nextTechnicalInvestigation": "Prespecified isolated comparison of exact app/SQL cost versus shared-provider variance, with query-specific plans and valid before/after statement-reset metadata; no third identical48min run and no paid/migration change without decision."
+}

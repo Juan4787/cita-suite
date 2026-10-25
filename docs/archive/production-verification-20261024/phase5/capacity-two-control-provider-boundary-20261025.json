@@ -1,0 +1,29 @@
+{
+  "at": "2026-10-25T01:35:22.963Z",
+  "priorConsumerVerifierFailed": "PROVIDER_READ_FAILED before app deployment metadata was obtained; no mutations",
+  "actions": "Supported CLI auth read, provider GET only; no login/logout, secret extraction or account change.",
+  "cloudflare": {
+    "accounts": {
+      "status": 200,
+      "success": true,
+      "errorCodes": [],
+      "listed": 1,
+      "targetAccountPresent": false
+    },
+    "app": {
+      "status": 403,
+      "success": false,
+      "errorCodes": [
+        10000
+      ]
+    }
+  },
+  "vercel": {
+    "readExitCode": 0,
+    "deployment": "dpl_6zBnr7E2FVg11SQ5mHiHv8rdPPKk",
+    "revision": "e3530eda43fd6ddc82b093a166eb49f83bf7815a",
+    "ready": "READY",
+    "unchanged": true
+  },
+  "mutated": false
+}

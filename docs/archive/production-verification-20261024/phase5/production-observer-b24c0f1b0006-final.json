@@ -1,0 +1,462 @@
+{
+  "run": "b24c0f1b0006",
+  "minutes": 65,
+  "startedAt": "2026-10-24T13:51:42.114Z",
+  "scope": "One read-only Wrangler tail; sanitized job and request metrics, no raw events or credentials persisted",
+  "observerSha256": "d5d8cf2e6b2741b7a9a0cee3b1baa09ae1e9c73d31f5ea42551022b56e736add",
+  "filterSha256": "c39d9b3e176351b882d54ae6c6337de6f65a288f931dcbb6fb29cc39031fb05a",
+  "routeCatalogSha256": "32fe294c89650aac0c10162814e34937082f8755be28a7ea8caa1f15d1847c98",
+  "paths": {
+    "jobs": ".verification/production-observer-b24c0f1b0006-jobs.jsonl",
+    "requests": ".verification/production-observer-b24c0f1b0006-requests.jsonl",
+    "live": ".verification/production-observer-b24c0f1b0006-live.json",
+    "final": ".verification/production-observer-b24c0f1b0006-final.json"
+  },
+  "reportedAt": "2026-10-24T14:56:42.232Z",
+  "tailReadyAt": "2026-10-24T13:51:57.790Z",
+  "parseFailures": 0,
+  "jobs": {
+    "events": 37,
+    "cpuReported": true,
+    "jobs": {
+      "/internal/jobs/calendar": {
+        "runs": 13,
+        "outcomes": {
+          "ok": 13
+        },
+        "cpuMs": {
+          "p50": 3,
+          "p99": 6,
+          "max": 6
+        },
+        "wallMs": {
+          "p50": 114,
+          "p99": 482,
+          "max": 482
+        }
+      },
+      "/internal/jobs/reviews": {
+        "runs": 7,
+        "outcomes": {
+          "ok": 7
+        },
+        "cpuMs": {
+          "p50": 5,
+          "p99": 10,
+          "max": 10
+        },
+        "wallMs": {
+          "p50": 241,
+          "p99": 715,
+          "max": 715
+        }
+      },
+      "/internal/jobs/push": {
+        "runs": 13,
+        "outcomes": {
+          "ok": 13
+        },
+        "cpuMs": {
+          "p50": 4,
+          "p99": 9,
+          "max": 9
+        },
+        "wallMs": {
+          "p50": 205,
+          "p99": 861,
+          "max": 861
+        }
+      },
+      "/internal/jobs/uploads": {
+        "runs": 4,
+        "outcomes": {
+          "ok": 4
+        },
+        "cpuMs": {
+          "p50": 2,
+          "p99": 5,
+          "max": 5
+        },
+        "wallMs": {
+          "p50": 345,
+          "p99": 474,
+          "max": 474
+        }
+      }
+    }
+  },
+  "requests": {
+    "events": 1317,
+    "cpuReported": true,
+    "outcomes": {
+      "ok": 1317
+    },
+    "routes": {
+      "GET /embed/v1/:key/__data.json": {
+        "requests": 290,
+        "outcomes": {
+          "ok": 290
+        },
+        "statuses": {
+          "200": 290
+        },
+        "cpuMs": {
+          "p50": 13,
+          "p99": 51,
+          "max": 72
+        },
+        "wallMs": {
+          "p50": 168,
+          "p99": 700,
+          "max": 2299
+        }
+      },
+      "GET /odonto/agenda/__data.json": {
+        "requests": 144,
+        "outcomes": {
+          "ok": 144
+        },
+        "statuses": {
+          "200": 144
+        },
+        "cpuMs": {
+          "p50": 13,
+          "p99": 29,
+          "max": 34
+        },
+        "wallMs": {
+          "p50": 150,
+          "p99": 1094,
+          "max": 2605
+        }
+      },
+      "GET /odonto/agenda/semana/__data.json": {
+        "requests": 69,
+        "outcomes": {
+          "ok": 69
+        },
+        "statuses": {
+          "200": 69
+        },
+        "cpuMs": {
+          "p50": 10,
+          "p99": 27,
+          "max": 27
+        },
+        "wallMs": {
+          "p50": 227,
+          "p99": 687,
+          "max": 687
+        }
+      },
+      "GET /odonto/disponibilidad/slots": {
+        "requests": 102,
+        "outcomes": {
+          "ok": 102
+        },
+        "statuses": {
+          "200": 102
+        },
+        "cpuMs": {
+          "p50": 9,
+          "p99": 18,
+          "max": 28
+        },
+        "wallMs": {
+          "p50": 212,
+          "p99": 3127,
+          "max": 4833
+        }
+      },
+      "GET /odonto/pacientes/:id/__data.json": {
+        "requests": 98,
+        "outcomes": {
+          "ok": 98
+        },
+        "statuses": {
+          "200": 98
+        },
+        "cpuMs": {
+          "p50": 11,
+          "p99": 21,
+          "max": 21
+        },
+        "wallMs": {
+          "p50": 127,
+          "p99": 4276,
+          "max": 4276
+        }
+      },
+      "GET /odonto/pacientes/:id/historial": {
+        "requests": 40,
+        "outcomes": {
+          "ok": 40
+        },
+        "statuses": {
+          "200": 40
+        },
+        "cpuMs": {
+          "p50": 6,
+          "p99": 10,
+          "max": 10
+        },
+        "wallMs": {
+          "p50": 95,
+          "p99": 776,
+          "max": 776
+        }
+      },
+      "GET /odonto/pacientes/buscar": {
+        "requests": 106,
+        "outcomes": {
+          "ok": 106
+        },
+        "statuses": {
+          "200": 106
+        },
+        "cpuMs": {
+          "p50": 5,
+          "p99": 13,
+          "max": 14
+        },
+        "wallMs": {
+          "p50": 122,
+          "p99": 943,
+          "max": 1832
+        }
+      },
+      "GET /odonto/pacientes/lista": {
+        "requests": 57,
+        "outcomes": {
+          "ok": 57
+        },
+        "statuses": {
+          "200": 57
+        },
+        "cpuMs": {
+          "p50": 10,
+          "p99": 24,
+          "max": 24
+        },
+        "wallMs": {
+          "p50": 243,
+          "p99": 1794,
+          "max": 1794
+        }
+      },
+      "GET /odonto/turnos/:id/__data.json": {
+        "requests": 55,
+        "outcomes": {
+          "ok": 55
+        },
+        "statuses": {
+          "200": 55
+        },
+        "cpuMs": {
+          "p50": 13,
+          "p99": 24,
+          "max": 24
+        },
+        "wallMs": {
+          "p50": 251,
+          "p99": 1225,
+          "max": 1225
+        }
+      },
+      "GET /reservar/:id/__data.json": {
+        "requests": 208,
+        "outcomes": {
+          "ok": 208
+        },
+        "statuses": {
+          "200": 208
+        },
+        "cpuMs": {
+          "p50": 12,
+          "p99": 40,
+          "max": 57
+        },
+        "wallMs": {
+          "p50": 151,
+          "p99": 881,
+          "max": 1815
+        }
+      },
+      "POST /internal/jobs/calendar": {
+        "requests": 13,
+        "outcomes": {
+          "ok": 13
+        },
+        "statuses": {
+          "200": 13
+        },
+        "cpuMs": {
+          "p50": 3,
+          "p99": 6,
+          "max": 6
+        },
+        "wallMs": {
+          "p50": 114,
+          "p99": 482,
+          "max": 482
+        }
+      },
+      "POST /internal/jobs/push": {
+        "requests": 13,
+        "outcomes": {
+          "ok": 13
+        },
+        "statuses": {
+          "200": 13
+        },
+        "cpuMs": {
+          "p50": 4,
+          "p99": 9,
+          "max": 9
+        },
+        "wallMs": {
+          "p50": 205,
+          "p99": 861,
+          "max": 861
+        }
+      },
+      "POST /internal/jobs/reviews": {
+        "requests": 7,
+        "outcomes": {
+          "ok": 7
+        },
+        "statuses": {
+          "200": 7
+        },
+        "cpuMs": {
+          "p50": 5,
+          "p99": 10,
+          "max": 10
+        },
+        "wallMs": {
+          "p50": 241,
+          "p99": 715,
+          "max": 715
+        }
+      },
+      "POST /internal/jobs/uploads": {
+        "requests": 4,
+        "outcomes": {
+          "ok": 4
+        },
+        "statuses": {
+          "200": 4
+        },
+        "cpuMs": {
+          "p50": 2,
+          "p99": 5,
+          "max": 5
+        },
+        "wallMs": {
+          "p50": 345,
+          "p99": 474,
+          "max": 474
+        }
+      },
+      "POST /login": {
+        "requests": 2,
+        "outcomes": {
+          "ok": 2
+        },
+        "statuses": {
+          "200": 2
+        },
+        "cpuMs": {
+          "p50": 9,
+          "p99": 15,
+          "max": 15
+        },
+        "wallMs": {
+          "p50": 345,
+          "p99": 814,
+          "max": 814
+        }
+      },
+      "POST /odonto/agenda": {
+        "requests": 41,
+        "outcomes": {
+          "ok": 41
+        },
+        "statuses": {
+          "200": 41
+        },
+        "cpuMs": {
+          "p50": 12,
+          "p99": 25,
+          "max": 25
+        },
+        "wallMs": {
+          "p50": 690,
+          "p99": 5246,
+          "max": 5246
+        }
+      },
+      "POST /odonto/pacientes/:id": {
+        "requests": 43,
+        "outcomes": {
+          "ok": 43
+        },
+        "statuses": {
+          "200": 43
+        },
+        "cpuMs": {
+          "p50": 6,
+          "p99": 15,
+          "max": 15
+        },
+        "wallMs": {
+          "p50": 211,
+          "p99": 882,
+          "max": 882
+        }
+      },
+      "POST /odonto/turnos/:id": {
+        "requests": 20,
+        "outcomes": {
+          "ok": 20
+        },
+        "statuses": {
+          "200": 20
+        },
+        "cpuMs": {
+          "p50": 10,
+          "p99": 17,
+          "max": 17
+        },
+        "wallMs": {
+          "p50": 406,
+          "p99": 748,
+          "max": 748
+        }
+      },
+      "POST /reservar/:id": {
+        "requests": 5,
+        "outcomes": {
+          "ok": 5
+        },
+        "statuses": {
+          "200": 5
+        },
+        "cpuMs": {
+          "p50": 21,
+          "p99": 24,
+          "max": 24
+        },
+        "wallMs": {
+          "p50": 1059,
+          "p99": 1262,
+          "max": 1262
+        }
+      }
+    }
+  },
+  "finishedAt": "2026-10-24T14:56:42.234Z",
+  "code": 0,
+  "signal": null,
+  "stoppedByDuration": true
+}

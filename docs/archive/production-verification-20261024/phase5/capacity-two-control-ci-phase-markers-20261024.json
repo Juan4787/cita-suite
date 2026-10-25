@@ -1,0 +1,205 @@
+{
+  "at": "2026-10-25T01:35:53.115587+00:00",
+  "run": 40099997857,
+  "privateLogArchiveSha256": "3ed0e780c31d2398586dc8e35f392dee10dede28e8170521e71d221fde09abdd",
+  "markers": [
+    {
+      "at": "2026-10-24T14:04:54.1699626Z",
+      "phase": "production-capacity 1",
+      "result": {
+        "read": {
+          "count": 184,
+          "errors": 0,
+          "conflicts": 0,
+          "errorRate": 0,
+          "p50": 350,
+          "p95": 577,
+          "p99": 900,
+          "max": 992,
+          "errorReasons": {}
+        },
+        "write": {
+          "count": 34,
+          "errors": 0,
+          "conflicts": 0,
+          "errorRate": 0,
+          "p50": 474,
+          "p95": 1225,
+          "p99": 1471,
+          "max": 1471,
+          "errorReasons": {}
+        },
+        "acceptance": {
+          "readP95": true,
+          "readP99": true,
+          "writeP95": true,
+          "writeP99": true,
+          "errorRate": true,
+          "passed": true
+        },
+        "errors": {}
+      }
+    },
+    {
+      "at": "2026-10-24T14:17:00.4817683Z",
+      "phase": "production-capacity 2",
+      "result": {
+        "read": {
+          "count": 180,
+          "errors": 0,
+          "conflicts": 0,
+          "errorRate": 0,
+          "p50": 350,
+          "p95": 884,
+          "p99": 1999,
+          "max": 3269,
+          "errorReasons": {}
+        },
+        "write": {
+          "count": 27,
+          "errors": 0,
+          "conflicts": 0,
+          "errorRate": 0,
+          "p50": 693,
+          "p95": 1689,
+          "p99": 2135,
+          "max": 2135,
+          "errorReasons": {}
+        },
+        "acceptance": {
+          "readP95": true,
+          "readP99": true,
+          "writeP95": false,
+          "writeP99": true,
+          "errorRate": true,
+          "passed": false
+        },
+        "errors": {}
+      }
+    },
+    {
+      "at": "2026-10-24T14:29:02.6048144Z",
+      "phase": "production-capacity 3",
+      "result": {
+        "read": {
+          "count": 189,
+          "errors": 0,
+          "conflicts": 0,
+          "errorRate": 0,
+          "p50": 320,
+          "p95": 664,
+          "p99": 4476,
+          "max": 4974,
+          "errorReasons": {}
+        },
+        "write": {
+          "count": 37,
+          "errors": 0,
+          "conflicts": 0,
+          "errorRate": 0,
+          "p50": 434,
+          "p95": 1169,
+          "p99": 5400,
+          "max": 5400,
+          "errorReasons": {}
+        },
+        "acceptance": {
+          "readP95": true,
+          "readP99": false,
+          "writeP95": true,
+          "writeP99": false,
+          "errorRate": true,
+          "passed": false
+        },
+        "errors": {}
+      }
+    },
+    {
+      "at": "2026-10-24T14:41:04.0187761Z",
+      "phase": "production-capacity-public",
+      "result": {
+        "read": {
+          "count": 326,
+          "errors": 0,
+          "conflicts": 0,
+          "errorRate": 0,
+          "p50": 313,
+          "p95": 419,
+          "p99": 950,
+          "max": 1976,
+          "errorReasons": {}
+        },
+        "write": {
+          "count": 2,
+          "errors": 0,
+          "conflicts": 0,
+          "errorRate": 0,
+          "p50": 1370,
+          "p95": 1441,
+          "p99": 1441,
+          "max": 1441,
+          "errorReasons": {}
+        },
+        "acceptance": {
+          "readP95": true,
+          "readP99": true,
+          "writeP95": true,
+          "writeP99": true,
+          "errorRate": true,
+          "passed": true
+        },
+        "bookingFailures": [],
+        "errors": {}
+      }
+    },
+    {
+      "at": "2026-10-24T14:41:11.5441435Z",
+      "phase": "production-capacity-abuse",
+      "result": {
+        "reads": {
+          "requests": 130,
+          "accepted": 120,
+          "refused": 10,
+          "firstRefusal": 121,
+          "other": 0,
+          "otherReasons": {}
+        },
+        "bookings": [
+          {
+            "attempt": 0,
+            "type": "redirect",
+            "status": 303,
+            "message": null,
+            "rateLimited": false,
+            "reason": null
+          },
+          {
+            "attempt": 1,
+            "type": "failure",
+            "status": 400,
+            "message": "Se alcanz\u00f3 el m\u00e1ximo de 3 intentos desde esta conexi\u00f3n en 10 minutos. Esper\u00e1 unos minutos antes de volver a probar.",
+            "rateLimited": true,
+            "reason": "failure-400"
+          }
+        ],
+        "phone": "+5491177100005",
+        "passed": true
+      }
+    },
+    {
+      "at": "2026-10-24T14:41:11.5444047Z",
+      "phase": "production-capacity-http",
+      "result": {
+        "passed": false
+      }
+    }
+  ],
+  "scope": "Phase completion markers only; full log archive private. First selector expected split per-step paths but archive contains aggregate0_measure.txt; failed assertion preserved below, no generator repeated.",
+  "initialParserFailure": {
+    "assertedMarkers": 6,
+    "obtainedMarkers": 0,
+    "cause": "Assumed /5_ paths, actual aggregate file layout",
+    "mutations": false,
+    "retryScope": "Reparse same downloaded zip only"
+  }
+}

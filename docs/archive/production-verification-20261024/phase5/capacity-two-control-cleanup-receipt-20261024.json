@@ -1,0 +1,33 @@
+{
+  "at": "2026-10-25T01:33:23.327Z",
+  "run": 40099997857,
+  "status": "guarded-comparison-cleanup-and-temporary-secret-removal-complete",
+  "scope": "Only deterministic synthetic capacity practices/owners from the completed comparison. HTTP acceptance may fail, but own-row isolation/overlap checks and supported SQL ownership guards must pass before cleanup. Unknown cumulative counters are not represented as passed. Remove temporary Actions/local secret only after guarded cleanup succeeds.",
+  "removed": {
+    "patients": 12004,
+    "practices": 2,
+    "appointments": 24045,
+    "ownersRemoved": 2,
+    "remaining": {
+      "owners": 0,
+      "practices": 0,
+      "databaseBytes": 216034451
+    }
+  },
+  "preexistingCountsRestored": {
+    "businesses": 19,
+    "patients": 121,
+    "appointments": 107,
+    "calendarConnections": 1,
+    "calendarEvents": 1,
+    "storedObjects": 24,
+    "storedObjectBytes": 11599541,
+    "migrations": 126,
+    "legacyEnabled": false
+  },
+  "temporaryActionsSecretRemoved": true,
+  "temporaryLocalSecretRemoved": true,
+  "applicationCredentialsChanged": false,
+  "passed": true,
+  "finishedAt": "2026-10-25T01:33:37.106Z"
+}

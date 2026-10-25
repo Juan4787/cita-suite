@@ -6,7 +6,7 @@ La autorización del 17 de octubre permite publicación y ensayos sintéticos en
 
 ## Estado y revisiones vigentes
 
-Comprobación del 24 de octubre, posterior al ensayo de las 13:15 UTC. La carga fallida de dos consultorios sigue impidiendo aprobar el lanzamiento.
+Comprobación del 24 de octubre, posterior al ensayo de las 13:15 UTC. Las cargas40078561771 y40099997857 fallaron latencia e impiden aprobar el lanzamiento. Cierre25-oct01:40UTC:130app/35Natalia/70relaciones públicos comprobados; Vercel conserva su despliegue. La sesión administrativaCFactual no ve la cuenta destino y devuelve403/10000; las versiones y cron de la tabla son la última metadata aprobada24-oct13:36, no una relectura25-oct. Restaurar acceso y comprobar antes de cualquier mutación; no desplegar por ese403.
 
 | Recurso | Estado comprobado |
 |---|---|
@@ -18,7 +18,7 @@ Comprobación del 24 de octubre, posterior al ensayo de las 13:15 UTC. La carga 
 | Respaldo | Carpeta privada `production-2026-10-24T12-57-28-335Z`:105 tablas,3942 filas,5 dumps,24 objetos/11.599.541 bytes; hashes, conteos COPY y permisos700/600 verificados. Manifiestoe042313d02e9c02599f55962a96e7d5a582436f0f55a2ea7fab0c7ef50ebabdf. Este dump exacto no fue restaurado; el mecanismo tiene ensayo aislado previo. |
 | Natalia | Vercel Git `dpl_6zBnr7E2FVg11SQ5mHiHv8rdPPKk`, main e3530ed:35 archivos coinciden con ambos artefactos nuevos. Samsungv3 aprobó navegación nativa, reserva persistida, recuperación sin duplicación, comprobante anterior y cancelación,0 errores. |
 | Limpieza | Dos pacientes y turnos de Natalia retirados con guardas verificadas; dos consultorios/dueños propios de proveedores retirados. Vínculo histórico Calendar1/1 preservado. Pestaña y forward propios cerrados; otras pestañas y permiso conservados. |
-| Lanzamiento | No aprobado: carga40078561771 falló latencia en dos repeticiones. SMTP sin proveedor/remitente y dominio pendiente de compra. No contratar ni sustituir la falla con un verde funcional. |
+| Lanzamiento | No aprobado:40078561771 y comparación40099997857 sin muestreador fallaron latencia. Limpieza de ambas completada, credenciales temporales retiradas. SMTP sin proveedor/remitente y dominio pendiente de compra. No contratar ni sustituir la falla con un verde funcional. |
 
 Los ensayos y versiones anteriores se conservan en sus recibos. El resto del procedimiento explica los controles; no repetir una corrida exclusiva ya terminada. Para otra entrega, sustituir explícitamente revisiones, artefactos, backup y versión de recuperación por los de esa entrega.
 
@@ -71,12 +71,12 @@ La corrida ejecutada `.verification/deploy-and-rehearse-inactive-push-20261024.m
 
 ## Medir dos consultorios sin alterar el sistema durante la carga
 
-La corrida40078561771 ya terminó con fallo de latencia y su limpieza se completó: no quedan sus consultorios/dueños ni el secreto temporal de Actions/local. Los comandos siguientes describen el procedimiento de una futura corrida expresamente preparada; no ejecutarlos sobre el estado actual sin nueva siembra y credencial temporal propia. No repetir para buscar un verde. Mantener un único observador y justificar el impacto del muestreo; su efecto no quedó descartado causalmente.
+La corrida40078561771 ya terminó con fallo de latencia y su limpieza se completó: no quedan sus consultorios/dueños ni el secreto temporal de Actions/local. Los comandos siguientes describen el procedimiento de una futura corrida expresamente preparada; no ejecutarlos sobre el estado actual sin nueva siembra y credencial temporal propia. La comparaciónúnica40099997857 también terminó con fallo y limpieza completa: no existe una tercera corrida pendiente. No repetir para buscar un verde. Mantener un único observador; el protocolo determina si habrá samplerSQL y su impacto. La reproducción sin él no demuestra causa exclusiva ni mide su contribución anterior.
 
 1. Guardar `node scripts/production-capacity.mjs integrity` y `report` antes de la carga.
-2. Iniciar un único tail saneado y `node scripts/instance-sampler.mjs production 80 <etiqueta>`; observación ligera local, carga desde CI. El observador combinado actual registra jobs y requests con el filtro permanente probado. No persistir eventos crudos, tokens, URLs firmadas ni texto de consultas activas.
+2. Iniciar un único tail saneado. Sólo si el protocolo justifica instrumentación adicional, ejecutar `node scripts/instance-sampler.mjs production 80 <etiqueta>`; la comparación40099997857 lo omitió expresamente. Observación ligera local, carga desdeCI. El observador combinado actual registra jobs y requests con el filtro permanente probado. No persistir eventos crudos, tokens, URLs firmadas ni texto de consultas activas.
 3. Ejecutar `gh workflow run production-measurement.yml --repo Juan4787/cita-suite-verificacion --ref refactor/maintainability-20261015`. Son3repeticiones de2min de preparación+10min medidos y una fase pública igual, seguidas de pruebas de abuso. Identificar el runID exacto y el SHA servido de esa corrida. No desplegar, renombrar destinos o rotar claves durante la medición.
-4. Recuperar `production-measure-<run>`, conservar estados fallidos, y comparar p95/p99/errores con el plan sin cambiar umbrales. Guardar report/integridad posteriores y delta de deadlocks; los2anteriores no se atribuyen a esta corrida.
+4. Recuperar `production-measure-<run>`, conservar estados fallidos, y comparar p95/p99/errores con el plan sin cambiar umbrales. Guardar report/integridad posteriores y sus horas reales. Certificar deltas sólo con marcadores válidos de reinicio de cada familia de estadísticas, incluido pg_stat_statements; dosnull o un marcador ausente significan desconocido. No inventar0deadlocks nuevos niatribuir la actividad intermedia a la carga.
 5. Ejecutar `node scripts/attribute-pauses.mjs <samples.jsonl> <requests.jsonl>`. Los requests deben tener at numérico,wallTimeMs y ruta normalizada. Separar HTTP, proveedor, SQL y resultados de plataforma. No atribuir causalidad exclusiva por una correlación.
 
 Lecturas p95<1s/p99<2s; escrituras p95<1,5s/p99<3s; errores<1%; ningún cruce/superposición/cuota violada. Un límite de plataforma impide abrir a clientes reales: informar evidencia y alternativas, no contratar ni transformar un200tolerado en cumplimiento de10msFree.

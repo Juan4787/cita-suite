@@ -1,0 +1,11 @@
+{
+  "at": "2026-10-24T13:56:03.492130+00:00",
+  "run": 40099372469,
+  "sha": "257d92853090d8f761e8389baea8ae11ccb8bba3",
+  "repository": "Juan4787/cita-suite",
+  "runId": "dfbd7af6-3698-4b5b-ad6d-d7da0be8f6d4",
+  "steps": 13,
+  "ok": true,
+  "evidenceFiles": 7,
+  "packageSha256": "00dcf9263e494007cb70b7825634da0345ed055e851e0f812d3e82893ea855f1"
+}

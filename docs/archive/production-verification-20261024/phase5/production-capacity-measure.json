@@ -1,0 +1,626 @@
+{
+  "origin": "https://app.cita-suite.workers.dev",
+  "practices": 2,
+  "startedAt": "2026-10-24T13:52:46.999Z",
+  "repetitions": [
+    {
+      "repetition": 1,
+      "summary": {
+        "read": {
+          "count": 184,
+          "errors": 0,
+          "conflicts": 0,
+          "errorRate": 0,
+          "p50": 350,
+          "p95": 577,
+          "p99": 900,
+          "max": 992,
+          "errorReasons": {}
+        },
+        "write": {
+          "count": 34,
+          "errors": 0,
+          "conflicts": 0,
+          "errorRate": 0,
+          "p50": 474,
+          "p95": 1225,
+          "p99": 1471,
+          "max": 1471,
+          "errorReasons": {}
+        },
+        "all": {
+          "count": 218,
+          "errors": 0,
+          "conflicts": 0,
+          "errorRate": 0,
+          "p50": 360,
+          "p95": 832,
+          "p99": 1192,
+          "max": 1471,
+          "errorReasons": {}
+        },
+        "byOperation": {
+          "patient_detail": {
+            "count": 34,
+            "errors": 0,
+            "conflicts": 0,
+            "errorRate": 0,
+            "p50": 308,
+            "p95": 512,
+            "p99": 574,
+            "max": 574,
+            "errorReasons": {}
+          },
+          "agenda_day": {
+            "count": 31,
+            "errors": 0,
+            "conflicts": 0,
+            "errorRate": 0,
+            "p50": 337,
+            "p95": 673,
+            "p99": 821,
+            "max": 821,
+            "errorReasons": {}
+          },
+          "patient_search": {
+            "count": 34,
+            "errors": 0,
+            "conflicts": 0,
+            "errorRate": 0,
+            "p50": 289,
+            "p95": 538,
+            "p99": 879,
+            "max": 879,
+            "errorReasons": {}
+          },
+          "patient_list": {
+            "count": 14,
+            "errors": 0,
+            "conflicts": 0,
+            "errorRate": 0,
+            "p50": 357,
+            "p95": 417,
+            "p99": 417,
+            "max": 417,
+            "errorReasons": {}
+          },
+          "appointment_detail": {
+            "count": 17,
+            "errors": 0,
+            "conflicts": 0,
+            "errorRate": 0,
+            "p50": 421,
+            "p95": 900,
+            "p99": 900,
+            "max": 900,
+            "errorReasons": {}
+          },
+          "agenda_week": {
+            "count": 18,
+            "errors": 0,
+            "conflicts": 0,
+            "errorRate": 0,
+            "p50": 424,
+            "p95": 487,
+            "p99": 487,
+            "max": 487,
+            "errorReasons": {}
+          },
+          "availability": {
+            "count": 26,
+            "errors": 0,
+            "conflicts": 0,
+            "errorRate": 0,
+            "p50": 409,
+            "p95": 755,
+            "p99": 992,
+            "max": 992,
+            "errorReasons": {}
+          },
+          "create_appointment": {
+            "count": 11,
+            "errors": 0,
+            "conflicts": 0,
+            "errorRate": 0,
+            "p50": 893,
+            "p95": 1471,
+            "p99": 1471,
+            "max": 1471,
+            "errorReasons": {}
+          },
+          "patient_history": {
+            "count": 10,
+            "errors": 0,
+            "conflicts": 0,
+            "errorRate": 0,
+            "p50": 290,
+            "p95": 590,
+            "p99": 590,
+            "max": 590,
+            "errorReasons": {}
+          },
+          "add_clinical_entry": {
+            "count": 15,
+            "errors": 0,
+            "conflicts": 0,
+            "errorRate": 0,
+            "p50": 397,
+            "p95": 499,
+            "p99": 499,
+            "max": 499,
+            "errorReasons": {}
+          },
+          "cancel_appointment": {
+            "count": 8,
+            "errors": 0,
+            "conflicts": 0,
+            "errorRate": 0,
+            "p50": 586,
+            "p95": 789,
+            "p99": 789,
+            "max": 789,
+            "errorReasons": {}
+          }
+        }
+      },
+      "acceptance": {
+        "readP95": true,
+        "readP99": true,
+        "writeP95": true,
+        "writeP99": true,
+        "errorRate": true,
+        "passed": true
+      }
+    },
+    {
+      "repetition": 2,
+      "summary": {
+        "read": {
+          "count": 180,
+          "errors": 0,
+          "conflicts": 0,
+          "errorRate": 0,
+          "p50": 350,
+          "p95": 884,
+          "p99": 1999,
+          "max": 3269,
+          "errorReasons": {}
+        },
+        "write": {
+          "count": 27,
+          "errors": 0,
+          "conflicts": 0,
+          "errorRate": 0,
+          "p50": 693,
+          "p95": 1689,
+          "p99": 2135,
+          "max": 2135,
+          "errorReasons": {}
+        },
+        "all": {
+          "count": 207,
+          "errors": 0,
+          "conflicts": 0,
+          "errorRate": 0,
+          "p50": 380,
+          "p95": 1123,
+          "p99": 1999,
+          "max": 3269,
+          "errorReasons": {}
+        },
+        "byOperation": {
+          "appointment_detail": {
+            "count": 12,
+            "errors": 0,
+            "conflicts": 0,
+            "errorRate": 0,
+            "p50": 456,
+            "p95": 587,
+            "p99": 587,
+            "max": 587,
+            "errorReasons": {}
+          },
+          "agenda_day": {
+            "count": 49,
+            "errors": 0,
+            "conflicts": 0,
+            "errorRate": 0,
+            "p50": 348,
+            "p95": 857,
+            "p99": 1259,
+            "max": 1259,
+            "errorReasons": {}
+          },
+          "agenda_week": {
+            "count": 19,
+            "errors": 0,
+            "conflicts": 0,
+            "errorRate": 0,
+            "p50": 396,
+            "p95": 528,
+            "p99": 528,
+            "max": 528,
+            "errorReasons": {}
+          },
+          "availability": {
+            "count": 38,
+            "errors": 0,
+            "conflicts": 0,
+            "errorRate": 0,
+            "p50": 398,
+            "p95": 1385,
+            "p99": 3269,
+            "max": 3269,
+            "errorReasons": {}
+          },
+          "patient_search": {
+            "count": 24,
+            "errors": 0,
+            "conflicts": 0,
+            "errorRate": 0,
+            "p50": 292,
+            "p95": 1096,
+            "p99": 1999,
+            "max": 1999,
+            "errorReasons": {}
+          },
+          "patient_detail": {
+            "count": 18,
+            "errors": 0,
+            "conflicts": 0,
+            "errorRate": 0,
+            "p50": 312,
+            "p95": 811,
+            "p99": 811,
+            "max": 811,
+            "errorReasons": {}
+          },
+          "patient_history": {
+            "count": 9,
+            "errors": 0,
+            "conflicts": 0,
+            "errorRate": 0,
+            "p50": 249,
+            "p95": 928,
+            "p99": 928,
+            "max": 928,
+            "errorReasons": {}
+          },
+          "add_clinical_entry": {
+            "count": 10,
+            "errors": 0,
+            "conflicts": 0,
+            "errorRate": 0,
+            "p50": 394,
+            "p95": 541,
+            "p99": 541,
+            "max": 541,
+            "errorReasons": {}
+          },
+          "patient_list": {
+            "count": 11,
+            "errors": 0,
+            "conflicts": 0,
+            "errorRate": 0,
+            "p50": 491,
+            "p95": 1123,
+            "p99": 1123,
+            "max": 1123,
+            "errorReasons": {}
+          },
+          "create_appointment": {
+            "count": 12,
+            "errors": 0,
+            "conflicts": 0,
+            "errorRate": 0,
+            "p50": 961,
+            "p95": 2135,
+            "p99": 2135,
+            "max": 2135,
+            "errorReasons": {}
+          },
+          "cancel_appointment": {
+            "count": 5,
+            "errors": 0,
+            "conflicts": 0,
+            "errorRate": 0,
+            "p50": 693,
+            "p95": 914,
+            "p99": 914,
+            "max": 914,
+            "errorReasons": {}
+          }
+        }
+      },
+      "acceptance": {
+        "readP95": true,
+        "readP99": true,
+        "writeP95": false,
+        "writeP99": true,
+        "errorRate": true,
+        "passed": false
+      }
+    },
+    {
+      "repetition": 3,
+      "summary": {
+        "read": {
+          "count": 189,
+          "errors": 0,
+          "conflicts": 0,
+          "errorRate": 0,
+          "p50": 320,
+          "p95": 664,
+          "p99": 4476,
+          "max": 4974,
+          "errorReasons": {}
+        },
+        "write": {
+          "count": 37,
+          "errors": 0,
+          "conflicts": 0,
+          "errorRate": 0,
+          "p50": 434,
+          "p95": 1169,
+          "p99": 5400,
+          "max": 5400,
+          "errorReasons": {}
+        },
+        "all": {
+          "count": 226,
+          "errors": 0,
+          "conflicts": 0,
+          "errorRate": 0,
+          "p50": 332,
+          "p95": 904,
+          "p99": 4476,
+          "max": 5400,
+          "errorReasons": {}
+        },
+        "byOperation": {
+          "patient_history": {
+            "count": 15,
+            "errors": 0,
+            "conflicts": 0,
+            "errorRate": 0,
+            "p50": 253,
+            "p95": 303,
+            "p99": 303,
+            "max": 303,
+            "errorReasons": {}
+          },
+          "availability": {
+            "count": 38,
+            "errors": 0,
+            "conflicts": 0,
+            "errorRate": 0,
+            "p50": 342,
+            "p95": 1126,
+            "p99": 4974,
+            "max": 4974,
+            "errorReasons": {}
+          },
+          "patient_list": {
+            "count": 14,
+            "errors": 0,
+            "conflicts": 0,
+            "errorRate": 0,
+            "p50": 356,
+            "p95": 679,
+            "p99": 679,
+            "max": 679,
+            "errorReasons": {}
+          },
+          "appointment_detail": {
+            "count": 18,
+            "errors": 0,
+            "conflicts": 0,
+            "errorRate": 0,
+            "p50": 388,
+            "p95": 1417,
+            "p99": 1417,
+            "max": 1417,
+            "errorReasons": {}
+          },
+          "create_appointment": {
+            "count": 18,
+            "errors": 0,
+            "conflicts": 0,
+            "errorRate": 0,
+            "p50": 669,
+            "p95": 5400,
+            "p99": 5400,
+            "max": 5400,
+            "errorReasons": {}
+          },
+          "patient_search": {
+            "count": 26,
+            "errors": 0,
+            "conflicts": 0,
+            "errorRate": 0,
+            "p50": 286,
+            "p95": 627,
+            "p99": 644,
+            "max": 644,
+            "errorReasons": {}
+          },
+          "agenda_day": {
+            "count": 31,
+            "errors": 0,
+            "conflicts": 0,
+            "errorRate": 0,
+            "p50": 320,
+            "p95": 882,
+            "p99": 1027,
+            "max": 1027,
+            "errorReasons": {}
+          },
+          "add_clinical_entry": {
+            "count": 12,
+            "errors": 0,
+            "conflicts": 0,
+            "errorRate": 0,
+            "p50": 325,
+            "p95": 410,
+            "p99": 410,
+            "max": 410,
+            "errorReasons": {}
+          },
+          "cancel_appointment": {
+            "count": 7,
+            "errors": 0,
+            "conflicts": 0,
+            "errorRate": 0,
+            "p50": 498,
+            "p95": 590,
+            "p99": 590,
+            "max": 590,
+            "errorReasons": {}
+          },
+          "patient_detail": {
+            "count": 28,
+            "errors": 0,
+            "conflicts": 0,
+            "errorRate": 0,
+            "p50": 274,
+            "p95": 972,
+            "p99": 4476,
+            "max": 4476,
+            "errorReasons": {}
+          },
+          "agenda_week": {
+            "count": 19,
+            "errors": 0,
+            "conflicts": 0,
+            "errorRate": 0,
+            "p50": 351,
+            "p95": 639,
+            "p99": 639,
+            "max": 639,
+            "errorReasons": {}
+          }
+        }
+      },
+      "acceptance": {
+        "readP95": true,
+        "readP99": false,
+        "writeP95": true,
+        "writeP99": false,
+        "errorRate": true,
+        "passed": false
+      }
+    }
+  ],
+  "publicBooking": {
+    "summary": {
+      "read": {
+        "count": 326,
+        "errors": 0,
+        "conflicts": 0,
+        "errorRate": 0,
+        "p50": 313,
+        "p95": 419,
+        "p99": 950,
+        "max": 1976,
+        "errorReasons": {}
+      },
+      "write": {
+        "count": 2,
+        "errors": 0,
+        "conflicts": 0,
+        "errorRate": 0,
+        "p50": 1370,
+        "p95": 1441,
+        "p99": 1441,
+        "max": 1441,
+        "errorReasons": {}
+      },
+      "all": {
+        "count": 328,
+        "errors": 0,
+        "conflicts": 0,
+        "errorRate": 0,
+        "p50": 314,
+        "p95": 427,
+        "p99": 1370,
+        "max": 1976,
+        "errorReasons": {}
+      },
+      "byOperation": {
+        "public_page": {
+          "count": 165,
+          "errors": 0,
+          "conflicts": 0,
+          "errorRate": 0,
+          "p50": 304,
+          "p95": 427,
+          "p99": 1488,
+          "max": 1976,
+          "errorReasons": {}
+        },
+        "public_embed": {
+          "count": 161,
+          "errors": 0,
+          "conflicts": 0,
+          "errorRate": 0,
+          "p50": 323,
+          "p95": 414,
+          "p99": 608,
+          "max": 1316,
+          "errorReasons": {}
+        },
+        "public_booking": {
+          "count": 2,
+          "errors": 0,
+          "conflicts": 0,
+          "errorRate": 0,
+          "p50": 1370,
+          "p95": 1441,
+          "p99": 1441,
+          "max": 1441,
+          "errorReasons": {}
+        }
+      }
+    },
+    "acceptance": {
+      "readP95": true,
+      "readP99": true,
+      "writeP95": true,
+      "writeP99": true,
+      "errorRate": true,
+      "passed": true
+    },
+    "bookingFailures": [],
+    "abuse": {
+      "reads": {
+        "requests": 130,
+        "accepted": 120,
+        "refused": 10,
+        "firstRefusal": 121,
+        "other": 0,
+        "otherReasons": {}
+      },
+      "bookings": [
+        {
+          "attempt": 0,
+          "type": "redirect",
+          "status": 303,
+          "message": null,
+          "rateLimited": false,
+          "reason": null
+        },
+        {
+          "attempt": 1,
+          "type": "failure",
+          "status": 400,
+          "message": "Se alcanzó el máximo de 3 intentos desde esta conexión en 10 minutos. Esperá unos minutos antes de volver a probar.",
+          "rateLimited": true,
+          "reason": "failure-400"
+        }
+      ],
+      "phone": "+5491177100005",
+      "passed": true
+    }
+  },
+  "passedHttp": false
+}

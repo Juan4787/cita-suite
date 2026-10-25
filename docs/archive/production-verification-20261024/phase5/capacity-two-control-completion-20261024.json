@@ -1,0 +1,22 @@
+{
+  "at": "2026-10-25T01:32:34.911322+00:00",
+  "run": 40099997857,
+  "source": "0851de59ed7971debe2514e6d6851d142bbc5766",
+  "ci": {
+    "conclusion": "failure",
+    "createdAt": "2026-10-24T13:52:13Z",
+    "headSha": "0851de59ed7971debe2514e6d6851d142bbc5766",
+    "status": "completed",
+    "updatedAt": "2026-10-24T14:41:15Z"
+  },
+  "artifactId": 12563796232,
+  "artifactSha256": "459c752c34e0edafb61f1c3eebab0fbb033a7854add89cccacd053f480228754",
+  "jsonSha256": "43ab9eb8e485cfc27c83bcd5d935ce10acc59e19e36ba4baa5a45157bab66386",
+  "artifactBytes": 1993,
+  "jsonBytes": 14862,
+  "githubDigestMatched": true,
+  "externalGeneratorCompletedBeforeDatabaseReports": true,
+  "samplerAbsentByProtocol": true,
+  "passedHttpAsReported": false,
+  "scope": "Exact result of the single prespecified comparison. Preserve previous failed run40078561771; recompute all thresholds separately before interpretation. Integrity/report performed only after completion."
+}

@@ -1,0 +1,1122 @@
+{
+  "at": "2026-10-25T01:32:39.730Z",
+  "previousRun": 40078561771,
+  "comparisonRun": 40099997857,
+  "runtimeRevision": "0851de59ed7971debe2514e6d6851d142bbc5766",
+  "previousFailedResultRetained": true,
+  "thresholdsRecomputedAndMatched": true,
+  "original": [
+    {
+      "phase": "rep1",
+      "readSamples": 184,
+      "readP95": 637,
+      "readP99": 1349,
+      "writeSamples": 34,
+      "writeP95": 962,
+      "writeP99": 1132,
+      "errors": 0,
+      "errorRate": 0,
+      "acceptance": {
+        "readP95": true,
+        "readP99": true,
+        "writeP95": true,
+        "writeP99": true,
+        "errorRate": true,
+        "passed": true
+      }
+    },
+    {
+      "phase": "rep2",
+      "readSamples": 180,
+      "readP95": 1024,
+      "readP99": 3809,
+      "writeSamples": 25,
+      "writeP95": 1113,
+      "writeP99": 1767,
+      "errors": 0,
+      "errorRate": 0,
+      "acceptance": {
+        "readP95": false,
+        "readP99": false,
+        "writeP95": true,
+        "writeP99": true,
+        "errorRate": true,
+        "passed": false
+      }
+    },
+    {
+      "phase": "rep3",
+      "readSamples": 188,
+      "readP95": 723,
+      "readP99": 1606,
+      "writeSamples": 37,
+      "writeP95": 2763,
+      "writeP99": 3810,
+      "errors": 0,
+      "errorRate": 0,
+      "acceptance": {
+        "readP95": true,
+        "readP99": true,
+        "writeP95": false,
+        "writeP99": false,
+        "errorRate": true,
+        "passed": false
+      }
+    },
+    {
+      "phase": "public",
+      "readSamples": 321,
+      "readP95": 529,
+      "readP99": 1129,
+      "writeSamples": 2,
+      "writeP95": 1158,
+      "writeP99": 1158,
+      "errors": 0,
+      "errorRate": 0,
+      "acceptance": {
+        "readP95": true,
+        "readP99": true,
+        "writeP95": true,
+        "writeP99": true,
+        "errorRate": true,
+        "passed": true
+      }
+    }
+  ],
+  "control": [
+    {
+      "phase": "rep1",
+      "readSamples": 184,
+      "readP95": 577,
+      "readP99": 900,
+      "writeSamples": 34,
+      "writeP95": 1225,
+      "writeP99": 1471,
+      "errors": 0,
+      "errorRate": 0,
+      "acceptance": {
+        "readP95": true,
+        "readP99": true,
+        "writeP95": true,
+        "writeP99": true,
+        "errorRate": true,
+        "passed": true
+      }
+    },
+    {
+      "phase": "rep2",
+      "readSamples": 180,
+      "readP95": 884,
+      "readP99": 1999,
+      "writeSamples": 27,
+      "writeP95": 1689,
+      "writeP99": 2135,
+      "errors": 0,
+      "errorRate": 0,
+      "acceptance": {
+        "readP95": true,
+        "readP99": true,
+        "writeP95": false,
+        "writeP99": true,
+        "errorRate": true,
+        "passed": false
+      }
+    },
+    {
+      "phase": "rep3",
+      "readSamples": 189,
+      "readP95": 664,
+      "readP99": 4476,
+      "writeSamples": 37,
+      "writeP95": 1169,
+      "writeP99": 5400,
+      "errors": 0,
+      "errorRate": 0,
+      "acceptance": {
+        "readP95": true,
+        "readP99": false,
+        "writeP95": true,
+        "writeP99": false,
+        "errorRate": true,
+        "passed": false
+      }
+    },
+    {
+      "phase": "public",
+      "readSamples": 326,
+      "readP95": 419,
+      "readP99": 950,
+      "writeSamples": 2,
+      "writeP95": 1441,
+      "writeP99": 1441,
+      "errors": 0,
+      "errorRate": 0,
+      "acceptance": {
+        "readP95": true,
+        "readP99": true,
+        "writeP95": true,
+        "writeP99": true,
+        "errorRate": true,
+        "passed": true
+      }
+    }
+  ],
+  "originalPassedHttp": false,
+  "controlPassedHttp": false,
+  "controlAbuse": {
+    "reads": {
+      "requests": 130,
+      "accepted": 120,
+      "refused": 10,
+      "firstRefusal": 121,
+      "other": 0,
+      "otherReasons": {}
+    },
+    "bookings": [
+      {
+        "attempt": 0,
+        "type": "redirect",
+        "status": 303,
+        "message": null,
+        "rateLimited": false,
+        "reason": null
+      },
+      {
+        "attempt": 1,
+        "type": "failure",
+        "status": 400,
+        "message": "Se alcanzó el máximo de 3 intentos desde esta conexión en 10 minutos. Esperá unos minutos antes de volver a probar.",
+        "rateLimited": true,
+        "reason": "failure-400"
+      }
+    ],
+    "phone": "+5491177100005",
+    "passed": true
+  },
+  "bookingFailures": [],
+  "integrity": {
+    "before": {
+      "at": "2026-10-24T13:51:01.229Z",
+      "overlaps": 0,
+      "createdByLoad": 0,
+      "crossPractice": 0,
+      "entriesByLoad": 0,
+      "database": {
+        "deadlocks": 2,
+        "databaseBytes": 215515663
+      }
+    },
+    "after": {
+      "at": "2026-10-25T01:32:30.937Z",
+      "overlaps": 0,
+      "createdByLoad": 0,
+      "crossPractice": 0,
+      "entriesByLoad": 43,
+      "database": {
+        "deadlocks": 2,
+        "databaseBytes": 216034451
+      }
+    },
+    "deadlockDelta": 0,
+    "statsResetUnchanged": true,
+    "passed": true
+  },
+  "databaseCounters": {
+    "scope": "Global database deltas include normal jobs and operator before/after queries; no per-load exclusivity claim.",
+    "delta": {
+      "xact_commit": 35395,
+      "xact_rollback": 1,
+      "deadlocks": 0,
+      "blks_hit": 1898934,
+      "blks_read": 0,
+      "temp_files": 1285,
+      "temp_bytes": 5127312382
+    }
+  },
+  "statementDeltas": {
+    "scope": "Intersection of top60 snapshots only; no missing-before baseline treated as zero, no full coverage or per-window max claim. Exact queryid/userid/toplevel identity.",
+    "usable": 56,
+    "unknown": 4,
+    "rows": [
+      {
+        "queryid": "6060838532144446244",
+        "userid": "16384",
+        "toplevel": true,
+        "queryPrefixSha256": "1b6b6bf061a04050e8c56fe50a6365254b412ac43dafc05d424fc1c8674b3bfc",
+        "deltaKnown": true,
+        "delta": {
+          "calls": 47,
+          "total_ms": 3641.70000000007,
+          "rows": 47,
+          "shared_blks_hit": 33229,
+          "shared_blks_read": 0,
+          "temp_blks_written": 0
+        }
+      },
+      {
+        "queryid": "-7726440967385220442",
+        "userid": "16483",
+        "toplevel": true,
+        "queryPrefixSha256": "718af1ee20405500f872b7dad7a143f5d7590eba36597d331d6f32e6d7204cb5",
+        "deltaKnown": true,
+        "delta": {
+          "calls": 0,
+          "total_ms": 0,
+          "rows": 0,
+          "shared_blks_hit": 0,
+          "shared_blks_read": 0,
+          "temp_blks_written": 0
+        }
+      },
+      {
+        "queryid": "4744454546267044755",
+        "userid": "16481",
+        "toplevel": true,
+        "queryPrefixSha256": "e0c9b353a3e44c55f24242d6464cf4ffe64dbe177f32dcff6ca734592bcacf0e",
+        "deltaKnown": true,
+        "delta": {
+          "calls": 0,
+          "total_ms": 0,
+          "rows": 0,
+          "shared_blks_hit": 0,
+          "shared_blks_read": 0,
+          "temp_blks_written": 0
+        }
+      },
+      {
+        "queryid": "4196013158501179039",
+        "userid": "16482",
+        "toplevel": true,
+        "queryPrefixSha256": "438c8ad5927df16272c3e6e8a243fab276756b9978831525b2b98430dabede01",
+        "deltaKnown": true,
+        "delta": {
+          "calls": 0,
+          "total_ms": 0,
+          "rows": 0,
+          "shared_blks_hit": 0,
+          "shared_blks_read": 0,
+          "temp_blks_written": 0
+        }
+      },
+      {
+        "queryid": "4524311396865182356",
+        "userid": "16481",
+        "toplevel": true,
+        "queryPrefixSha256": "e621814c1cd5cbe53daf08903cad3a74ffc9b4f7c34c27e9ba0541d2f58277d3",
+        "deltaKnown": true,
+        "delta": {
+          "calls": 0,
+          "total_ms": 0,
+          "rows": 0,
+          "shared_blks_hit": 0,
+          "shared_blks_read": 0,
+          "temp_blks_written": 0
+        }
+      },
+      {
+        "queryid": "-8348313397263439316",
+        "userid": "10",
+        "toplevel": true,
+        "queryPrefixSha256": "91b2ab40247fa474ba57d6e86a52f927b317ee82951b0fe07f7a176faaaeff21",
+        "deltaKnown": true,
+        "delta": {
+          "calls": 49,
+          "total_ms": 1153.199999999997,
+          "rows": 49,
+          "shared_blks_hit": 149,
+          "shared_blks_read": 0,
+          "temp_blks_written": 0
+        }
+      },
+      {
+        "queryid": "-1368919766788970690",
+        "userid": "16483",
+        "toplevel": true,
+        "queryPrefixSha256": "ea358b9dec30ca1de2bc495640e625b0d90723321760e59b09056aca4b9654ec",
+        "deltaKnown": true,
+        "delta": {
+          "calls": 0,
+          "total_ms": 0,
+          "rows": 0,
+          "shared_blks_hit": 0,
+          "shared_blks_read": 0,
+          "temp_blks_written": 0
+        }
+      },
+      {
+        "queryid": "-89961655297267029",
+        "userid": "16384",
+        "toplevel": true,
+        "queryPrefixSha256": "501ea0cd0b0f79a6443c38f0ae98b64064ae32980d121cba96c0910f2afb8287",
+        "deltaKnown": true,
+        "delta": {
+          "calls": 0,
+          "total_ms": 0,
+          "rows": 0,
+          "shared_blks_hit": 0,
+          "shared_blks_read": 0,
+          "temp_blks_written": 0
+        }
+      },
+      {
+        "queryid": "-1173930368748798537",
+        "userid": "16481",
+        "toplevel": true,
+        "queryPrefixSha256": "e27af2518162a5e4c8f1388d0729ab8ad073fcc96c9f581828346fdc07db5463",
+        "deltaKnown": true,
+        "delta": {
+          "calls": 775,
+          "total_ms": 8180.500000000007,
+          "rows": 775,
+          "shared_blks_hit": 17411,
+          "shared_blks_read": 0,
+          "temp_blks_written": 0
+        }
+      },
+      {
+        "queryid": "2487411144529730352",
+        "userid": "16384",
+        "toplevel": true,
+        "queryPrefixSha256": "501ea0cd0b0f79a6443c38f0ae98b64064ae32980d121cba96c0910f2afb8287",
+        "deltaKnown": true,
+        "delta": {
+          "calls": 0,
+          "total_ms": 0,
+          "rows": 0,
+          "shared_blks_hit": 0,
+          "shared_blks_read": 0,
+          "temp_blks_written": 0
+        }
+      },
+      {
+        "queryid": "5299301975933694258",
+        "userid": "16483",
+        "toplevel": true,
+        "queryPrefixSha256": "476e6cd1814218f958f4d501d1a6a706e67c491f5f583c7c4c489d3bea03371b",
+        "deltaKnown": true,
+        "delta": {
+          "calls": 0,
+          "total_ms": 0,
+          "rows": 0,
+          "shared_blks_hit": 0,
+          "shared_blks_read": 0,
+          "temp_blks_written": 0
+        }
+      },
+      {
+        "queryid": "5573141278128023706",
+        "userid": "16481",
+        "toplevel": true,
+        "queryPrefixSha256": "a5b41ef3ab0147b396b706f8fbe124859128bb4058fbcd64fe33a09c41d5f45a",
+        "deltaKnown": true,
+        "delta": {
+          "calls": 57,
+          "total_ms": 7564.300000000003,
+          "rows": 57,
+          "shared_blks_hit": 371419,
+          "shared_blks_read": 0,
+          "temp_blks_written": 0
+        }
+      },
+      {
+        "queryid": "-7821780334453251234",
+        "userid": "16482",
+        "toplevel": true,
+        "queryPrefixSha256": "fae3fbc85f0afd1b0ffdc1f904156046ae13431806774472659da0a67b8f9026",
+        "deltaKnown": true,
+        "delta": {
+          "calls": 5393,
+          "total_ms": 722.6999999999971,
+          "rows": 5393,
+          "shared_blks_hit": 6056,
+          "shared_blks_read": 0,
+          "temp_blks_written": 0
+        }
+      },
+      {
+        "queryid": "4868794970434878014",
+        "userid": "10",
+        "toplevel": true,
+        "queryPrefixSha256": "7d5baceceb47a24e4bcb948de109c555af9067de7932db36b195048df088e209",
+        "deltaKnown": true,
+        "delta": {
+          "calls": 0,
+          "total_ms": 0,
+          "rows": 0,
+          "shared_blks_hit": 0,
+          "shared_blks_read": 0,
+          "temp_blks_written": 0
+        }
+      },
+      {
+        "queryid": "3615090419031937202",
+        "userid": "16482",
+        "toplevel": true,
+        "queryPrefixSha256": "b37ed1b181bef8f82aca774a1d78ddd58912f533692718b35f899a481f8fb97c",
+        "deltaKnown": true,
+        "delta": {
+          "calls": 0,
+          "total_ms": 0,
+          "rows": 0,
+          "shared_blks_hit": 0,
+          "shared_blks_read": 0,
+          "temp_blks_written": 0
+        }
+      },
+      {
+        "queryid": "4566076159892086781",
+        "userid": "16384",
+        "toplevel": true,
+        "queryPrefixSha256": "81858b70a48e68a04f2b3ed5c75e43b40a14d456c73d2d01fd011dc24364bb9f",
+        "deltaKnown": true,
+        "delta": {
+          "calls": 0,
+          "total_ms": 0,
+          "rows": 0,
+          "shared_blks_hit": 0,
+          "shared_blks_read": 0,
+          "temp_blks_written": 0
+        }
+      },
+      {
+        "queryid": "-3260150625636178957",
+        "userid": "16482",
+        "toplevel": true,
+        "queryPrefixSha256": "92c084cc3115bd23f17bf0300a5d5bc2c6ffe6faee4e486f95d722bec782410d",
+        "deltaKnown": true,
+        "delta": {
+          "calls": 0,
+          "total_ms": 0,
+          "rows": 0,
+          "shared_blks_hit": 0,
+          "shared_blks_read": 0,
+          "temp_blks_written": 0
+        }
+      },
+      {
+        "queryid": "-7264084286691062249",
+        "userid": "16482",
+        "toplevel": true,
+        "queryPrefixSha256": "2997bd9061f27e67bc47dd390a0c67f4c32aa7e3cba9ea52549a15dd3f12df7c",
+        "deltaKnown": true,
+        "delta": {
+          "calls": 0,
+          "total_ms": 0,
+          "rows": 0,
+          "shared_blks_hit": 0,
+          "shared_blks_read": 0,
+          "temp_blks_written": 0
+        }
+      },
+      {
+        "queryid": "-4310675720496857298",
+        "userid": "16481",
+        "toplevel": true,
+        "queryPrefixSha256": "f37a91d96d4953d8c658fc98ab6f8f6db56a6049b285348b9d6d7b6bd3e0098d",
+        "deltaKnown": true,
+        "delta": {
+          "calls": 57,
+          "total_ms": 3859.2999999999993,
+          "rows": 57,
+          "shared_blks_hit": 32133,
+          "shared_blks_read": 0,
+          "temp_blks_written": 0
+        }
+      },
+      {
+        "queryid": "8370645500750010934",
+        "userid": "16482",
+        "toplevel": true,
+        "queryPrefixSha256": "025e2c7d53653913f13b22747044cf7c5fddc87caf098851d848a2f44fed798e",
+        "deltaKnown": true,
+        "delta": {
+          "calls": 140,
+          "total_ms": 9337.8,
+          "rows": 140,
+          "shared_blks_hit": 190011,
+          "shared_blks_read": 0,
+          "temp_blks_written": 0
+        }
+      },
+      {
+        "queryid": "3483740159559894888",
+        "userid": "16482",
+        "toplevel": true,
+        "queryPrefixSha256": "b37ed1b181bef8f82aca774a1d78ddd58912f533692718b35f899a481f8fb97c",
+        "deltaKnown": true,
+        "delta": {
+          "calls": 0,
+          "total_ms": 0,
+          "rows": 0,
+          "shared_blks_hit": 0,
+          "shared_blks_read": 0,
+          "temp_blks_written": 0
+        }
+      },
+      {
+        "queryid": "396329581254861903",
+        "userid": "16482",
+        "toplevel": true,
+        "queryPrefixSha256": "b37ed1b181bef8f82aca774a1d78ddd58912f533692718b35f899a481f8fb97c",
+        "deltaKnown": true,
+        "delta": {
+          "calls": 41,
+          "total_ms": 14615.7,
+          "rows": 41,
+          "shared_blks_hit": 29000,
+          "shared_blks_read": 0,
+          "temp_blks_written": 0
+        }
+      },
+      {
+        "queryid": "-494941107873778835",
+        "userid": "16482",
+        "toplevel": true,
+        "queryPrefixSha256": "294bab8dded582afa1c7d0e6c8aa166bc55fd61d1c6791218a655f683948d294",
+        "deltaKnown": true,
+        "delta": {
+          "calls": 4,
+          "total_ms": 75.89999999999782,
+          "rows": 4,
+          "shared_blks_hit": 1998,
+          "shared_blks_read": 0,
+          "temp_blks_written": 0
+        }
+      },
+      {
+        "queryid": "8487862576617930575",
+        "userid": "16541",
+        "toplevel": true,
+        "queryPrefixSha256": "3afd1675a4a2aa92c7baf7facdff8fd0494fe2eb7e36e3fc7ec473bb19f3b996",
+        "deltaKnown": true,
+        "delta": {
+          "calls": 0,
+          "total_ms": 0,
+          "rows": 0,
+          "shared_blks_hit": 0,
+          "shared_blks_read": 0,
+          "temp_blks_written": 0
+        }
+      },
+      {
+        "queryid": "5360251647081715348",
+        "userid": "16481",
+        "toplevel": true,
+        "queryPrefixSha256": "47b97d2117fad37b2f1327aaf4b6c039d73dec865d6b241e235ea851bd025587",
+        "deltaKnown": true,
+        "delta": {
+          "calls": 3293,
+          "total_ms": 1745.5999999999985,
+          "rows": 3293,
+          "shared_blks_hit": 118,
+          "shared_blks_read": 0,
+          "temp_blks_written": 0
+        }
+      },
+      {
+        "queryid": "8940532665531817802",
+        "userid": "16481",
+        "toplevel": true,
+        "queryPrefixSha256": "5ce1bacc5c57fa3a5bf42b7f70e38924937ade0ff2d9d46cf685282e140e79f0",
+        "deltaKnown": true,
+        "delta": {
+          "calls": 143,
+          "total_ms": 13779.099999999999,
+          "rows": 143,
+          "shared_blks_hit": 16256,
+          "shared_blks_read": 0,
+          "temp_blks_written": 0
+        }
+      },
+      {
+        "queryid": "-6729018309493969578",
+        "userid": "16384",
+        "toplevel": true,
+        "queryPrefixSha256": "b57fd5d3616c5774202beb7d2f95449e60103cefa8c8865ac9045b9831fc6773",
+        "deltaKnown": true,
+        "delta": {
+          "calls": 2,
+          "total_ms": 163.70000000000073,
+          "rows": 2,
+          "shared_blks_hit": 1900,
+          "shared_blks_read": 0,
+          "temp_blks_written": 0
+        }
+      },
+      {
+        "queryid": "8316519159514937025",
+        "userid": "16481",
+        "toplevel": true,
+        "queryPrefixSha256": "0af2f49a20416528314b7ff252584ceb1e4bc3964f914a20d4e1c358481c4fcc",
+        "deltaKnown": true,
+        "delta": {
+          "calls": 144,
+          "total_ms": 8248.2,
+          "rows": 144,
+          "shared_blks_hit": 22280,
+          "shared_blks_read": 0,
+          "temp_blks_written": 0
+        }
+      },
+      {
+        "queryid": "-2647655532108368607",
+        "userid": "16384",
+        "toplevel": true,
+        "queryPrefixSha256": "220e13dfb00ac20311ce87098d91f9a3145967e22003c7156283b38866362369",
+        "deltaKnown": true,
+        "delta": {
+          "calls": 0,
+          "total_ms": 0,
+          "rows": 0,
+          "shared_blks_hit": 0,
+          "shared_blks_read": 0,
+          "temp_blks_written": 0
+        }
+      },
+      {
+        "queryid": "1099829501182437999",
+        "userid": "16482",
+        "toplevel": true,
+        "queryPrefixSha256": "5405437732f214d743433b6335674eebaa4e1dccc62225cdf4fb245495ba9645",
+        "deltaKnown": true,
+        "delta": {
+          "calls": 46,
+          "total_ms": 7236.700000000001,
+          "rows": 46,
+          "shared_blks_hit": 76308,
+          "shared_blks_read": 0,
+          "temp_blks_written": 0
+        }
+      },
+      {
+        "queryid": "7510062724011066638",
+        "userid": "16481",
+        "toplevel": true,
+        "queryPrefixSha256": "7b283c2869db4750c5cc7498aa1c81e5ca8179abf9f444031b95e045b173c606",
+        "deltaKnown": true,
+        "delta": {
+          "calls": 69,
+          "total_ms": 9265.2,
+          "rows": 69,
+          "shared_blks_hit": 21646,
+          "shared_blks_read": 0,
+          "temp_blks_written": 0
+        }
+      },
+      {
+        "queryid": "-3076875962393720596",
+        "userid": "16384",
+        "toplevel": true,
+        "queryPrefixSha256": "81858b70a48e68a04f2b3ed5c75e43b40a14d456c73d2d01fd011dc24364bb9f",
+        "deltaKnown": true,
+        "delta": {
+          "calls": 0,
+          "total_ms": 0,
+          "rows": 0,
+          "shared_blks_hit": 0,
+          "shared_blks_read": 0,
+          "temp_blks_written": 0
+        }
+      },
+      {
+        "queryid": "8580411586163530256",
+        "userid": "16385",
+        "toplevel": true,
+        "queryPrefixSha256": "86d13812b675c678697859ba0af95aebc7c3804d2c59aeb673a0678df83d1af1",
+        "deltaKnown": true,
+        "delta": {
+          "calls": 1,
+          "total_ms": 105.5,
+          "rows": 233,
+          "shared_blks_hit": 2743,
+          "shared_blks_read": 0,
+          "temp_blks_written": 0
+        }
+      },
+      {
+        "queryid": "-8789528950430113317",
+        "userid": "16541",
+        "toplevel": true,
+        "queryPrefixSha256": "99555d944fae965cf90f8993c728c4d0fcb615191a52198fe67dfa26c4ea7908",
+        "deltaKnown": true,
+        "delta": {
+          "calls": 2,
+          "total_ms": 39.5,
+          "rows": 2,
+          "shared_blks_hit": 173,
+          "shared_blks_read": 0,
+          "temp_blks_written": 0
+        }
+      },
+      {
+        "queryid": "1126385019702932642",
+        "userid": "16481",
+        "toplevel": true,
+        "queryPrefixSha256": "c31c46ad0a286a83d506764a768ba7337fa49b1a24ff921ffbdf9ffed6322d7e",
+        "deltaKnown": true,
+        "delta": {
+          "calls": 143,
+          "total_ms": 8585.8,
+          "rows": 143,
+          "shared_blks_hit": 17795,
+          "shared_blks_read": 0,
+          "temp_blks_written": 0
+        }
+      },
+      {
+        "queryid": "-902132887822798486",
+        "userid": "16541",
+        "toplevel": true,
+        "queryPrefixSha256": "06590b520c20b1c6cd2b41c36fbdaab74b798700b8a8a2cb29e2ff77bcbcc794",
+        "deltaKnown": true,
+        "delta": {
+          "calls": 775,
+          "total_ms": 46.80000000000109,
+          "rows": 775,
+          "shared_blks_hit": 1550,
+          "shared_blks_read": 0,
+          "temp_blks_written": 0
+        }
+      },
+      {
+        "queryid": "3284684524713098533",
+        "userid": "16481",
+        "toplevel": true,
+        "queryPrefixSha256": "56bd737ed4cfacf0ef24b9079051d2d86ae1f37274bceb6454da386ea7fc3571",
+        "deltaKnown": true,
+        "delta": {
+          "calls": 0,
+          "total_ms": 0,
+          "rows": 0,
+          "shared_blks_hit": 0,
+          "shared_blks_read": 0,
+          "temp_blks_written": 0
+        }
+      },
+      {
+        "queryid": "8580411586163530256",
+        "userid": "10",
+        "toplevel": true,
+        "queryPrefixSha256": "86d13812b675c678697859ba0af95aebc7c3804d2c59aeb673a0678df83d1af1",
+        "deltaKnown": true,
+        "delta": {
+          "calls": 0,
+          "total_ms": 0,
+          "rows": 0,
+          "shared_blks_hit": 0,
+          "shared_blks_read": 0,
+          "temp_blks_written": 0
+        }
+      },
+      {
+        "queryid": "8940532665531817802",
+        "userid": "16482",
+        "toplevel": true,
+        "queryPrefixSha256": "5ce1bacc5c57fa3a5bf42b7f70e38924937ade0ff2d9d46cf685282e140e79f0",
+        "deltaKnown": true,
+        "delta": {
+          "calls": 519,
+          "total_ms": 4515.900000000001,
+          "rows": 519,
+          "shared_blks_hit": 35637,
+          "shared_blks_read": 0,
+          "temp_blks_written": 0
+        }
+      },
+      {
+        "queryid": "-1362717576735411158",
+        "userid": "16481",
+        "toplevel": true,
+        "queryPrefixSha256": "4ec0dbe105628f361f0cc3d2467afc9f49652961bacb2dd6f7d5d87613a7717a",
+        "deltaKnown": false,
+        "reason": "absent-from-before-top60-not-assumed-zero"
+      },
+      {
+        "queryid": "-1092467314066919700",
+        "userid": "16541",
+        "toplevel": true,
+        "queryPrefixSha256": "ff6a8f5b19d0dacb786e4eed826f89ce26804b3dfe9929025fc420f3348c7c4e",
+        "deltaKnown": true,
+        "delta": {
+          "calls": 777,
+          "total_ms": 37.899999999999636,
+          "rows": 777,
+          "shared_blks_hit": 2343,
+          "shared_blks_read": 0,
+          "temp_blks_written": 0
+        }
+      },
+      {
+        "queryid": "1116307744680222199",
+        "userid": "16481",
+        "toplevel": true,
+        "queryPrefixSha256": "4c83fd1e29ff1df42bffabec764b27d4c0cbfcbd7f9797102d4532ab3f6a7cb8",
+        "deltaKnown": true,
+        "delta": {
+          "calls": 0,
+          "total_ms": 0,
+          "rows": 0,
+          "shared_blks_hit": 0,
+          "shared_blks_read": 0,
+          "temp_blks_written": 0
+        }
+      },
+      {
+        "queryid": "-5499642975328599148",
+        "userid": "16481",
+        "toplevel": true,
+        "queryPrefixSha256": "6be63ea0da923fdaf2317fd821ea25c6829938cb666962957f6890193af40f5f",
+        "deltaKnown": false,
+        "reason": "absent-from-before-top60-not-assumed-zero"
+      },
+      {
+        "queryid": "1689837619145390454",
+        "userid": "16385",
+        "toplevel": true,
+        "queryPrefixSha256": "035f8c35eba1ba20935f82cc9e7ee3bc9fd8fdbec666390473e2609823bdf9ff",
+        "deltaKnown": true,
+        "delta": {
+          "calls": 0,
+          "total_ms": 0,
+          "rows": 0,
+          "shared_blks_hit": 0,
+          "shared_blks_read": 0,
+          "temp_blks_written": 0
+        }
+      },
+      {
+        "queryid": "-2747364525061611006",
+        "userid": "16481",
+        "toplevel": true,
+        "queryPrefixSha256": "881546ab2b92d1dd7988f962fc199f3f36e2ca1646acd6c9fe7f76bc99272b79",
+        "deltaKnown": true,
+        "delta": {
+          "calls": 20,
+          "total_ms": 3355.8999999999996,
+          "rows": 20,
+          "shared_blks_hit": 8159,
+          "shared_blks_read": 0,
+          "temp_blks_written": 0
+        }
+      },
+      {
+        "queryid": "1126385019702932642",
+        "userid": "16482",
+        "toplevel": true,
+        "queryPrefixSha256": "c31c46ad0a286a83d506764a768ba7337fa49b1a24ff921ffbdf9ffed6322d7e",
+        "deltaKnown": true,
+        "delta": {
+          "calls": 521,
+          "total_ms": 2640.8,
+          "rows": 521,
+          "shared_blks_hit": 31742,
+          "shared_blks_read": 0,
+          "temp_blks_written": 0
+        }
+      },
+      {
+        "queryid": "574276404136536369",
+        "userid": "16541",
+        "toplevel": true,
+        "queryPrefixSha256": "0a40ab8f8d38c1ee1054875c7d998a2d5194577ba081cf3defcb9988a2168252",
+        "deltaKnown": true,
+        "delta": {
+          "calls": 2,
+          "total_ms": 24.600000000000364,
+          "rows": 2,
+          "shared_blks_hit": 146,
+          "shared_blks_read": 0,
+          "temp_blks_written": 0
+        }
+      },
+      {
+        "queryid": "-5868744120094776251",
+        "userid": "10",
+        "toplevel": true,
+        "queryPrefixSha256": "59d151682d54f40f5b1c51bf17655fd12715d85ce49427962dd1c94355657541",
+        "deltaKnown": true,
+        "delta": {
+          "calls": 0,
+          "total_ms": 0,
+          "rows": 0,
+          "shared_blks_hit": 0,
+          "shared_blks_read": 0,
+          "temp_blks_written": 0
+        }
+      },
+      {
+        "queryid": "-7636120669495855217",
+        "userid": "10",
+        "toplevel": true,
+        "queryPrefixSha256": "fa6815e6c64354a48eedac61f0c5b105381409b125d0b9435744b18fc3c2a41f",
+        "deltaKnown": true,
+        "delta": {
+          "calls": 0,
+          "total_ms": 0,
+          "rows": 0,
+          "shared_blks_hit": 0,
+          "shared_blks_read": 0,
+          "temp_blks_written": 0
+        }
+      },
+      {
+        "queryid": "-3096992529873494158",
+        "userid": "16482",
+        "toplevel": true,
+        "queryPrefixSha256": "6da66a1c7284db07100c570de30c2eb8c9ee34e6e2895fd1ba8710f573d0ec11",
+        "deltaKnown": false,
+        "reason": "absent-from-before-top60-not-assumed-zero"
+      },
+      {
+        "queryid": "-5274351981719591471",
+        "userid": "10",
+        "toplevel": true,
+        "queryPrefixSha256": "39c834687f0eb28127aa62ff5f6152ee98772a26f70760118dc8f91c21d2587d",
+        "deltaKnown": true,
+        "delta": {
+          "calls": 49,
+          "total_ms": 44.80000000000018,
+          "rows": 49,
+          "shared_blks_hit": 245,
+          "shared_blks_read": 0,
+          "temp_blks_written": 0
+        }
+      },
+      {
+        "queryid": "4272184973515172242",
+        "userid": "16483",
+        "toplevel": true,
+        "queryPrefixSha256": "9e6bf83d73a29be16a0b65a8244885ef6d4a7c836419912f85dc8a8a03db868f",
+        "deltaKnown": true,
+        "delta": {
+          "calls": 0,
+          "total_ms": 0,
+          "rows": 0,
+          "shared_blks_hit": 0,
+          "shared_blks_read": 0,
+          "temp_blks_written": 0
+        }
+      },
+      {
+        "queryid": "4818686446681370555",
+        "userid": "16482",
+        "toplevel": true,
+        "queryPrefixSha256": "997f52d202b60273bfe5ee9709dfce595e162daa561a7330cd55844db892c306",
+        "deltaKnown": false,
+        "reason": "absent-from-before-top60-not-assumed-zero"
+      },
+      {
+        "queryid": "3417695798892895197",
+        "userid": "16541",
+        "toplevel": true,
+        "queryPrefixSha256": "5aaae7bb0854c326c12b508975d9f3673b6e4300780628dd6d83f1fd88a5d940",
+        "deltaKnown": true,
+        "delta": {
+          "calls": 0,
+          "total_ms": 0,
+          "rows": 0,
+          "shared_blks_hit": 0,
+          "shared_blks_read": 0,
+          "temp_blks_written": 0
+        }
+      },
+      {
+        "queryid": "864283602214708619",
+        "userid": "16384",
+        "toplevel": true,
+        "queryPrefixSha256": "4063b16f62afa2d7c585f36b765bb1a52b28fb800c2eb92a12f4aba8e213a7ea",
+        "deltaKnown": true,
+        "delta": {
+          "calls": 0,
+          "total_ms": 0,
+          "rows": 0,
+          "shared_blks_hit": 0,
+          "shared_blks_read": 0,
+          "temp_blks_written": 0
+        }
+      },
+      {
+        "queryid": "-1716421701957738214",
+        "userid": "10",
+        "toplevel": true,
+        "queryPrefixSha256": "fbeb997654a1e1036b4e56c60e6a5a65cf3b8fee3de3907e2f5f71e6b8346908",
+        "deltaKnown": true,
+        "delta": {
+          "calls": 0,
+          "total_ms": 0,
+          "rows": 0,
+          "shared_blks_hit": 0,
+          "shared_blks_read": 0,
+          "temp_blks_written": 0
+        }
+      },
+      {
+        "queryid": "-4112241794244920852",
+        "userid": "16481",
+        "toplevel": true,
+        "queryPrefixSha256": "5af2032960e5673b2a0b1481994cbfc30017a1e926b00afffc0e467aa74dc6be",
+        "deltaKnown": true,
+        "delta": {
+          "calls": 0,
+          "total_ms": 0,
+          "rows": 0,
+          "shared_blks_hit": 0,
+          "shared_blks_read": 0,
+          "temp_blks_written": 0
+        }
+      },
+      {
+        "queryid": "-1131916629723466493",
+        "userid": "16481",
+        "toplevel": true,
+        "queryPrefixSha256": "a1defe7b7a8f4465fe68c0eafe5208fc26bf7c3aa6e95ba65c1b433186b72b41",
+        "deltaKnown": true,
+        "delta": {
+          "calls": 0,
+          "total_ms": 0,
+          "rows": 0,
+          "shared_blks_hit": 0,
+          "shared_blks_read": 0,
+          "temp_blks_written": 0
+        }
+      },
+      {
+        "queryid": "-7660917794603065133",
+        "userid": "16480",
+        "toplevel": true,
+        "queryPrefixSha256": "129f487e3ce6d1b618b055f480164a76380fe3608f84aaaff846d72314d999de",
+        "deltaKnown": true,
+        "delta": {
+          "calls": 0,
+          "total_ms": 0,
+          "rows": 0,
+          "shared_blks_hit": 0,
+          "shared_blks_read": 0,
+          "temp_blks_written": 0
+        }
+      },
+      {
+        "queryid": "-6019717523838313193",
+        "userid": "16483",
+        "toplevel": true,
+        "queryPrefixSha256": "2988c021fe78237856ebe2562a2654fab9971ffe0dec7975691f529f1d6640de",
+        "deltaKnown": true,
+        "delta": {
+          "calls": 0,
+          "total_ms": 0,
+          "rows": 0,
+          "shared_blks_hit": 0,
+          "shared_blks_read": 0,
+          "temp_blks_written": 0
+        }
+      }
+    ]
+  },
+  "interpretation": "Latency or another acceptance criterion still fails without sampler. It is not required to reproduce a failure; this comparison does not identify the sole cause of the first run.",
+  "confounds": [
+    "time and shared-infrastructure variance",
+    "heap reuse/autovacuum",
+    "inactive-push client fix since previous run"
+  ],
+  "launchAutomaticallyApproved": false
+}

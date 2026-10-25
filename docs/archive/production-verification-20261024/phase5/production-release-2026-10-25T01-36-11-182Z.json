@@ -1,0 +1,21 @@
+{
+  "at": "2026-10-25T01:36:11.182Z",
+  "revision": "0851de59ed7971debe2514e6d6851d142bbc5766",
+  "appOrigin": "https://app.cita-suite.workers.dev",
+  "clientFiles": 130,
+  "contentSecurity": {
+    "connect": [
+      "https://yjzferwuzbtgpmdnzlcb.supabase.co",
+      "wss://yjzferwuzbtgpmdnzlcb.supabase.co"
+    ],
+    "images": [
+      "https://yjzferwuzbtgpmdnzlcb.supabase.co"
+    ]
+  },
+  "natalia": {
+    "origin": "https://natalia-frutos.vercel.app",
+    "files": 35
+  },
+  "anonymousRelations": 70,
+  "exposed": []
+}

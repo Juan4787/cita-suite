@@ -2,7 +2,30 @@
 
 Este documento describe cómo se mide la capacidad de Cita Suite según la sección 4 del [plan](../plans/refactorizacion-cita-suite.md), qué herramientas lo hacen y qué se encontró. El detalle de cada corrida está en el [registro](../plans/registro-refactorizacion-cita-suite.md).
 
-## Medición productiva de dos consultorios — 24 de octubre
+## Comparación controlada sin muestreo de instancia — resultado24-oct, cierre25-octUTC
+
+**Falló nuevamente la aceptación.** [Run40099997857](https://github.com/Juan4787/cita-suite-verificacion/actions/runs/40099997857), fuente `0851de59ed7971debe2514e6d6851d142bbc5766`, generador13:52:46.999→14:41:11.544UTC del24 de octubre. Protocolo previo de una única comparación: mismos volumen2/12000/24000, generador, semilla, límites y umbrales; sin consultas del muestreadorSQL cada2s ni métricas de instancia cada5s. Sólo tail saneadoCloudflare y cron normales. No se repitió hasta obtener verde.
+
+| Fase | Lecturas p95 / p99 (ms) | Escrituras p95 / p99 (ms) | Resultado |
+|---|---:|---:|---|
+| Repetición1 |577 /900 |1225 /1471 | Cumple |
+| Repetición2 |884 /1999 |1689 /2135 | Falla escrituras p95 |
+| Repetición3 |664 /4476 |1169 /5400 | Falla lecturas y escrituras p99 |
+| Pública |419 /950 |1441 /1441 | Cumple;2reservas/0fallas |
+
+Cero errores técnicos reportados. Abuso:120aceptadas/10rechazadas, primera121 y límite porIP correcto. El fallo se reproduce sin el muestreador; **no es necesario para reproducirlo**, aunque no se mide cuánto aportó a la primera carga ni se identifica una causa exclusiva. Persisten confusores de horario/infraestructura compartida, reutilización física y autovacuum, y la guarda de interfaz posterior. El fallo40078561771 se conserva.
+
+ZIP cotejado con digestGitHub `459c752c34e0edafb61f1c3eebab0fbb033a7854add89cccacd053f480228754`; JSON `43ab9eb8e485cfc27c83bcd5d935ce10acc59e19e36ba4baa5a45157bab66386`. Resultado y operadores congelados en [fase5](../archive/production-verification-20261024/phase5/README.md), manifiesto `ad9ef556eac0c21af2dbd69e41c52ea35f724c73434f62004dd07db59dab3296`.
+
+**Límite de integridad y estadísticas:** cruces/superposiciones0 en las lecturas antes/después; contador de deadlocks2 en ambas. La lectura posterior ocurrió25-oct01:32UTC, más de10horas después; no se presenta como lectura inmediata ni como costo SQL exclusivo de la carga. `stats_reset` viene `null`: no demuestra continuidad. La interpretaciónV1 que convertía dosnull en «mismo reinicio» se conserva como superada; una prueba local la refutó yV2 dejó los60deltas SQL y el delta de deadlocks desconocidos. Tampoco se observó el reinicio independiente de `pg_stat_statements`. No certificar ausencia de interbloqueos a partir de este delta. La primera carga también tenía marcador vacío: sus números acumulados se conservan como observaciones bajo continuidad supuesta, sin certificación de incrementos del intervalo. Esto no cambia sus percentiles ni su fallo.
+
+El observador cerró por duración14:56:42, exit0/0parse. En la ventana ordinaria incluida preparación y sin ráfaga final hubo1171peticiones,617conCPU>10ms; no hubo `exceededCpu` observado. HTTP200 no descarta errores internos deSvelteKit y no certifica el presupuestoCPUFree; el generador los clasifica por separado. No se midióI/O/swap en esta comparación.
+
+Limpieza25-oct01:33:2consultorios/12004pacientes/24045turnos/2dueños propios,0restos. Se restablecieron19negocios/121pacientes/107turnos, Calendar1/1,24objetos/11.599.541B yDB126/legacyoff. Secreto temporalActions/local retirado. Los datos sintéticos permanecieron hasta esa limpieza; no fingir limpieza inmediata al acabarCI. La aplicación no se volvió a desplegar para este cierre.
+
+**Decisión:** el despliegue no demuestra el lanzamiento gratuito para dos consultorios. No cambiar umbrales, añadir cachés de permisos, omitir recorridos ni contratar para fabricar aprobación. Una investigación posterior debe tener hipótesis y criterio previo, comparar costos propios de consultas con planes sobre el mismo volumen y separar red/instancia; conservar marcadores de reinicio válidos de cada familia de estadísticas. No hacer un tercer ensayo idéntico. Una alternativa de infraestructura requiere autorización y un tope de gasto compatible; pagar no demuestra cumplimiento por sí solo. Los10msFree y la memoria/CPUcompartida deNano son límites independientes según [Cloudflare](https://developers.cloudflare.com/workers/platform/limits/) y [Supabase](https://supabase.com/docs/guides/platform/compute-and-disk).
+
+## Medición productiva de dos consultorios — 24 de octubre (primera carga)
 
 **No aprobada por latencia.** Corrida40078561771 sobre `cb8a9bafdf9a07a6b8977e841fa3f401061fda4f`, appF35, DB126, WorkersFree y SupabaseFree SãoPaulo. Generador externo desde08:35:00.498UTC: tres repeticiones secuenciales de2min de preparación y10min de medición, luego fase pública2+10min y abuso; fin09:24:15UTC. No se modificaron umbrales, IP, runtime ni infraestructura durante la carga.
 
@@ -13,7 +36,7 @@ Este documento describe cómo se mide la capacidad de Cita Suite según la secci
 | Repetición3 |723 /1606 |2763 /3810 | Falla escrituras |
 | Pública |529 /1129 |1158 /1158 | Cumple;2reservas/0fallas |
 
-Cero errores técnicos en todas las fases; integridad antes/después:0cruces,0superposiciones y0deadlocks nuevos (2yaexistentes). Abuso:120lecturas aceptadas/10rechazadas, primera121; reserva rechazada por límiteIP exacto. La limpieza retiró12006pacientes/24046turnos/2consultorios/2dueños, restos0/0; humo7/7 y2documentosretirados. Credencial temporal local yActions eliminada. El tamaño físico de DB no se presenta como espacio recuperado: el borrado deja espacio reutilizable por PostgreSQL.
+Cero errores técnicos en todas las fases; integridad antes/después:0cruces y0superposiciones; contador deadlocks2 en ambas lecturas. El marcador de reinicio vacío impide certificar un delta; ver corrección del cierre25-oct anterior. Abuso:120lecturas aceptadas/10rechazadas, primera121; reserva rechazada por límiteIP exacto. La limpieza retiró12006pacientes/24046turnos/2consultorios/2dueños, restos0/0; humo7/7 y2documentosretirados. Credencial temporal local yActions eliminada. El tamaño físico de DB no se presenta como espacio recuperado: el borrado deja espacio reutilizable por PostgreSQL.
 
 Evidencia original `.verification/production-measure-40078561771/production-capacity-measure.json`, SHA25605d12107eb9ac9d7e379cdb1a82fabb4b72f23306ab86656d3dcbc01bbf9f6ba; ZIP original coincide con digest deGitHub a2a573e2d66a5a101d0599774b133526e4f39cd917ee666ddd313b126e66cc06. No repetir la corrida para buscar un verde: repetir tras una corrección o cambio de infraestructura comprobable, conservando esta falla.
 
@@ -23,13 +46,13 @@ El observador registró1294pedidos y31trabajos, sin errores de parseo, y cerró 
 
 Esto es correlación compatible con presión de memoria/disco de Nano; no demuestra causalidad exclusiva ni descarta red, efecto del muestreo o toda ineficiencia de la app. No hubo `exceededCpu` en esta carga2: los cortesCPU medidos antes en staging5 no explican automáticamente esta falla. Se mantienen como riesgo independiente las invocaciones productivas por encima de10msFree. La medición exacta usa el reloj del generador; las ventanas del análisis incluyen preparación y no se ofrecen como reconstrucción exacta de cada percentil.
 
-Se encontraron y corrigieron defectos reales en los informes: contadores ausentes/reset pasan a desconocidos; queryidint64 viaja como texto y conserva identidaduserid/toplevel. PruebaCLI rojo2fallas/verde4/4 y proyecciones SQLreadonly verificadas. De19deltas retrospectivos,3ambiguos se excluyen. Eltop60 de sentencias no es cobertura de todas las consultas; los contadoresglobales incluyen tareas y observadores. Sourceoperativo `a5b95809cfbb11ef05bf17f9e5660e45b3f1bd55`, fast40094512375 aprobado, paquete0d3dfc316f5005282c3eed816bc505d96b31259c9f568ab94d69b551023c645b. Runtime sin cambios, releaseCB40075434652 sigue válido para su alcance; fast no sustituye fullrelease.
+Se encontraron y corrigieron defectos reales en los informes: contadores ausentes/reset pasan a desconocidos; queryidint64 viaja como texto y conserva identidaduserid/toplevel. PruebaCLI rojo2fallas/verde4/4 y proyecciones SQLreadonly verificadas. De19deltas retrospectivos,3identidades ambiguas se excluyen; además, al faltar un marcador válido de continuidad, ninguno se certifica como incremento exclusivo de la ventana. Se conservan para diagnóstico, con esta corrección posterior. Eltop60 de sentencias no es cobertura de todas las consultas; los contadoresglobales incluyen tareas y observadores. Sourceoperativo `a5b95809cfbb11ef05bf17f9e5660e45b3f1bd55`, fast40094512375 aprobado, paquete0d3dfc316f5005282c3eed816bc505d96b31259c9f568ab94d69b551023c645b. Runtime sin cambios, releaseCB40075434652 sigue válido para su alcance; fast no sustituye fullrelease.
 
 La corrección posterior de avisos inactivos (`0851de5`, release40096001763) y la publicación de Natalia tienen sus propias pruebas funcionales. No corrigen ni vuelven a medir por sí solas los percentiles de esta carga sobreCB; su resultado permanece fallido.
 
 ### Decisión de lanzamiento
 
-El perfil gratuito actual no demostró todos los umbrales de los dos consultorios. No se habilita lanzamiento con clientes reales ni se contrata nada. La siguiente investigación proporcionada debe distinguir el costo propio de consultas de la contención de instancia y de la instrumentación antes de proponer cambios. Una infraestructura diferente requiere decisión del usuario, límites de costo compatibles y repetir la misma carga; no se promete que pagar resuelva por sí solo todos los percentiles. La arquitectura y los generadores se conservan para esa comparación.
+El perfil gratuito actual no demostró todos los umbrales de los dos consultorios. No se habilita lanzamiento con clientes reales ni se contrata nada. La comparación40099997857 ya demostró fallo sin el muestreadorSQL; queda separar costo propio de consultas, red y contención de instancia mediante una hipótesis nueva y evidencia dirigida. Una infraestructura diferente requiere decisión del usuario, límites de costo compatibles y repetir la misma carga; no se promete que pagar resuelva por sí solo todos los percentiles. La arquitectura y los generadores se conservan para esa comparación.
 
 ## Qué se mide y dónde
 
@@ -118,6 +141,6 @@ Valores medianos, con evidencia en `.verification/staging-pause-attribution-2026
 | Disco ocupado | 42 % | 6 % |
 | Checkpoints | 0 | 0 |
 
-**Interpretación del ensayo histórico, no prueba causal exclusiva.** La instancia Nano, de 0,5 GB, tiene unos 125 MB disponibles y medio GB en swap incluso en reposo. Con la carga intercambia memoria con un disco limitado a 250 IOPS, y PostgreSQL queda esperando sus páginas: así pasa una consulta de 20 ms a varios segundos. La correlación con espera de disco y swap respalda presión del cómputo; una CPU baja no descarta por sí sola bloqueos, red, costo SQL ni efecto del observador. No se afirma causalidad exclusiva sin una comparación controlada.
+**Interpretación del ensayo histórico, no prueba causal exclusiva.** La instancia Nano, de 0,5 GB, tiene unos 125 MB disponibles y medio GB en swap incluso en reposo. Con la carga intercambia memoria con un disco cuya base documentada es250IOPS, con capacidad de ráfaga; no es un techo absoluto de250, y PostgreSQL queda esperando sus páginas: así pasa una consulta de 20 ms a varios segundos. La correlación con espera de disco y swap respalda presión del cómputo; una CPU baja no descarta por sí sola bloqueos, red, costo SQL ni efecto del observador. No se afirma causalidad exclusiva sin una comparación controlada.
 
-Micro duplica la memoria, a 1 GB, y el rendimiento de disco base, a 500 IOPS ([cómputo](https://supabase.com/docs/guides/platform/compute-and-disk)). Por lo medido, es razonable esperar que elimine la mayor parte del intercambio, pero se comprueba midiendo, como cualquier criterio.
+Micro duplica la memoria, a 1 GB, y el rendimiento de disco base, a 500 IOPS ([cómputo](https://supabase.com/docs/guides/platform/compute-and-disk)). Es una alternativa para comparar, sin garantía de eliminar el intercambio ni la latencia. No se contrató; cualquier cambio requiere autorización y medición con los mismos criterios.

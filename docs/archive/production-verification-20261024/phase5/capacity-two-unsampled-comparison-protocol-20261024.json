@@ -1,0 +1,22 @@
+{
+  "at": "2026-10-24T13:49:02.852959+00:00",
+  "purpose": "One prespecified comparison without the PostgreSQL wait/metrics sampler to investigate instrumentation as a confound. Retain initial failed run40078561771; no rerun-until-green or causal claim from an unmatched temporal comparison.",
+  "comparisonCountAuthorizedByThisProtocol": 1,
+  "previousRun": 40078561771,
+  "runtimeRevision": "0851de59ed7971debe2514e6d6851d142bbc5766",
+  "compiledArtifactRun": 40095722950,
+  "releaseRun": 40096001763,
+  "principalIdentityFastRun": 40099372469,
+  "principalIdentityFastSha": "257d92853090d8f761e8389baea8ae11ccb8bba3",
+  "measurementScriptMeasureBlockUnchangedFromPreviousRun": true,
+  "generatorSeedCleanupAndWorkflowUnchanged": true,
+  "generatorMeasureSha256": "16f7013b68e798a3c7cd50ccc20ffbe8b9a1ab7a6c3497d9a7ee14ffd5fb6026",
+  "phases": "3 x (2min warmup +10min measured), public2+10min then abuse; same thresholds, deterministic data and virtual users.",
+  "observation": "One Cloudflare-only sanitized tail; no instance-sampler, PostgreSQL polling, metrics endpoint sampling or operator reports during workload. Integrity and stats only before/after. Normal production cron remain enabled.",
+  "confoundsRemaining": [
+    "time of day and shared infrastructure variance",
+    "heap reuse/autovacuum after previous fixture cleanup",
+    "client inactive-push fix now deployed; server load functions unchanged"
+  ],
+  "interpretation": "No outcome overwrites the prior failure. A pass alone does not prove sampler causality or eliminate prior CPUFree risk. A failure without sampler refutes it being the sole required cause. No paid resources or provider configuration change."
+}

@@ -1,0 +1,7 @@
+{
+  "at": "2026-10-25T01:33:23.103Z",
+  "oldNullEqualityFailsExpectedUnknown": true,
+  "newCases": 4,
+  "newPassed": 4,
+  "scope": "Local pure interpretation check; no SQL or runtime change. V1 analysis retained; v2 excludes all deltas when reset marker unavailable."
+}
