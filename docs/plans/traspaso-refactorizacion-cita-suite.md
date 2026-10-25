@@ -8,6 +8,16 @@
 
 *Antecedente reemplazado:* la intervención anterior tenía como instrucción cerrar la fase 5, avisar y detenerse antes de fase 6. Ya no está vigente.
 
+## Punto vigente — diagnóstico dirigido25-oct, 2026-10-25T03:58:58.064376+00:00
+
+Usuarioautorizó la rondadirigida de rendimiento, no contratación. Sólo ese tema. Producción0851/DB126 intacta; principalbasebc307f5. Fixturepropio1x6000/12000 yausado ylimpiado, secretolocalretirado, 0restos/conteos19/121/107/Calendar1/1/24objetos preservados. No repetir seed/cleanup. Evidencias targeted-performance-{start,preflight,protocol,http-baseline,sql-baseline-v3,pure-cpu,integrity,fixture,nested-boundary}-20261025.json; fuentes/planes yfallosdelarnés privados en.verification.
+
+SQL43planes:medianasdelecturas~0,03–11ms, máximo95,879ms enventana15días3prof;creación20,03msmediana/139,434máximo.22HTTPapp0errores y3writespropiospersistidos;telemetríaexistente4/9/7HTTPaSupa. NodepureCPU7,408msinicial/1,815caliente, noWorkerCPU. Ningúndefectoconcreto deappjustificadotodavía; nocambiarcódigo porconjetura. CPUFree yfallosde2consultorios permanecen sinaprobar.
+
+**Enpreparación:**4archivosops/workflow (helper,test,runner,workflow) yregistros; perfilworkerdCIcapacity-targeted1fixture/22pedidos/3fasesCPU, sinredproductiva. Testsadversarios6/6 ysyntaxcheckaprobados local, sinheavyhost. Publicar ramaaislada basadaenbc, fast exactoprimero; sólo después incorporarmodosoperativos comprobadosalmain para queActionsreconozcacapacity-targeted y correrundiagnóstico aislado. No redeployapp, no tocarcanonicalci-source0851, no otro48min. ResultadoCIaúnpendiente.
+
+Los checkpoints inferiores de cierre ydependencias son antecedentes; mantener dominio/SMTP/identidad fuera de esta ronda. No preguntas intermedias.
+
 ### Cierre documental verificado —25-oct01:47UTC
 
 El cierre `9fcf4eef9f8317f4ecaf651e83ba51eea2f42c61` ya fue publicado y su fastmanual **40151651236** aprobó13/13controles,1395/1395servidor y175/175cliente,0fallos/pendientes/todo. Siete evidencias en `.verification/principal-remote-40151651236/`, paqueteSHA256721e9097249a62c266e0b51b584b7930da7de8e16a59a0dc145347ebc77e5397, runf3ae6415-7d78-4f51-9634-e6133edab4aa. El último commit agrega únicamente estos recibos y el punto de continuación, como hijo documental de9fc; no cambia ninguna fuente activa ni requiere recompilar/repetir elfast. Su SHA queda en `.verification/capacity-comparison-last-receipts-publication-20261025.json`; consultar main remoto, no volver a publicar ciegamente.
