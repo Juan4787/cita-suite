@@ -1,0 +1,39 @@
+{
+  "at": "2026-10-25T01:45:27.473401+00:00",
+  "repository": "Juan4787/cita-suite",
+  "run": 40151651236,
+  "source": "9fcf4eef9f8317f4ecaf651e83ba51eea2f42c61",
+  "compiledSourceUnchanged": "0851de59ed7971debe2514e6d6851d142bbc5766",
+  "ci": {
+    "conclusion": "success",
+    "createdAt": "2026-10-25T01:41:56Z",
+    "headSha": "9fcf4eef9f8317f4ecaf651e83ba51eea2f42c61",
+    "status": "completed",
+    "updatedAt": "2026-10-25T01:44:56Z"
+  },
+  "runId": "f3ae6415-7d78-4f51-9634-e6133edab4aa",
+  "steps": 13,
+  "evidenceFiles": 7,
+  "packageSha256": "721e9097249a62c266e0b51b584b7930da7de8e16a59a0dc145347ebc77e5397",
+  "privateWorkflowLogSha256": "6d739fc889ccd3eff64b1480b1954347b8b52a89b95bcfa1f201191130a021e6",
+  "units": {
+    "server": {
+      "numTotalTests": 1395,
+      "numPassedTests": 1395,
+      "numFailedTests": 0,
+      "numPendingTests": 0,
+      "numTodoTests": 0,
+      "success": true
+    },
+    "client": {
+      "numTotalTests": 175,
+      "numPassedTests": 175,
+      "numFailedTests": 0,
+      "numPendingTests": 0,
+      "numTodoTests": 0,
+      "success": true
+    }
+  },
+  "ok": true,
+  "scope": "Exact fast profile on documentation-and-phase5 revision. No full/release repetition or production deployment. Optional full-only workflow steps intentionally not run. All13mandatory fast steps and its server/client tests checked."
+}

@@ -1,0 +1,109 @@
+{
+  "at": "2026-10-25T01:44:21.712057+00:00",
+  "run": 40099997857,
+  "inputSha256": "718d811b8170952e08e193f49ed6295931569e6ac84c6e39851ee0540a06f593",
+  "method": "Offline only on already sanitized tail and verified generator result. Window includes warmups; no new provider/SQL requests.",
+  "serverSlowRequests": [
+    {
+      "at": "2026-10-24T13:52:52.940000+00:00",
+      "route": "/odonto/agenda/__data.json",
+      "method": "GET",
+      "wallMs": 2605,
+      "cpuMs": 27,
+      "outcome": "ok"
+    },
+    {
+      "at": "2026-10-24T14:13:35.745000+00:00",
+      "route": "/odonto/disponibilidad/slots",
+      "method": "GET",
+      "wallMs": 3127,
+      "cpuMs": 7,
+      "outcome": "ok"
+    },
+    {
+      "at": "2026-10-24T14:22:34.434000+00:00",
+      "route": "/odonto/disponibilidad/slots",
+      "method": "GET",
+      "wallMs": 4833,
+      "cpuMs": 8,
+      "outcome": "ok"
+    },
+    {
+      "at": "2026-10-24T14:22:37.187000+00:00",
+      "route": "/odonto/pacientes/:id/__data.json",
+      "method": "GET",
+      "wallMs": 4276,
+      "cpuMs": 12,
+      "outcome": "ok"
+    },
+    {
+      "at": "2026-10-24T14:22:39.418000+00:00",
+      "route": "/odonto/agenda",
+      "method": "POST",
+      "wallMs": 5246,
+      "cpuMs": 16,
+      "outcome": "ok"
+    },
+    {
+      "at": "2026-10-24T14:31:02.329000+00:00",
+      "route": "/embed/v1/:key/__data.json",
+      "method": "GET",
+      "wallMs": 2299,
+      "cpuMs": 21,
+      "outcome": "ok"
+    }
+  ],
+  "ciOperationsWithP99AtLeast2s": [
+    {
+      "repetition": 1,
+      "operations": []
+    },
+    {
+      "repetition": 2,
+      "operations": [
+        {
+          "name": "availability",
+          "count": 38,
+          "p95": 1385,
+          "p99": 3269
+        },
+        {
+          "name": "create_appointment",
+          "count": 12,
+          "p95": 2135,
+          "p99": 2135
+        }
+      ]
+    },
+    {
+      "repetition": 3,
+      "operations": [
+        {
+          "name": "availability",
+          "count": 38,
+          "p95": 1126,
+          "p99": 4974
+        },
+        {
+          "name": "create_appointment",
+          "count": 18,
+          "p95": 5400,
+          "p99": 5400
+        },
+        {
+          "name": "patient_detail",
+          "count": 28,
+          "p95": 972,
+          "p99": 4476
+        }
+      ]
+    }
+  ],
+  "established": "Several delays are also visible in Worker wall-time, including three different routes at14:22:34-39UTC with4.3-5.2s wall and8-16ms CPU. A delay occurring only between the CI client and the edge cannot alone explain these server wall observations.",
+  "notEstablished": [
+    "No unique cause inferred; database/storage I/O, lock waits, internal fetch latency and own query/serialization cost remain distinguishable hypotheses.",
+    "No per-request client/server pairing or exact measured phase reconstruction from summary markers.",
+    "No proof of FreeCPU compliance or zero deadlocks."
+  ],
+  "nextHypothesis": "A shared backend wait contributes to the14:22cluster. To refute or support it, use scoped per-query plans/cost and bounded request spans with valid reset metadata, preserving isolation and identical data/config; do not repeat the48min HTTP test without a discriminating change."
+}

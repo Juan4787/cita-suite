@@ -2,11 +2,17 @@
 
 ## Estado de este documento
 
-**Actualizado por Codex — 25 de octubre de 2026,01:40UTC (24-oct22:40ART).** El punto vigente siguiente prevalece sobre los antecedentes fechados inferiores. La campaña sigue abierta; no confundir pruebas funcionales aprobadas con aptitud de Workers Free para el lanzamiento.
+**Actualizado por Codex — 25 de octubre de 2026,01:47UTC (24-oct22:47ART).** El punto vigente siguiente prevalece sobre los antecedentes fechados inferiores. La campaña sigue abierta; no confundir pruebas funcionales aprobadas con aptitud de Workers Free para el lanzamiento.
 
 **Alcance vigente (instrucción del usuario del 19 de octubre al retomar con Opus 5.5):** completar y verificar íntegramente la fase 5, avisar al usuario cuando esté realmente cerrada y **continuar automáticamente con la fase 6 y todas las etapas restantes** hasta terminar la campaña, incluida la auditoría transversal, release, publicación y comprobaciones posteriores según las autorizaciones vigentes. Esta instrucción sustituye la restricción anterior de «detenerse antes de fase 6», que se conserva abajo sólo como antecedente de la intervención de GPT-6.1 Sol. Cambia únicamente el punto de detención: no reduce requisitos, garantías, controles ni procedimientos de seguridad.
 
 *Antecedente reemplazado:* la intervención anterior tenía como instrucción cerrar la fase 5, avisar y detenerse antes de fase 6. Ya no está vigente.
+
+### Cierre documental verificado —25-oct01:47UTC
+
+El cierre `9fcf4eef9f8317f4ecaf651e83ba51eea2f42c61` ya fue publicado y su fastmanual **40151651236** aprobó13/13controles,1395/1395servidor y175/175cliente,0fallos/pendientes/todo. Siete evidencias en `.verification/principal-remote-40151651236/`, paqueteSHA256721e9097249a62c266e0b51b584b7930da7de8e16a59a0dc145347ebc77e5397, runf3ae6415-7d78-4f51-9634-e6133edab4aa. El último commit agrega únicamente estos recibos y el punto de continuación, como hijo documental de9fc; no cambia ninguna fuente activa ni requiere recompilar/repetir elfast. Su SHA queda en `.verification/capacity-comparison-last-receipts-publication-20261025.json`; consultar main remoto, no volver a publicar ciegamente.
+
+[Fase6](../archive/production-verification-20261024/phase6/README.md) conserva recibos finales:5archivos+manifest/11815bytes, manifiesto3b6095bc6bc3600c168385b20a189e2ff8b3d03d1621109153b86cda1f675371. Localización adicional offline: seis peticiones servidor≥2s; tres rutas a14:22:34–39UTC con4,3–5,2sdepared/8–16msCPU. No basta una demora exclusivamente generador→borde para explicarlas; base/redinterna/locks/costoSQL siguen como hipótesis, sincausaúnica niotroensayo. Fuentes en capacity-two-control-offline-localization-20261025.json. Lo siguiente es resolver las dependencias y la investigación nueva listadas debajo, no recuperar una carga/limpieza/publicación ya terminadas. **Campaña y lanzamiento permanecen abiertos.**
 
 ## Punto vigente — cierre de comparación única,25-oct01:40UTC
 

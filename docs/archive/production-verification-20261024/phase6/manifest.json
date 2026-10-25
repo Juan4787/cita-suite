@@ -1,0 +1,39 @@
+{
+  "at": "2026-10-25T01:46:37.744326+00:00",
+  "scope": "Final documentation CI receipts, offline localization and preservation; no launch certification.",
+  "sourceRevision": "0851de59ed7971debe2514e6d6851d142bbc5766",
+  "testedDocumentationRevision": "9fcf4eef9f8317f4ecaf651e83ba51eea2f42c61",
+  "privatePatternAndActualEnvironmentSecretScanPassed": true,
+  "adversarialScannerChecksPassed": true,
+  "files": [
+    {
+      "path": "docs/archive/production-verification-20261024/phase6/capacity-comparison-documentation-publication-20261025.json",
+      "source": ".verification/capacity-comparison-documentation-publication-20261025.json",
+      "bytes": 3638,
+      "sha256": "523ba454a6490ee5fcecc067bd54daf9c928db384386828155dfd4497d807002"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase6/capacity-comparison-documentation-fast-20261025.json",
+      "source": ".verification/capacity-comparison-documentation-fast-20261025.json",
+      "bytes": 1362,
+      "sha256": "2970d20dbc28e64e40103712df525a15472d3ac91d250a45db3c4311b188d736"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase6/capacity-two-control-offline-localization-20261025.json",
+      "source": ".verification/capacity-two-control-offline-localization-20261025.json",
+      "bytes": 3245,
+      "sha256": "3ac866dc8772f40b85547534a20473bd501fac2b0a8c799bf1d4a9d674e8ac49"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase6/capacity-comparison-final-preservation-20261025.json",
+      "source": ".verification/capacity-comparison-final-preservation-20261025.json",
+      "bytes": 1937,
+      "sha256": "01ca0e335db6620498577d8da993d0cb9b684275e84a040955a9dc9667dfc1a2"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase6/README.md",
+      "bytes": 1633,
+      "sha256": "20a546f72eac220e63ae6965400d9e6507e59d8481c31c8ddce515ff3f696d64"
+    }
+  ]
+}
