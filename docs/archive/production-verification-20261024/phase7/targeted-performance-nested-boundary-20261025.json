@@ -1,0 +1,48 @@
+{
+  "at": "2026-10-25T03:52:29.788988+00:00",
+  "parameters": [
+    {
+      "name": "auto_explain.log_analyze",
+      "canSet": false,
+      "context": "superuser",
+      "setting": "off"
+    },
+    {
+      "name": "auto_explain.log_buffers",
+      "canSet": false,
+      "context": "superuser",
+      "setting": "off"
+    },
+    {
+      "name": "auto_explain.log_format",
+      "canSet": false,
+      "context": "superuser",
+      "setting": "text"
+    },
+    {
+      "name": "auto_explain.log_level",
+      "canSet": false,
+      "context": "superuser",
+      "setting": "log"
+    },
+    {
+      "name": "auto_explain.log_min_duration",
+      "canSet": false,
+      "context": "superuser",
+      "setting": "10000"
+    },
+    {
+      "name": "auto_explain.log_nested_statements",
+      "canSet": false,
+      "context": "superuser",
+      "setting": "off"
+    },
+    {
+      "name": "auto_explain.log_timing",
+      "canSet": false,
+      "context": "superuser",
+      "setting": "on"
+    }
+  ],
+  "isSuperuser": false
+}

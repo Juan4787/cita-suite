@@ -1,0 +1,7 @@
+{
+  "at": "2026-10-25T03:48:16.679921+00:00",
+  "failure": "SQL syntax at limit1 in readonly metadata preflight",
+  "scriptSha256": "2c1ba84d3a2b304a568c1f9e855bc22412c51c18f9840ed7c6d4d6e38ba7c64d",
+  "scope": "No plan probes or mutations executed; connection transaction read-only and closed on error. Output report not yet created.",
+  "correction": "Restore SQL token separation in LIMIT and UUID AND expressions; retain failed source."
+}

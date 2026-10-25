@@ -1,0 +1,18 @@
+{
+  "startedAt": "2026-10-25T03:48:17.647Z",
+  "runtime": "0851de59ed7971debe2514e6d6851d142bbc5766",
+  "role": "authenticated owner with request JWT claims; atomic creation service_role with explicit validated actor",
+  "pre": {
+    "startsAt": "2026-10-28T15:00:00+00:00",
+    "appointments": 12003,
+    "statementStatsReset": "2026-05-13T04:35:21.076023+00:00"
+  },
+  "scope": "Targeted EXPLAIN ANALYZE over one owned practice. Read probes read-only,3write probes rolled back. Function total times include nested work; nested plans are not fabricated. Patient projection mirrors source but is not claimed as identical to the PostgREST wrapper SQL.",
+  "plans": [],
+  "status": "failed",
+  "readSqlSha256": "7fcbc82444a1c0ddf3efaeb1a43d6e0a21e9b0245e85d83205f323db7e48859a",
+  "failure": {
+    "name": "Error",
+    "message": "The production query failed.\npsql:<stdin>:2: ERROR:  syntax error at or near \"gset\"\nLINE 1: ...usiness_id='1abccae9-b5a1-44b1-849d-917da44dcb89'::uuid gset"
+  }
+}

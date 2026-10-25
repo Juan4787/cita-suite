@@ -1,0 +1,110 @@
+{
+  "at": "2026-10-25T04:17:55.252Z",
+  "containers": [
+    {
+      "name": "cita-booking-test-d159a44bf850",
+      "running": true,
+      "oomKilled": false,
+      "exitCode": 0,
+      "startedAt": "2026-10-25T04:17:13.410119112Z",
+      "finishedAt": "0001-01-01T00:00:00Z",
+      "memoryBytes": 4294967296,
+      "nanoCpus": 2000000000
+    },
+    {
+      "name": "cita-booking-test-d159a44bf850-auth",
+      "running": true,
+      "oomKilled": false,
+      "exitCode": 0,
+      "startedAt": "2026-10-25T04:17:31.559817923Z",
+      "finishedAt": "0001-01-01T00:00:00Z",
+      "memoryBytes": 134217728,
+      "nanoCpus": 500000000
+    },
+    {
+      "name": "cita-booking-test-d159a44bf850-rest",
+      "running": true,
+      "oomKilled": false,
+      "exitCode": 0,
+      "startedAt": "2026-10-25T04:17:30.95852446Z",
+      "finishedAt": "0001-01-01T00:00:00Z",
+      "memoryBytes": 268435456,
+      "nanoCpus": 1000000000
+    },
+    {
+      "name": "cita-booking-test-d159a44bf850-storage",
+      "running": true,
+      "oomKilled": false,
+      "exitCode": 0,
+      "startedAt": "2026-10-25T04:17:16.092611481Z",
+      "finishedAt": "0001-01-01T00:00:00Z",
+      "memoryBytes": 201326592,
+      "nanoCpus": 500000000
+    }
+  ],
+  "stats": [
+    {
+      "name": "cita-booking-test-d159a44bf850",
+      "memory": "172.6MiB / 4GiB",
+      "memoryPercent": "4.21%",
+      "cpuPercent": "0.04%",
+      "pids": "17"
+    },
+    {
+      "name": "cita-booking-test-d159a44bf850-auth",
+      "memory": "12.54MiB / 128MiB",
+      "memoryPercent": "9.80%",
+      "cpuPercent": "0.03%",
+      "pids": "7"
+    },
+    {
+      "name": "cita-booking-test-d159a44bf850-rest",
+      "memory": "26.93MiB / 256MiB",
+      "memoryPercent": "10.52%",
+      "cpuPercent": "0.06%",
+      "pids": "22"
+    },
+    {
+      "name": "cita-booking-test-d159a44bf850-storage",
+      "memory": "121.2MiB / 192MiB",
+      "memoryPercent": "63.14%",
+      "cpuPercent": "0.00%",
+      "pids": "12"
+    }
+  ],
+  "connections": {
+    "groups": [
+      {
+        "count": 8,
+        "state": "idle",
+        "usename": "authenticator",
+        "wait_event_type": "Client",
+        "application_name": "PostgREST 16.1"
+      },
+      {
+        "count": 1,
+        "state": "idle",
+        "usename": "supabase_admin",
+        "wait_event_type": "Client",
+        "application_name": ""
+      },
+      {
+        "count": 1,
+        "state": "active",
+        "usename": "supabase_admin",
+        "wait_event_type": null,
+        "application_name": "psql"
+      },
+      {
+        "count": 1,
+        "state": "idle",
+        "usename": "supabase_auth_admin",
+        "wait_event_type": "Client",
+        "application_name": ""
+      }
+    ],
+    "maximum": 60,
+    "deadlocks": 0
+  },
+  "authErrors": []
+}

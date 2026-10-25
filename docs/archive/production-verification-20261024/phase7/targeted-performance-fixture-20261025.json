@@ -1,0 +1,104 @@
+{
+  "at": "2026-10-25T03:42:31.287Z",
+  "protocol": "targeted-performance-20261025",
+  "runtime": "0851de59ed7971debe2514e6d6851d142bbc5766",
+  "status": "cleaned",
+  "before": {
+    "capacity": 0,
+    "patients": 121,
+    "businesses": 19,
+    "appointments": 107,
+    "databaseBytes": 208276627,
+    "storedObjects": 24,
+    "calendarEvents": 1,
+    "capacityOwners": 0,
+    "storedObjectBytes": 11599541,
+    "calendarConnections": 1
+  },
+  "practices": 1,
+  "ownerCreated": true,
+  "seedCompleted": true,
+  "secretRemoved": true,
+  "applicationCredentialsChanged": false,
+  "seedSqlSha256": "d4b1fbc4484e4f21737c79b8d0f47dbafd52c89451955de856ab598872270a60",
+  "seed": {
+    "patients": 6000,
+    "practices": 1,
+    "appointments": 12000,
+    "databaseBytes": 229870739,
+    "largestTables": [
+      {
+        "bytes": 40370176,
+        "table": "appointments"
+      },
+      {
+        "bytes": 35930112,
+        "table": "patients"
+      },
+      {
+        "bytes": 32899072,
+        "table": "appointment_professionals"
+      },
+      {
+        "bytes": 9216000,
+        "table": "professional_patient_links"
+      },
+      {
+        "bytes": 2244608,
+        "table": "business_data_revisions"
+      },
+      {
+        "bytes": 2220032,
+        "table": "clinical_entries"
+      },
+      {
+        "bytes": 581632,
+        "table": "server_rate_limit_events"
+      },
+      {
+        "bytes": 565248,
+        "table": "audit_logs"
+      }
+    ],
+    "clinicalEntries": 1558,
+    "appointmentStates": {
+      "reserved": 3948,
+      "cancelled": 1655,
+      "confirmed": 6226,
+      "reschedule_requested": 171
+    },
+    "professionalLinks": 10001
+  },
+  "after": {
+    "capacity": 1,
+    "patients": 6121,
+    "businesses": 20,
+    "appointments": 12107,
+    "databaseBytes": 227888275,
+    "storedObjects": 24,
+    "calendarEvents": 1,
+    "capacityOwners": 1,
+    "storedObjectBytes": 11599541,
+    "calendarConnections": 1
+  },
+  "removed": {
+    "patients": 6000,
+    "practices": 1,
+    "appointments": 12003
+  },
+  "ownersRemoved": 1,
+  "afterCleanup": {
+    "capacity": 0,
+    "patients": 121,
+    "businesses": 19,
+    "appointments": 107,
+    "databaseBytes": 227757203,
+    "storedObjects": 24,
+    "calendarEvents": 1,
+    "capacityOwners": 0,
+    "storedObjectBytes": 11599541,
+    "calendarConnections": 1
+  },
+  "cleanedAt": "2026-10-25T03:56:08.659Z",
+  "cleanupSqlSha256": "39f5220bca7d9c4778b0431fc79f798de2c293034d1de823a59cc56728fda5dd"
+}

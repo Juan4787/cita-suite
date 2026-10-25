@@ -1,0 +1,22 @@
+{
+  "at": "2026-10-25T04:10:55.565151+00:00",
+  "base": "f2dcb7aafec53914e68700369737e659088c84f7",
+  "commit": "5930f73ab868ff9956408f04d0c1f102c1044a38",
+  "tree": "9ffcfe1320b385286c6f76da16cbf5b8a0a7643d",
+  "branch": "refactor/targeted-performance-origin-20261025",
+  "repository": "Juan4787/cita-suite",
+  "runtimeSourceUnchanged": "0851de59ed7971debe2514e6d6851d142bbc5766",
+  "changed": [
+    "docs/plans/registro-refactorizacion-cita-suite.md",
+    "docs/plans/traspaso-refactorizacion-cita-suite.md",
+    "scripts/lib/cpu-profile.mjs",
+    "scripts/lib/cpu-profile.test.mjs"
+  ],
+  "added": [],
+  "appPackagesSqlConfigDifferences": [],
+  "userIndexAndHeadPreserved": true,
+  "remotePublished": true,
+  "fastRun": 40160945501,
+  "diagnosticRun": 40161186500,
+  "fastDispatchedAt": "2026-10-25T04:11:00.412289+00:00"
+}

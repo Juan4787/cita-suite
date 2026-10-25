@@ -1,0 +1,22 @@
+{
+  "protocol": "targeted-performance-20261025",
+  "purpose": "User-approved bounded diagnosis of availability, patient detail and manual appointment creation, before spending or changing platform.",
+  "runtimeSource": "0851de59ed7971debe2514e6d6851d142bbc5766",
+  "principalBaseline": "bc307f5c8859fe9508ea524780bee52f91d98bfd",
+  "data": "One owned capacity-01 practice using unchanged deterministic seed:6000patients/12000appointments. This matches per-practice volume, not the two-practice acceptance scenario. Other19practices preserved.",
+  "budget": "Before seed current physical DB plus50000000bytes must remain below300000000bytes, same per-practice safety allowance as existing seeder. No altered provider limits or paid resources.",
+  "observations": [
+    "Bounded direct SQL EXPLAIN ANALYZE with actual roles/claims and guards on owned fixture; read probes read-only, atomic creation probes rollback.",
+    "Bounded sequential HTTP calls through real application and direct REST API, one login, normalized operation labels only, no response bodies/credentials/clinical data persisted.",
+    "Record connection/client wall separately from server SQL execution; no unpaired timing subtraction represented as exact server CPU.",
+    "At most3real owned HTTP creations; unchanged tested cleanup removes only owned deterministic fixture. No documents, push subscription or OAuth consent."
+  ],
+  "hypotheses": [
+    "A specific SQL plan or repeated rule dominates one target operation; establish with actual plan/loops/timing before changes.",
+    "Several serial HTTP roundtrips materially contribute despite bounded SQL work; compare role-correct component timings without inventing exact cross-request attribution.",
+    "Shared backend waits produce intermittent multi-operation stalls; isolated fast samples cannot disprove historical contention or certify capacity."
+  ],
+  "stopRules": "No repeated48min load. Stop provider mutations on unexpected identity/ownership, cross-practice data, storage side effects or budget violation. Do not weaken RLS, concurrency, idempotency or acceptance thresholds.",
+  "cleanup": "Unchanged guarded cleanup-practices.sql plus removeCapacityOwners(practices=1); exact preexisting counts readback, temporary local secret removed after cleanup; no Actions secret created.",
+  "acceptance": "Diagnostic only. Any code defect gets a failing regression before correction. Full load may run later only after justified change, while keeping prior failures."
+}

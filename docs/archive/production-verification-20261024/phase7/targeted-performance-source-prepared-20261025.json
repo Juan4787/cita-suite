@@ -1,0 +1,25 @@
+{
+  "at": "2026-10-25T03:59:34.621956+00:00",
+  "base": "bc307f5c8859fe9508ea524780bee52f91d98bfd",
+  "commit": "f2dcb7aafec53914e68700369737e659088c84f7",
+  "tree": "bb49e6ac96be7315a2dec683f0bc7f8675774a11",
+  "branch": "refactor/targeted-performance-20261025",
+  "repository": "Juan4787/cita-suite",
+  "runtimeSourceUnchanged": "0851de59ed7971debe2514e6d6851d142bbc5766",
+  "changed": [
+    ".github/workflows/refactoring-verification.yml",
+    "docs/plans/registro-refactorizacion-cita-suite.md",
+    "docs/plans/traspaso-refactorizacion-cita-suite.md",
+    "scripts/run-campaign-capacity.mjs"
+  ],
+  "added": [
+    "scripts/lib/targeted-performance.mjs",
+    "scripts/lib/targeted-performance.test.mjs"
+  ],
+  "appPackagesSqlConfigDifferences": [],
+  "userIndexAndHeadPreserved": true,
+  "remotePublished": true,
+  "fastRun": 40160236590,
+  "diagnosticRun": 40160488305,
+  "fastDispatchedAt": "2026-10-25T03:59:39.537542+00:00"
+}

@@ -1,0 +1,355 @@
+{
+  "name": "create_appointment",
+  "requests": 6,
+  "sampledMs": 371.25,
+  "busyMs": 236.48,
+  "self": [
+    {
+      "name": "(idle) (native):0",
+      "ms": 106.13
+    },
+    {
+      "name": "fetch _worker.js:98038",
+      "ms": 32.71
+    },
+    {
+      "name": "(program) (native):0",
+      "ms": 28.17
+    },
+    {
+      "name": "(anonymous) _worker.js:32618",
+      "ms": 24.91
+    },
+    {
+      "name": "(anonymous) _worker.js:96265",
+      "ms": 23.52
+    },
+    {
+      "name": "(anonymous) _worker.js:28017",
+      "ms": 12.94
+    },
+    {
+      "name": "(anonymous) _worker.js:29005",
+      "ms": 12.01
+    },
+    {
+      "name": "(anonymous) _worker.js:38554",
+      "ms": 11.52
+    },
+    {
+      "name": "(anonymous) _worker.js:67203",
+      "ms": 11.49
+    },
+    {
+      "name": "parseAvailabilityBusiness _worker.js:32432",
+      "ms": 11.08
+    },
+    {
+      "name": "(anonymous) _worker.js:96965",
+      "ms": 10.86
+    },
+    {
+      "name": "isAvailabilityDate _worker.js:32299",
+      "ms": 9.87
+    },
+    {
+      "name": "fetch (native):0",
+      "ms": 9.84
+    },
+    {
+      "name": "normalize_fetch_input _worker.js:96364",
+      "ms": 9.08
+    },
+    {
+      "name": "SupabaseClient _worker.js:26669",
+      "ms": 7.8
+    },
+    {
+      "name": "(anonymous) _worker.js:29035",
+      "ms": 7.57
+    },
+    {
+      "name": "GoTrueAdminApi _worker.js:19328",
+      "ms": 6.61
+    },
+    {
+      "name": "(anonymous) _worker.js:28927",
+      "ms": 6.48
+    },
+    {
+      "name": "run (native):0",
+      "ms": 6.46
+    },
+    {
+      "name": "render_endpoint _worker.js:92879",
+      "ms": 6.33
+    },
+    {
+      "name": "(anonymous) _worker.js:23534",
+      "ms": 5.36
+    },
+    {
+      "name": "normalizeHeaders _worker.js:15755",
+      "ms": 4.7
+    },
+    {
+      "name": "__init _worker.js:8",
+      "ms": 4.26
+    },
+    {
+      "name": "../../home/runner/work/cita-suite/cita-suite/apps/web/.svelte-kit/output/server/chunks/patient-name.js _worker.js:32277",
+      "ms": 1.07
+    },
+    {
+      "name": "(garbage collector) (native):0",
+      "ms": 0.48
+    },
+    {
+      "name": "redirect _worker.js:215",
+      "ms": 0
+    }
+  ],
+  "total": [
+    {
+      "name": "(root) (native):0",
+      "ms": 371.25
+    },
+    {
+      "name": "(idle) (native):0",
+      "ms": 106.13
+    },
+    {
+      "name": "fetch _worker.js:98038",
+      "ms": 43.57
+    },
+    {
+      "name": "(anonymous) _worker.js:96265",
+      "ms": 42.44
+    },
+    {
+      "name": "(anonymous) _worker.js:96357",
+      "ms": 42.44
+    },
+    {
+      "name": "event.fetch _worker.js:28026",
+      "ms": 42.44
+    },
+    {
+      "name": "(anonymous) _worker.js:26449",
+      "ms": 42.44
+    },
+    {
+      "name": "(anonymous) _worker.js:26458",
+      "ms": 42.44
+    },
+    {
+      "name": "(anonymous) _worker.js:38554",
+      "ms": 29.39
+    },
+    {
+      "name": "parseAvailabilityCatalog _worker.js:32448",
+      "ms": 28.45
+    },
+    {
+      "name": "loadAvailabilityCatalog _worker.js:32543",
+      "ms": 28.45
+    },
+    {
+      "name": "(program) (native):0",
+      "ms": 28.17
+    },
+    {
+      "name": "(anonymous) _worker.js:28017",
+      "ms": 26.01
+    },
+    {
+      "name": "(anonymous) _worker.js:32618",
+      "ms": 24.91
+    },
+    {
+      "name": "SupabaseClient _worker.js:26669",
+      "ms": 24.48
+    },
+    {
+      "name": "(anonymous) _worker.js:26883",
+      "ms": 24.48
+    },
+    {
+      "name": "run (native):0",
+      "ms": 20.88
+    },
+    {
+      "name": "with_request_store _worker.js:288",
+      "ms": 20.88
+    },
+    {
+      "name": "record_span _worker.js:93035",
+      "ms": 20.88
+    },
+    {
+      "name": "(anonymous) _worker.js:29035",
+      "ms": 19.58
+    },
+    {
+      "name": "(anonymous) _worker.js:29069",
+      "ms": 19.58
+    },
+    {
+      "name": "(anonymous) _worker.js:29066",
+      "ms": 19.58
+    },
+    {
+      "name": "(anonymous) _worker.js:32641",
+      "ms": 19.58
+    },
+    {
+      "name": "parseAvailabilityWindow _worker.js:32494",
+      "ms": 17.41
+    },
+    {
+      "name": "loadAvailabilityWindowRows _worker.js:32548",
+      "ms": 17.41
+    },
+    {
+      "name": "validateAvailabilityConfiguration _worker.js:32463",
+      "ms": 17.37
+    },
+    {
+      "name": "validateAvailabilityOccupancy _worker.js:32521",
+      "ms": 16.33
+    },
+    {
+      "name": "createSupabaseServerClient _worker.js:26915",
+      "ms": 14.42
+    },
+    {
+      "name": "(anonymous) _worker.js:28927",
+      "ms": 14.29
+    },
+    {
+      "name": "(anonymous) _worker.js:29005",
+      "ms": 12.01
+    },
+    {
+      "name": "(anonymous) _worker.js:29013",
+      "ms": 12.01
+    },
+    {
+      "name": "_GoTrueClient _worker.js:21457",
+      "ms": 11.98
+    },
+    {
+      "name": "SupabaseAuthClient _worker.js:26474",
+      "ms": 11.98
+    },
+    {
+      "name": "_initSupabaseAuthClient _worker.js:26839",
+      "ms": 11.98
+    },
+    {
+      "name": "(anonymous) _worker.js:67203",
+      "ms": 11.49
+    },
+    {
+      "name": "parseAvailabilityBusiness _worker.js:32432",
+      "ms": 11.08
+    },
+    {
+      "name": "(anonymous) _worker.js:96965",
+      "ms": 10.86
+    },
+    {
+      "name": "respond _worker.js:97087",
+      "ms": 10.86
+    },
+    {
+      "name": "(anonymous) _worker.js:27037",
+      "ms": 10.07
+    },
+    {
+      "name": "isAvailabilityDate _worker.js:32299",
+      "ms": 9.87
+    },
+    {
+      "name": "(anonymous) _worker.js:32613",
+      "ms": 9.87
+    },
+    {
+      "name": "fetch (native):0",
+      "ms": 9.84
+    },
+    {
+      "name": "(anonymous) _worker.js:96272",
+      "ms": 9.84
+    },
+    {
+      "name": "(anonymous) _worker.js:97062",
+      "ms": 9.84
+    },
+    {
+      "name": "normalize_fetch_input _worker.js:96364",
+      "ms": 9.08
+    },
+    {
+      "name": "(anonymous) _worker.js:93238",
+      "ms": 7.8
+    },
+    {
+      "name": "(anonymous) _worker.js:93234",
+      "ms": 7.8
+    },
+    {
+      "name": "call_action _worker.js:93204",
+      "ms": 7.8
+    },
+    {
+      "name": "handle_action_json_request _worker.js:93049",
+      "ms": 7.8
+    },
+    {
+      "name": "render_page _worker.js:95492",
+      "ms": 7.8
+    },
+    {
+      "name": "GoTrueAdminApi _worker.js:19328",
+      "ms": 6.61
+    },
+    {
+      "name": "(anonymous) _worker.js:96710",
+      "ms": 6.61
+    },
+    {
+      "name": "(anonymous) _worker.js:96699",
+      "ms": 6.61
+    },
+    {
+      "name": "handle2 _worker.js:96686",
+      "ms": 6.61
+    },
+    {
+      "name": "internal_respond _worker.js:96428",
+      "ms": 6.61
+    },
+    {
+      "name": "(anonymous) _worker.js:96718",
+      "ms": 6.46
+    },
+    {
+      "name": "(anonymous) _worker.js:96712",
+      "ms": 6.46
+    },
+    {
+      "name": "render_endpoint _worker.js:92879",
+      "ms": 6.33
+    },
+    {
+      "name": "(anonymous) _worker.js:23534",
+      "ms": 5.36
+    },
+    {
+      "name": "lockNoOp _worker.js:21376",
+      "ms": 5.36
+    }
+  ],
+  "scope": "Sampled workerd hot paths, including this phase first request; not hosted CPU allowance. Existing busyMs excludes idle/program/GC and is not total billed CPU."
+}

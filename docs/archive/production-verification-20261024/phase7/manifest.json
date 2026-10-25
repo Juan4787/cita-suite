@@ -1,0 +1,275 @@
+{
+  "at": "2026-10-25T04:20:43.433711+00:00",
+  "runtimeSource": "0851de59ed7971debe2514e6d6851d142bbc5766",
+  "operationalSource": "5930f73ab868ff9956408f04d0c1f102c1044a38",
+  "successfulDiagnosticRun": 40161186500,
+  "failedDiagnosticRun": 40160488305,
+  "privatePatternAndActualEnvironmentSecretScanPassed": true,
+  "adversarialScannerChecksPassed": true,
+  "scope": "Bounded three-flow investigation, guarded production cleanup, diagnostic harness failure and correction, CI workerd profiles. No launch approval.",
+  "files": [
+    {
+      "path": "docs/archive/production-verification-20261024/phase7/targeted-performance-start-20261025.json",
+      "source": ".verification/targeted-performance-start-20261025.json",
+      "bytes": 476,
+      "sha256": "185c691ac5fc02cfc8b69add85d9e04a24b9531ea7118696d0391509d905139c"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase7/targeted-performance-preservation-20261025.json",
+      "source": ".verification/targeted-performance-preservation-20261025.json",
+      "bytes": 1886,
+      "sha256": "74c0708b0f5d6e629de17db6c8d1ad9d3dc396ca3d653f717cb30f870dcfce14"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase7/targeted-performance-protocol-20261025.json",
+      "source": ".verification/targeted-performance-protocol-20261025.json",
+      "bytes": 2503,
+      "sha256": "ae4ea461906e3b7534fe1168a4de262b3be1a4792ffde5f87b4e4e63ce891326"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase7/targeted-performance-preflight-20261025.json",
+      "source": ".verification/targeted-performance-preflight-20261025.json",
+      "bytes": 2072,
+      "sha256": "8db2c5be8bb2eb0243bf63355a9003420e4de7b19e7047d0193e8508c8a46e9d"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase7/targeted-performance-http-baseline-20261025.json",
+      "source": ".verification/targeted-performance-http-baseline-20261025.json",
+      "bytes": 12435,
+      "sha256": "3907ce7ed5e37d7dc24572f5934d8e623cae7b2ef4f4c74f60d9bfd0ba4b7672"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase7/targeted-performance-sql-baseline-v3-20261025.json",
+      "source": ".verification/targeted-performance-sql-baseline-v3-20261025.json",
+      "bytes": 123339,
+      "sha256": "a39bfc348c708b8643ce0418d67895ec6d7b96e079c6af3e7154cb446304e052"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase7/targeted-performance-pure-cpu-20261025.json",
+      "source": ".verification/targeted-performance-pure-cpu-20261025.json",
+      "bytes": 3102,
+      "sha256": "be21faa9f2524ce0480f19ef247431c3a39e84e6afc65cedbbfd1b3c89efbfc3"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase7/targeted-performance-nested-boundary-20261025.json",
+      "source": ".verification/targeted-performance-nested-boundary-20261025.json",
+      "bytes": 1023,
+      "sha256": "5cbb7e4aae2faf8b8f2fabebb6490783166fc1238a8d61e67e5c4a709e2538b0"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase7/targeted-performance-integrity-20261025.json",
+      "source": ".verification/targeted-performance-integrity-20261025.json",
+      "bytes": 235,
+      "sha256": "c6ef012a6c9e6c6d2f50239d67707c413c8517ba4fb488e3eb39bd41e22e754d"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase7/targeted-performance-fixture-20261025.json",
+      "source": ".verification/targeted-performance-fixture-20261025.json",
+      "bytes": 2467,
+      "sha256": "dde30abc55f0ad5e9a872465d164e19735ded9c9a7a66f55eb68e05f2920c89c"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase7/targeted-performance-source-prepared-20261025.json",
+      "source": ".verification/targeted-performance-source-prepared-20261025.json",
+      "bytes": 935,
+      "sha256": "7667c5e8279b4669cf8f88d1ed02f2c85ddbe38e9b64e4665b751564a8e579a1"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase7/targeted-performance-origin-source-prepared-20261025.json",
+      "source": ".verification/targeted-performance-origin-source-prepared-20261025.json",
+      "bytes": 827,
+      "sha256": "4d137efe463263350d994ecbcc5f07897464549bc3a16f43d0041c4e0987795f"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase7/targeted-performance-fast-20261025.json",
+      "source": ".verification/targeted-performance-fast-20261025.json",
+      "bytes": 1406,
+      "sha256": "9e8b9c8fc0f91078e1da1405a70840057ef3b67ef5702bb104a187dd1dd37ba6"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase7/targeted-performance-origin-fast-20261025.json",
+      "source": ".verification/targeted-performance-origin-fast-20261025.json",
+      "bytes": 1410,
+      "sha256": "84bbbe4ee6b84b4f095938c98ff633d16376b794f6fbee64eda7b70e2969328e"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase7/targeted-performance-ci-dispatch-20261025.json",
+      "source": ".verification/targeted-performance-ci-dispatch-20261025.json",
+      "bytes": 1087,
+      "sha256": "552d912ada26aaaf19f4de9d23a6ebe2f91cc071ae573e97f2507020306333aa"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase7/targeted-performance-origin-ci-dispatch-20261025.json",
+      "source": ".verification/targeted-performance-origin-ci-dispatch-20261025.json",
+      "bytes": 907,
+      "sha256": "f30791cf6c2c177ce3a6786a97f47366d753fbb0b850d4c8e26ba2797ff72eca"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase7/targeted-performance-ci-failure-v1-20261025.json",
+      "source": ".verification/targeted-performance-ci-failure-v1-20261025.json",
+      "bytes": 1728,
+      "sha256": "00ea02704e2937529f08064a18147defffc5519ceab0d31a61cc2869fdd3161e"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase7/targeted-performance-ci-20261025.json",
+      "source": ".verification/targeted-performance-ci-20261025.json",
+      "bytes": 1670,
+      "sha256": "9f3106bce21c23712958596079ee18fda0f363045f7840aff488e473d6e1db12"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase7/targeted-performance-analysis-20261025.json",
+      "source": ".verification/targeted-performance-analysis-20261025.json",
+      "bytes": 38103,
+      "sha256": "d28c0153f9f8cb06e439bb720d9cbf658e0e482c0d3a3c843b1fe35782146804"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase7/targeted-performance-explain-preflight-failure-v1-20261025.json",
+      "source": ".verification/targeted-performance-explain-preflight-failure-v1-20261025.json",
+      "bytes": 443,
+      "sha256": "5cd78e19f100e85327c2762cf54bb4a8b996db192cf81e6b8d7f394730591e9e"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase7/targeted-performance-sql-baseline-20261025.json",
+      "source": ".verification/targeted-performance-sql-baseline-20261025.json",
+      "bytes": 996,
+      "sha256": "92425e457bb4e7b312d7e9c23b3fd9c3ea8130f7bec8da7a88f0392fcc3d42b4"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase7/targeted-performance-sql-baseline-v2-20261025.json",
+      "source": ".verification/targeted-performance-sql-baseline-v2-20261025.json",
+      "bytes": 1013,
+      "sha256": "e6423f836cdec00a6611af47f8fa1c43b78590a1223700a7d7090d7e259d3664"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase7/targeted-inspector-origin-red-20261025.log",
+      "source": ".verification/targeted-inspector-origin-red-20261025.log",
+      "bytes": 1955,
+      "sha256": "2545d564eedbea51c11262afd9b885420a6ecce35a30ac6b005329567cbc475a"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase7/targeted-inspector-origin-green-20261025.log",
+      "source": ".verification/targeted-inspector-origin-green-20261025.log",
+      "bytes": 2301,
+      "sha256": "d76628579c3677ec31f27213cc47113b75a7d4dc0a03d436c4f3207126dd4b10"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase7/targeted-performance-preflight-20261025.mjs",
+      "source": ".verification/targeted-performance-preflight-20261025.mjs",
+      "bytes": 2247,
+      "sha256": "35b4c23e9ad3c920721a7a0012749e4ff564329b46606e97f41413637c1ff99b"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase7/targeted-performance-fixture-20261025.mjs",
+      "source": ".verification/targeted-performance-fixture-20261025.mjs",
+      "bytes": 5525,
+      "sha256": "ad9295e09daeda9733feb2b4ccd5da76d9a41c3cae9fbe1e27010617a006032a"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase7/targeted-performance-http-20261025.mjs",
+      "source": ".verification/targeted-performance-http-20261025.mjs",
+      "bytes": 9421,
+      "sha256": "2cac0c28c062bc0b93c9580ef4dc168ece7e1854767ab061b637efcd42027ceb"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase7/targeted-performance-explain-20261025.mjs",
+      "source": ".verification/targeted-performance-explain-20261025.mjs",
+      "bytes": 8309,
+      "sha256": "251f34a4980b85a0caec06b15d78e5ba10b2ad5a30f8229c1af19318f400e659"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase7/targeted-performance-explain-v1-20261025.mjs",
+      "source": ".verification/targeted-performance-explain-v1-20261025.mjs",
+      "bytes": 8238,
+      "sha256": "2c1ba84d3a2b304a568c1f9e855bc22412c51c18f9840ed7c6d4d6e38ba7c64d"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase7/targeted-performance-explain-preflight-v2-failed-20261025.mjs",
+      "source": ".verification/targeted-performance-explain-preflight-v2-failed-20261025.mjs",
+      "bytes": 8249,
+      "sha256": "7d69394b5cb7296e93e964f71292c16b905ec4791000581666da4f7d4b585e8b"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase7/targeted-performance-explain-preflight-v3-failed-20261025.mjs",
+      "source": ".verification/targeted-performance-explain-preflight-v3-failed-20261025.mjs",
+      "bytes": 8307,
+      "sha256": "ad71b785daeb8d0c0abad0f6a3ad7838cefc661d40b96d7dac7e8569cb1d6f09"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase7/targeted-performance-pure-cpu-20261025.mjs",
+      "source": ".verification/targeted-performance-pure-cpu-20261025.mjs",
+      "bytes": 4000,
+      "sha256": "431e7968c696af744f81469400ca7a56d030fbe974e776653da11f8cd8f9e5f7"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase7/targeted-ts-resolver-20261025.mjs",
+      "source": ".verification/targeted-ts-resolver-20261025.mjs",
+      "bytes": 624,
+      "sha256": "4ea212f44678e6144c11730259647df72f2aa1cd88385b7a74f2852e56277525"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase7/targeted-performance-nested-boundary-20261025.mjs",
+      "source": ".verification/targeted-performance-nested-boundary-20261025.mjs",
+      "bytes": 1100,
+      "sha256": "f2ff0d234eac916d75574c42ca4797c5ad2ed0dfa56197cd4197cb1f63fde338"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase7/targeted-performance-integrity-20261025.mjs",
+      "source": ".verification/targeted-performance-integrity-20261025.mjs",
+      "bytes": 946,
+      "sha256": "48b8468ba20554356664093f2adbfec4a19b4256eacd45a744d532c6ab416020"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase7/collect-targeted-performance-ci-20261025.py",
+      "source": ".verification/collect-targeted-performance-ci-20261025.py",
+      "bytes": 3898,
+      "sha256": "3a2783125f450228024089257f1c16f7bbf53dfc58d87259112f675e42b7d891"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase7/analyze-targeted-performance-20261025.py",
+      "source": ".verification/analyze-targeted-performance-20261025.py",
+      "bytes": 6825,
+      "sha256": "6d7e91df5c760400eec998823474a1b912f2facd5399c7690a765f53f8c8d39e"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase7/ci-summary.json",
+      "source": ".verification/targeted-remote-40161186500/.verification/runs/ecdf944b-1c5b-4999-a8ed-2e2c3ae98109/capacity/summary.json",
+      "bytes": 42535,
+      "sha256": "938fc326615008b5e61871e4beb0ab0fc8856691e267c91c2dd63aeafef628b8"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase7/ci-scenario-1.json",
+      "source": ".verification/targeted-remote-40161186500/.verification/runs/ecdf944b-1c5b-4999-a8ed-2e2c3ae98109/capacity/scenario-1.json",
+      "bytes": 36398,
+      "sha256": "f458414969a75e555f43c85a51106e6fd334b72fed30ddc3a917c7a1b7ab167c"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase7/ci-platform-state-1.json",
+      "source": ".verification/targeted-remote-40161186500/.verification/runs/ecdf944b-1c5b-4999-a8ed-2e2c3ae98109/capacity/platform-state-1.json",
+      "bytes": 2770,
+      "sha256": "546949c2868a0e56062277041e881cb0403969bf7209923a22a39f7c9e389d79"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase7/ci-targeted-cpu-availability.json",
+      "source": ".verification/targeted-remote-40161186500/.verification/runs/ecdf944b-1c5b-4999-a8ed-2e2c3ae98109/capacity/targeted-cpu-availability.json",
+      "bytes": 7968,
+      "sha256": "8d0306c3df26a83f8ca047c6a9669077e08f46def9dcb85ab7865c8056c9f4ef"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase7/ci-targeted-cpu-patient_detail.json",
+      "source": ".verification/targeted-remote-40161186500/.verification/runs/ecdf944b-1c5b-4999-a8ed-2e2c3ae98109/capacity/targeted-cpu-patient_detail.json",
+      "bytes": 6890,
+      "sha256": "158dc54579f90c6fcdebd3f8ed78222d9150ca480c6118e54243965e3796e215"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase7/ci-targeted-cpu-create_appointment.json",
+      "source": ".verification/targeted-remote-40161186500/.verification/runs/ecdf944b-1c5b-4999-a8ed-2e2c3ae98109/capacity/targeted-cpu-create_appointment.json",
+      "bytes": 7075,
+      "sha256": "c632cc3f654cc84e8bd726ae6ee2c79309106c6f9981449375ae8531b56e7287"
+    },
+    {
+      "path": "docs/archive/production-verification-20261024/phase7/README.md",
+      "bytes": 2008,
+      "sha256": "3337832b96e5dea00aaa3d66b078d8cfd09c1465fcdf9c4d1ff42a999cef8c53"
+    }
+  ]
+}

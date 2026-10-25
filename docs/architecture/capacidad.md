@@ -2,6 +2,12 @@
 
 Este documento describe cómo se mide la capacidad de Cita Suite según la sección 4 del [plan](../plans/refactorizacion-cita-suite.md), qué herramientas lo hacen y qué se encontró. El detalle de cada corrida está en el [registro](../plans/registro-refactorizacion-cita-suite.md).
 
+## Diagnóstico dirigido del 25 de octubre
+
+La [investigación de disponibilidad, ficha y creación](diagnostico-rendimiento-20261025.md) terminó con 43 planes SQL, 22 pedidos productivos, 24 componentes REST y un perfil aislado de workerd. El fixture productivo se limpió con los conteos anteriores preservados. Se corrigió un defecto del cliente del inspector con rojo/verde; fast 40160945501 y diagnóstico 40161186500 aprobaron sobre la revisión operativa 5930f73. No cambió la aplicación 0851 ni se contrató nada.
+
+Las consultas de la muestra con caché no reprodujeron las pausas históricas; el perfil tampoco justificó un cambio concreto de la app. No demuestra capacidad de dos consultorios ni CPU Free. Los dos fallos alojados siguientes conservan toda su vigencia; no se hizo una tercera carga idéntica. El informe y la fase 7 distinguen resultado, incertidumbre, corrección del arnés y condiciones de un próximo ensayo.
+
 ## Comparación controlada sin muestreo de instancia — resultado24-oct, cierre25-octUTC
 
 **Falló nuevamente la aceptación.** [Run40099997857](https://github.com/Juan4787/cita-suite-verificacion/actions/runs/40099997857), fuente `0851de59ed7971debe2514e6d6851d142bbc5766`, generador13:52:46.999→14:41:11.544UTC del24 de octubre. Protocolo previo de una única comparación: mismos volumen2/12000/24000, generador, semilla, límites y umbrales; sin consultas del muestreadorSQL cada2s ni métricas de instancia cada5s. Sólo tail saneadoCloudflare y cron normales. No se repitió hasta obtener verde.

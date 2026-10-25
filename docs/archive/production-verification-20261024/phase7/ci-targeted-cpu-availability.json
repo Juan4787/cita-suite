@@ -1,0 +1,403 @@
+{
+  "name": "availability",
+  "requests": 8,
+  "sampledMs": 323.52,
+  "busyMs": 256.46,
+  "self": [
+    {
+      "name": "(idle) (native):0",
+      "ms": 52.69
+    },
+    {
+      "name": "fetch (native):0",
+      "ms": 33.76
+    },
+    {
+      "name": "validateAvailabilityConfiguration _worker.js:32463",
+      "ms": 23.82
+    },
+    {
+      "name": "get_cookie_header _worker.js:96196",
+      "ms": 15.4
+    },
+    {
+      "name": "parseAvailabilityBusiness _worker.js:32432",
+      "ms": 15.01
+    },
+    {
+      "name": "(garbage collector) (native):0",
+      "ms": 14.38
+    },
+    {
+      "name": "PostgrestBuilder _worker.js:6272",
+      "ms": 13.57
+    },
+    {
+      "name": "(anonymous) _worker.js:67203",
+      "ms": 11.16
+    },
+    {
+      "name": "(anonymous) _worker.js:29259",
+      "ms": 10.42
+    },
+    {
+      "name": "(anonymous) _worker.js:27830",
+      "ms": 9.76
+    },
+    {
+      "name": "isAvailabilityDate _worker.js:32299",
+      "ms": 9.73
+    },
+    {
+      "name": "(anonymous) _worker.js:32641",
+      "ms": 8.77
+    },
+    {
+      "name": "(anonymous) _worker.js:29132",
+      "ms": 8.7
+    },
+    {
+      "name": "(anonymous) _worker.js:28991",
+      "ms": 7.59
+    },
+    {
+      "name": "(anonymous) _worker.js:29071",
+      "ms": 7.54
+    },
+    {
+      "name": "readRecord _worker.js:5634",
+      "ms": 7.36
+    },
+    {
+      "name": "applySettingDefaults _worker.js:26379",
+      "ms": 7.31
+    },
+    {
+      "name": "_acquireLock _worker.js:23517",
+      "ms": 6.68
+    },
+    {
+      "name": "_defineProperty3 _worker.js:26347",
+      "ms": 6.49
+    },
+    {
+      "name": "find_route _worker.js:94314",
+      "ms": 6.48
+    },
+    {
+      "name": "getUser _worker.js:23706",
+      "ms": 6.47
+    },
+    {
+      "name": "(anonymous) _worker.js:96272",
+      "ms": 5.42
+    },
+    {
+      "name": "respond _worker.js:97087",
+      "ms": 5.4
+    },
+    {
+      "name": "SupabaseClient _worker.js:26669",
+      "ms": 5.4
+    },
+    {
+      "name": "createMemorySessionStorage _worker.js:14455",
+      "ms": 5.4
+    },
+    {
+      "name": "_GoTrueClient _worker.js:21457",
+      "ms": 5.34
+    },
+    {
+      "name": "processResponse _worker.js:6490",
+      "ms": 2.16
+    },
+    {
+      "name": "WebAuthnApi _worker.js:21110",
+      "ms": 1.43
+    },
+    {
+      "name": "_userResponse _worker.js:19207",
+      "ms": 1.33
+    },
+    {
+      "name": "_request _worker.js:19147",
+      "ms": 1.09
+    },
+    {
+      "name": "parseAvailabilityCatalog _worker.js:32448",
+      "ms": 1.09
+    },
+    {
+      "name": "(anonymous) _worker.js:27723",
+      "ms": 1.09
+    },
+    {
+      "name": "(anonymous) _worker.js:32613",
+      "ms": 1.08
+    },
+    {
+      "name": "(anonymous) _worker.js:29014",
+      "ms": 1.08
+    },
+    {
+      "name": "json (native):0",
+      "ms": 1.08
+    },
+    {
+      "name": "__init _worker.js:8",
+      "ms": 1.06
+    },
+    {
+      "name": "(anonymous) _worker.js:29109",
+      "ms": 0.99
+    },
+    {
+      "name": "(program) (native):0",
+      "ms": 0
+    }
+  ],
+  "total": [
+    {
+      "name": "(root) (native):0",
+      "ms": 323.52
+    },
+    {
+      "name": "(anonymous) _worker.js:26458",
+      "ms": 54.86
+    },
+    {
+      "name": "(anonymous) _worker.js:96272",
+      "ms": 54.58
+    },
+    {
+      "name": "(anonymous) _worker.js:97062",
+      "ms": 54.58
+    },
+    {
+      "name": "(anonymous) _worker.js:96265",
+      "ms": 54.58
+    },
+    {
+      "name": "(anonymous) _worker.js:96357",
+      "ms": 54.58
+    },
+    {
+      "name": "event.fetch _worker.js:28026",
+      "ms": 54.58
+    },
+    {
+      "name": "(idle) (native):0",
+      "ms": 52.69
+    },
+    {
+      "name": "(anonymous) _worker.js:26449",
+      "ms": 48.37
+    },
+    {
+      "name": "parseAvailabilityCatalog _worker.js:32448",
+      "ms": 47.28
+    },
+    {
+      "name": "loadAvailabilityCatalog _worker.js:32543",
+      "ms": 47.28
+    },
+    {
+      "name": "(anonymous) _worker.js:32641",
+      "ms": 45.08
+    },
+    {
+      "name": "(anonymous) _worker.js:29071",
+      "ms": 35.24
+    },
+    {
+      "name": "fetch (native):0",
+      "ms": 33.76
+    },
+    {
+      "name": "(anonymous) _worker.js:28927",
+      "ms": 32.08
+    },
+    {
+      "name": "(anonymous) _worker.js:28017",
+      "ms": 28.82
+    },
+    {
+      "name": "SupabaseClient _worker.js:26669",
+      "ms": 24.89
+    },
+    {
+      "name": "(anonymous) _worker.js:26883",
+      "ms": 24.89
+    },
+    {
+      "name": "createSupabaseServerClient _worker.js:26915",
+      "ms": 24.89
+    },
+    {
+      "name": "run (native):0",
+      "ms": 24.89
+    },
+    {
+      "name": "with_request_store _worker.js:288",
+      "ms": 24.89
+    },
+    {
+      "name": "validateAvailabilityConfiguration _worker.js:32463",
+      "ms": 23.82
+    },
+    {
+      "name": "(anonymous) _worker.js:27830",
+      "ms": 23.34
+    },
+    {
+      "name": "internal_respond _worker.js:96428",
+      "ms": 22.62
+    },
+    {
+      "name": "(anonymous) _worker.js:67203",
+      "ms": 19.9
+    },
+    {
+      "name": "(anonymous) _worker.js:29109",
+      "ms": 17.27
+    },
+    {
+      "name": "(anonymous) _worker.js:96710",
+      "ms": 16.14
+    },
+    {
+      "name": "(anonymous) _worker.js:96699",
+      "ms": 16.14
+    },
+    {
+      "name": "record_span _worker.js:93035",
+      "ms": 16.14
+    },
+    {
+      "name": "handle2 _worker.js:96686",
+      "ms": 16.14
+    },
+    {
+      "name": "get_cookie_header _worker.js:96196",
+      "ms": 15.4
+    },
+    {
+      "name": "parseAvailabilityBusiness _worker.js:32432",
+      "ms": 15.01
+    },
+    {
+      "name": "(anonymous) _worker.js:27723",
+      "ms": 14.66
+    },
+    {
+      "name": "(garbage collector) (native):0",
+      "ms": 14.38
+    },
+    {
+      "name": "PostgrestBuilder _worker.js:6272",
+      "ms": 13.57
+    },
+    {
+      "name": "PostgrestFilterBuilder _worker.js:7470",
+      "ms": 13.57
+    },
+    {
+      "name": "rpc _worker.js:11051",
+      "ms": 13.57
+    },
+    {
+      "name": "rpc _worker.js:26766",
+      "ms": 13.57
+    },
+    {
+      "name": "(anonymous) _worker.js:27730",
+      "ms": 13.57
+    },
+    {
+      "name": "getUser _worker.js:23706",
+      "ms": 12.68
+    },
+    {
+      "name": "(anonymous) _worker.js:32613",
+      "ms": 10.81
+    },
+    {
+      "name": "parseAvailabilityWindow _worker.js:32494",
+      "ms": 10.81
+    },
+    {
+      "name": "loadAvailabilityWindowRows _worker.js:32548",
+      "ms": 10.81
+    },
+    {
+      "name": "(anonymous) _worker.js:29259",
+      "ms": 10.42
+    },
+    {
+      "name": "isAvailabilityDate _worker.js:32299",
+      "ms": 9.73
+    },
+    {
+      "name": "validateAvailabilityOccupancy _worker.js:32521",
+      "ms": 9.73
+    },
+    {
+      "name": "(anonymous) _worker.js:92905",
+      "ms": 8.75
+    },
+    {
+      "name": "render_endpoint _worker.js:92879",
+      "ms": 8.75
+    },
+    {
+      "name": "resolve2 _worker.js:96787",
+      "ms": 8.75
+    },
+    {
+      "name": "(anonymous) _worker.js:29132",
+      "ms": 8.7
+    },
+    {
+      "name": "_request _worker.js:19147",
+      "ms": 8.63
+    },
+    {
+      "name": "(anonymous) _worker.js:28991",
+      "ms": 7.59
+    },
+    {
+      "name": "readRecord _worker.js:5634",
+      "ms": 7.36
+    },
+    {
+      "name": "(anonymous) _worker.js:32370",
+      "ms": 7.36
+    },
+    {
+      "name": "parseIntegratedAvailabilityRows _worker.js:32332",
+      "ms": 7.36
+    },
+    {
+      "name": "applySettingDefaults _worker.js:26379",
+      "ms": 7.31
+    },
+    {
+      "name": "_handleRequest2 _worker.js:19167",
+      "ms": 7.28
+    },
+    {
+      "name": "_GoTrueClient _worker.js:21457",
+      "ms": 6.78
+    },
+    {
+      "name": "SupabaseAuthClient _worker.js:26474",
+      "ms": 6.78
+    },
+    {
+      "name": "_initSupabaseAuthClient _worker.js:26839",
+      "ms": 6.78
+    }
+  ],
+  "scope": "Sampled workerd hot paths, including this phase first request; not hosted CPU allowance. Existing busyMs excludes idle/program/GC and is not total billed CPU."
+}

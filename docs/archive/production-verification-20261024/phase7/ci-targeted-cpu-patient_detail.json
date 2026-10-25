@@ -1,0 +1,351 @@
+{
+  "name": "patient_detail",
+  "requests": 8,
+  "sampledMs": 438.82,
+  "busyMs": 181.94,
+  "self": [
+    {
+      "name": "(idle) (native):0",
+      "ms": 230.1
+    },
+    {
+      "name": "(anonymous) _worker.js:47865",
+      "ms": 55.9
+    },
+    {
+      "name": "(garbage collector) (native):0",
+      "ms": 23.02
+    },
+    {
+      "name": "#get_option _worker.js:95356",
+      "ms": 22.67
+    },
+    {
+      "name": "fetch (native):0",
+      "ms": 12.92
+    },
+    {
+      "name": "text _worker.js:242",
+      "ms": 12.41
+    },
+    {
+      "name": "Request (native):0",
+      "ms": 11.33
+    },
+    {
+      "name": "(anonymous) _worker.js:29042",
+      "ms": 10.33
+    },
+    {
+      "name": "parse3 _worker.js:95932",
+      "ms": 7.62
+    },
+    {
+      "name": "get_node_type _worker.js:92593",
+      "ms": 7.33
+    },
+    {
+      "name": "StorageClient _worker.js:18363",
+      "ms": 7.09
+    },
+    {
+      "name": "find_route _worker.js:94314",
+      "ms": 6.77
+    },
+    {
+      "name": "SupabaseClient _worker.js:26669",
+      "ms": 6.23
+    },
+    {
+      "name": "GoTrueAdminApi _worker.js:19328",
+      "ms": 5.38
+    },
+    {
+      "name": "(program) (native):0",
+      "ms": 3.76
+    },
+    {
+      "name": "__init _worker.js:8",
+      "ms": 3.19
+    },
+    {
+      "name": "text (native):0",
+      "ms": 2.42
+    },
+    {
+      "name": "(anonymous) _worker.js:6403",
+      "ms": 2.16
+    },
+    {
+      "name": "set_internal _worker.js:96217",
+      "ms": 1.53
+    },
+    {
+      "name": "PostgrestQueryBuilder _worker.js:9296",
+      "ms": 1.26
+    },
+    {
+      "name": "(anonymous) _worker.js:29419",
+      "ms": 1.09
+    },
+    {
+      "name": "select _worker.js:10092",
+      "ms": 1.09
+    },
+    {
+      "name": "(anonymous) _worker.js:27037",
+      "ms": 1.08
+    },
+    {
+      "name": "run _worker.js:91813",
+      "ms": 1.07
+    },
+    {
+      "name": "PostgrestBuilder _worker.js:6272",
+      "ms": 1.07
+    }
+  ],
+  "total": [
+    {
+      "name": "(root) (native):0",
+      "ms": 438.82
+    },
+    {
+      "name": "(idle) (native):0",
+      "ms": 230.1
+    },
+    {
+      "name": "(anonymous) _worker.js:47865",
+      "ms": 66.42
+    },
+    {
+      "name": "internal_respond _worker.js:96428",
+      "ms": 41.05
+    },
+    {
+      "name": "run (native):0",
+      "ms": 26.33
+    },
+    {
+      "name": "with_request_store _worker.js:288",
+      "ms": 26.33
+    },
+    {
+      "name": "record_span _worker.js:93035",
+      "ms": 26.33
+    },
+    {
+      "name": "(anonymous) _worker.js:96265",
+      "ms": 24.25
+    },
+    {
+      "name": "(anonymous) _worker.js:96357",
+      "ms": 24.25
+    },
+    {
+      "name": "event.fetch _worker.js:28026",
+      "ms": 24.25
+    },
+    {
+      "name": "(anonymous) _worker.js:93549",
+      "ms": 24.25
+    },
+    {
+      "name": "(anonymous) _worker.js:26449",
+      "ms": 24.25
+    },
+    {
+      "name": "(anonymous) _worker.js:26458",
+      "ms": 24.25
+    },
+    {
+      "name": "(garbage collector) (native):0",
+      "ms": 23.02
+    },
+    {
+      "name": "#get_option _worker.js:95356",
+      "ms": 22.67
+    },
+    {
+      "name": "trailing_slash _worker.js:95374",
+      "ms": 22.67
+    },
+    {
+      "name": "load_server_data _worker.js:93504",
+      "ms": 22.04
+    },
+    {
+      "name": "(anonymous) _worker.js:95797",
+      "ms": 22.04
+    },
+    {
+      "name": "SupabaseClient _worker.js:26669",
+      "ms": 18.7
+    },
+    {
+      "name": "(anonymous) _worker.js:26883",
+      "ms": 18.7
+    },
+    {
+      "name": "createSupabaseServerClient _worker.js:26915",
+      "ms": 18.7
+    },
+    {
+      "name": "(anonymous) _worker.js:93547",
+      "ms": 14.72
+    },
+    {
+      "name": "(anonymous) _worker.js:93543",
+      "ms": 14.72
+    },
+    {
+      "name": "render_data _worker.js:95783",
+      "ms": 13.48
+    },
+    {
+      "name": "fetch (native):0",
+      "ms": 12.92
+    },
+    {
+      "name": "(anonymous) _worker.js:96272",
+      "ms": 12.92
+    },
+    {
+      "name": "(anonymous) _worker.js:97062",
+      "ms": 12.92
+    },
+    {
+      "name": "text _worker.js:242",
+      "ms": 12.41
+    },
+    {
+      "name": "json_response _worker.js:95899",
+      "ms": 12.41
+    },
+    {
+      "name": "(anonymous) _worker.js:28017",
+      "ms": 11.61
+    },
+    {
+      "name": "(anonymous) _worker.js:96710",
+      "ms": 11.61
+    },
+    {
+      "name": "(anonymous) _worker.js:96699",
+      "ms": 11.61
+    },
+    {
+      "name": "handle2 _worker.js:96686",
+      "ms": 11.61
+    },
+    {
+      "name": "readPatientDetail _worker.js:47490",
+      "ms": 11.36
+    },
+    {
+      "name": "Request (native):0",
+      "ms": 11.33
+    },
+    {
+      "name": "normalize_fetch_input _worker.js:96364",
+      "ms": 11.33
+    },
+    {
+      "name": "(anonymous) _worker.js:29042",
+      "ms": 10.33
+    },
+    {
+      "name": "(anonymous) _worker.js:29058",
+      "ms": 10.33
+    },
+    {
+      "name": "(anonymous) _worker.js:29338",
+      "ms": 10.33
+    },
+    {
+      "name": "parse3 _worker.js:95932",
+      "ms": 7.62
+    },
+    {
+      "name": "get _worker.js:96124",
+      "ms": 7.62
+    },
+    {
+      "name": "(anonymous) _worker.js:28187",
+      "ms": 7.62
+    },
+    {
+      "name": "get_node_type _worker.js:92593",
+      "ms": 7.33
+    },
+    {
+      "name": "StorageClient _worker.js:18363",
+      "ms": 7.09
+    },
+    {
+      "name": "find_route _worker.js:94314",
+      "ms": 6.77
+    },
+    {
+      "name": "GoTrueAdminApi _worker.js:19328",
+      "ms": 5.38
+    },
+    {
+      "name": "_GoTrueClient _worker.js:21457",
+      "ms": 5.38
+    },
+    {
+      "name": "SupabaseAuthClient _worker.js:26474",
+      "ms": 5.38
+    },
+    {
+      "name": "_initSupabaseAuthClient _worker.js:26839",
+      "ms": 5.38
+    },
+    {
+      "name": "(anonymous) _worker.js:6403",
+      "ms": 4.58
+    },
+    {
+      "name": "(program) (native):0",
+      "ms": 3.76
+    },
+    {
+      "name": "(anonymous) _worker.js:30654",
+      "ms": 3.48
+    },
+    {
+      "name": "__init _worker.js:8",
+      "ms": 3.19
+    },
+    {
+      "name": "text (native):0",
+      "ms": 2.42
+    },
+    {
+      "name": "processResponse _worker.js:6490",
+      "ms": 2.42
+    },
+    {
+      "name": "(anonymous) _worker.js:29419",
+      "ms": 2.41
+    },
+    {
+      "name": "(anonymous) _worker.js:30739",
+      "ms": 2.41
+    },
+    {
+      "name": "select _worker.js:10092",
+      "ms": 2.16
+    },
+    {
+      "name": "../../home/runner/work/cita-suite/cita-suite/apps/web/.svelte-kit/output/server/entries/pages/odonto/_layout.server.ts.js _worker.js:30642",
+      "ms": 2.12
+    },
+    {
+      "name": "../../home/runner/work/cita-suite/cita-suite/apps/web/.svelte-kit/output/server/nodes/4.js _worker.js:31753",
+      "ms": 2.12
+    }
+  ],
+  "scope": "Sampled workerd hot paths, including this phase first request; not hosted CPU allowance. Existing busyMs excludes idle/program/GC and is not total billed CPU."
+}

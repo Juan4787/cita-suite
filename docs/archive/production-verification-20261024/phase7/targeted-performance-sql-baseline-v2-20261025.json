@@ -1,0 +1,19 @@
+{
+  "startedAt": "2026-10-25T03:49:38.170Z",
+  "runtime": "0851de59ed7971debe2514e6d6851d142bbc5766",
+  "role": "authenticated owner with request JWT claims; atomic creation service_role with explicit validated actor",
+  "pre": {
+    "revision": 39,
+    "startsAt": "2026-10-28T15:00:00+00:00",
+    "appointments": 12003,
+    "statementStatsReset": "2026-05-13T04:35:21.076023+00:00"
+  },
+  "scope": "Targeted EXPLAIN ANALYZE over one owned practice. Read probes read-only,3write probes rolled back. Function total times include nested work; nested plans are not fabricated. Patient projection mirrors source but is not claimed as identical to the PostgREST wrapper SQL.",
+  "plans": [],
+  "status": "failed",
+  "readSqlSha256": "e55b2e59838c2773f4287897b334f8ad34bd73944250a5b973b174e1429fbd28",
+  "failure": {
+    "name": "Error",
+    "message": "The production query failed.\npsql:<stdin>:1: ERROR:  syntax error at or near \"1\"\nLINE 1: ...ness_id='1abccae9-b5a1-44b1-849d-917da44dcb89'::uuidlimit 1;"
+  }
+}

@@ -1,0 +1,70 @@
+TAP version 13
+# Subtest: a profile becomes self and total time per function, without anything but names, files and lines
+ok 1 - a profile becomes self and total time per function, without anything but names, files and lines
+  ---
+  duration_ms: 3.690842
+  type: 'test'
+  ...
+# Subtest: recursion counts a function once per sample in its total time
+ok 2 - recursion counts a function once per sample in its total time
+  ---
+  duration_ms: 0.541717
+  type: 'test'
+  ...
+# Subtest: the inspector client supplies the loopback Origin required by Wrangler
+ok 3 - the inspector client supplies the loopback Origin required by Wrangler
+  ---
+  duration_ms: 63.02809
+  type: 'test'
+  ...
+# Subtest: a native handshake without Origin reproduces the refusal; the guard still rejects a foreign Origin
+ok 4 - a native handshake without Origin reproduces the refusal; the guard still rejects a foreign Origin
+  ---
+  duration_ms: 24.460036
+  type: 'test'
+  ...
+# Subtest: an HTTP200 failed layout cannot certify a patient read
+ok 5 - an HTTP200 failed layout cannot certify a patient read
+  ---
+  duration_ms: 7.656692
+  type: 'test'
+  ...
+# Subtest: successful data from a foreign patient or practice is rejected
+ok 6 - successful data from a foreign patient or practice is rejected
+  ---
+  duration_ms: 0.547025
+  type: 'test'
+  ...
+# Subtest: empty or foreign availability does not certify usable owned slots
+ok 7 - empty or foreign availability does not certify usable owned slots
+  ---
+  duration_ms: 1.393639
+  type: 'test'
+  ...
+# Subtest: a login or foreign redirect cannot count as a created appointment
+ok 8 - a login or foreign redirect cannot count as a created appointment
+  ---
+  duration_ms: 0.609984
+  type: 'test'
+  ...
+# Subtest: absent or duplicate timing is unknown, and overlapping durations are not subtracted as CPU
+ok 9 - absent or duplicate timing is unknown, and overlapping durations are not subtracted as CPU
+  ---
+  duration_ms: 2.062146
+  type: 'test'
+  ...
+# Subtest: empty, incomplete or unknown CPU samples cannot become a zero-cost profile
+ok 10 - empty, incomplete or unknown CPU samples cannot become a zero-cost profile
+  ---
+  duration_ms: 1.086684
+  type: 'test'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 393.53267

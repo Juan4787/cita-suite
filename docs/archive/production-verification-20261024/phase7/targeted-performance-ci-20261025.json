@@ -1,0 +1,51 @@
+{
+  "at": "2026-10-25T04:18:58.595819+00:00",
+  "repository": "Juan4787/cita-suite",
+  "run": 40161186500,
+  "source": "5930f73ab868ff9956408f04d0c1f102c1044a38",
+  "ci": {
+    "conclusion": "success",
+    "createdAt": "2026-10-25T04:14:57Z",
+    "headSha": "5930f73ab868ff9956408f04d0c1f102c1044a38",
+    "status": "completed",
+    "updatedAt": "2026-10-25T04:18:11Z",
+    "url": "https://github.com/Juan4787/cita-suite/actions/runs/40161186500"
+  },
+  "applicationSourceUnchanged": "0851de59ed7971debe2514e6d6851d142bbc5766",
+  "runId": "ecdf944b-1c5b-4999-a8ed-2e2c3ae98109",
+  "evidenceFiles": 10,
+  "packageSha256": "c39718ad8eeebaf405246a422f8fc6da354e60e65476abad70b65d2b3334509c",
+  "privateWorkflowLogSha256": "abbed6c783490781212d82458ba73b920ed5caab50803e44fd1293a8b2fe59fe",
+  "summaryPath": ".verification/targeted-remote-40161186500/.verification/runs/ecdf944b-1c5b-4999-a8ed-2e2c3ae98109/capacity/summary.json",
+  "counts": {
+    "availability": 8,
+    "patient_detail": 8,
+    "creation_prepare": 3,
+    "create_appointment": 3
+  },
+  "ownedCreationsPersisted": 3,
+  "cleanup": {
+    "guards": {
+      "foreignMember": true,
+      "unknownPractice": true
+    },
+    "patients": 6000,
+    "practices": 1,
+    "appointments": 12003,
+    "ownersRemoved": 1,
+    "remaining": {
+      "owners": 0,
+      "practices": 0
+    },
+    "durationMs": 1507,
+    "passed": true
+  },
+  "platformChecked": {
+    "containers": 4,
+    "oomKilled": false,
+    "deadlocks": 0,
+    "authErrors": 0
+  },
+  "ok": true,
+  "scope": "Isolated one-practice workerd hot-path diagnostic, not hosted capacity or billable CPU certification. No production deployment or credentials."
+}

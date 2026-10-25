@@ -1,0 +1,50 @@
+{
+  "at": "2026-10-25T03:39:43.573196+00:00",
+  "counts": {
+    "patients": 121,
+    "businesses": 19,
+    "migrations": 126,
+    "appointments": 107,
+    "capacityOwners": 0,
+    "capacityPractices": 0
+  },
+  "settings": {
+    "jit": "off",
+    "work_mem": "2184",
+    "shared_buffers": "28672",
+    "track_functions": "none",
+    "track_io_timing": "off",
+    "effective_cache_size": "49152",
+    "shared_preload_libraries": "pg_stat_statements, pgaudit, plpgsql, plpgsql_check, pg_cron, pg_net, pgsodium, auto_explain, pg_tle, plan_filter, supabase_vault"
+  },
+  "functions": [
+    {
+      "name": "clinical_document_uploads_enabled",
+      "identity": "p_business_id uuid",
+      "definitionMd5": "deeb91efdd57cfb70b4684e466b92528"
+    },
+    {
+      "name": "create_appointment_with_patient_identity",
+      "identity": "p_business_id uuid, p_patient_mode text, p_patient_id uuid, p_patient_name text, p_patient_phone_raw text, p_patient_phone_e164 text, p_patient_email text, p_update_existing_phone boolean, p_owner_id uuid, p_service_id uuid, p_professional_ids uuid[], p_starts_at timestamp with time zone, p_internal_note text, p_created_by_user_id uuid, p_ignore_break boolean, p_source text, p_phone_communication_status text, p_phone_warning_acknowledged boolean, p_idempotency_key text, p_replay_only boolean",
+      "definitionMd5": "774c22dff45ae3bdb09705224b72b6c5"
+    },
+    {
+      "name": "get_availability_catalog",
+      "identity": "p_business_id uuid, p_public boolean",
+      "definitionMd5": "ffb561547db205f360866576e4e6f39c"
+    },
+    {
+      "name": "get_availability_window",
+      "identity": "p_business_id uuid, p_public boolean, p_service_id uuid, p_professional_ids uuid[], p_from_date date, p_to_date date, p_configuration_revision bigint",
+      "definitionMd5": "e37adc677389b12a6dd33f6cce882d4e"
+    },
+    {
+      "name": "list_user_business_contexts",
+      "identity": "",
+      "definitionMd5": "ea58a88b9f4819559f10f430f26562b4"
+    }
+  ],
+  "databaseBytes": 208276627,
+  "databaseReset": null,
+  "statementStatsInfo": true
+}

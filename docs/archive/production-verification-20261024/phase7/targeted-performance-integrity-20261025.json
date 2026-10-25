@@ -1,0 +1,8 @@
+{
+  "at": "2026-10-25T03:56:00.885Z",
+  "overlaps": 0,
+  "createdByLoad": 3,
+  "crossPractice": 0,
+  "entriesByLoad": 0,
+  "scope": "Ownedfixture only;3HTTPwrites committed,3SQLwrites rolled back; no inferred global deadlock delta."
+}

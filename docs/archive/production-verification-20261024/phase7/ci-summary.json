@@ -1,0 +1,1485 @@
+{
+  "mode": "--targeted",
+  "scenarios": [
+    {
+      "practices": 1,
+      "seed": {
+        "patients": 6000,
+        "practices": 1,
+        "appointments": 12000,
+        "databaseBytes": 73772179,
+        "largestTables": [
+          {
+            "bytes": 20824064,
+            "table": "patients"
+          },
+          {
+            "bytes": 14229504,
+            "table": "appointments"
+          },
+          {
+            "bytes": 11886592,
+            "table": "appointment_professionals"
+          },
+          {
+            "bytes": 4497408,
+            "table": "professional_patient_links"
+          },
+          {
+            "bytes": 2465792,
+            "table": "business_data_revisions"
+          },
+          {
+            "bytes": 950272,
+            "table": "clinical_entries"
+          },
+          {
+            "bytes": 114688,
+            "table": "patient_radiographs"
+          },
+          {
+            "bytes": 98304,
+            "table": "booking_integrations"
+          }
+        ],
+        "clinicalEntries": 1558,
+        "appointmentStates": {
+          "reserved": 3948,
+          "cancelled": 1655,
+          "confirmed": 6226,
+          "reschedule_requested": 171
+        },
+        "professionalLinks": 10001,
+        "durationMs": 14688
+      },
+      "passed": true,
+      "integrity": {
+        "overlaps": 0,
+        "createdByLoad": 3,
+        "crossPractice": 0,
+        "entriesByLoad": 0
+      },
+      "targeted": {
+        "records": [
+          {
+            "name": "availability",
+            "ordinal": 1,
+            "clientBodyMs": 73.271,
+            "timing": {
+              "auth": 7,
+              "load": 55,
+              "db": 36,
+              "db_max": 10,
+              "db_http": 4,
+              "serverTotalMs": 62
+            }
+          },
+          {
+            "name": "availability",
+            "ordinal": 2,
+            "clientBodyMs": 38.615,
+            "timing": {
+              "auth": 5,
+              "load": 25,
+              "db": 27,
+              "db_max": 9,
+              "db_http": 4,
+              "serverTotalMs": 30
+            }
+          },
+          {
+            "name": "availability",
+            "ordinal": 3,
+            "clientBodyMs": 36.376,
+            "timing": {
+              "auth": 5,
+              "load": 24,
+              "db": 25,
+              "db_max": 7,
+              "db_http": 4,
+              "serverTotalMs": 29
+            }
+          },
+          {
+            "name": "availability",
+            "ordinal": 4,
+            "clientBodyMs": 36.727,
+            "timing": {
+              "auth": 6,
+              "load": 23,
+              "db": 25,
+              "db_max": 7,
+              "db_http": 4,
+              "serverTotalMs": 29
+            }
+          },
+          {
+            "name": "availability",
+            "ordinal": 5,
+            "clientBodyMs": 37.832,
+            "timing": {
+              "auth": 5,
+              "load": 25,
+              "db": 25,
+              "db_max": 7,
+              "db_http": 4,
+              "serverTotalMs": 30
+            }
+          },
+          {
+            "name": "availability",
+            "ordinal": 6,
+            "clientBodyMs": 33.809,
+            "timing": {
+              "auth": 5,
+              "load": 22,
+              "db": 25,
+              "db_max": 8,
+              "db_http": 4,
+              "serverTotalMs": 27
+            }
+          },
+          {
+            "name": "availability",
+            "ordinal": 7,
+            "clientBodyMs": 35.452,
+            "timing": {
+              "auth": 4,
+              "load": 25,
+              "db": 23,
+              "db_max": 8,
+              "db_http": 4,
+              "serverTotalMs": 29
+            }
+          },
+          {
+            "name": "availability",
+            "ordinal": 8,
+            "clientBodyMs": 32.421,
+            "timing": {
+              "auth": 5,
+              "load": 21,
+              "db": 23,
+              "db_max": 7,
+              "db_http": 4,
+              "serverTotalMs": 26
+            }
+          },
+          {
+            "name": "patient_detail",
+            "ordinal": 1,
+            "clientBodyMs": 89.061,
+            "timing": {
+              "auth": 5,
+              "load": 70,
+              "db": 306,
+              "db_max": 56,
+              "db_http": 9,
+              "serverTotalMs": 75
+            }
+          },
+          {
+            "name": "patient_detail",
+            "ordinal": 2,
+            "clientBodyMs": 65.026,
+            "timing": {
+              "auth": 6,
+              "load": 50,
+              "db": 208,
+              "db_max": 39,
+              "db_http": 9,
+              "serverTotalMs": 56
+            }
+          },
+          {
+            "name": "patient_detail",
+            "ordinal": 3,
+            "clientBodyMs": 58.506,
+            "timing": {
+              "auth": 6,
+              "load": 40,
+              "db": 148,
+              "db_max": 21,
+              "db_http": 9,
+              "serverTotalMs": 46
+            }
+          },
+          {
+            "name": "patient_detail",
+            "ordinal": 4,
+            "clientBodyMs": 47.784,
+            "timing": {
+              "auth": 6,
+              "load": 30,
+              "db": 123,
+              "db_max": 19,
+              "db_http": 9,
+              "serverTotalMs": 36
+            }
+          },
+          {
+            "name": "patient_detail",
+            "ordinal": 5,
+            "clientBodyMs": 42.873,
+            "timing": {
+              "auth": 5,
+              "load": 30,
+              "db": 128,
+              "db_max": 20,
+              "db_http": 9,
+              "serverTotalMs": 35
+            }
+          },
+          {
+            "name": "patient_detail",
+            "ordinal": 6,
+            "clientBodyMs": 53.935,
+            "timing": {
+              "auth": 7,
+              "load": 26,
+              "db": 98,
+              "db_max": 15,
+              "db_http": 9,
+              "serverTotalMs": 33
+            }
+          },
+          {
+            "name": "patient_detail",
+            "ordinal": 7,
+            "clientBodyMs": 41.472,
+            "timing": {
+              "auth": 5,
+              "load": 29,
+              "db": 105,
+              "db_max": 18,
+              "db_http": 9,
+              "serverTotalMs": 34
+            }
+          },
+          {
+            "name": "patient_detail",
+            "ordinal": 8,
+            "clientBodyMs": 43.226,
+            "timing": {
+              "auth": 5,
+              "load": 30,
+              "db": 119,
+              "db_max": 17,
+              "db_http": 9,
+              "serverTotalMs": 35
+            }
+          },
+          {
+            "name": "creation_prepare",
+            "ordinal": 1,
+            "clientBodyMs": 42.486,
+            "timing": {
+              "auth": 6,
+              "load": 29,
+              "db": 33,
+              "db_max": 11,
+              "db_http": 4,
+              "serverTotalMs": 35
+            }
+          },
+          {
+            "name": "create_appointment",
+            "ordinal": 1,
+            "clientBodyMs": 95.396,
+            "timing": {
+              "auth": 5,
+              "load": 76,
+              "db": 73,
+              "db_max": 29,
+              "db_http": 7,
+              "serverTotalMs": 81
+            }
+          },
+          {
+            "name": "creation_prepare",
+            "ordinal": 2,
+            "clientBodyMs": 50.531,
+            "timing": {
+              "auth": 6,
+              "load": 37,
+              "db": 40,
+              "db_max": 17,
+              "db_http": 4,
+              "serverTotalMs": 43
+            }
+          },
+          {
+            "name": "create_appointment",
+            "ordinal": 2,
+            "clientBodyMs": 76.293,
+            "timing": {
+              "auth": 4,
+              "load": 65,
+              "db": 65,
+              "db_max": 28,
+              "db_http": 7,
+              "serverTotalMs": 69
+            }
+          },
+          {
+            "name": "creation_prepare",
+            "ordinal": 3,
+            "clientBodyMs": 37.221,
+            "timing": {
+              "auth": 4,
+              "load": 26,
+              "db": 26,
+              "db_max": 9,
+              "db_http": 4,
+              "serverTotalMs": 30
+            }
+          },
+          {
+            "name": "create_appointment",
+            "ordinal": 3,
+            "clientBodyMs": 70.702,
+            "timing": {
+              "auth": 4,
+              "load": 60,
+              "db": 61,
+              "db_max": 23,
+              "db_http": 7,
+              "serverTotalMs": 64
+            }
+          }
+        ],
+        "profiles": [
+          {
+            "name": "availability",
+            "requests": 8,
+            "sampledMs": 323.52,
+            "busyMs": 256.46,
+            "self": [
+              {
+                "name": "(idle) (native):0",
+                "ms": 52.69
+              },
+              {
+                "name": "fetch (native):0",
+                "ms": 33.76
+              },
+              {
+                "name": "validateAvailabilityConfiguration _worker.js:32463",
+                "ms": 23.82
+              },
+              {
+                "name": "get_cookie_header _worker.js:96196",
+                "ms": 15.4
+              },
+              {
+                "name": "parseAvailabilityBusiness _worker.js:32432",
+                "ms": 15.01
+              },
+              {
+                "name": "(garbage collector) (native):0",
+                "ms": 14.38
+              },
+              {
+                "name": "PostgrestBuilder _worker.js:6272",
+                "ms": 13.57
+              },
+              {
+                "name": "(anonymous) _worker.js:67203",
+                "ms": 11.16
+              },
+              {
+                "name": "(anonymous) _worker.js:29259",
+                "ms": 10.42
+              },
+              {
+                "name": "(anonymous) _worker.js:27830",
+                "ms": 9.76
+              },
+              {
+                "name": "isAvailabilityDate _worker.js:32299",
+                "ms": 9.73
+              },
+              {
+                "name": "(anonymous) _worker.js:32641",
+                "ms": 8.77
+              },
+              {
+                "name": "(anonymous) _worker.js:29132",
+                "ms": 8.7
+              },
+              {
+                "name": "(anonymous) _worker.js:28991",
+                "ms": 7.59
+              },
+              {
+                "name": "(anonymous) _worker.js:29071",
+                "ms": 7.54
+              },
+              {
+                "name": "readRecord _worker.js:5634",
+                "ms": 7.36
+              },
+              {
+                "name": "applySettingDefaults _worker.js:26379",
+                "ms": 7.31
+              },
+              {
+                "name": "_acquireLock _worker.js:23517",
+                "ms": 6.68
+              },
+              {
+                "name": "_defineProperty3 _worker.js:26347",
+                "ms": 6.49
+              },
+              {
+                "name": "find_route _worker.js:94314",
+                "ms": 6.48
+              },
+              {
+                "name": "getUser _worker.js:23706",
+                "ms": 6.47
+              },
+              {
+                "name": "(anonymous) _worker.js:96272",
+                "ms": 5.42
+              },
+              {
+                "name": "respond _worker.js:97087",
+                "ms": 5.4
+              },
+              {
+                "name": "SupabaseClient _worker.js:26669",
+                "ms": 5.4
+              },
+              {
+                "name": "createMemorySessionStorage _worker.js:14455",
+                "ms": 5.4
+              },
+              {
+                "name": "_GoTrueClient _worker.js:21457",
+                "ms": 5.34
+              },
+              {
+                "name": "processResponse _worker.js:6490",
+                "ms": 2.16
+              },
+              {
+                "name": "WebAuthnApi _worker.js:21110",
+                "ms": 1.43
+              },
+              {
+                "name": "_userResponse _worker.js:19207",
+                "ms": 1.33
+              },
+              {
+                "name": "_request _worker.js:19147",
+                "ms": 1.09
+              },
+              {
+                "name": "parseAvailabilityCatalog _worker.js:32448",
+                "ms": 1.09
+              },
+              {
+                "name": "(anonymous) _worker.js:27723",
+                "ms": 1.09
+              },
+              {
+                "name": "(anonymous) _worker.js:32613",
+                "ms": 1.08
+              },
+              {
+                "name": "(anonymous) _worker.js:29014",
+                "ms": 1.08
+              },
+              {
+                "name": "json (native):0",
+                "ms": 1.08
+              },
+              {
+                "name": "__init _worker.js:8",
+                "ms": 1.06
+              },
+              {
+                "name": "(anonymous) _worker.js:29109",
+                "ms": 0.99
+              },
+              {
+                "name": "(program) (native):0",
+                "ms": 0
+              }
+            ],
+            "total": [
+              {
+                "name": "(root) (native):0",
+                "ms": 323.52
+              },
+              {
+                "name": "(anonymous) _worker.js:26458",
+                "ms": 54.86
+              },
+              {
+                "name": "(anonymous) _worker.js:96272",
+                "ms": 54.58
+              },
+              {
+                "name": "(anonymous) _worker.js:97062",
+                "ms": 54.58
+              },
+              {
+                "name": "(anonymous) _worker.js:96265",
+                "ms": 54.58
+              },
+              {
+                "name": "(anonymous) _worker.js:96357",
+                "ms": 54.58
+              },
+              {
+                "name": "event.fetch _worker.js:28026",
+                "ms": 54.58
+              },
+              {
+                "name": "(idle) (native):0",
+                "ms": 52.69
+              },
+              {
+                "name": "(anonymous) _worker.js:26449",
+                "ms": 48.37
+              },
+              {
+                "name": "parseAvailabilityCatalog _worker.js:32448",
+                "ms": 47.28
+              },
+              {
+                "name": "loadAvailabilityCatalog _worker.js:32543",
+                "ms": 47.28
+              },
+              {
+                "name": "(anonymous) _worker.js:32641",
+                "ms": 45.08
+              },
+              {
+                "name": "(anonymous) _worker.js:29071",
+                "ms": 35.24
+              },
+              {
+                "name": "fetch (native):0",
+                "ms": 33.76
+              },
+              {
+                "name": "(anonymous) _worker.js:28927",
+                "ms": 32.08
+              },
+              {
+                "name": "(anonymous) _worker.js:28017",
+                "ms": 28.82
+              },
+              {
+                "name": "SupabaseClient _worker.js:26669",
+                "ms": 24.89
+              },
+              {
+                "name": "(anonymous) _worker.js:26883",
+                "ms": 24.89
+              },
+              {
+                "name": "createSupabaseServerClient _worker.js:26915",
+                "ms": 24.89
+              },
+              {
+                "name": "run (native):0",
+                "ms": 24.89
+              },
+              {
+                "name": "with_request_store _worker.js:288",
+                "ms": 24.89
+              },
+              {
+                "name": "validateAvailabilityConfiguration _worker.js:32463",
+                "ms": 23.82
+              },
+              {
+                "name": "(anonymous) _worker.js:27830",
+                "ms": 23.34
+              },
+              {
+                "name": "internal_respond _worker.js:96428",
+                "ms": 22.62
+              },
+              {
+                "name": "(anonymous) _worker.js:67203",
+                "ms": 19.9
+              },
+              {
+                "name": "(anonymous) _worker.js:29109",
+                "ms": 17.27
+              },
+              {
+                "name": "(anonymous) _worker.js:96710",
+                "ms": 16.14
+              },
+              {
+                "name": "(anonymous) _worker.js:96699",
+                "ms": 16.14
+              },
+              {
+                "name": "record_span _worker.js:93035",
+                "ms": 16.14
+              },
+              {
+                "name": "handle2 _worker.js:96686",
+                "ms": 16.14
+              },
+              {
+                "name": "get_cookie_header _worker.js:96196",
+                "ms": 15.4
+              },
+              {
+                "name": "parseAvailabilityBusiness _worker.js:32432",
+                "ms": 15.01
+              },
+              {
+                "name": "(anonymous) _worker.js:27723",
+                "ms": 14.66
+              },
+              {
+                "name": "(garbage collector) (native):0",
+                "ms": 14.38
+              },
+              {
+                "name": "PostgrestBuilder _worker.js:6272",
+                "ms": 13.57
+              },
+              {
+                "name": "PostgrestFilterBuilder _worker.js:7470",
+                "ms": 13.57
+              },
+              {
+                "name": "rpc _worker.js:11051",
+                "ms": 13.57
+              },
+              {
+                "name": "rpc _worker.js:26766",
+                "ms": 13.57
+              },
+              {
+                "name": "(anonymous) _worker.js:27730",
+                "ms": 13.57
+              },
+              {
+                "name": "getUser _worker.js:23706",
+                "ms": 12.68
+              },
+              {
+                "name": "(anonymous) _worker.js:32613",
+                "ms": 10.81
+              },
+              {
+                "name": "parseAvailabilityWindow _worker.js:32494",
+                "ms": 10.81
+              },
+              {
+                "name": "loadAvailabilityWindowRows _worker.js:32548",
+                "ms": 10.81
+              },
+              {
+                "name": "(anonymous) _worker.js:29259",
+                "ms": 10.42
+              },
+              {
+                "name": "isAvailabilityDate _worker.js:32299",
+                "ms": 9.73
+              },
+              {
+                "name": "validateAvailabilityOccupancy _worker.js:32521",
+                "ms": 9.73
+              },
+              {
+                "name": "(anonymous) _worker.js:92905",
+                "ms": 8.75
+              },
+              {
+                "name": "render_endpoint _worker.js:92879",
+                "ms": 8.75
+              },
+              {
+                "name": "resolve2 _worker.js:96787",
+                "ms": 8.75
+              },
+              {
+                "name": "(anonymous) _worker.js:29132",
+                "ms": 8.7
+              },
+              {
+                "name": "_request _worker.js:19147",
+                "ms": 8.63
+              },
+              {
+                "name": "(anonymous) _worker.js:28991",
+                "ms": 7.59
+              },
+              {
+                "name": "readRecord _worker.js:5634",
+                "ms": 7.36
+              },
+              {
+                "name": "(anonymous) _worker.js:32370",
+                "ms": 7.36
+              },
+              {
+                "name": "parseIntegratedAvailabilityRows _worker.js:32332",
+                "ms": 7.36
+              },
+              {
+                "name": "applySettingDefaults _worker.js:26379",
+                "ms": 7.31
+              },
+              {
+                "name": "_handleRequest2 _worker.js:19167",
+                "ms": 7.28
+              },
+              {
+                "name": "_GoTrueClient _worker.js:21457",
+                "ms": 6.78
+              },
+              {
+                "name": "SupabaseAuthClient _worker.js:26474",
+                "ms": 6.78
+              },
+              {
+                "name": "_initSupabaseAuthClient _worker.js:26839",
+                "ms": 6.78
+              }
+            ],
+            "scope": "Sampled workerd hot paths, including this phase first request; not hosted CPU allowance. Existing busyMs excludes idle/program/GC and is not total billed CPU."
+          },
+          {
+            "name": "patient_detail",
+            "requests": 8,
+            "sampledMs": 438.82,
+            "busyMs": 181.94,
+            "self": [
+              {
+                "name": "(idle) (native):0",
+                "ms": 230.1
+              },
+              {
+                "name": "(anonymous) _worker.js:47865",
+                "ms": 55.9
+              },
+              {
+                "name": "(garbage collector) (native):0",
+                "ms": 23.02
+              },
+              {
+                "name": "#get_option _worker.js:95356",
+                "ms": 22.67
+              },
+              {
+                "name": "fetch (native):0",
+                "ms": 12.92
+              },
+              {
+                "name": "text _worker.js:242",
+                "ms": 12.41
+              },
+              {
+                "name": "Request (native):0",
+                "ms": 11.33
+              },
+              {
+                "name": "(anonymous) _worker.js:29042",
+                "ms": 10.33
+              },
+              {
+                "name": "parse3 _worker.js:95932",
+                "ms": 7.62
+              },
+              {
+                "name": "get_node_type _worker.js:92593",
+                "ms": 7.33
+              },
+              {
+                "name": "StorageClient _worker.js:18363",
+                "ms": 7.09
+              },
+              {
+                "name": "find_route _worker.js:94314",
+                "ms": 6.77
+              },
+              {
+                "name": "SupabaseClient _worker.js:26669",
+                "ms": 6.23
+              },
+              {
+                "name": "GoTrueAdminApi _worker.js:19328",
+                "ms": 5.38
+              },
+              {
+                "name": "(program) (native):0",
+                "ms": 3.76
+              },
+              {
+                "name": "__init _worker.js:8",
+                "ms": 3.19
+              },
+              {
+                "name": "text (native):0",
+                "ms": 2.42
+              },
+              {
+                "name": "(anonymous) _worker.js:6403",
+                "ms": 2.16
+              },
+              {
+                "name": "set_internal _worker.js:96217",
+                "ms": 1.53
+              },
+              {
+                "name": "PostgrestQueryBuilder _worker.js:9296",
+                "ms": 1.26
+              },
+              {
+                "name": "(anonymous) _worker.js:29419",
+                "ms": 1.09
+              },
+              {
+                "name": "select _worker.js:10092",
+                "ms": 1.09
+              },
+              {
+                "name": "(anonymous) _worker.js:27037",
+                "ms": 1.08
+              },
+              {
+                "name": "run _worker.js:91813",
+                "ms": 1.07
+              },
+              {
+                "name": "PostgrestBuilder _worker.js:6272",
+                "ms": 1.07
+              }
+            ],
+            "total": [
+              {
+                "name": "(root) (native):0",
+                "ms": 438.82
+              },
+              {
+                "name": "(idle) (native):0",
+                "ms": 230.1
+              },
+              {
+                "name": "(anonymous) _worker.js:47865",
+                "ms": 66.42
+              },
+              {
+                "name": "internal_respond _worker.js:96428",
+                "ms": 41.05
+              },
+              {
+                "name": "run (native):0",
+                "ms": 26.33
+              },
+              {
+                "name": "with_request_store _worker.js:288",
+                "ms": 26.33
+              },
+              {
+                "name": "record_span _worker.js:93035",
+                "ms": 26.33
+              },
+              {
+                "name": "(anonymous) _worker.js:96265",
+                "ms": 24.25
+              },
+              {
+                "name": "(anonymous) _worker.js:96357",
+                "ms": 24.25
+              },
+              {
+                "name": "event.fetch _worker.js:28026",
+                "ms": 24.25
+              },
+              {
+                "name": "(anonymous) _worker.js:93549",
+                "ms": 24.25
+              },
+              {
+                "name": "(anonymous) _worker.js:26449",
+                "ms": 24.25
+              },
+              {
+                "name": "(anonymous) _worker.js:26458",
+                "ms": 24.25
+              },
+              {
+                "name": "(garbage collector) (native):0",
+                "ms": 23.02
+              },
+              {
+                "name": "#get_option _worker.js:95356",
+                "ms": 22.67
+              },
+              {
+                "name": "trailing_slash _worker.js:95374",
+                "ms": 22.67
+              },
+              {
+                "name": "load_server_data _worker.js:93504",
+                "ms": 22.04
+              },
+              {
+                "name": "(anonymous) _worker.js:95797",
+                "ms": 22.04
+              },
+              {
+                "name": "SupabaseClient _worker.js:26669",
+                "ms": 18.7
+              },
+              {
+                "name": "(anonymous) _worker.js:26883",
+                "ms": 18.7
+              },
+              {
+                "name": "createSupabaseServerClient _worker.js:26915",
+                "ms": 18.7
+              },
+              {
+                "name": "(anonymous) _worker.js:93547",
+                "ms": 14.72
+              },
+              {
+                "name": "(anonymous) _worker.js:93543",
+                "ms": 14.72
+              },
+              {
+                "name": "render_data _worker.js:95783",
+                "ms": 13.48
+              },
+              {
+                "name": "fetch (native):0",
+                "ms": 12.92
+              },
+              {
+                "name": "(anonymous) _worker.js:96272",
+                "ms": 12.92
+              },
+              {
+                "name": "(anonymous) _worker.js:97062",
+                "ms": 12.92
+              },
+              {
+                "name": "text _worker.js:242",
+                "ms": 12.41
+              },
+              {
+                "name": "json_response _worker.js:95899",
+                "ms": 12.41
+              },
+              {
+                "name": "(anonymous) _worker.js:28017",
+                "ms": 11.61
+              },
+              {
+                "name": "(anonymous) _worker.js:96710",
+                "ms": 11.61
+              },
+              {
+                "name": "(anonymous) _worker.js:96699",
+                "ms": 11.61
+              },
+              {
+                "name": "handle2 _worker.js:96686",
+                "ms": 11.61
+              },
+              {
+                "name": "readPatientDetail _worker.js:47490",
+                "ms": 11.36
+              },
+              {
+                "name": "Request (native):0",
+                "ms": 11.33
+              },
+              {
+                "name": "normalize_fetch_input _worker.js:96364",
+                "ms": 11.33
+              },
+              {
+                "name": "(anonymous) _worker.js:29042",
+                "ms": 10.33
+              },
+              {
+                "name": "(anonymous) _worker.js:29058",
+                "ms": 10.33
+              },
+              {
+                "name": "(anonymous) _worker.js:29338",
+                "ms": 10.33
+              },
+              {
+                "name": "parse3 _worker.js:95932",
+                "ms": 7.62
+              },
+              {
+                "name": "get _worker.js:96124",
+                "ms": 7.62
+              },
+              {
+                "name": "(anonymous) _worker.js:28187",
+                "ms": 7.62
+              },
+              {
+                "name": "get_node_type _worker.js:92593",
+                "ms": 7.33
+              },
+              {
+                "name": "StorageClient _worker.js:18363",
+                "ms": 7.09
+              },
+              {
+                "name": "find_route _worker.js:94314",
+                "ms": 6.77
+              },
+              {
+                "name": "GoTrueAdminApi _worker.js:19328",
+                "ms": 5.38
+              },
+              {
+                "name": "_GoTrueClient _worker.js:21457",
+                "ms": 5.38
+              },
+              {
+                "name": "SupabaseAuthClient _worker.js:26474",
+                "ms": 5.38
+              },
+              {
+                "name": "_initSupabaseAuthClient _worker.js:26839",
+                "ms": 5.38
+              },
+              {
+                "name": "(anonymous) _worker.js:6403",
+                "ms": 4.58
+              },
+              {
+                "name": "(program) (native):0",
+                "ms": 3.76
+              },
+              {
+                "name": "(anonymous) _worker.js:30654",
+                "ms": 3.48
+              },
+              {
+                "name": "__init _worker.js:8",
+                "ms": 3.19
+              },
+              {
+                "name": "text (native):0",
+                "ms": 2.42
+              },
+              {
+                "name": "processResponse _worker.js:6490",
+                "ms": 2.42
+              },
+              {
+                "name": "(anonymous) _worker.js:29419",
+                "ms": 2.41
+              },
+              {
+                "name": "(anonymous) _worker.js:30739",
+                "ms": 2.41
+              },
+              {
+                "name": "select _worker.js:10092",
+                "ms": 2.16
+              },
+              {
+                "name": "../../home/runner/work/cita-suite/cita-suite/apps/web/.svelte-kit/output/server/entries/pages/odonto/_layout.server.ts.js _worker.js:30642",
+                "ms": 2.12
+              },
+              {
+                "name": "../../home/runner/work/cita-suite/cita-suite/apps/web/.svelte-kit/output/server/nodes/4.js _worker.js:31753",
+                "ms": 2.12
+              }
+            ],
+            "scope": "Sampled workerd hot paths, including this phase first request; not hosted CPU allowance. Existing busyMs excludes idle/program/GC and is not total billed CPU."
+          },
+          {
+            "name": "create_appointment",
+            "requests": 6,
+            "sampledMs": 371.25,
+            "busyMs": 236.48,
+            "self": [
+              {
+                "name": "(idle) (native):0",
+                "ms": 106.13
+              },
+              {
+                "name": "fetch _worker.js:98038",
+                "ms": 32.71
+              },
+              {
+                "name": "(program) (native):0",
+                "ms": 28.17
+              },
+              {
+                "name": "(anonymous) _worker.js:32618",
+                "ms": 24.91
+              },
+              {
+                "name": "(anonymous) _worker.js:96265",
+                "ms": 23.52
+              },
+              {
+                "name": "(anonymous) _worker.js:28017",
+                "ms": 12.94
+              },
+              {
+                "name": "(anonymous) _worker.js:29005",
+                "ms": 12.01
+              },
+              {
+                "name": "(anonymous) _worker.js:38554",
+                "ms": 11.52
+              },
+              {
+                "name": "(anonymous) _worker.js:67203",
+                "ms": 11.49
+              },
+              {
+                "name": "parseAvailabilityBusiness _worker.js:32432",
+                "ms": 11.08
+              },
+              {
+                "name": "(anonymous) _worker.js:96965",
+                "ms": 10.86
+              },
+              {
+                "name": "isAvailabilityDate _worker.js:32299",
+                "ms": 9.87
+              },
+              {
+                "name": "fetch (native):0",
+                "ms": 9.84
+              },
+              {
+                "name": "normalize_fetch_input _worker.js:96364",
+                "ms": 9.08
+              },
+              {
+                "name": "SupabaseClient _worker.js:26669",
+                "ms": 7.8
+              },
+              {
+                "name": "(anonymous) _worker.js:29035",
+                "ms": 7.57
+              },
+              {
+                "name": "GoTrueAdminApi _worker.js:19328",
+                "ms": 6.61
+              },
+              {
+                "name": "(anonymous) _worker.js:28927",
+                "ms": 6.48
+              },
+              {
+                "name": "run (native):0",
+                "ms": 6.46
+              },
+              {
+                "name": "render_endpoint _worker.js:92879",
+                "ms": 6.33
+              },
+              {
+                "name": "(anonymous) _worker.js:23534",
+                "ms": 5.36
+              },
+              {
+                "name": "normalizeHeaders _worker.js:15755",
+                "ms": 4.7
+              },
+              {
+                "name": "__init _worker.js:8",
+                "ms": 4.26
+              },
+              {
+                "name": "../../home/runner/work/cita-suite/cita-suite/apps/web/.svelte-kit/output/server/chunks/patient-name.js _worker.js:32277",
+                "ms": 1.07
+              },
+              {
+                "name": "(garbage collector) (native):0",
+                "ms": 0.48
+              },
+              {
+                "name": "redirect _worker.js:215",
+                "ms": 0
+              }
+            ],
+            "total": [
+              {
+                "name": "(root) (native):0",
+                "ms": 371.25
+              },
+              {
+                "name": "(idle) (native):0",
+                "ms": 106.13
+              },
+              {
+                "name": "fetch _worker.js:98038",
+                "ms": 43.57
+              },
+              {
+                "name": "(anonymous) _worker.js:96265",
+                "ms": 42.44
+              },
+              {
+                "name": "(anonymous) _worker.js:96357",
+                "ms": 42.44
+              },
+              {
+                "name": "event.fetch _worker.js:28026",
+                "ms": 42.44
+              },
+              {
+                "name": "(anonymous) _worker.js:26449",
+                "ms": 42.44
+              },
+              {
+                "name": "(anonymous) _worker.js:26458",
+                "ms": 42.44
+              },
+              {
+                "name": "(anonymous) _worker.js:38554",
+                "ms": 29.39
+              },
+              {
+                "name": "parseAvailabilityCatalog _worker.js:32448",
+                "ms": 28.45
+              },
+              {
+                "name": "loadAvailabilityCatalog _worker.js:32543",
+                "ms": 28.45
+              },
+              {
+                "name": "(program) (native):0",
+                "ms": 28.17
+              },
+              {
+                "name": "(anonymous) _worker.js:28017",
+                "ms": 26.01
+              },
+              {
+                "name": "(anonymous) _worker.js:32618",
+                "ms": 24.91
+              },
+              {
+                "name": "SupabaseClient _worker.js:26669",
+                "ms": 24.48
+              },
+              {
+                "name": "(anonymous) _worker.js:26883",
+                "ms": 24.48
+              },
+              {
+                "name": "run (native):0",
+                "ms": 20.88
+              },
+              {
+                "name": "with_request_store _worker.js:288",
+                "ms": 20.88
+              },
+              {
+                "name": "record_span _worker.js:93035",
+                "ms": 20.88
+              },
+              {
+                "name": "(anonymous) _worker.js:29035",
+                "ms": 19.58
+              },
+              {
+                "name": "(anonymous) _worker.js:29069",
+                "ms": 19.58
+              },
+              {
+                "name": "(anonymous) _worker.js:29066",
+                "ms": 19.58
+              },
+              {
+                "name": "(anonymous) _worker.js:32641",
+                "ms": 19.58
+              },
+              {
+                "name": "parseAvailabilityWindow _worker.js:32494",
+                "ms": 17.41
+              },
+              {
+                "name": "loadAvailabilityWindowRows _worker.js:32548",
+                "ms": 17.41
+              },
+              {
+                "name": "validateAvailabilityConfiguration _worker.js:32463",
+                "ms": 17.37
+              },
+              {
+                "name": "validateAvailabilityOccupancy _worker.js:32521",
+                "ms": 16.33
+              },
+              {
+                "name": "createSupabaseServerClient _worker.js:26915",
+                "ms": 14.42
+              },
+              {
+                "name": "(anonymous) _worker.js:28927",
+                "ms": 14.29
+              },
+              {
+                "name": "(anonymous) _worker.js:29005",
+                "ms": 12.01
+              },
+              {
+                "name": "(anonymous) _worker.js:29013",
+                "ms": 12.01
+              },
+              {
+                "name": "_GoTrueClient _worker.js:21457",
+                "ms": 11.98
+              },
+              {
+                "name": "SupabaseAuthClient _worker.js:26474",
+                "ms": 11.98
+              },
+              {
+                "name": "_initSupabaseAuthClient _worker.js:26839",
+                "ms": 11.98
+              },
+              {
+                "name": "(anonymous) _worker.js:67203",
+                "ms": 11.49
+              },
+              {
+                "name": "parseAvailabilityBusiness _worker.js:32432",
+                "ms": 11.08
+              },
+              {
+                "name": "(anonymous) _worker.js:96965",
+                "ms": 10.86
+              },
+              {
+                "name": "respond _worker.js:97087",
+                "ms": 10.86
+              },
+              {
+                "name": "(anonymous) _worker.js:27037",
+                "ms": 10.07
+              },
+              {
+                "name": "isAvailabilityDate _worker.js:32299",
+                "ms": 9.87
+              },
+              {
+                "name": "(anonymous) _worker.js:32613",
+                "ms": 9.87
+              },
+              {
+                "name": "fetch (native):0",
+                "ms": 9.84
+              },
+              {
+                "name": "(anonymous) _worker.js:96272",
+                "ms": 9.84
+              },
+              {
+                "name": "(anonymous) _worker.js:97062",
+                "ms": 9.84
+              },
+              {
+                "name": "normalize_fetch_input _worker.js:96364",
+                "ms": 9.08
+              },
+              {
+                "name": "(anonymous) _worker.js:93238",
+                "ms": 7.8
+              },
+              {
+                "name": "(anonymous) _worker.js:93234",
+                "ms": 7.8
+              },
+              {
+                "name": "call_action _worker.js:93204",
+                "ms": 7.8
+              },
+              {
+                "name": "handle_action_json_request _worker.js:93049",
+                "ms": 7.8
+              },
+              {
+                "name": "render_page _worker.js:95492",
+                "ms": 7.8
+              },
+              {
+                "name": "GoTrueAdminApi _worker.js:19328",
+                "ms": 6.61
+              },
+              {
+                "name": "(anonymous) _worker.js:96710",
+                "ms": 6.61
+              },
+              {
+                "name": "(anonymous) _worker.js:96699",
+                "ms": 6.61
+              },
+              {
+                "name": "handle2 _worker.js:96686",
+                "ms": 6.61
+              },
+              {
+                "name": "internal_respond _worker.js:96428",
+                "ms": 6.61
+              },
+              {
+                "name": "(anonymous) _worker.js:96718",
+                "ms": 6.46
+              },
+              {
+                "name": "(anonymous) _worker.js:96712",
+                "ms": 6.46
+              },
+              {
+                "name": "render_endpoint _worker.js:92879",
+                "ms": 6.33
+              },
+              {
+                "name": "(anonymous) _worker.js:23534",
+                "ms": 5.36
+              },
+              {
+                "name": "lockNoOp _worker.js:21376",
+                "ms": 5.36
+              }
+            ],
+            "scope": "Sampled workerd hot paths, including this phase first request; not hosted CPU allowance. Existing busyMs excludes idle/program/GC and is not total billed CPU."
+          }
+        ],
+        "scope": "Three target flows, one practice6000/12000,22requests. Diagnostic only; no capacity acceptance and no provider calls or live credentials.",
+        "ownedCreationsPersisted": 3
+      },
+      "cleanup": {
+        "guards": {
+          "foreignMember": true,
+          "unknownPractice": true
+        },
+        "patients": 6000,
+        "practices": 1,
+        "appointments": 12003,
+        "ownersRemoved": 1,
+        "remaining": {
+          "owners": 0,
+          "practices": 0
+        },
+        "durationMs": 1507,
+        "passed": true
+      }
+    }
+  ],
+  "scope": "Disposable CI container: PostgreSQL 4 GB and 2 CPUs, real Auth, PostgREST as authenticator, the production build in workerd. Not hosted capacity.",
+  "growth": []
+}

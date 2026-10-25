@@ -1,0 +1,166 @@
+{
+  "at": "2026-10-25T03:51:44.249Z",
+  "scope": "Light sequential replay of actual parser+calculator source on this host, with owned production fixture JSON. Not WorkerCPU or a capacity criterion. First iteration retained; subsequent repetitions are warm.",
+  "runtime": "0851de59ed7971debe2514e6d6851d142bbc5766",
+  "slotCount": 6,
+  "blocks": 12,
+  "catalogBytes": 7962,
+  "windowBytes": 5627,
+  "adversarialContractChecks": 3,
+  "sourceHashes": {
+    "apps/web/src/lib/availability/calculate.ts": "8d3fbe053c2ece919e583738559438ef8ac03cb03a2490d8cac3504957a49be8",
+    "apps/web/src/lib/availability/contracts.ts": "e72925b0e88b630e9a7192b4c75ee35c838cdc49677511ee9cdf89396f245fa8"
+  },
+  "measurements": [
+    {
+      "iteration": 1,
+      "wallMs": 23.9,
+      "cpuMs": 7.408
+    },
+    {
+      "iteration": 2,
+      "wallMs": 1.924,
+      "cpuMs": 1.913
+    },
+    {
+      "iteration": 3,
+      "wallMs": 8.264,
+      "cpuMs": 2.493
+    },
+    {
+      "iteration": 4,
+      "wallMs": 4.06,
+      "cpuMs": 2.02
+    },
+    {
+      "iteration": 5,
+      "wallMs": 5.434,
+      "cpuMs": 1.852
+    },
+    {
+      "iteration": 6,
+      "wallMs": 1.742,
+      "cpuMs": 1.721
+    },
+    {
+      "iteration": 7,
+      "wallMs": 10.477,
+      "cpuMs": 2.447
+    },
+    {
+      "iteration": 8,
+      "wallMs": 7.421,
+      "cpuMs": 1.974
+    },
+    {
+      "iteration": 9,
+      "wallMs": 6.534,
+      "cpuMs": 1.702
+    },
+    {
+      "iteration": 10,
+      "wallMs": 1.545,
+      "cpuMs": 2.081
+    },
+    {
+      "iteration": 11,
+      "wallMs": 6.859,
+      "cpuMs": 1.815
+    },
+    {
+      "iteration": 12,
+      "wallMs": 8.824,
+      "cpuMs": 1.882
+    },
+    {
+      "iteration": 13,
+      "wallMs": 1.587,
+      "cpuMs": 1.569
+    },
+    {
+      "iteration": 14,
+      "wallMs": 3.982,
+      "cpuMs": 1.668
+    },
+    {
+      "iteration": 15,
+      "wallMs": 1.014,
+      "cpuMs": 1.004
+    },
+    {
+      "iteration": 16,
+      "wallMs": 2.441,
+      "cpuMs": 2.707
+    },
+    {
+      "iteration": 17,
+      "wallMs": 1.709,
+      "cpuMs": 1.663
+    },
+    {
+      "iteration": 18,
+      "wallMs": 2.973,
+      "cpuMs": 2.937
+    },
+    {
+      "iteration": 19,
+      "wallMs": 3.205,
+      "cpuMs": 3.171
+    },
+    {
+      "iteration": 20,
+      "wallMs": 1.685,
+      "cpuMs": 1.546
+    },
+    {
+      "iteration": 21,
+      "wallMs": 6.668,
+      "cpuMs": 4.49
+    },
+    {
+      "iteration": 22,
+      "wallMs": 7.477,
+      "cpuMs": 2.637
+    },
+    {
+      "iteration": 23,
+      "wallMs": 1.59,
+      "cpuMs": 1.564
+    },
+    {
+      "iteration": 24,
+      "wallMs": 2.832,
+      "cpuMs": 1.574
+    },
+    {
+      "iteration": 25,
+      "wallMs": 1.426,
+      "cpuMs": 1.392
+    },
+    {
+      "iteration": 26,
+      "wallMs": 1.852,
+      "cpuMs": 1.828
+    },
+    {
+      "iteration": 27,
+      "wallMs": 1.587,
+      "cpuMs": 1.561
+    },
+    {
+      "iteration": 28,
+      "wallMs": 1.537,
+      "cpuMs": 1.505
+    },
+    {
+      "iteration": 29,
+      "wallMs": 1.359,
+      "cpuMs": 1.34
+    },
+    {
+      "iteration": 30,
+      "wallMs": 1.571,
+      "cpuMs": 1.534
+    }
+  ]
+}

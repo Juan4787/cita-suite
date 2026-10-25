@@ -1,0 +1,32 @@
+{
+  "startedAt": "2026-10-25T04:03:34.495190+00:00",
+  "repository": "Juan4787/cita-suite",
+  "source": "f2dcb7aafec53914e68700369737e659088c84f7",
+  "branch": "refactor/targeted-performance-20261025",
+  "level": "capacity-targeted",
+  "fastRun": 40160236590,
+  "attempts": 1,
+  "mainUnchanged": "bc307f5c8859fe9508ea524780bee52f91d98bfd",
+  "productionUnchanged": "0851de59ed7971debe2514e6d6851d142bbc5766",
+  "status": "accepted",
+  "finishedAt": "2026-10-25T04:03:36.084819+00:00",
+  "exitCode": 0,
+  "stdout": "",
+  "stderr": "",
+  "run": 40160488305,
+  "observed": {
+    "conclusion": "",
+    "createdAt": "2026-10-25T04:03:35Z",
+    "headSha": "f2dcb7aafec53914e68700369737e659088c84f7",
+    "status": "in_progress",
+    "url": "https://github.com/Juan4787/cita-suite/actions/runs/40160488305"
+  },
+  "recoveredAt": "2026-10-25T04:03:48.909650+00:00",
+  "branchChoiceAcceptedWithoutMainPromotion": true,
+  "finalRun": {
+    "conclusion": "failure",
+    "headSha": "f2dcb7aafec53914e68700369737e659088c84f7",
+    "status": "completed",
+    "updatedAt": "2026-10-25T04:06:56Z"
+  }
+}

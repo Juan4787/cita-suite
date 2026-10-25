@@ -1,0 +1,39 @@
+{
+  "at": "2026-10-25T04:03:21.355472+00:00",
+  "repository": "Juan4787/cita-suite",
+  "run": 40160236590,
+  "source": "f2dcb7aafec53914e68700369737e659088c84f7",
+  "compiledSourceUnchanged": "0851de59ed7971debe2514e6d6851d142bbc5766",
+  "ci": {
+    "conclusion": "success",
+    "createdAt": "2026-10-25T03:59:39Z",
+    "headSha": "f2dcb7aafec53914e68700369737e659088c84f7",
+    "status": "completed",
+    "updatedAt": "2026-10-25T04:03:02Z"
+  },
+  "runId": "ea7a0cd7-27b8-4407-8d4b-b34709ceadfb",
+  "steps": 13,
+  "evidenceFiles": 7,
+  "packageSha256": "76abfcc921db04449ad6aab686890e1e3f0ac3f6af999be6831c8c83978fc674",
+  "privateWorkflowLogSha256": "41f3ecad86e4d467a058f7ddeb2b25e83ac346115ff8aa09c74daf1a695a9363",
+  "units": {
+    "server": {
+      "numTotalTests": 1395,
+      "numPassedTests": 1395,
+      "numFailedTests": 0,
+      "numPendingTests": 0,
+      "numTodoTests": 0,
+      "success": true
+    },
+    "client": {
+      "numTotalTests": 175,
+      "numPassedTests": 175,
+      "numFailedTests": 0,
+      "numPendingTests": 0,
+      "numTodoTests": 0,
+      "success": true
+    }
+  },
+  "ok": true,
+  "scope": "Exact fast profile on isolated targeted diagnostics revision, application and SQL sources unchanged. No full/release repetition or production deployment. Optional full-only workflow steps intentionally not run. All13mandatory fast steps and its server/client tests checked."
+}

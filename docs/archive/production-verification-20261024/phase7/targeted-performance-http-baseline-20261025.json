@@ -1,0 +1,553 @@
+{
+  "startedAt": "2026-10-25T03:45:57.140Z",
+  "runtime": "0851de59ed7971debe2514e6d6851d142bbc5766",
+  "mode": "bounded-sequential-diagnostic-not-capacity-acceptance",
+  "parserChecks": 4,
+  "requests": [
+    {
+      "at": "2026-10-25T03:45:59.860Z",
+      "name": "availability",
+      "status": 200,
+      "headerMs": 815.8,
+      "clientBodyMs": 818.3,
+      "timing": {
+        "auth": 20,
+        "load": 683,
+        "db": 703,
+        "db_max": 301,
+        "db_http": 4,
+        "serverTotalMs": 703
+      },
+      "slots": 7
+    },
+    {
+      "at": "2026-10-25T03:46:00.766Z",
+      "name": "patient_detail",
+      "status": 200,
+      "headerMs": 900.9,
+      "clientBodyMs": 905.5,
+      "timing": {
+        "auth": 70,
+        "load": 714,
+        "db": 3458,
+        "db_max": 604,
+        "db_http": 9,
+        "serverTotalMs": 784
+      },
+      "ownedPatientMatched": true
+    },
+    {
+      "at": "2026-10-25T03:46:01.169Z",
+      "name": "availability",
+      "status": 200,
+      "headerMs": 341.4,
+      "clientBodyMs": 399.5,
+      "timing": {
+        "auth": 59,
+        "load": 159,
+        "db": 218,
+        "db_max": 109,
+        "db_http": 4,
+        "serverTotalMs": 218
+      },
+      "slots": 6
+    },
+    {
+      "at": "2026-10-25T03:46:01.545Z",
+      "name": "patient_detail",
+      "status": 200,
+      "headerMs": 374.8,
+      "clientBodyMs": 376.1,
+      "timing": {
+        "auth": 60,
+        "load": 200,
+        "db": 734,
+        "db_max": 162,
+        "db_http": 9,
+        "serverTotalMs": 260
+      },
+      "ownedPatientMatched": true
+    },
+    {
+      "at": "2026-10-25T03:46:01.853Z",
+      "name": "availability",
+      "status": 200,
+      "headerMs": 305.7,
+      "clientBodyMs": 306.3,
+      "timing": {
+        "auth": 43,
+        "load": 160,
+        "db": 203,
+        "db_max": 106,
+        "db_http": 4,
+        "serverTotalMs": 203
+      },
+      "slots": 5
+    },
+    {
+      "at": "2026-10-25T03:46:02.090Z",
+      "name": "patient_detail",
+      "status": 200,
+      "headerMs": 234.9,
+      "clientBodyMs": 236.7,
+      "timing": {
+        "auth": 46,
+        "load": 73,
+        "db": 406,
+        "db_max": 56,
+        "db_http": 9,
+        "serverTotalMs": 119
+      },
+      "ownedPatientMatched": true
+    },
+    {
+      "at": "2026-10-25T03:46:02.310Z",
+      "name": "availability",
+      "status": 200,
+      "headerMs": 218.2,
+      "clientBodyMs": 219.8,
+      "timing": {
+        "auth": 21,
+        "load": 98,
+        "db": 119,
+        "db_max": 52,
+        "db_http": 4,
+        "serverTotalMs": 119
+      },
+      "slots": 7
+    },
+    {
+      "at": "2026-10-25T03:46:02.613Z",
+      "name": "patient_detail",
+      "status": 200,
+      "headerMs": 298.5,
+      "clientBodyMs": 302,
+      "timing": {
+        "auth": 53,
+        "load": 106,
+        "db": 482,
+        "db_max": 67,
+        "db_http": 9,
+        "serverTotalMs": 159
+      },
+      "ownedPatientMatched": true
+    },
+    {
+      "at": "2026-10-25T03:46:02.859Z",
+      "name": "availability",
+      "status": 200,
+      "headerMs": 244.9,
+      "clientBodyMs": 245.6,
+      "timing": {
+        "auth": 26,
+        "load": 109,
+        "db": 135,
+        "db_max": 45,
+        "db_http": 4,
+        "serverTotalMs": 135
+      },
+      "slots": 6
+    },
+    {
+      "at": "2026-10-25T03:46:03.139Z",
+      "name": "patient_detail",
+      "status": 200,
+      "headerMs": 237.8,
+      "clientBodyMs": 279.1,
+      "timing": {
+        "auth": 55,
+        "load": 84,
+        "db": 444,
+        "db_max": 62,
+        "db_http": 9,
+        "serverTotalMs": 139
+      },
+      "ownedPatientMatched": true
+    },
+    {
+      "at": "2026-10-25T03:46:03.298Z",
+      "name": "availability",
+      "status": 200,
+      "headerMs": 157.7,
+      "clientBodyMs": 158.7,
+      "timing": {
+        "auth": 16,
+        "load": 47,
+        "db": 63,
+        "db_max": 18,
+        "db_http": 4,
+        "serverTotalMs": 63
+      },
+      "slots": 5
+    },
+    {
+      "at": "2026-10-25T03:46:03.532Z",
+      "name": "patient_detail",
+      "status": 200,
+      "headerMs": 231,
+      "clientBodyMs": 233.4,
+      "timing": {
+        "auth": 18,
+        "load": 97,
+        "db": 467,
+        "db_max": 74,
+        "db_http": 9,
+        "serverTotalMs": 115
+      },
+      "ownedPatientMatched": true
+    },
+    {
+      "at": "2026-10-25T03:46:03.742Z",
+      "name": "availability",
+      "status": 200,
+      "headerMs": 208.5,
+      "clientBodyMs": 209.1,
+      "timing": {
+        "auth": 23,
+        "load": 56,
+        "db": 79,
+        "db_max": 23,
+        "db_http": 4,
+        "serverTotalMs": 79
+      },
+      "slots": 7
+    },
+    {
+      "at": "2026-10-25T03:46:03.906Z",
+      "name": "patient_detail",
+      "status": 200,
+      "headerMs": 162.5,
+      "clientBodyMs": 164,
+      "timing": {
+        "auth": 19,
+        "load": 55,
+        "db": 242,
+        "db_max": 39,
+        "db_http": 9,
+        "serverTotalMs": 74
+      },
+      "ownedPatientMatched": true
+    },
+    {
+      "at": "2026-10-25T03:46:04.062Z",
+      "name": "availability",
+      "status": 200,
+      "headerMs": 145.2,
+      "clientBodyMs": 145.8,
+      "timing": {
+        "auth": 15,
+        "load": 45,
+        "db": 60,
+        "db_max": 18,
+        "db_http": 4,
+        "serverTotalMs": 60
+      },
+      "slots": 6
+    },
+    {
+      "at": "2026-10-25T03:46:04.244Z",
+      "name": "patient_detail",
+      "status": 200,
+      "headerMs": 180.4,
+      "clientBodyMs": 182.1,
+      "timing": {
+        "auth": 22,
+        "load": 67,
+        "db": 298,
+        "db_max": 44,
+        "db_http": 9,
+        "serverTotalMs": 89
+      },
+      "ownedPatientMatched": true
+    },
+    {
+      "at": "2026-10-25T03:46:04.500Z",
+      "name": "creation_prepare",
+      "status": 200,
+      "headerMs": 254.7,
+      "clientBodyMs": 255.5,
+      "timing": {
+        "auth": 47,
+        "load": 92,
+        "db": 139,
+        "db_max": 47,
+        "db_http": 4,
+        "serverTotalMs": 139
+      },
+      "slots": 7
+    },
+    {
+      "at": "2026-10-25T03:46:05.031Z",
+      "name": "create_appointment",
+      "status": 200,
+      "headerMs": 528.6,
+      "clientBodyMs": 529.5,
+      "timing": {
+        "auth": 12,
+        "load": 429,
+        "db": 441,
+        "db_max": 307,
+        "db_http": 7,
+        "serverTotalMs": 441
+      }
+    },
+    {
+      "at": "2026-10-25T03:46:06.042Z",
+      "name": "creation_prepare",
+      "status": 200,
+      "headerMs": 231.7,
+      "clientBodyMs": 232.8,
+      "timing": {
+        "auth": 39,
+        "load": 79,
+        "db": 118,
+        "db_max": 39,
+        "db_http": 4,
+        "serverTotalMs": 118
+      },
+      "slots": 6
+    },
+    {
+      "at": "2026-10-25T03:46:06.475Z",
+      "name": "create_appointment",
+      "status": 200,
+      "headerMs": 430.8,
+      "clientBodyMs": 431.9,
+      "timing": {
+        "auth": 26,
+        "load": 301,
+        "db": 327,
+        "db_max": 93,
+        "db_http": 7,
+        "serverTotalMs": 327
+      }
+    },
+    {
+      "at": "2026-10-25T03:46:07.161Z",
+      "name": "creation_prepare",
+      "status": 200,
+      "headerMs": 171.2,
+      "clientBodyMs": 172.3,
+      "timing": {
+        "auth": 32,
+        "load": 50,
+        "db": 82,
+        "db_max": 32,
+        "db_http": 4,
+        "serverTotalMs": 82
+      },
+      "slots": 5
+    },
+    {
+      "at": "2026-10-25T03:46:07.460Z",
+      "name": "create_appointment",
+      "status": 200,
+      "headerMs": 296.9,
+      "clientBodyMs": 298.6,
+      "timing": {
+        "auth": 21,
+        "load": 189,
+        "db": 210,
+        "db_max": 81,
+        "db_http": 7,
+        "serverTotalMs": 210
+      }
+    }
+  ],
+  "components": [
+    {
+      "at": "2026-10-25T03:46:08.164Z",
+      "name": "availability_catalog",
+      "headersMs": 211.7,
+      "clientBodyMs": 214.7,
+      "rows": null
+    },
+    {
+      "at": "2026-10-25T03:46:08.237Z",
+      "name": "availability_window",
+      "headersMs": 71.2,
+      "clientBodyMs": 72.9,
+      "rows": null
+    },
+    {
+      "at": "2026-10-25T03:46:08.309Z",
+      "name": "patient_base",
+      "headersMs": 70.2,
+      "clientBodyMs": 71.3,
+      "rows": 1
+    },
+    {
+      "at": "2026-10-25T03:46:08.382Z",
+      "name": "patient_clinical_profile",
+      "headersMs": 72.6,
+      "clientBodyMs": 72.9,
+      "rows": 0
+    },
+    {
+      "at": "2026-10-25T03:46:08.591Z",
+      "name": "patient_entries",
+      "headersMs": 205.7,
+      "clientBodyMs": 208,
+      "rows": 1
+    },
+    {
+      "at": "2026-10-25T03:46:08.663Z",
+      "name": "patient_appointments",
+      "headersMs": 71.7,
+      "clientBodyMs": 72.2,
+      "rows": 3
+    },
+    {
+      "at": "2026-10-25T03:46:08.735Z",
+      "name": "clinical_upload_availability",
+      "headersMs": 70.9,
+      "clientBodyMs": 71.1,
+      "rows": null
+    },
+    {
+      "at": "2026-10-25T03:46:08.809Z",
+      "name": "membership_context",
+      "headersMs": 72.9,
+      "clientBodyMs": 74,
+      "rows": 1
+    },
+    {
+      "at": "2026-10-25T03:46:08.881Z",
+      "name": "availability_catalog",
+      "headersMs": 69.8,
+      "clientBodyMs": 70.7,
+      "rows": null
+    },
+    {
+      "at": "2026-10-25T03:46:08.954Z",
+      "name": "availability_window",
+      "headersMs": 70.1,
+      "clientBodyMs": 72.9,
+      "rows": null
+    },
+    {
+      "at": "2026-10-25T03:46:09.028Z",
+      "name": "patient_base",
+      "headersMs": 71.5,
+      "clientBodyMs": 73.6,
+      "rows": 1
+    },
+    {
+      "at": "2026-10-25T03:46:09.099Z",
+      "name": "patient_clinical_profile",
+      "headersMs": 69.4,
+      "clientBodyMs": 69.7,
+      "rows": 0
+    },
+    {
+      "at": "2026-10-25T03:46:09.171Z",
+      "name": "patient_entries",
+      "headersMs": 71,
+      "clientBodyMs": 72.3,
+      "rows": 1
+    },
+    {
+      "at": "2026-10-25T03:46:09.242Z",
+      "name": "patient_appointments",
+      "headersMs": 68.4,
+      "clientBodyMs": 70,
+      "rows": 3
+    },
+    {
+      "at": "2026-10-25T03:46:09.309Z",
+      "name": "clinical_upload_availability",
+      "headersMs": 66.9,
+      "clientBodyMs": 67.1,
+      "rows": null
+    },
+    {
+      "at": "2026-10-25T03:46:09.380Z",
+      "name": "membership_context",
+      "headersMs": 68.5,
+      "clientBodyMs": 70.1,
+      "rows": 1
+    },
+    {
+      "at": "2026-10-25T03:46:09.451Z",
+      "name": "availability_catalog",
+      "headersMs": 69.9,
+      "clientBodyMs": 71.5,
+      "rows": null
+    },
+    {
+      "at": "2026-10-25T03:46:09.526Z",
+      "name": "availability_window",
+      "headersMs": 71.9,
+      "clientBodyMs": 73.8,
+      "rows": null
+    },
+    {
+      "at": "2026-10-25T03:46:09.599Z",
+      "name": "patient_base",
+      "headersMs": 70.9,
+      "clientBodyMs": 72.4,
+      "rows": 1
+    },
+    {
+      "at": "2026-10-25T03:46:09.668Z",
+      "name": "patient_clinical_profile",
+      "headersMs": 67.7,
+      "clientBodyMs": 67.9,
+      "rows": 0
+    },
+    {
+      "at": "2026-10-25T03:46:09.739Z",
+      "name": "patient_entries",
+      "headersMs": 70.4,
+      "clientBodyMs": 71.2,
+      "rows": 1
+    },
+    {
+      "at": "2026-10-25T03:46:09.810Z",
+      "name": "patient_appointments",
+      "headersMs": 69.3,
+      "clientBodyMs": 70.5,
+      "rows": 3
+    },
+    {
+      "at": "2026-10-25T03:46:09.878Z",
+      "name": "clinical_upload_availability",
+      "headersMs": 66.8,
+      "clientBodyMs": 67.6,
+      "rows": null
+    },
+    {
+      "at": "2026-10-25T03:46:09.949Z",
+      "name": "membership_context",
+      "headersMs": 70.4,
+      "clientBodyMs": 71.2,
+      "rows": 1
+    }
+  ],
+  "created": [
+    {
+      "ownedReadback": true,
+      "ordinal": 1,
+      "fixtureAppointments": 12001
+    },
+    {
+      "ownedReadback": true,
+      "ordinal": 2,
+      "fixtureAppointments": 12002
+    },
+    {
+      "ownedReadback": true,
+      "ordinal": 3,
+      "fixtureAppointments": 12003
+    }
+  ],
+  "limitations": [
+    "ServerTiming db is summed time tofetch headers across overlapping requests, not SQL execution time and not a critical path; auth overlaps with db.",
+    "serverTotal=auth+load is hook wall time, not CPU. ClientBodyTime includes remote network/edge/body handling. No unpaired subtraction is interpreted as CPU.",
+    "One practice and small sample counts do not reproduce or approve the two-practice capacity scenario."
+  ],
+  "status": "complete",
+  "date": "2026-10-28",
+  "patientIndex": 1919,
+  "finishedAt": "2026-10-25T03:46:09.950Z"
+}

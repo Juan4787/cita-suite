@@ -1,0 +1,25 @@
+{
+  "startedAt": "2026-10-25T04:14:55.762434+00:00",
+  "repository": "Juan4787/cita-suite",
+  "source": "5930f73ab868ff9956408f04d0c1f102c1044a38",
+  "branch": "refactor/targeted-performance-origin-20261025",
+  "level": "capacity-targeted",
+  "fastRun": 40160945501,
+  "attempts": 1,
+  "priorFailedRun": 40160488305,
+  "reasonForRepeat": "Demonstrated inspector Origin defect, red/green regression and exact-source fast approved. No app/SQL change.",
+  "mainUnchanged": "bc307f5c8859fe9508ea524780bee52f91d98bfd",
+  "productionUnchanged": "0851de59ed7971debe2514e6d6851d142bbc5766",
+  "status": "accepted",
+  "finishedAt": "2026-10-25T04:14:57.917170+00:00",
+  "exitCode": 0,
+  "stdout": "",
+  "stderr": "",
+  "run": 40161186500,
+  "finalRun": {
+    "conclusion": "success",
+    "headSha": "5930f73ab868ff9956408f04d0c1f102c1044a38",
+    "status": "completed",
+    "updatedAt": "2026-10-25T04:18:11Z"
+  }
+}

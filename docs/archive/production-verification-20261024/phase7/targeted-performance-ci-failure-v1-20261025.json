@@ -1,0 +1,38 @@
+{
+  "at": "2026-10-25T04:07:58.026117+00:00",
+  "run": 40160488305,
+  "ci": {
+    "conclusion": "failure",
+    "createdAt": "2026-10-25T04:03:35Z",
+    "headSha": "f2dcb7aafec53914e68700369737e659088c84f7",
+    "status": "completed",
+    "updatedAt": "2026-10-25T04:06:56Z",
+    "url": "https://github.com/Juan4787/cita-suite/actions/runs/40160488305"
+  },
+  "logSha256": "0bd9e89f4757152b07bd0176977e198f0cb19f46b0738b7bb94456a1d8fc45d6",
+  "recovered": "Recovered 5 evidence files; SHA-256 213100611e7ce87b196ecaaa8889bc1ef6867e6c98cfbbbfab4842946a95ccf6",
+  "scope": "Failed diagnostic; no performance acceptance or production mutation. Failure cause pending log inspection.",
+  "cause": "Wrangler4.86 InspectorProxyWorker requires Origin when User-Agent is present; Node WebSocket sends User-Agent=node and no Origin. Existing client supplied none. Reproduced on a real loopback WebSocket handshake.",
+  "failureStage": "Application ready and CI fixture seeded; inspector connection rejected before targeted login/22requests/profiles. Disposable resource cleanup finally returned without additional reported failure.",
+  "productionAffected": false,
+  "regression": {
+    "red": {
+      "file": "targeted-inspector-origin-red-20261025.log",
+      "passed": 3,
+      "failed": 1
+    },
+    "green": {
+      "file": "targeted-inspector-origin-green-20261025.log",
+      "passed": 10,
+      "failed": 0
+    },
+    "guardPreserved": true,
+    "newDependency": false
+  },
+  "pinnedBoundary": {
+    "package": "wrangler4.86.0",
+    "file": "templates/startDevWorker/InspectorProxyWorker.ts",
+    "sha256": "3123bba1e09537ebd96604c03336a025d6605d8c6c0d52cff4fc271cedc800e9"
+  },
+  "updatedAt": "2026-10-25T04:10:43.697795+00:00"
+}

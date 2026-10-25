@@ -2,11 +2,29 @@
 
 ## Estado de este documento
 
-**Actualizado por Codex — 25 de octubre de 2026,01:47UTC (24-oct22:47ART).** El punto vigente siguiente prevalece sobre los antecedentes fechados inferiores. La campaña sigue abierta; no confundir pruebas funcionales aprobadas con aptitud de Workers Free para el lanzamiento.
+**Actualizado por Codex — 25 de octubre de 2026, después del diagnóstico 40161186500.** El punto vigente siguiente prevalece sobre los antecedentes fechados inferiores. La campaña sigue abierta; no confundir pruebas funcionales aprobadas con aptitud de Workers Free para el lanzamiento.
 
 **Alcance vigente (instrucción del usuario del 19 de octubre al retomar con Opus 5.5):** completar y verificar íntegramente la fase 5, avisar al usuario cuando esté realmente cerrada y **continuar automáticamente con la fase 6 y todas las etapas restantes** hasta terminar la campaña, incluida la auditoría transversal, release, publicación y comprobaciones posteriores según las autorizaciones vigentes. Esta instrucción sustituye la restricción anterior de «detenerse antes de fase 6», que se conserva abajo sólo como antecedente de la intervención de GPT-6.1 Sol. Cambia únicamente el punto de detención: no reduce requisitos, garantías, controles ni procedimientos de seguridad.
 
 *Antecedente reemplazado:* la intervención anterior tenía como instrucción cerrar la fase 5, avisar y detenerse antes de fase 6. Ya no está vigente.
+
+## Punto vigente — ronda dirigida terminada, 25 de octubre
+
+**Diagnóstico completado; lanzamiento aún sin aprobar.** Informe [diagnóstico de rendimiento](../architecture/diagnostico-rendimiento-20261025.md), conclusiones y límites en [capacidad](../architecture/capacidad.md). No se confirmó un defecto de app o SQL que justifique modificarla. No repetir otra carga de 48 minutos sin corrección concreta o cambio controlado justificado.
+
+Producción permanece en `0851de59ed7971debe2514e6d6851d142bbc5766`, DB126. El fixture propio de un consultorio (6.000 pacientes / 12.000 turnos) se midió y limpió a 03:56:08 UTC: se retiraron sus 12.003 turnos y dueño, cero restos; conteos previos 19/121/107, Calendar1/1 y 24 objetos /11.599.541 bytes preservados. Secreto temporal retirado. **No repetir semilla ni limpieza.**
+
+Se completaron 43 planes, 22 pedidos por app y 24 componentes REST. Los planes con caché no reprodujeron pausas de segundos; los 43 nodos raíz registraron cero lecturas de disco/temporales. Un paciente y muestra pequeña, sin presión y sin planes anidados: no prueba de caché fría, historia extensa ni aceptación de dos consultorios. Las dos cargas productivas fallidas siguen vigentes.
+
+Se corrigió un defecto del arnés: Node WebSocket omitía Origin y Wrangler4.86 lo rechazaba con User-Agent. Rojo real en loopback3/1 antes de tocar implementación; verde10/10 con los dos rechazos intactos. Revisión operativa `5930f73ab868ff9956408f04d0c1f102c1044a38`, rama `refactor/targeted-performance-origin-20261025`: fast **40160945501** aprobado13/13 (1.395servidor/175cliente/152Node/11programador), diagnóstico **40161186500** aprobado. Su predecessor **40160488305** falló antes de medir y se conserva. Diez evidencias del diagnóstico recuperadas, paquete `c39718ad8eeebaf405246a422f8fc6da354e60e65476abad70b65d2b3334509c`. Los 22 pedidos, persistencia3, integridad0/0, dos rechazos de limpieza, retiro final completo y plataforma sana se comprobaron además del éxito de Actions. No volver a enviar estos workflows.
+
+Perfiles workerd8/8/6 pedidos: validación, SDK, fetch, cookies y frames anónimos sin atribución independiente. No se identificó duplicación que justifique quitar controles. `busyMs` excluye idle/program/GC y no certifica CPU facturable o presupuesto Free. No restar fetches solapados para inventar CPU ni tiempos SQL separados para inventar una demora exacta de proveedor.
+
+Fase7 inmutable: **44 archivos + manifest /377.652 bytes**, manifiesto `b82b4c9d386ab111e284d39dc08c62ec3ed7a56701c4c2375152afd50a65204c`, [índice](../archive/production-verification-20261024/phase7/README.md). Fuentes, observaciones, fallos, rojo/verde, resultados CI y limpieza quedan saneados y versionables; originales/ZIP completos privados en .verification. Fases1–6, plan original796853d3/660líneas, HEAD80268e2/índice55cd8f79 y canonical0851/1.137/digest a31596 intactos.
+
+**Consolidación Git:** el recibo `.verification/targeted-performance-publication-20261025.json` identifica el commit y confirma `remotePublished`. Si está confirmado, no repetir publicación. El commit se prepara como hijo directo del main bc307f5, conservando todos los blobs operativos de593 ya probados y cambiando únicamente documentación/fase7 respecto de593; las ramas originales se conservan. Comprobar base/igualdad/lease/HEAD/índice antes y después. No se despliega app ni se reemplaza el snapshot canónico. No es necesario repetir fast por registrar resultados sobre fuentes activas idénticas.
+
+**Siguiente decisión técnica:** el rendimiento gratuito sigue sin demostrar los umbrales. No atribuir causa exclusiva ni prometer que pagar lo resuelva. Si se retoma atribución, emparejar pedidos lentos con sus componentes en una ventana acotada; si se propone otro recurso, requiere presupuesto autorizado compatible y la misma aceptación. No contratar ni abrir preguntas intermedias. Las otras dependencias externas de la campaña conservan sus recibos anteriores; no se mezclaron en esta ronda. No hay medición, fixture, limpieza ni observador de esta ronda pendientes.
 
 ### Cierre documental verificado —25-oct01:47UTC
 
