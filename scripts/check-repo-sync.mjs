@@ -56,8 +56,9 @@ if (changes.length) {
 
 // 4. Producción: la revisión registrada es la servida y está en la historia.
 const production = dato('produccion_revision');
-if (!tryGit('cat-file', '-e', `${production}^{commit}`)) tryGit('fetch', '--quiet', dato('produccion_repositorio'), production);
-if (!tryGit('cat-file', '-e', `${production}^{commit}`)) problems.push(`PRODUCCIÓN: la revisión ${production} no se pudo obtener.`);
+// `cat-file -e` no imprime nada: sólo cuenta si el comando falló (null).
+if (tryGit('cat-file', '-e', `${production}^{commit}`) === null) tryGit('fetch', '--quiet', dato('produccion_repositorio'), production);
+if (tryGit('cat-file', '-e', `${production}^{commit}`) === null) problems.push(`PRODUCCIÓN: la revisión ${production} no se pudo obtener.`);
 else {
 	if (tryGit('merge-base', '--is-ancestor', production, 'HEAD') === null)
 		problems.push(`PRODUCCIÓN FUERA DE LA HISTORIA: ${production} no es antecesora de ${branch}.`);
