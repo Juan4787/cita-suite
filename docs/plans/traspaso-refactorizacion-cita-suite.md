@@ -1,5 +1,7 @@
 # Traspaso de la campaña de refactorización de Cita Suite
 
+> **Nota del 2 de noviembre de 2026:** las instrucciones de este documento de preservar el `HEAD` `80268e2` y el índice `55cd8f79…` quedaron superadas. Esa regla dejó divergir la copia local de GitHub y de producción. Ahora la rama de trabajo es `main`, que contiene la historia completa. El estado vigente está en [el registro único](../ESTADO-VIGENTE.md) y se comprueba con `node scripts/check-repo-sync.mjs`.
+
 ## Continuidad vigente — 31 de octubre
 
 Desde el 1 de noviembre a las 10:15 UTC producción sirve V10b `68f31741f6ff7f2253c036800b1369f1eda16510`, versión `1d2b4acd-7dd8-4cb7-81e3-a205bafe9f8d` (plan de señas y avisos, 12.16); la recuperación, que antes de volver a V9 exige un paso de datos, está en `docs/architecture/publicacion-y-reversion.md`. Del 31 de octubre a esa hora sirvió V9 `a3c707f368736da90d2adf5850d291460f657af0` (V8 más el registro de las fallas al comprobar el enlace). Antes, la entrega de confirmación de correo quedó **publicada y comprobada**, V8 `408ca04d9e6750e4657dc087264644665a63fb37`, versión productiva `a1844665-447e-40bb-b9e5-ce7c03ed29d7`. Consultar [el traspaso de cierre](traspaso-confirmacion-email-20261030.md): es la referencia de versión, recuperación compatible, evidencia y límites. No volver a publicar esta corrección ni usar como actuales las revisiones y próximos pasos de los apartados fechados inferiores.

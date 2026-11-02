@@ -1,5 +1,7 @@
 # Traspaso exacto: dominio y entrega de origen — 27 de octubre de 2026
 
+> **Nota del 2 de noviembre de 2026:** las instrucciones de este documento de preservar el `HEAD` `80268e2` y el índice `55cd8f79…` quedaron superadas. Esa regla dejó divergir la copia local de GitHub y de producción. Ahora la rama de trabajo es `main`, que contiene la historia completa. El estado vigente está en [el registro único](../ESTADO-VIGENTE.md) y se comprueba con `node scripts/check-repo-sync.mjs`.
+
 ## Punto exacto
 
 Última actualización: **27 de octubre, 15:00 UTC** (12:00 en Argentina). Antes de ejecutar nada, leer:

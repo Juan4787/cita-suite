@@ -1,5 +1,7 @@
 # Traspaso de la campaña de modo claro
 
+> **Nota del 2 de noviembre de 2026:** las instrucciones de este documento de preservar el `HEAD` `80268e2` y el índice `55cd8f79…` quedaron superadas. Esa regla dejó divergir la copia local de GitHub y de producción. Ahora la rama de trabajo es `main`, que contiene la historia completa. El estado vigente está en [el registro único](../ESTADO-VIGENTE.md) y se comprueba con `node scripts/check-repo-sync.mjs`.
+
 **Fuente de verdad:** [plan aprobado](modo-claro-20261102.md). Registro: [registro-modo-claro-20261102.md](registro-modo-claro-20261102.md). Evidencia: `.verification/modo-claro-20261102/`.
 
 ## Punto exacto (2 de noviembre, 15:40 UTC): V12b publicada y comprobada; no queda trabajo en curso

@@ -1,5 +1,7 @@
 # Traspaso de la campaña de señas y avisos (consultorio de Natalia Frutos)
 
+> **Nota del 2 de noviembre de 2026:** las instrucciones de este documento de preservar el `HEAD` `80268e2` y el índice `55cd8f79…` quedaron superadas. Esa regla dejó divergir la copia local de GitHub y de producción. Ahora la rama de trabajo es `main`, que contiene la historia completa. El estado vigente está en [el registro único](../ESTADO-VIGENTE.md) y se comprueba con `node scripts/check-repo-sync.mjs`.
+
 ## Trabajo en curso — 1 de noviembre, desde las 21:20 UTC: ayuda con duraciones (V11, plan 12.17)
 
 Pedido y definición aprobada, literales: sección 12.17 del plan. Registro: sección «Ayuda con duraciones, V11» de `registro-senas-avisos-natalia.md`. Evidencia: `.verification/ayuda-duraciones-20261101/` (carpeta 700, recibos 600, nunca se sobrescriben).

@@ -113,19 +113,6 @@ Fuente: `docs/clientes/natalia-frutos/informacion-20261029.md`, secciones 4 y 5,
 - **Divergencia del repositorio: resuelta el 2 de noviembre.** `origin/main`, la rama local y la línea de producción (V12b) quedaron unidas en `main`, sin perder commits. El estado vigente está en `docs/ESTADO-VIGENTE.md` y lo comprueba `node scripts/check-repo-sync.mjs`.
 - **Plantilla del correo de recuperación** (`supabase/templates/recovery.html`): modificada en otro trabajo. No está verificado si la versión cargada en Supabase coincide con el archivo.
 
-- **Insignia del botón de cuenta cortada a 1280 px** (hallazgo del 2 de noviembre, anterior a la campaña de modo claro).
-  - Cuándo pasa: con un nombre de consultorio largo y seis secciones en la barra, la insignia del plan («Permanente») se corta en el botón de cuenta.
-  - Evidencia: `.verification/modo-claro-20261102/barras/barras-dark-1280.jpg` (consultorio de demostración).
-  - Por qué no se arregló ahora: el diseño principal no cambió fuera de los colores, así que no lo causa el modo claro.
-  - Pendiente: decidir si la insignia se oculta o se acorta cuando falta lugar.
-
-- **DIVERGENCIA DEL REPOSITORIO (2 de noviembre, 16:xx UTC). No integrar sin decisión.**
-  - `origin/main` (`4352f8a`) y la rama local (`80268e2`) no comparten commits de contenido: 12 commits solo en `main` y 4 solo en local.
-  - La producción (V12b, `771fac5`) no es ancestro de `main` ni de local.
-  - Dos planes de refactorización distintos: 17 archivos con contenido contradictorio. Ninguno se borró ni se fusionó.
-  - Estado guardado en ramas de archivo, sin tocar `HEAD` ni el remoto: `archivo/local-20261015` (`80268e2`) y `archivo/origin-main-20261102` (`4352f8a`).
-  - Decisión pendiente de Juan: cuál plan es el vigente. Hasta entonces, ningún commit se integra ni se sube.
-
 ## 5. Límites conocidos (no son tareas, pero no se deben olvidar)
 
 - La llegada real de los correos de confirmación a un buzón externo no se observó. La prueba en producción usó un enlace generado por Auth.

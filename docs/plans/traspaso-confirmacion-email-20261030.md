@@ -1,5 +1,7 @@
 # Traspaso: confirmación de correo — entrega terminada
 
+> **Nota del 2 de noviembre de 2026:** las instrucciones de este documento de preservar el `HEAD` `80268e2` y el índice `55cd8f79…` quedaron superadas. Esa regla dejó divergir la copia local de GitHub y de producción. Ahora la rama de trabajo es `main`, que contiene la historia completa. El estado vigente está en [el registro único](../ESTADO-VIGENTE.md) y se comprueba con `node scripts/check-repo-sync.mjs`.
+
 **Nota del 1 de noviembre de 2026:** producción sirve **V10b** `68f31741f6ff7f2253c036800b1369f1eda16510` (versión `1d2b4acd-7dd8-4cb7-81e3-a205bafe9f8d`), que no cambia la confirmación de correo y se comprobó después de publicar. La recuperación vigente, que antes de volver a V9 exige un paso de datos, está en `docs/architecture/publicacion-y-reversion.md`. Lo que sigue describe V9 y su recuperación de entonces.
 
 ## Estado de V9 — 31 de octubre de 2026, 21:58 UTC
