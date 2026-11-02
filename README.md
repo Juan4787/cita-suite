@@ -4,7 +4,28 @@ Monorepo con la aplicación SvelteKit, la web Astro de Natalia y Supabase: agend
 
 La campaña actual se rige por el [plan aprobado íntegro](docs/plans/refactorizacion-cita-suite.md). Su [registro de ejecución](docs/plans/registro-refactorizacion-cita-suite.md) distingue avances, pruebas, resultados y pendientes. Las notificaciones por WhatsApp están descartadas; cursos y noticias siguen pospuestos.
 
-Repositorio principal: [Juan4787/cita-suite](https://github.com/Juan4787/cita-suite). El directorio físico es `Cita Suite`; la ruta anterior conserva un enlace de compatibilidad. La fuente compilada0851 y la revisión de promoción37f625b tienen funciones distintas: el marcador servido identifica el artefacto, mientras la promoción conserva historia y documentación. El [dictamen actual](docs/architecture/auditoria-final.md) mantiene el lanzamiento sin aprobar por dos mediciones fallidas de latencia y las dependencias externas descritas. La comparación sin muestreadorSQL no aprobó; sus datos y credenciales temporales ya se retiraron. El cierre está documentado con evidencia y límites, sin un tercer ensayo idéntico.
+Repositorio principal: [Juan4787/cita-suite](https://github.com/Juan4787/cita-suite). La app está en `CITA SUITE/Cita Suite App`; el árbol de trabajo conserva cambios locales y HEAD histórico. La revisión servida se identifica por el paquete publicado, no por ese HEAD.
+
+**Qué historia y qué cambios están vigentes:** [estado vigente](docs/ESTADO-VIGENTE.md), el registro único; lo comprueba `node scripts/check-repo-sync.mjs`.
+
+**Vigente desde el 2 de noviembre a las 15:33 UTC:** V12b `771fac5950c532b1123f11d4dde93eef9b42ceba`, versión `277d332d-1794-4367-8ef0-567ced159f1b`, Worker `app`.
+- Es V12 con el fondo general del modo claro apenas más cálido (`#f6f5f3`), a pedido de Juan.
+- V12 (`c21a19839c814a8a5f476cb522a13273a10f89c4`, versión `f18a80f2-fd65-4ffc-b92f-fc0101d4f85f`, 14:46 UTC) es la entrega del modo claro que V12b ajusta.
+- **Qué agrega:** V11f más el **modo claro predeterminado**, conservando el oscuro.
+  - Selector Claro, Oscuro y Automático en el menú de cuenta.
+  - La preferencia queda en cada dispositivo, en la cookie `cita-theme`.
+  - La reserva de Natalia sigue el modo de su web y se ve igual que antes.
+- **Documentos:**
+  - [plan](docs/plans/modo-claro-20261102.md), [registro](docs/plans/registro-modo-claro-20261102.md) y [traspaso](docs/plans/traspaso-modo-claro-20261102.md);
+  - las reglas de color están en [DESIGN.md](apps/web/DESIGN.md);
+  - la vuelta atrás a V11f (versión `986cf666-ae09-423b-ae05-1928007dccde`, nunca `59f81e89…`) está en [publicación y reversión](docs/architecture/publicacion-y-reversion.md).
+- **V11f** (`72d59ab00db67a8502ca560c762c61e6cfac1923`, 2 de noviembre a las 02:12 UTC) es la entrega anterior.
+
+**Entrega anterior a V11f, 1 de noviembre a las 10:15 UTC:** V10b `68f31741f6ff7f2253c036800b1369f1eda16510`, versión `1d2b4acd-7dd8-4cb7-81e3-a205bafe9f8d`, Worker `app`: V9 más la vista de consultorios archivados del panel maestro, el rubro «medicina», preguntas de hasta 40 opciones y la web de Natalia reservando en su consultorio real por `app.cita-suite.com.ar` (plan de señas y avisos, 12.16). V9 `a3c707f368736da90d2adf5850d291460f657af0` (31 de octubre) es la V8 descripta a continuación más el registro de las fallas al comprobar el enlace de confirmación. La recuperación, que antes de volver a V9 exige un paso de datos, está en [publicación y reversión](docs/architecture/publicacion-y-reversion.md); todo lo pendiente en [pendientes vigentes](docs/plans/pendientes-vigentes.md).
+
+**Entrega anterior, 31 de octubre a las 20:22 UTC:** confirmación de correo V8 `408ca04d9e6750e4657dc087264644665a63fb37`, Worker `app`, versión `a1844665-447e-40bb-b9e5-ce7c03ed29d7`. Alta pendiente en pantalla propia, reenvío y confirmación verificados en producción. [Estado y evidencias](docs/plans/traspaso-confirmacion-email-20261030.md), [índice documental](docs/README.md). La recepción de la confirmación en un buzón externo no se observó; el enlace recorrido fue generado por Auth real. Natalia/D/E siguen en pausa y su acceso de 12 meses se conserva.
+
+Rige el criterio inicial de [AGENTS.md](AGENTS.md): auditoría rigurosa, controles según riesgos concretos y pruebas productivas autorizadas. No exigir por rutina staging, renovación de backup por horas ni conservación exacta de turnos ficticios para una UI/Auth sin migraciones. Las comprobaciones históricas de capacidad conservan sus resultados y la desviación de latencia aceptada por el usuario sólo para el primer consultorio; esta entrega no las convierte en aprobadas ni reabre el lanzamiento general.
 
 ## Estructura
 
@@ -46,9 +67,9 @@ Las variables de entorno viven en la raíz. `apps/web/vite.config.ts` usa `envDi
 
 ## Despliegues
 
-Cloudflare Workers es el destino de la app (`app`) y del programador (`cita-suite-scheduler`). Natalia conserva `natalia-frutos.vercel.app`. Staging tiene destinos separados. El lanzamiento inicial usa Workers Free y Supabase Free para dos consultorios; no se contratan servicios ni se cambian planes sin autorización.
+Cloudflare Workers es el destino de la app (`app`) y del programador (`cita-suite-scheduler`). Natalia conserva `natalia-frutos.vercel.app`. Staging tiene destinos separados. El lanzamiento inicial autorizado es para un consultorio sobre Workers Free y Supabase Free; no se contratan servicios ni se cambian planes sin autorización.
 
-La [publicación y reversión](docs/architecture/publicacion-y-reversion.md) es el procedimiento operativo. CI empaqueta el release una sola vez, con manifiesto y hashes; staging, `verify:release` y producción usan esos archivos exactos. No compilar de nuevo para publicar ni ejecutar `pnpm deploy:cloudflare` como atajo de la campaña. Antes de cualquier intervención de producción deben cumplirse las condiciones previas del procedimiento, incluidos los disparadores automáticos desconectados.
+La [publicación y reversión](docs/architecture/publicacion-y-reversion.md) es el procedimiento operativo. CI empaqueta el release una sola vez, con manifiesto y hashes; staging, `verify:release` y producción usan esos archivos exactos. No compilar de nuevo para publicar ni ejecutar `pnpm deploy:cloudflare` como atajo de la campaña. Los controles se eligen según el cambio y el criterio vigente de AGENTS.md. Desconectar tareas automáticas corresponde cuando la operación o su recuperación lo necesitan; no es un requisito universal para publicar la UI.
 
 La candidata aprobada se publica con los scripts de destino explícito:
 
@@ -57,7 +78,7 @@ node scripts/deploy-staging-workers.mjs app <release-descargado>
 node scripts/deploy-production-workers.mjs app <release-descargado>
 ```
 
-Estos son pasos distintos del procedimiento; no ejecutarlos juntos ni antes de sus controles de respaldo, migraciones, staging y auditoría. El programador y Natalia tienen su propia secuencia de publicación y comprobación.
+Son comandos para destinos distintos, no una secuencia obligatoria. Reutilizar paquetes y evidencia aprobados; aplicar migraciones, copias, staging o ensayos de recuperación cuando el cambio concreto lo justifique. El programador y Natalia tienen su propia publicación y no se despliegan por una corrección de UI/Auth.
 
 No copies valores privados al repositorio ni a `wrangler.jsonc`. Cargá en
 Cloudflare, en **Settings → Variables and Secrets**, las mismas variables de

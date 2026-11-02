@@ -1,371 +1,427 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-19T15:42:34.331413+00:00",
+  "generatedAt": "2026-11-02T15:12:55Z",
   "title": "Design System: Cita Suite",
   "extensions": {
     "colorMeta": {
       "bg": {
         "role": "neutral",
-        "displayName": "Azul de fondo",
+        "displayName": "Fondo de página",
         "tonalRamp": [
-          "oklch(15% 0.0362 257.70)",
-          "oklch(26% 0.0362 257.70)",
-          "oklch(38% 0.0362 257.70)",
-          "oklch(49% 0.0362 257.70)",
-          "oklch(61% 0.0362 257.70)",
-          "oklch(72% 0.0362 257.70)",
-          "oklch(84% 0.0362 257.70)",
-          "oklch(95% 0.0362 257.70)"
+          "oklch(15% 0.0029 84.56)",
+          "oklch(26% 0.0029 84.56)",
+          "oklch(38% 0.0029 84.56)",
+          "oklch(49% 0.0029 84.56)",
+          "oklch(61% 0.0029 84.56)",
+          "oklch(72% 0.0029 84.56)",
+          "oklch(84% 0.0029 84.56)",
+          "oklch(95% 0.0029 84.56)"
         ]
       },
       "surface": {
         "role": "neutral",
-        "displayName": "Azul de superficie",
+        "displayName": "Superficie",
         "tonalRamp": [
-          "oklch(15% 0.0475 253.68)",
-          "oklch(26% 0.0475 253.68)",
-          "oklch(38% 0.0475 253.68)",
-          "oklch(49% 0.0475 253.68)",
-          "oklch(61% 0.0475 253.68)",
-          "oklch(72% 0.0475 253.68)",
-          "oklch(84% 0.0475 253.68)",
-          "oklch(95% 0.0475 253.68)"
+          "oklch(15% 0.0000 89.88)",
+          "oklch(26% 0.0000 89.88)",
+          "oklch(38% 0.0000 89.88)",
+          "oklch(49% 0.0000 89.88)",
+          "oklch(61% 0.0000 89.88)",
+          "oklch(72% 0.0000 89.88)",
+          "oklch(84% 0.0000 89.88)",
+          "oklch(95% 0.0000 89.88)"
         ]
       },
       "surface-2": {
         "role": "neutral",
-        "displayName": "Azul de segunda superficie",
+        "displayName": "Segunda superficie",
         "tonalRamp": [
-          "oklch(15% 0.0490 253.38)",
-          "oklch(26% 0.0490 253.38)",
-          "oklch(38% 0.0490 253.38)",
-          "oklch(49% 0.0490 253.38)",
-          "oklch(61% 0.0490 253.38)",
-          "oklch(72% 0.0490 253.38)",
-          "oklch(84% 0.0490 253.38)",
-          "oklch(95% 0.0490 253.38)"
+          "oklch(15% 0.0045 258.32)",
+          "oklch(26% 0.0045 258.32)",
+          "oklch(38% 0.0045 258.32)",
+          "oklch(49% 0.0045 258.32)",
+          "oklch(61% 0.0045 258.32)",
+          "oklch(72% 0.0045 258.32)",
+          "oklch(84% 0.0045 258.32)",
+          "oklch(95% 0.0045 258.32)"
         ]
       },
       "surface-raised": {
         "role": "neutral",
-        "displayName": "Azul elevado",
+        "displayName": "Superficie elevada",
         "tonalRamp": [
-          "oklch(15% 0.0571 252.27)",
-          "oklch(26% 0.0571 252.27)",
-          "oklch(38% 0.0571 252.27)",
-          "oklch(49% 0.0571 252.27)",
-          "oklch(61% 0.0571 252.27)",
-          "oklch(72% 0.0571 252.27)",
-          "oklch(84% 0.0571 252.27)",
-          "oklch(95% 0.0571 252.27)"
+          "oklch(15% 0.0000 89.88)",
+          "oklch(26% 0.0000 89.88)",
+          "oklch(38% 0.0000 89.88)",
+          "oklch(49% 0.0000 89.88)",
+          "oklch(61% 0.0000 89.88)",
+          "oklch(72% 0.0000 89.88)",
+          "oklch(84% 0.0000 89.88)",
+          "oklch(95% 0.0000 89.88)"
         ]
       },
       "border": {
         "role": "neutral",
         "displayName": "Borde tenue",
         "tonalRamp": [
-          "oklch(15% 0.0000 89.88 / 0.1)",
-          "oklch(26% 0.0000 89.88 / 0.1)",
-          "oklch(38% 0.0000 89.88 / 0.1)",
-          "oklch(49% 0.0000 89.88 / 0.1)",
-          "oklch(61% 0.0000 89.88 / 0.1)",
-          "oklch(72% 0.0000 89.88 / 0.1)",
-          "oklch(84% 0.0000 89.88 / 0.1)",
-          "oklch(95% 0.0000 89.88 / 0.1)"
+          "oklch(15% 0.0075 260.73)",
+          "oklch(26% 0.0075 260.73)",
+          "oklch(38% 0.0075 260.73)",
+          "oklch(49% 0.0075 260.73)",
+          "oklch(61% 0.0075 260.73)",
+          "oklch(72% 0.0075 260.73)",
+          "oklch(84% 0.0075 260.73)",
+          "oklch(95% 0.0075 260.73)"
         ]
       },
       "border-strong": {
         "role": "neutral",
         "displayName": "Borde estructural",
         "tonalRamp": [
-          "oklch(15% 0.0682 254.20)",
-          "oklch(26% 0.0682 254.20)",
-          "oklch(38% 0.0682 254.20)",
-          "oklch(49% 0.0682 254.20)",
-          "oklch(61% 0.0682 254.20)",
-          "oklch(72% 0.0682 254.20)",
-          "oklch(84% 0.0682 254.20)",
-          "oklch(95% 0.0682 254.20)"
+          "oklch(15% 0.0123 259.82)",
+          "oklch(26% 0.0123 259.82)",
+          "oklch(38% 0.0123 259.82)",
+          "oklch(49% 0.0123 259.82)",
+          "oklch(61% 0.0123 259.82)",
+          "oklch(72% 0.0123 259.82)",
+          "oklch(84% 0.0123 259.82)",
+          "oklch(95% 0.0123 259.82)"
+        ]
+      },
+      "field-border": {
+        "role": "neutral",
+        "displayName": "Borde de campo",
+        "tonalRamp": [
+          "oklch(15% 0.0310 263.34)",
+          "oklch(26% 0.0310 263.34)",
+          "oklch(38% 0.0310 263.34)",
+          "oklch(49% 0.0310 263.34)",
+          "oklch(61% 0.0310 263.34)",
+          "oklch(72% 0.0310 263.34)",
+          "oklch(84% 0.0310 263.34)",
+          "oklch(95% 0.0310 263.34)"
         ]
       },
       "text": {
         "role": "neutral",
-        "displayName": "Texto claro",
+        "displayName": "Texto principal",
         "tonalRamp": [
-          "oklch(15% 0.0203 264.47)",
-          "oklch(26% 0.0203 264.47)",
-          "oklch(38% 0.0203 264.47)",
-          "oklch(49% 0.0203 264.47)",
-          "oklch(61% 0.0203 264.47)",
-          "oklch(72% 0.0203 264.47)",
-          "oklch(84% 0.0203 264.47)",
-          "oklch(95% 0.0203 264.47)"
+          "oklch(15% 0.0394 258.28)",
+          "oklch(26% 0.0394 258.28)",
+          "oklch(38% 0.0394 258.28)",
+          "oklch(49% 0.0394 258.28)",
+          "oklch(61% 0.0394 258.28)",
+          "oklch(72% 0.0394 258.28)",
+          "oklch(84% 0.0394 258.28)",
+          "oklch(95% 0.0394 258.28)"
         ]
       },
       "text-muted": {
         "role": "neutral",
         "displayName": "Texto secundario",
         "tonalRamp": [
-          "oklch(15% 0.0203 264.47 / 0.64)",
-          "oklch(26% 0.0203 264.47 / 0.64)",
-          "oklch(38% 0.0203 264.47 / 0.64)",
-          "oklch(49% 0.0203 264.47 / 0.64)",
-          "oklch(61% 0.0203 264.47 / 0.64)",
-          "oklch(72% 0.0203 264.47 / 0.64)",
-          "oklch(84% 0.0203 264.47 / 0.64)",
-          "oklch(95% 0.0203 264.47 / 0.64)"
+          "oklch(15% 0.0355 257.79)",
+          "oklch(26% 0.0355 257.79)",
+          "oklch(38% 0.0355 257.79)",
+          "oklch(49% 0.0355 257.79)",
+          "oklch(61% 0.0355 257.79)",
+          "oklch(72% 0.0355 257.79)",
+          "oklch(84% 0.0355 257.79)",
+          "oklch(95% 0.0355 257.79)"
         ]
       },
       "text-subtle": {
         "role": "neutral",
-        "displayName": "Texto tenue",
+        "displayName": "Texto terciario",
         "tonalRamp": [
-          "oklch(15% 0.0203 264.47 / 0.42)",
-          "oklch(26% 0.0203 264.47 / 0.42)",
-          "oklch(38% 0.0203 264.47 / 0.42)",
-          "oklch(49% 0.0203 264.47 / 0.42)",
-          "oklch(61% 0.0203 264.47 / 0.42)",
-          "oklch(72% 0.0203 264.47 / 0.42)",
-          "oklch(84% 0.0203 264.47 / 0.42)",
-          "oklch(95% 0.0203 264.47 / 0.42)"
+          "oklch(15% 0.0402 260.30)",
+          "oklch(26% 0.0402 260.30)",
+          "oklch(38% 0.0402 260.30)",
+          "oklch(49% 0.0402 260.30)",
+          "oklch(61% 0.0402 260.30)",
+          "oklch(72% 0.0402 260.30)",
+          "oklch(84% 0.0402 260.30)",
+          "oklch(95% 0.0402 260.30)"
         ]
       },
       "accent": {
         "role": "primary",
         "displayName": "Violeta de selección",
         "tonalRamp": [
-          "oklch(15% 0.2189 292.72)",
-          "oklch(26% 0.2189 292.72)",
-          "oklch(38% 0.2189 292.72)",
-          "oklch(49% 0.2189 292.72)",
-          "oklch(61% 0.2189 292.72)",
-          "oklch(72% 0.2189 292.72)",
-          "oklch(84% 0.2189 292.72)",
-          "oklch(95% 0.2189 292.72)"
+          "oklch(15% 0.2075 295.50)",
+          "oklch(26% 0.2075 295.50)",
+          "oklch(38% 0.2075 295.50)",
+          "oklch(49% 0.2075 295.50)",
+          "oklch(61% 0.2075 295.50)",
+          "oklch(72% 0.2075 295.50)",
+          "oklch(84% 0.2075 295.50)",
+          "oklch(95% 0.2075 295.50)"
         ]
       },
       "accent-strong": {
         "role": "primary",
         "displayName": "Violeta de acción",
         "tonalRamp": [
-          "oklch(15% 0.2466 293.01)",
-          "oklch(26% 0.2466 293.01)",
-          "oklch(38% 0.2466 293.01)",
-          "oklch(49% 0.2466 293.01)",
-          "oklch(61% 0.2466 293.01)",
-          "oklch(72% 0.2466 293.01)",
-          "oklch(84% 0.2466 293.01)",
-          "oklch(95% 0.2466 293.01)"
+          "oklch(15% 0.2068 293.06)",
+          "oklch(26% 0.2068 293.06)",
+          "oklch(38% 0.2068 293.06)",
+          "oklch(49% 0.2068 293.06)",
+          "oklch(61% 0.2068 293.06)",
+          "oklch(72% 0.2068 293.06)",
+          "oklch(84% 0.2068 293.06)",
+          "oklch(95% 0.2068 293.06)"
         ]
       },
       "accent-press": {
         "role": "primary",
         "displayName": "Violeta de interacción",
         "tonalRamp": [
-          "oklch(15% 0.2412 292.58)",
-          "oklch(26% 0.2412 292.58)",
-          "oklch(38% 0.2412 292.58)",
-          "oklch(49% 0.2412 292.58)",
-          "oklch(61% 0.2412 292.58)",
-          "oklch(72% 0.2412 292.58)",
-          "oklch(84% 0.2412 292.58)",
-          "oklch(95% 0.2412 292.58)"
+          "oklch(15% 0.1899 292.87)",
+          "oklch(26% 0.1899 292.87)",
+          "oklch(38% 0.1899 292.87)",
+          "oklch(49% 0.1899 292.87)",
+          "oklch(61% 0.1899 292.87)",
+          "oklch(72% 0.1899 292.87)",
+          "oklch(84% 0.1899 292.87)",
+          "oklch(95% 0.1899 292.87)"
         ]
       },
       "accent-soft": {
         "role": "primary",
         "displayName": "Violeta suave",
         "tonalRamp": [
-          "oklch(15% 0.2466 293.01 / 0.18)",
-          "oklch(26% 0.2466 293.01 / 0.18)",
-          "oklch(38% 0.2466 293.01 / 0.18)",
-          "oklch(49% 0.2466 293.01 / 0.18)",
-          "oklch(61% 0.2466 293.01 / 0.18)",
-          "oklch(72% 0.2466 293.01 / 0.18)",
-          "oklch(84% 0.2466 293.01 / 0.18)",
-          "oklch(95% 0.2466 293.01 / 0.18)"
+          "oklch(15% 0.0193 302.21)",
+          "oklch(26% 0.0193 302.21)",
+          "oklch(38% 0.0193 302.21)",
+          "oklch(49% 0.0193 302.21)",
+          "oklch(61% 0.0193 302.21)",
+          "oklch(72% 0.0193 302.21)",
+          "oklch(84% 0.0193 302.21)",
+          "oklch(95% 0.0193 302.21)"
         ]
       },
       "accent-text": {
         "role": "primary",
         "displayName": "Violeta de texto",
         "tonalRamp": [
-          "oklch(15% 0.1013 293.57)",
-          "oklch(26% 0.1013 293.57)",
-          "oklch(38% 0.1013 293.57)",
-          "oklch(49% 0.1013 293.57)",
-          "oklch(61% 0.1013 293.57)",
-          "oklch(72% 0.1013 293.57)",
-          "oklch(84% 0.1013 293.57)",
-          "oklch(95% 0.1013 293.57)"
+          "oklch(15% 0.1899 292.87)",
+          "oklch(26% 0.1899 292.87)",
+          "oklch(38% 0.1899 292.87)",
+          "oklch(49% 0.1899 292.87)",
+          "oklch(61% 0.1899 292.87)",
+          "oklch(72% 0.1899 292.87)",
+          "oklch(84% 0.1899 292.87)",
+          "oklch(95% 0.1899 292.87)"
         ]
       },
       "ring": {
         "role": "primary",
         "displayName": "Foco violeta",
         "tonalRamp": [
-          "oklch(15% 0.2189 292.72 / 0.65)",
-          "oklch(26% 0.2189 292.72 / 0.65)",
-          "oklch(38% 0.2189 292.72 / 0.65)",
-          "oklch(49% 0.2189 292.72 / 0.65)",
-          "oklch(61% 0.2189 292.72 / 0.65)",
-          "oklch(72% 0.2189 292.72 / 0.65)",
-          "oklch(84% 0.2189 292.72 / 0.65)",
-          "oklch(95% 0.2189 292.72 / 0.65)"
+          "oklch(15% 0.2075 295.50)",
+          "oklch(26% 0.2075 295.50)",
+          "oklch(38% 0.2075 295.50)",
+          "oklch(49% 0.2075 295.50)",
+          "oklch(61% 0.2075 295.50)",
+          "oklch(72% 0.2075 295.50)",
+          "oklch(84% 0.2075 295.50)",
+          "oklch(95% 0.2075 295.50)"
         ]
       },
       "success": {
         "role": "semantic",
         "displayName": "Verde de éxito",
         "tonalRamp": [
-          "oklch(15% 0.1535 163.22)",
-          "oklch(26% 0.1535 163.22)",
-          "oklch(38% 0.1535 163.22)",
-          "oklch(49% 0.1535 163.22)",
-          "oklch(61% 0.1535 163.22)",
-          "oklch(72% 0.1535 163.22)",
-          "oklch(84% 0.1535 163.22)",
-          "oklch(95% 0.1535 163.22)"
+          "oklch(15% 0.1371 150.07)",
+          "oklch(26% 0.1371 150.07)",
+          "oklch(38% 0.1371 150.07)",
+          "oklch(49% 0.1371 150.07)",
+          "oklch(61% 0.1371 150.07)",
+          "oklch(72% 0.1371 150.07)",
+          "oklch(84% 0.1371 150.07)",
+          "oklch(95% 0.1371 150.07)"
         ]
       },
       "success-soft": {
         "role": "semantic",
         "displayName": "Éxito suave",
         "tonalRamp": [
-          "oklch(15% 0.1535 163.22 / 0.14)",
-          "oklch(26% 0.1535 163.22 / 0.14)",
-          "oklch(38% 0.1535 163.22 / 0.14)",
-          "oklch(49% 0.1535 163.22 / 0.14)",
-          "oklch(61% 0.1535 163.22 / 0.14)",
-          "oklch(72% 0.1535 163.22 / 0.14)",
-          "oklch(84% 0.1535 163.22 / 0.14)",
-          "oklch(95% 0.1535 163.22 / 0.14)"
+          "oklch(15% 0.0221 160.24)",
+          "oklch(26% 0.0221 160.24)",
+          "oklch(38% 0.0221 160.24)",
+          "oklch(49% 0.0221 160.24)",
+          "oklch(61% 0.0221 160.24)",
+          "oklch(72% 0.0221 160.24)",
+          "oklch(84% 0.0221 160.24)",
+          "oklch(95% 0.0221 160.24)"
         ]
       },
       "success-text": {
         "role": "semantic",
         "displayName": "Texto de éxito",
         "tonalRamp": [
-          "oklch(15% 0.0895 164.15)",
-          "oklch(26% 0.0895 164.15)",
-          "oklch(38% 0.0895 164.15)",
-          "oklch(49% 0.0895 164.15)",
-          "oklch(61% 0.0895 164.15)",
-          "oklch(72% 0.0895 164.15)",
-          "oklch(84% 0.0895 164.15)",
-          "oklch(95% 0.0895 164.15)"
+          "oklch(15% 0.1083 151.33)",
+          "oklch(26% 0.1083 151.33)",
+          "oklch(38% 0.1083 151.33)",
+          "oklch(49% 0.1083 151.33)",
+          "oklch(61% 0.1083 151.33)",
+          "oklch(72% 0.1083 151.33)",
+          "oklch(84% 0.1083 151.33)",
+          "oklch(95% 0.1083 151.33)"
         ]
       },
       "warning": {
         "role": "semantic",
         "displayName": "Ámbar de advertencia",
         "tonalRamp": [
-          "oklch(15% 0.1644 84.43)",
-          "oklch(26% 0.1644 84.43)",
-          "oklch(38% 0.1644 84.43)",
-          "oklch(49% 0.1644 84.43)",
-          "oklch(61% 0.1644 84.43)",
-          "oklch(72% 0.1644 84.43)",
-          "oklch(84% 0.1644 84.43)",
-          "oklch(95% 0.1644 84.43)"
+          "oklch(15% 0.1455 49.00)",
+          "oklch(26% 0.1455 49.00)",
+          "oklch(38% 0.1455 49.00)",
+          "oklch(49% 0.1455 49.00)",
+          "oklch(61% 0.1455 49.00)",
+          "oklch(72% 0.1455 49.00)",
+          "oklch(84% 0.1455 49.00)",
+          "oklch(95% 0.1455 49.00)"
         ]
       },
       "warning-soft": {
         "role": "semantic",
         "displayName": "Advertencia suave",
         "tonalRamp": [
-          "oklch(15% 0.1644 84.43 / 0.14)",
-          "oklch(26% 0.1644 84.43 / 0.14)",
-          "oklch(38% 0.1644 84.43 / 0.14)",
-          "oklch(49% 0.1644 84.43 / 0.14)",
-          "oklch(61% 0.1644 84.43 / 0.14)",
-          "oklch(72% 0.1644 84.43 / 0.14)",
-          "oklch(84% 0.1644 84.43 / 0.14)",
-          "oklch(95% 0.1644 84.43 / 0.14)"
+          "oklch(15% 0.0239 85.79)",
+          "oklch(26% 0.0239 85.79)",
+          "oklch(38% 0.0239 85.79)",
+          "oklch(49% 0.0239 85.79)",
+          "oklch(61% 0.0239 85.79)",
+          "oklch(72% 0.0239 85.79)",
+          "oklch(84% 0.0239 85.79)",
+          "oklch(95% 0.0239 85.79)"
         ]
       },
       "warning-text": {
         "role": "semantic",
         "displayName": "Texto de advertencia",
         "tonalRamp": [
-          "oklch(15% 0.1151 95.75)",
-          "oklch(26% 0.1151 95.75)",
-          "oklch(38% 0.1151 95.75)",
-          "oklch(49% 0.1151 95.75)",
-          "oklch(61% 0.1151 95.75)",
-          "oklch(72% 0.1151 95.75)",
-          "oklch(84% 0.1151 95.75)",
-          "oklch(95% 0.1151 95.75)"
+          "oklch(15% 0.1199 46.26)",
+          "oklch(26% 0.1199 46.26)",
+          "oklch(38% 0.1199 46.26)",
+          "oklch(49% 0.1199 46.26)",
+          "oklch(61% 0.1199 46.26)",
+          "oklch(72% 0.1199 46.26)",
+          "oklch(84% 0.1199 46.26)",
+          "oklch(95% 0.1199 46.26)"
         ]
       },
       "danger": {
         "role": "semantic",
         "displayName": "Rojo de error",
         "tonalRamp": [
-          "oklch(15% 0.1661 22.22)",
-          "oklch(26% 0.1661 22.22)",
-          "oklch(38% 0.1661 22.22)",
-          "oklch(49% 0.1661 22.22)",
-          "oklch(61% 0.1661 22.22)",
-          "oklch(72% 0.1661 22.22)",
-          "oklch(84% 0.1661 22.22)",
-          "oklch(95% 0.1661 22.22)"
+          "oklch(15% 0.2088 29.48)",
+          "oklch(26% 0.2088 29.48)",
+          "oklch(38% 0.2088 29.48)",
+          "oklch(49% 0.2088 29.48)",
+          "oklch(61% 0.2088 29.48)",
+          "oklch(72% 0.2088 29.48)",
+          "oklch(84% 0.2088 29.48)",
+          "oklch(95% 0.2088 29.48)"
         ]
       },
       "danger-strong": {
         "role": "semantic",
         "displayName": "Rojo de acción destructiva",
         "tonalRamp": [
-          "oklch(15% 0.2152 27.33)",
-          "oklch(26% 0.2152 27.33)",
-          "oklch(38% 0.2152 27.33)",
-          "oklch(49% 0.2152 27.33)",
-          "oklch(61% 0.2152 27.33)",
-          "oklch(72% 0.2152 27.33)",
-          "oklch(84% 0.2152 27.33)",
-          "oklch(95% 0.2152 27.33)"
+          "oklch(15% 0.1972 28.91)",
+          "oklch(26% 0.1972 28.91)",
+          "oklch(38% 0.1972 28.91)",
+          "oklch(49% 0.1972 28.91)",
+          "oklch(61% 0.1972 28.91)",
+          "oklch(72% 0.1972 28.91)",
+          "oklch(84% 0.1972 28.91)",
+          "oklch(95% 0.1972 28.91)"
         ]
       },
       "danger-press": {
         "role": "semantic",
         "displayName": "Rojo de interacción",
         "tonalRamp": [
-          "oklch(15% 0.1905 27.52)",
-          "oklch(26% 0.1905 27.52)",
-          "oklch(38% 0.1905 27.52)",
-          "oklch(49% 0.1905 27.52)",
-          "oklch(61% 0.1905 27.52)",
-          "oklch(72% 0.1905 27.52)",
-          "oklch(84% 0.1905 27.52)",
-          "oklch(95% 0.1905 27.52)"
+          "oklch(15% 0.1671 28.89)",
+          "oklch(26% 0.1671 28.89)",
+          "oklch(38% 0.1671 28.89)",
+          "oklch(49% 0.1671 28.89)",
+          "oklch(61% 0.1671 28.89)",
+          "oklch(72% 0.1671 28.89)",
+          "oklch(84% 0.1671 28.89)",
+          "oklch(95% 0.1671 28.89)"
         ]
       },
       "danger-soft": {
         "role": "semantic",
         "displayName": "Error suave",
         "tonalRamp": [
-          "oklch(15% 0.1661 22.22 / 0.13)",
-          "oklch(26% 0.1661 22.22 / 0.13)",
-          "oklch(38% 0.1661 22.22 / 0.13)",
-          "oklch(49% 0.1661 22.22 / 0.13)",
-          "oklch(61% 0.1661 22.22 / 0.13)",
-          "oklch(72% 0.1661 22.22 / 0.13)",
-          "oklch(84% 0.1661 22.22 / 0.13)",
-          "oklch(95% 0.1661 22.22 / 0.13)"
+          "oklch(15% 0.0119 23.70)",
+          "oklch(26% 0.0119 23.70)",
+          "oklch(38% 0.0119 23.70)",
+          "oklch(49% 0.0119 23.70)",
+          "oklch(61% 0.0119 23.70)",
+          "oklch(72% 0.0119 23.70)",
+          "oklch(84% 0.0119 23.70)",
+          "oklch(95% 0.0119 23.70)"
         ]
       },
       "danger-text": {
         "role": "semantic",
         "displayName": "Texto de error",
         "tonalRamp": [
-          "oklch(15% 0.0593 18.33)",
-          "oklch(26% 0.0593 18.33)",
-          "oklch(38% 0.0593 18.33)",
-          "oklch(49% 0.0593 18.33)",
-          "oklch(61% 0.0593 18.33)",
-          "oklch(72% 0.0593 18.33)",
-          "oklch(84% 0.0593 18.33)",
-          "oklch(95% 0.0593 18.33)"
+          "oklch(15% 0.1821 29.51)",
+          "oklch(26% 0.1821 29.51)",
+          "oklch(38% 0.1821 29.51)",
+          "oklch(49% 0.1821 29.51)",
+          "oklch(61% 0.1821 29.51)",
+          "oklch(72% 0.1821 29.51)",
+          "oklch(84% 0.1821 29.51)",
+          "oklch(95% 0.1821 29.51)"
+        ]
+      },
+      "info": {
+        "role": "tertiary",
+        "displayName": "Azul informativo",
+        "tonalRamp": [
+          "oklch(15% 0.1955 260.89)",
+          "oklch(26% 0.1955 260.89)",
+          "oklch(38% 0.1955 260.89)",
+          "oklch(49% 0.1955 260.89)",
+          "oklch(61% 0.1955 260.89)",
+          "oklch(72% 0.1955 260.89)",
+          "oklch(84% 0.1955 260.89)",
+          "oklch(95% 0.1955 260.89)"
+        ]
+      },
+      "info-soft": {
+        "role": "tertiary",
+        "displayName": "Azul informativo suave",
+        "tonalRamp": [
+          "oklch(15% 0.0142 254.60)",
+          "oklch(26% 0.0142 254.60)",
+          "oklch(38% 0.0142 254.60)",
+          "oklch(49% 0.0142 254.60)",
+          "oklch(61% 0.0142 254.60)",
+          "oklch(72% 0.0142 254.60)",
+          "oklch(84% 0.0142 254.60)",
+          "oklch(95% 0.0142 254.60)"
+        ]
+      },
+      "info-text": {
+        "role": "tertiary",
+        "displayName": "Texto informativo",
+        "tonalRamp": [
+          "oklch(15% 0.1632 261.93)",
+          "oklch(26% 0.1632 261.93)",
+          "oklch(38% 0.1632 261.93)",
+          "oklch(49% 0.1632 261.93)",
+          "oklch(61% 0.1632 261.93)",
+          "oklch(72% 0.1632 261.93)",
+          "oklch(84% 0.1632 261.93)",
+          "oklch(95% 0.1632 261.93)"
         ]
       },
       "on-accent": {
@@ -382,88 +438,130 @@
           "oklch(95% 0.0000 89.88)"
         ]
       },
+      "inverse": {
+        "role": "neutral",
+        "displayName": "Contraste máximo",
+        "tonalRamp": [
+          "oklch(15% 0.0394 258.28)",
+          "oklch(26% 0.0394 258.28)",
+          "oklch(38% 0.0394 258.28)",
+          "oklch(49% 0.0394 258.28)",
+          "oklch(61% 0.0394 258.28)",
+          "oklch(72% 0.0394 258.28)",
+          "oklch(84% 0.0394 258.28)",
+          "oklch(95% 0.0394 258.28)"
+        ]
+      },
+      "on-inverse": {
+        "role": "neutral",
+        "displayName": "Texto sobre contraste máximo",
+        "tonalRamp": [
+          "oklch(15% 0.0000 89.88)",
+          "oklch(26% 0.0000 89.88)",
+          "oklch(38% 0.0000 89.88)",
+          "oklch(49% 0.0000 89.88)",
+          "oklch(61% 0.0000 89.88)",
+          "oklch(72% 0.0000 89.88)",
+          "oklch(84% 0.0000 89.88)",
+          "oklch(95% 0.0000 89.88)"
+        ]
+      },
       "field": {
         "role": "neutral",
         "displayName": "Superficie de campo",
         "tonalRamp": [
-          "oklch(15% 0.0000 89.88 / 0.045)",
-          "oklch(26% 0.0000 89.88 / 0.045)",
-          "oklch(38% 0.0000 89.88 / 0.045)",
-          "oklch(49% 0.0000 89.88 / 0.045)",
-          "oklch(61% 0.0000 89.88 / 0.045)",
-          "oklch(72% 0.0000 89.88 / 0.045)",
-          "oklch(84% 0.0000 89.88 / 0.045)",
-          "oklch(95% 0.0000 89.88 / 0.045)"
+          "oklch(15% 0.0000 89.88)",
+          "oklch(26% 0.0000 89.88)",
+          "oklch(38% 0.0000 89.88)",
+          "oklch(49% 0.0000 89.88)",
+          "oklch(61% 0.0000 89.88)",
+          "oklch(72% 0.0000 89.88)",
+          "oklch(84% 0.0000 89.88)",
+          "oklch(95% 0.0000 89.88)"
+        ]
+      },
+      "secondary-bg": {
+        "role": "neutral",
+        "displayName": "Fondo de botón secundario",
+        "tonalRamp": [
+          "oklch(15% 0.0000 89.88)",
+          "oklch(26% 0.0000 89.88)",
+          "oklch(38% 0.0000 89.88)",
+          "oklch(49% 0.0000 89.88)",
+          "oklch(61% 0.0000 89.88)",
+          "oklch(72% 0.0000 89.88)",
+          "oklch(84% 0.0000 89.88)",
+          "oklch(95% 0.0000 89.88)"
         ]
       },
       "patient-muted": {
         "role": "neutral",
         "displayName": "Ayuda del paciente",
         "tonalRamp": [
-          "oklch(15% 0.0329 260.02)",
-          "oklch(26% 0.0329 260.02)",
-          "oklch(38% 0.0329 260.02)",
-          "oklch(49% 0.0329 260.02)",
-          "oklch(61% 0.0329 260.02)",
-          "oklch(72% 0.0329 260.02)",
-          "oklch(84% 0.0329 260.02)",
-          "oklch(95% 0.0329 260.02)"
+          "oklch(15% 0.0355 257.79)",
+          "oklch(26% 0.0355 257.79)",
+          "oklch(38% 0.0355 257.79)",
+          "oklch(49% 0.0355 257.79)",
+          "oklch(61% 0.0355 257.79)",
+          "oklch(72% 0.0355 257.79)",
+          "oklch(84% 0.0355 257.79)",
+          "oklch(95% 0.0355 257.79)"
         ]
       },
       "patient-field": {
         "role": "neutral",
         "displayName": "Campo del paciente",
         "tonalRamp": [
-          "oklch(15% 0.0203 264.47 / 0.045)",
-          "oklch(26% 0.0203 264.47 / 0.045)",
-          "oklch(38% 0.0203 264.47 / 0.045)",
-          "oklch(49% 0.0203 264.47 / 0.045)",
-          "oklch(61% 0.0203 264.47 / 0.045)",
-          "oklch(72% 0.0203 264.47 / 0.045)",
-          "oklch(84% 0.0203 264.47 / 0.045)",
-          "oklch(95% 0.0203 264.47 / 0.045)"
+          "oklch(15% 0.0000 89.88)",
+          "oklch(26% 0.0000 89.88)",
+          "oklch(38% 0.0000 89.88)",
+          "oklch(49% 0.0000 89.88)",
+          "oklch(61% 0.0000 89.88)",
+          "oklch(72% 0.0000 89.88)",
+          "oklch(84% 0.0000 89.88)",
+          "oklch(95% 0.0000 89.88)"
         ]
       },
       "patient-field-border": {
         "role": "neutral",
         "displayName": "Borde del campo del paciente",
         "tonalRamp": [
-          "oklch(15% 0.0439 257.02)",
-          "oklch(26% 0.0439 257.02)",
-          "oklch(38% 0.0439 257.02)",
-          "oklch(49% 0.0439 257.02)",
-          "oklch(61% 0.0439 257.02)",
-          "oklch(72% 0.0439 257.02)",
-          "oklch(84% 0.0439 257.02)",
-          "oklch(95% 0.0439 257.02)"
+          "oklch(15% 0.0310 263.34)",
+          "oklch(26% 0.0310 263.34)",
+          "oklch(38% 0.0310 263.34)",
+          "oklch(49% 0.0310 263.34)",
+          "oklch(61% 0.0310 263.34)",
+          "oklch(72% 0.0310 263.34)",
+          "oklch(84% 0.0310 263.34)",
+          "oklch(95% 0.0310 263.34)"
         ]
       },
       "patient-summary": {
         "role": "primary",
         "displayName": "Resumen del paciente",
         "tonalRamp": [
-          "oklch(15% 0.2189 292.72 / 0.06)",
-          "oklch(26% 0.2189 292.72 / 0.06)",
-          "oklch(38% 0.2189 292.72 / 0.06)",
-          "oklch(49% 0.2189 292.72 / 0.06)",
-          "oklch(61% 0.2189 292.72 / 0.06)",
-          "oklch(72% 0.2189 292.72 / 0.06)",
-          "oklch(84% 0.2189 292.72 / 0.06)",
-          "oklch(95% 0.2189 292.72 / 0.06)"
+          "oklch(15% 0.0123 301.29)",
+          "oklch(26% 0.0123 301.29)",
+          "oklch(38% 0.0123 301.29)",
+          "oklch(49% 0.0123 301.29)",
+          "oklch(61% 0.0123 301.29)",
+          "oklch(72% 0.0123 301.29)",
+          "oklch(84% 0.0123 301.29)",
+          "oklch(95% 0.0123 301.29)"
         ]
       },
       "patient-summary-border": {
         "role": "primary",
         "displayName": "Borde del resumen del paciente",
         "tonalRamp": [
-          "oklch(15% 0.1720 297.32)",
-          "oklch(26% 0.1720 297.32)",
-          "oklch(38% 0.1720 297.32)",
-          "oklch(49% 0.1720 297.32)",
-          "oklch(61% 0.1720 297.32)",
-          "oklch(72% 0.1720 297.32)",
-          "oklch(84% 0.1720 297.32)",
-          "oklch(95% 0.1720 297.32)"
+          "oklch(15% 0.1106 298.78)",
+          "oklch(26% 0.1106 298.78)",
+          "oklch(38% 0.1106 298.78)",
+          "oklch(49% 0.1106 298.78)",
+          "oklch(61% 0.1106 298.78)",
+          "oklch(72% 0.1106 298.78)",
+          "oklch(84% 0.1106 298.78)",
+          "oklch(95% 0.1106 298.78)"
         ]
       }
     },
@@ -571,23 +669,23 @@
     ],
     "sources": {
       "designMd": "DESIGN.md",
-      "designMdSha256": "56220493c1edd76396e2e0b13531aa954d66f554422e49e8bcc7a4daa14aa8ae",
+      "designMdSha256": "43619db9c1d8bf07b40ce92ce909d6bad6c5b161a5d156c3e665d5940a94326d",
       "files": [
         {
           "path": "src/app.css",
-          "sha256": "f32e6cd592e248d8cc49e7013e9ab1f02476bd541d4db92e3c8bf4b5d82c45a7"
+          "sha256": "8521f302dfb1c1cea2b23069fa176d348e404ae8dc2d9e0b0ec1945ec1aa34e4"
         },
         {
           "path": "src/routes/odonto/configuracion/+page.svelte",
-          "sha256": "09be5dfc0653301567fd7f3bc1f9f06f65d6e314e1ed37dd0ec37088806dd7fd"
+          "sha256": "36e57d7bb1e2291c7204587ce9492792940d7fa2524dc671bc0002170744ca94"
         },
         {
           "path": "src/routes/odonto/configuracion/reserva-online/+page.svelte",
-          "sha256": "27458b760e79da902b96c15c4165828366a95358cd8d59e37378a0634586c49b"
+          "sha256": "095231296b8648edeb6c02fb53df67cbff8d0e42c15965218c42d7c6f437d625"
         },
         {
           "path": "src/routes/odonto/configuracion/reserva-online/webs/+page.svelte",
-          "sha256": "1eed693ae11c37f8f4f5ed855252065597f54765ea68a9d2db62eed4a9d493ec"
+          "sha256": "d3b31c6e08d7ac08d67869704740d09bbee122b6bbbda9092a00fb6ae3590a9a"
         },
         {
           "path": "src/routes/odonto/configuracion/reserva-online/webs/+page.server.ts",
@@ -595,7 +693,7 @@
         },
         {
           "path": "src/routes/odonto/configuracion/negocio/+page.svelte",
-          "sha256": "cce76f9e6f3aa7709e1618c666a7b0893e3be9f1f61b76ddeb89f1a5cf19d0cf"
+          "sha256": "a37be03b1cadaef338ebcd2d152a61e83f53989f1ebefdfe53b3c8e286d1ed16"
         },
         {
           "path": "src/routes/odonto/profesionales/[professionalId]/+page.svelte",
@@ -603,7 +701,7 @@
         },
         {
           "path": "src/routes/odonto/profesionales/[professionalId]/preguntas/+page.svelte",
-          "sha256": "b39e141781604a8827c82e7720282325ca69156bd71989fa6e51796a9ab0fcfc"
+          "sha256": "438e8494995a6ebb83e28cc1357a08e9325c2b60a741237f4732f09d8f844599"
         },
         {
           "path": "src/routes/odonto/profesionales/[professionalId]/aranceles/+page.svelte",
@@ -611,11 +709,11 @@
         },
         {
           "path": "src/lib/booking/BookingShareLink.svelte",
-          "sha256": "0e6101b2780ad3f4b79448fcca43edb9f134e6afce81c53a112ae2c8f137a5bd"
+          "sha256": "db2f21e168abb6e5266ba294630c54d5456087b90ed98bd4efd5b3dc257ba68e"
         },
         {
           "path": "src/lib/booking/ProfessionalBookingFormEditor.svelte",
-          "sha256": "94d0dfde9f72eb306092e10fc16ec239480f18355b3e163fb0a9eb9f1671a236"
+          "sha256": "fb12a94861ac04230db86f9ad2cdd636fcf4aaf0aa428c0293c63bb1aaafdf85"
         },
         {
           "path": "src/lib/booking/BookingQuestionDetails.svelte",
@@ -623,7 +721,7 @@
         },
         {
           "path": "src/lib/booking/PricePolicyEditor.svelte",
-          "sha256": "1252d1853f27d5f5e9fc134c27e9c4c25d316068efbaa87112526663dbda346d"
+          "sha256": "920c4952942ad672b17e89845fb9eb5c092f678369bbdb47d44ee6a3d9615e8e"
         },
         {
           "path": "src/lib/ui/styled-controls.ts",
@@ -635,15 +733,15 @@
         },
         {
           "path": "src/lib/server/sites/public/booking-profile-config.ts",
-          "sha256": "4fa8aabb741ee020bae2c04a903e0d850fdd0de8bca8fcc7e8badb056005c809"
+          "sha256": "71edb0dbab9696b4540280967e8440d92d1517e0d15ba1584bfe05fa6349ccb4"
         },
         {
           "path": "src/lib/booking/BookingAppearance.svelte",
-          "sha256": "d3578db83b16650aa5d1d9e42325fe9692db7b22c7a1806496397e9eef0ac191"
+          "sha256": "d6fffaea98f70bfc73f7c6748052056453302e64bb50d577fd53b3702c406b28"
         },
         {
           "path": "src/lib/booking/PublicBookingFlow.svelte",
-          "sha256": "99e735bebdc79694b46c48c43c0069daee71823c9ebd3ede285e8807343c1013"
+          "sha256": "af296077742fea41e6317b28bf413e8528d830dcd14d5dbf5881232f895ac243"
         },
         {
           "path": "src/lib/booking/PublicBookingIntakeField.svelte",
@@ -655,11 +753,11 @@
         },
         {
           "path": "src/lib/booking/patient-booking.css",
-          "sha256": "eac5ea28c3723b00c7629070174ef55347a4329819b687a2d456b5b3d33c9cd7"
+          "sha256": "2c4ecbfc824fc99314514c9838176efbaa725a302f51ffd4e02481fb2e91bd37"
         },
         {
           "path": "src/lib/booking/BookingInstallation.svelte",
-          "sha256": "334e0df376139f5c27364b21151780812baa0dcece02cf86471aa47a7e92458b"
+          "sha256": "0eabceec97568708965d3937f5f9f59063bf888f109cc733a882f6b1050bcc78"
         },
         {
           "path": "src/lib/booking/booking-installation.ts",
@@ -667,7 +765,7 @@
         },
         {
           "path": "src/routes/odonto/configuracion/reserva-online/+page.server.ts",
-          "sha256": "f56bdb2caed67a2990d0ccb15745771f39dbff2ca123063aa98acb40b00c3f99"
+          "sha256": "afe6c3b1cb70482e17845f1ef79de396e2f8c269b3b6cf7bab8ce424f11e51ce"
         },
         {
           "path": "static/booking/embed-v1.js",
@@ -679,11 +777,11 @@
         },
         {
           "path": "src/app.html",
-          "sha256": "16eba74750f74645d02e8d32034529ddbbe574fd2956b3da31adc53369cace2e"
+          "sha256": "2c15cd5ba23a662f4c2e6f4bafbadc110a821f94c1bd069224f7aac3ed845902"
         },
         {
           "path": "tailwind.config.js",
-          "sha256": "e90d1a9251bf6315c42459d0f820004461f85200ef9c0a23e594c9159c91f181"
+          "sha256": "e2e0faca2a3a5ebc8ac185f959463c3f35940b628f198ef3d578fc705aef65f9"
         },
         {
           "path": "src/lib/utils/format.ts",
@@ -695,39 +793,40 @@
         },
         {
           "path": "src/lib/booking/PublicBookingConfirmation.svelte",
-          "sha256": "ae5940d041814615e03d26b7b73ffc8b805b9d06f8b045f81bc61475d71f5643"
+          "sha256": "fcfcfd90729fcd840b4d884b3f82966430fdc9f3500493e08c6d1b2b96b7ee52"
         },
         {
           "path": "src/lib/components/agenda/ManualAppointmentWizard.svelte",
-          "sha256": "4237ebbb9b0656c2ee150f3400dc9d3fdf1d914fb0d3da69f28af9789bbf861f"
+          "sha256": "c49e59114f81d1995209149994d360b6bc45a734587f5612d3b0ebdc03fc812f"
         },
         {
           "path": "src/lib/components/team/ProfessionalEditor.svelte",
-          "sha256": "71ca02ebd4c118d6b1fe453763cdeee92b1271d62a2b6298e4e14f3209d7551e"
+          "sha256": "258b8dab8ecdf2b3d48771402695865fdde193a44aa81d095333a361f6a1b280"
         },
         {
           "path": "src/lib/components/team/ProfessionalServicesPanel.svelte",
-          "sha256": "e8f959860d32b94f0da73cf9acdc1e442beb6ed3605a195a5bc66cb0f5e211f9"
+          "sha256": "7260a2260be3e0cf21dd605c05a5a5b9d3fe223696246d9d8fd5ce8f86d9ba0e"
         },
         {
           "path": "src/lib/components/patients/PatientProfilePanel.svelte",
-          "sha256": "b63ff36d9d83c90168d84b2a990c93feee736b46ec476ab3847e799ca07071ff"
+          "sha256": "c180d18ea2a246685a3df50a8daeff67514ac3c2f6089fb0d2af60ca364a0e79"
         },
         {
           "path": "src/routes/odonto/pacientes/[id]/+page.svelte",
-          "sha256": "c2375029acb4c6b479de5636e9a9fe2fb00466dfde1ed87c075922d0b8d40bc9"
+          "sha256": "69e3e69ea9afcb8c9f20c28769c6dd69a7eae3fb41848e87abf7bb05a6dfca35"
         },
         {
           "path": "src/routes/+layout.server.ts",
-          "sha256": "017dd71901fd6fc7834dbc84e356d05b9b252062bfa07091e866ececd8a6940c"
+          "sha256": "c6c32e3c1a508776ee17b1fea902e083d8f806db41372f6e3e94dc9eee56402b"
         },
         {
           "path": "e2e/helpers/layout-usability.ts",
-          "sha256": "350c33dbb296cf3803768cbae77b8037330c8718c0b7669e58a24d3ca29456f3"
+          "sha256": "2c00e49a734699e9b1fef45fcd7a3db580fe46266a0392389dcb51eee585e407"
         }
       ],
       "rampNote": "Las rampas OKLCH son previsualizaciones sintéticas de oscuro a claro; no sustituyen los colores normativos del frontmatter.",
-      "previewNote": "Los snippets representan el aspecto del componente; la interacción de formulario sigue en las fuentes de la app."
+      "previewNote": "Los snippets representan el aspecto del componente; la interacción de formulario sigue en las fuentes de la app.",
+      "modesNote": "El frontmatter colors tiene los valores claros (predeterminados) y colors-dark los oscuros; las rampas se calculan desde los claros. Fuente única de los colores: src/lib/theme/palette.js."
     }
   },
   "components": [
@@ -821,10 +920,10 @@
   ],
   "narrative": {
     "northStar": "Cita Suite: claridad para trabajar",
-    "overview": "Se conserva la identidad existente: Inter, fondos azul oscuro y acento violeta. La precisión de los controles, la jerarquía de texto y los estados hacen reconocible el sistema. Esta frase describe el trabajo del producto; no introduce una identidad comercial nueva.\n\nLa interfaz permite encontrar una tarea y completarla con campos visibles, agrupaciones cortas y opciones secundarias progresivas. Este documento registra los estilos compartidos, los patrones implementados en configuración de reservas y confirmación del paciente, y las reglas de texto y composición verificadas también en la ficha clínica, Equipo y la reserva manual; no certifica una renovación de todas las páginas de la aplicación.",
+    "overview": "Se conserva la identidad existente: Inter, el violeta del logo como acento y el azul marino de la marca, que es el fondo en el modo oscuro y la tinta del texto en el claro. La precisión de los controles, la jerarquía de texto y los estados hacen reconocible el sistema. Esta frase describe el trabajo del producto; no introduce una identidad comercial nueva.\n\nLa interfaz permite encontrar una tarea y completarla con campos visibles, agrupaciones cortas y opciones secundarias progresivas. Este documento registra los estilos compartidos, los patrones implementados en configuración de reservas y confirmación del paciente, y las reglas de texto y composición verificadas también en la ficha clínica, Equipo y la reserva manual; no certifica una renovación de todas las páginas de la aplicación.",
     "keyCharacteristics": [
       "Una familia tipográfica para títulos, datos y controles.",
-      "Superficies oscuras con diferencias de tono, bordes y elevación suave.",
+      "Dos modos: claro por defecto (tarjetas blancas sobre un gris casi neutro) y oscuro (azules con diferencias de tono); los dos con bordes y elevación suave.",
       "Violeta para acciones principales, foco y selección; estados con texto propio.",
       "Controles consistentes, nombres cotidianos y adaptación estructural al celular.",
       "Texto completo: nombres, valores y mensajes se ajustan en más líneas en vez de cortarse con «…» o ensanchar la pantalla."
@@ -836,8 +935,18 @@
         "section": "colors"
       },
       {
-        "name": "Tema único",
-        "body": "Cita Suite tiene un solo tema oscuro (`color-scheme: dark`, con la variante `dark` siempre activa), también cuando el navegador prefiere el modo claro. Sólo la apariencia Natalia de la reserva pública alterna claro y oscuro, según el modo que indica su sitio (`color_mode` o el puente de la integración) y no según la preferencia del navegador.",
+        "name": "Dos modos",
+        "body": "Cita Suite es clara por defecto, también cuando el dispositivo prefiere oscuro, y ofrece el modo oscuro de siempre (docs/plans/modo-claro-20261102.md).\n- La persona elige Claro, Oscuro o Automático en el menú de su cuenta (`ThemeSelector`). La elección es del dispositivo: se guarda un año en la cookie `cita-theme`.\n- El servidor arma cada página ya en el modo elegido: pone `dark` o `theme-system` en `<html>` y el color de la barra del navegador (`hooks.server.ts`, `src/lib/theme/preference.ts`). No hay parpadeo y no hace falta JavaScript.\n- Automático sigue al dispositivo sólo con CSS, también si cambia con la página abierta.\n- El cambio se aplica al instante y todos los elementos cambian a la vez: la clase `theme-switching` apaga las transiciones durante el cambio.\n- La apariencia Natalia de la reserva pública no depende de este modo: alterna claro y oscuro según el modo que indica su sitio (`color_mode` o el puente de la integración). Dentro de su ámbito, las variables de la app que ella no redefine quedan fijas en su valor oscuro, así su reserva se ve como antes del modo claro. Sus reglas apuntan a las marcas `bk-*` de los componentes de reserva.\n- El visor de radiografías e imágenes clínicas es siempre oscuro, en los dos modos, para conservar el contraste de las zonas oscuras de la imagen.",
+        "section": "colors"
+      },
+      {
+        "name": "Variable única",
+        "body": "Todo color sale de `src/lib/theme/palette.js`, que define cada variable con su valor claro y su valor oscuro. Tailwind toma de allí sus clases de color y sus variables (`tailwind.config.js`).\n- Un color escrito a mano no seguiría el modo elegido. No se escriben hexadecimales, `rgb()`, clases de la paleta de Tailwind (`text-white`, `bg-neutral-100`…), clases arbitrarias con color (`bg-[#…]`) ni variantes `dark:`.\n- Lo controlan `scripts/lib/theme-colors.test.mjs` (colores escritos a mano, clases que no existen en la paleta, variables leídas que nadie define y variables sin uso) y `scripts/lib/theme-palette.test.mjs` (contraste WCAG 2.2 de los dos modos sobre los valores reales).\n- Las excepciones revisadas, con su motivo, están en `scripts/lib/theme-colors.mjs`: el visor clínico, el Excel exportado y las tildes blancas de las casillas.",
+        "section": "colors"
+      },
+      {
+        "name": "Equivalencias",
+        "body": "Las variables `--c-*` son la capa de equivalencias del oscuro anterior. Cada color que se veía en oscuro tiene su variable, que conserva ese color con una diferencia perceptual ΔE2000 de 2 o menos, salvo las correcciones de accesibilidad aprobadas.\n- Su nombre dice la función, el tono y el nivel: `text-fg-55` es la tinta al 55 % (blanco en oscuro); `bg-danger-500-15` es rojo 500 al 15 %; `border-line-strong` es el borde fuerte.\n- Su valor claro sale de la paleta aprobada según la función: tinta azul marino por niveles de énfasis, estados con sus colores de texto y fondo suave, bordes y superficies claras.\n- Para un color nuevo se prefiere una variable de función (`--text`, `--surface`, `--accent`…) antes que una equivalencia nueva.",
         "section": "colors"
       },
       {
@@ -862,7 +971,7 @@
       }
     ],
     "dos": [
-      "**Do** conservar Inter y los tokens compartidos del sistema oscuro existente.",
+      "**Do** conservar Inter y tomar todo color de `src/lib/theme/palette.js`; un color nuevo se agrega allí con su valor claro y su valor oscuro.",
       "**Do** usar etiquetas visibles, foco reconocible y texto para comunicar cada estado.",
       "**Do** agrupar por tarea y plegar opciones secundarias después de los campos principales.",
       "**Do** conservar la semántica, validación y datos del formulario al mejorar sus controles.",

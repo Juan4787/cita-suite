@@ -4,13 +4,16 @@ import { createHash } from 'node:crypto';
 import { mkdirSync, mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { loadStagingRelease } from './staging-environment.mjs';
+import { PRODUCTION_HOSTS, loadStagingRelease } from './staging-environment.mjs';
 import { STAGING_PROJECT_REF } from './staging-database.mjs';
 import { STAGING_APP_ORIGIN, STAGING_RELEASE_PRACTICE } from './staging-deploy.mjs';
+import { PRODUCTION_API_ORIGIN } from './production-database.mjs';
+import { PRODUCTION_APP_ORIGIN, PRODUCTION_NATALIA_APP_BASE, PRODUCTION_NATALIA_ORIGIN, PRODUCTION_WORKERS_DEV_ORIGIN } from './production-deploy.mjs';
 
 const revision = 'a'.repeat(40);
 const key = (ref, role) => ['e30', Buffer.from(JSON.stringify({ ref, role })).toString('base64url'), 'signature'].join('.');
-const natalia = `<a data-booking data-booking-base="${STAGING_APP_ORIGIN}" data-booking-key="${STAGING_RELEASE_PRACTICE.integrationKey}">Reservar</a>`;
+// Natalia's staging build as the release carries it: its page asks not to be indexed and robots.txt is there (plan 12.16).
+const natalia = `<head><meta name="robots" content="noindex"/></head><a data-booking data-booking-base="${STAGING_APP_ORIGIN}" data-booking-key="${STAGING_RELEASE_PRACTICE.integrationKey}">Reservar</a>`;
 
 function fixture(run) {
 	const root = mkdtempSync(join(tmpdir(), 'cita-staging-guard-'));
@@ -19,7 +22,8 @@ function fixture(run) {
 		'.verification/cloudflare-bundle/_worker.js': 'export default {}',
 		'apps/web/.svelte-kit/cloudflare/.assetsignore': '_worker.js\n',
 		'apps/web/.svelte-kit/cloudflare/_app/version.json': JSON.stringify({ version: revision }),
-		'.verification/natalia-staging/index.html': natalia
+		'.verification/natalia-staging/index.html': natalia,
+		'.verification/natalia-staging/robots.txt': 'User-agent: *\nAllow: /\n'
 	};
 	const write = (revisionOfBuild = revision) => {
 		rmSync(release, { recursive: true, force: true });
@@ -44,6 +48,10 @@ test('release preflight requires the downloaded release of the revision under te
 	delete env.CITA_RELEASE_ARTIFACT;
 	assert.throws(check, /No remote requests/);
 }));
+test('every production origin is refused as a staging target', () => {
+	for (const origin of [PRODUCTION_APP_ORIGIN, PRODUCTION_WORKERS_DEV_ORIGIN, PRODUCTION_NATALIA_APP_BASE, PRODUCTION_NATALIA_ORIGIN, PRODUCTION_API_ORIGIN])
+		assert.ok(PRODUCTION_HOSTS.includes(new URL(origin).hostname), `${origin} is not refused`);
+});
 test('the configured production project is refused before release work', () => fixture(({ root, check }) => {
 	writeFileSync(join(root, '.env'), `ODONTO_SUPABASE_URL=https://${STAGING_PROJECT_REF}.supabase.co\n`);
 	assert.throws(check, /Production targets/);

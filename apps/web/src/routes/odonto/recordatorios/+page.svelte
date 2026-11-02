@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Icon from '$lib/components/Icon.svelte';
-	import type { ReminderCandidate, ReminderDay } from '$lib/scheduling/contracts';
+	import type { ReminderDay, ReminderListItem } from '$lib/scheduling/contracts';
 	import { classifyUserAgent, refineDeviceClass, type DeviceClass } from '$lib/device';
 	import { onMount } from 'svelte';
 
@@ -8,7 +8,7 @@
 		data: {
 			demo: boolean;
 			day: ReminderDay;
-			candidates: ReminderCandidate[];
+			candidates: ReminderListItem[];
 			restricted: boolean;
 			remindersUnavailable: boolean;
 		};
@@ -16,10 +16,13 @@
 	} = $props();
 
 	const pendingUpdate = $derived(
-		data.candidates.filter((candidate: ReminderCandidate) => candidate.coverage === 'pendiente_actualizar')
+		data.candidates.filter((candidate: ReminderListItem) => candidate.coverage === 'pendiente_actualizar')
 	);
 	const uncovered = $derived(
-		data.candidates.filter((candidate: ReminderCandidate) => candidate.coverage === 'sin_calendario')
+		data.candidates.filter((candidate: ReminderListItem) => candidate.coverage === 'sin_calendario')
+	);
+	const automatic = $derived(
+		data.candidates.filter((candidate: ReminderListItem) => candidate.coverage === 'aviso_automatico')
 	);
 
 	const dayLabel = $derived(data.day === 'hoy' ? 'hoy' : 'mañana');
@@ -37,7 +40,7 @@
 		return `hace ${hours} h`;
 	};
 
-	const openHref = (candidate: ReminderCandidate, confirm = false) => {
+	const openHref = (candidate: ReminderListItem, confirm = false) => {
 		const params = new URLSearchParams({ dia: data.day });
 		if (confirm) params.set('confirmar', '1');
 		// Sin JavaScript el servidor clasifica el navegador. Con JavaScript mandamos
@@ -47,29 +50,31 @@
 	};
 </script>
 
-{#snippet reminderRow(candidate: ReminderCandidate)}
+{#snippet reminderRow(candidate: ReminderListItem)}
 	<div class="ux-soft-card p-5">
 		<div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 			<div class="min-w-0">
-				<p class="text-lg font-bold text-white">{candidate.time_label} · {candidate.patient_name}</p>
-				<p class="mt-1 text-sm text-white/55">{candidate.service_name} · {candidate.professional_name}</p>
-				<p class="mt-2 flex items-center gap-2 text-sm font-bold {candidate.coverage === 'pendiente_actualizar' ? 'text-amber-300' : 'text-white/70'}">
+				<p class="text-lg font-bold text-fg">{candidate.time_label} · {candidate.patient_name}</p>
+				<p class="mt-1 text-sm text-fg-55">{candidate.service_name} · {candidate.professional_name}</p>
+				<p class="mt-2 flex items-center gap-2 text-sm font-bold {candidate.coverage === 'pendiente_actualizar' ? 'text-warning-300' : candidate.coverage === 'aviso_automatico' ? 'text-success-300' : 'text-fg-70'}">
 					{#if candidate.coverage === 'pendiente_actualizar'}
 						<Icon name="alert" class="h-4 w-4 shrink-0" />Calendario pendiente de actualizar
+					{:else if candidate.coverage === 'aviso_automatico'}
+						<Icon name="check" class="h-4 w-4 shrink-0" />Tiene aviso automático
 					{:else}
 						<Icon name="circle" class="h-4 w-4 shrink-0" />Sin recordatorio confirmado
 					{/if}
 				</p>
 				{#if candidate.whatsapp_marked_sent_at}
-					<p class="mt-2 flex items-center gap-2 text-sm font-bold text-emerald-300"><Icon name="check" class="h-4 w-4 shrink-0" />Enviado {relativeTime(candidate.whatsapp_marked_sent_at)}</p>
+					<p class="mt-2 flex items-center gap-2 text-sm font-bold text-success-300"><Icon name="check" class="h-4 w-4 shrink-0" />Enviado {relativeTime(candidate.whatsapp_marked_sent_at)}</p>
 				{:else if candidate.whatsapp_opened_at}
-					<p class="mt-2 text-sm text-white/55">WhatsApp abierto {relativeTime(candidate.whatsapp_opened_at)}</p>
+					<p class="mt-2 text-sm text-fg-55">WhatsApp abierto {relativeTime(candidate.whatsapp_opened_at)}</p>
 				{/if}
 			</div>
 			<div class="flex shrink-0 flex-col gap-2 sm:items-end">
 				{#if !candidate.phone_e164}
 					<span class="ux-badge ux-badge-warning">Revisar teléfono</span>
-					<p class="max-w-60 text-right text-xs leading-relaxed text-white/50">
+					<p class="max-w-60 text-right text-xs leading-relaxed text-fg-50">
 						Falta un número argentino completo con código de área.
 					</p>
 					<a href={`/odonto/pacientes/${candidate.patient_id}`} class="ux-btn-secondary">
@@ -80,7 +85,7 @@
 						Abrir de nuevo
 					</a>
 				{:else if candidate.whatsapp_opened_at}
-					<p class="max-w-60 text-right text-xs text-white/45">
+					<p class="max-w-60 text-right text-xs text-copy-subtle">
 						Ya se abrió un recordatorio para este turno. ¿Abrirlo otra vez?
 					</p>
 					<a href={openHref(candidate, true)} target="_blank" rel="noreferrer" class="ux-btn-secondary">
@@ -106,9 +111,8 @@
 			<div>
 				<h1 class="ux-title">Turnos para recordar</h1>
 				<p class="ux-subtitle">
-					Pacientes con turno {dayLabel} sin una opción de calendario iniciada ni una notificación
-					confirmada. Reforzá el recordatorio por WhatsApp: el mensaje ya sale escrito, solo
-					revisás y enviás.
+					Pacientes con turno {dayLabel}. Primero, los que no tienen un aviso automático. El mensaje
+					de WhatsApp ya sale escrito: solo revisás y enviás.
 				</p>
 			</div>
 			<div class="flex gap-2">
@@ -121,9 +125,10 @@
 	{#if !data.restricted && !data.remindersUnavailable}
 		<div class="ux-soft-card flex flex-col gap-2 p-4 sm:flex-row sm:items-center sm:justify-between">
 			<div>
-				<p class="text-sm font-bold text-white">Criterio de la lista</p>
-				<p class="mt-1 text-sm text-white/55">
-					Un turno aparece si no tiene un calendario iniciado ni una notificación confirmada.
+				<p class="text-sm font-bold text-fg">Criterio de la lista</p>
+				<p class="mt-1 text-sm text-fg-55">
+					Arriba, los turnos sin un calendario iniciado ni una notificación confirmada. Al final,
+					plegados, los que ya tienen aviso automático: podés mandarles el recordatorio igual.
 				</p>
 			</div>
 			<div class="flex flex-wrap gap-2 text-xs font-bold">
@@ -153,16 +158,13 @@
 		</div>
 	{:else if data.candidates.length === 0}
 		<div class="ux-card">
-			<p class="ux-empty">
-				No hay recordatorios pendientes para {dayLabel}. Todos los turnos tienen un calendario
-				iniciado, una notificación confirmada o cobertura automática.
-			</p>
+			<p class="ux-empty">No hay turnos activos para {dayLabel}.</p>
 		</div>
 	{:else}
 		{#if pendingUpdate.length > 0}
 			<div class="ux-card">
 				<h2 class="ux-section-title">Calendario pendiente de actualizar</h2>
-				<p class="mt-2 text-sm text-white/55">
+				<p class="mt-2 text-sm text-fg-55">
 					Estos turnos se reprogramaron después de que el paciente registró el calendario:
 					puede tener guardada la fecha vieja.
 				</p>
@@ -183,6 +185,32 @@
 					{/each}
 				</div>
 			</div>
+		{/if}
+
+		{#if pendingUpdate.length === 0 && uncovered.length === 0}
+			<div class="ux-card">
+				<p class="ux-empty">
+					Todos los turnos de {dayLabel} ya tienen un aviso automático. Igual podés mandarles el
+					recordatorio desde la lista de abajo.
+				</p>
+			</div>
+		{/if}
+
+		{#if automatic.length > 0}
+			<details class="ux-card">
+				<summary class="ux-section-title cursor-pointer">
+					Ya tienen aviso automático ({automatic.length})
+				</summary>
+				<p class="mt-2 text-sm text-fg-55">
+					Iniciaron un calendario o confirmaron una notificación. El recordatorio por WhatsApp es
+					opcional.
+				</p>
+				<div class="mt-5 grid gap-3">
+					{#each automatic as candidate (candidate.appointment_id)}
+						{@render reminderRow(candidate)}
+					{/each}
+				</div>
+			</details>
 		{/if}
 	{/if}
 

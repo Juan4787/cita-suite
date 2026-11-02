@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
-	import { onMount } from 'svelte';
+	import { afterNavigate, replaceState } from '$app/navigation';
 	import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 	import type { Database } from '@cita-suite/shared';
 	import { env } from '$env/dynamic/public';
@@ -11,9 +11,15 @@
 	let password = $state('');
 	let confirmPassword = $state('');
 	let showPassword = $state(false);
+	let saving = $state(false);
+	let initialized = false;
 	let supabase: SupabaseClient<Database> | null = null;
 
 	const initSessionFromHash = async () => {
+		const params = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+		// The tokens are needed only in memory. Clear them even if configuration,
+		// validation or the provider fails later.
+		replaceState(window.location.pathname, {});
 		const supabaseUrl = env.PUBLIC_ODONTO_SUPABASE_URL?.trim();
 		const supabaseKey = env.PUBLIC_ODONTO_SUPABASE_ANON_KEY?.trim();
 
@@ -30,8 +36,6 @@
 			return;
 		}
 
-		const hash = window.location.hash.replace(/^#/, '');
-		const params = new URLSearchParams(hash);
 		const accessToken = params.get('access_token');
 		const refreshToken = params.get('refresh_token');
 		const type = params.get('type');
@@ -47,30 +51,30 @@
 			return;
 		}
 
-		supabase = createClient<Database>(supabaseUrl, supabaseKey, {
-			auth: {
-				persistSession: false,
-				autoRefreshToken: false
-			}
-		});
-
-		const { error } = await supabase.auth.setSession({
-			access_token: accessToken,
-			refresh_token: refreshToken
-		});
-
-		if (error) {
+		try {
+			supabase = createClient<Database>(supabaseUrl, supabaseKey, {
+				auth: {
+					persistSession: false,
+					autoRefreshToken: false,
+					detectSessionInUrl: false
+				}
+			});
+			const { error } = await supabase.auth.setSession({
+				access_token: accessToken,
+				refresh_token: refreshToken
+			});
+			if (error) throw error;
+			status = 'ready';
+		} catch {
 			status = 'error';
 			message = 'No pudimos validar el enlace. Pedí uno nuevo.';
-			return;
 		}
-
-		window.history.replaceState({}, '', window.location.pathname);
-		status = 'ready';
 	};
 
 	const handleSubmit = async (event: SubmitEvent) => {
 		event.preventDefault();
+		if (saving || status !== 'ready') return;
+		message = '';
 		if (!supabase) {
 			status = 'error';
 			message = 'No pudimos iniciar la sesión de recuperación.';
@@ -85,55 +89,72 @@
 			return;
 		}
 
-		const { error } = await supabase.auth.updateUser({ password });
-		if (error) {
-			const msg = error.message?.toLowerCase() ?? '';
-			if (
-				msg.includes('same password') ||
-				msg.includes('same as the old password') ||
-				msg.includes('new password should be different') ||
-				msg.includes('password should be different')
-			) {
-				await supabase.auth.signOut();
-				status = 'success';
+		saving = true;
+		try {
+			const { error } = await supabase.auth.updateUser({ password });
+			if (error) {
+				const msg = error.message?.toLowerCase() ?? '';
+				if (error.code === 'same_password' || msg.includes('same password') || msg.includes('same as the old password') || msg.includes('password should be different')) {
+					message = 'Elegí una contraseña diferente a la anterior.';
+				} else {
+					message = 'No pudimos actualizar la contraseña. Intentá de nuevo.';
+				}
 				return;
 			}
+			let closeFailed = false;
+			try {
+				const { error } = await supabase.auth.signOut();
+				closeFailed = Boolean(error);
+			} catch {
+				closeFailed = true;
+			}
+			password = '';
+			confirmPassword = '';
+			message = closeFailed
+				? 'La contraseña se actualizó, pero no pudimos confirmar el cierre de la sesión de recuperación. Cerrá esta pestaña e ingresá con tu nueva contraseña.'
+				: '';
+			status = 'success';
+		} catch {
 			message = 'No pudimos actualizar la contraseña. Intentá de nuevo.';
-			return;
+		} finally {
+			saving = false;
 		}
-
-		await supabase.auth.signOut();
-		status = 'success';
 	};
 
-	onMount(async () => {
-		if (!browser) return;
-		await initSessionFromHash();
+	afterNavigate(() => {
+		if (!browser || initialized) return;
+		initialized = true;
+		// On initial hydration this callback runs just before SvelteKit marks its
+		// router ready. Let that synchronous initialization finish first.
+		void Promise.resolve().then(initSessionFromHash).catch(() => {
+			status = 'error';
+			message = 'No pudimos validar el enlace. Pedí uno nuevo.';
+		});
 	});
 </script>
 
-<div class="min-h-screen bg-gradient-to-br from-[#0b1626] via-[#0f1f36] to-[#0a1222] flex items-center justify-center px-4 py-10">
-	<div class="w-full max-w-lg rounded-3xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur dark:border-[#1f3554] dark:bg-[#0f1f36]/90">
+<div class="min-h-screen bg-gradient-to-br from-canvas via-surface to-canvas flex items-center justify-center px-4 py-10">
+	<div class="w-full max-w-lg rounded-3xl border p-8 shadow-2xl backdrop-blur border-line-strong bg-fill-13243d-70">
 		<div class="mb-6 text-center space-y-3">
-			<h1 class="text-3xl font-semibold text-white">Restablecer contraseña</h1>
-			<p class="text-sm text-neutral-200">Elegí una nueva contraseña para tu cuenta.</p>
+			<h1 class="text-3xl font-semibold text-fg">Restablecer contraseña</h1>
+			<p class="text-sm text-fg-n200">Elegí una nueva contraseña para tu cuenta.</p>
 		</div>
 
 		{#if status === 'loading'}
-			<p class="rounded-xl bg-white/10 px-4 py-3 text-sm text-neutral-200">Validando enlace...</p>
+			<p class="rounded-xl bg-fill-10 px-4 py-3 text-sm text-fg-n200">Validando enlace...</p>
 		{:else if status === 'error'}
-			<p class="rounded-xl bg-red-500/15 px-4 py-3 text-sm font-semibold text-red-200">{message}</p>
+			<p class="rounded-xl bg-danger-500-15 px-4 py-3 text-sm font-semibold text-danger">{message}</p>
 			<div class="mt-4 flex justify-center">
 				<BackLink href="/reset" label="Volver a recuperar contraseña" />
 			</div>
 		{:else if status === 'success'}
 			<div class="space-y-4">
-				<p class="rounded-xl bg-green-500/15 px-4 py-3 text-sm font-semibold text-green-100">
-					Contraseña actualizada correctamente.
+				<p class="rounded-xl bg-success-green-500-15 px-4 py-3 text-sm font-semibold text-success-green-100">
+					{message || 'Contraseña actualizada correctamente.'}
 				</p>
 				<a
 					href="/login"
-					class="inline-flex w-full items-center justify-center rounded-2xl bg-[#7c3aed] px-4 py-3 text-base font-semibold text-white shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7c3aed]"
+					class="inline-flex w-full items-center justify-center rounded-2xl bg-accent-strong px-4 py-3 text-base font-semibold text-on-accent shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-accent-600"
 				>
 					Volver a ingresar
 				</a>
@@ -141,12 +162,12 @@
 		{:else}
 			<form class="space-y-6" onsubmit={handleSubmit}>
 				<div class="space-y-3">
-					<label class="text-sm font-medium text-white" for="password">Nueva contraseña</label>
+					<label class="text-sm font-medium text-fg" for="password">Nueva contraseña</label>
 					<div class="relative">
 						<input
 							id="password"
 							type={showPassword ? 'text' : 'password'}
-							class="w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-3 pr-16 text-white shadow-sm outline-none transition focus:border-[#7c3aed] focus:ring-2 focus:ring-[#7c3aed]/40 placeholder:text-neutral-400"
+							class="w-full rounded-2xl border border-line bg-fill-10 px-4 py-3 pr-16 text-fg shadow-sm outline-none transition focus:border-accent-600 focus:ring-2 focus:ring-focus-accent-600-40 placeholder:text-fg-n400"
 							placeholder="Mínimo 6 caracteres"
 							bind:value={password}
 							autocomplete="new-password"
@@ -154,7 +175,7 @@
 						/>
 						<button
 							type="button"
-							class="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg px-3 py-2 text-xs font-semibold text-neutral-100 transition hover:bg-white/10"
+							class="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg px-3 py-2 text-xs font-semibold text-fg-n100 transition hover:bg-fill-10"
 							onclick={() => (showPassword = !showPassword)}
 						>
 							{showPassword ? 'Ocultar' : 'Ver'}
@@ -163,11 +184,11 @@
 				</div>
 
 				<div class="space-y-3">
-					<label class="text-sm font-medium text-white" for="confirm">Confirmar contraseña</label>
+					<label class="text-sm font-medium text-fg" for="confirm">Confirmar contraseña</label>
 					<input
 						id="confirm"
 						type={showPassword ? 'text' : 'password'}
-						class="w-full rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-white shadow-sm outline-none transition focus:border-[#7c3aed] focus:ring-2 focus:ring-[#7c3aed]/40 placeholder:text-neutral-400"
+						class="w-full rounded-2xl border border-line bg-fill-10 px-4 py-3 text-fg shadow-sm outline-none transition focus:border-accent-600 focus:ring-2 focus:ring-focus-accent-600-40 placeholder:text-fg-n400"
 						placeholder="Repetí tu contraseña"
 						bind:value={confirmPassword}
 						autocomplete="new-password"
@@ -176,14 +197,16 @@
 				</div>
 
 				{#if message}
-					<p class="rounded-xl bg-red-500/15 px-4 py-3 text-sm font-semibold text-red-200">{message}</p>
+					<p class="rounded-xl bg-danger-500-15 px-4 py-3 text-sm font-semibold text-danger">{message}</p>
 				{/if}
 
 				<button
 					type="submit"
-					class="flex w-full items-center justify-center rounded-2xl bg-[#7c3aed] px-4 py-3 text-base font-semibold text-white shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7c3aed]"
+					disabled={saving}
+					aria-busy={saving}
+					class="flex w-full items-center justify-center rounded-2xl bg-accent-strong px-4 py-3 text-base font-semibold text-on-accent shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-accent-600"
 				>
-					Guardar nueva contraseña
+					{saving ? 'Guardando…' : 'Guardar nueva contraseña'}
 				</button>
 			</form>
 		{/if}

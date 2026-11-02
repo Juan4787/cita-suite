@@ -1,12 +1,13 @@
 /** @vitest-environment jsdom */
 
-import { cleanup, render, screen, waitFor } from '@testing-library/svelte';
+import { cleanup, render, screen, waitFor, within } from '@testing-library/svelte';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom/vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import Page from './+page.svelte';
 
 vi.mock('$app/navigation', () => ({ afterNavigate: vi.fn() }));
+vi.mock('$app/state', () => ({ page: { url: new URL('http://localhost/odonto/agenda?date=2026-08-27') } }));
 
 const appointment = (id: string, fullName: string) => ({
 	id,
@@ -32,6 +33,7 @@ const data = {
 	selectedStatus: '',
 	selectedServiceId: '',
 	selectedPatientId: '',
+	selectedTime: '',
 	searchApplied: false,
 	appointments: [],
 	stats: [],
@@ -46,6 +48,7 @@ const data = {
 	patientsLoaded: false,
 	referencesLoaded: true,
 	reminderCount: 0,
+	depositAlerts: { toRequest: 0, dueSoon: 0, cancelledToday: 0 } as null | { toRequest: number; dueSoon: number; cancelledToday: number },
 	appointmentRequestId: 'request-1',
 	demo: false
 };
@@ -135,3 +138,69 @@ describe('buscador incremental de Agenda', () => {
 		expect(screen.getByText('Fernando Lopez')).toBeInTheDocument();
 	});
 });
+
+describe('señas en la agenda', () => {
+	// A turn later today, so the label is the stored status and never «Expirado».
+	const upcoming = (id: string, status: string, depositStatus: string | null) => ({
+		...appointment(id, `Paciente ${id}`),
+		starts_at: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
+		ends_at: new Date(Date.now() + 2.5 * 60 * 60 * 1000).toISOString(),
+		status,
+		appointment_deposits: depositStatus ? { status: depositStatus, revision: 7, waived_reason: null } : null
+	});
+
+	it('ofrece registrar, exceptuar y deshacer desde la agenda con la revisión observada', () => {
+		render(Page, { data: { ...data, context: { ...data.context, canOperate: true }, canRecordDeposit: true,
+			appointments: [upcoming('a', 'reserved', 'pending'), upcoming('b', 'confirmed', 'paid')]
+		} as never });
+		const pending = document.querySelector('[data-agenda-deposit="a"]') as HTMLElement;
+		const received = document.querySelector('[data-agenda-deposit="b"]') as HTMLElement;
+		expect(pending).not.toBeNull();
+		expect(received).not.toBeNull();
+		const paidForm = within(pending).getByRole('button', { name: 'Confirmar seña' }).closest('form')!;
+		expect(paidForm).toHaveAttribute('action', '/odonto/turnos/a?/deposit');
+		expect(Object.fromEntries(new FormData(paidForm))).toEqual({ deposit_action: 'paid', expected_revision: '7' });
+		expect(pending.querySelector('form input[value="waived"]')).not.toBeNull();
+		expect(received.querySelector('form input[value="pending"]')).not.toBeNull();
+	});
+
+	it('no ofrece acciones de seña sin permiso, con política apagada o en un turno cancelado', () => {
+		const disabledPolicy = { ...upcoming('c', 'reserved', 'waived'), appointment_deposits: { status: 'waived', revision: 8, waived_reason: 'policy_disabled' } };
+		render(Page, { data: { ...data, context: { ...data.context, canOperate: true }, canRecordDeposit: true,
+			appointments: [disabledPolicy, upcoming('d', 'cancelled', 'expired')]
+		} as never });
+		expect(document.querySelector('[data-agenda-deposit]')).toBeNull();
+		cleanup();
+		render(Page, { data: { ...data, canRecordDeposit: false, appointments: [upcoming('a', 'reserved', 'pending')] } as never });
+		expect(document.querySelector('[data-agenda-deposit]')).toBeNull();
+	});
+
+	it('cada tarjeta dice el estado con su seña, con el mismo dato que filtros y conteos', () => {
+		render(Page, {
+			data: {
+				...data,
+				appointments: [upcoming('a', 'reserved', 'pending'), upcoming('b', 'confirmed', 'paid'), upcoming('c', 'reserved', null)]
+			} as never
+		});
+		const pending = screen.getByText('Reservado, seña pendiente');
+		expect(pending).toHaveClass('ux-badge-warning');
+		expect(screen.getByText('Confirmado, seña recibida')).toBeInTheDocument();
+		expect(screen.getByText('Reservado')).toBeInTheDocument();
+	});
+
+	it('avisa qué hacer con las señas en una sola línea, con el enlace a la lista', () => {
+		render(Page, { data: { ...data, depositAlerts: { toRequest: 3, dueSoon: 1, cancelledToday: 2 } } as never });
+		const alert = document.querySelector('[data-deposit-alert]') as HTMLElement;
+		expect(alert).toHaveTextContent('3 señas para pedir, 1 vence en menos de 24 horas, 2 turnos se cancelaron por falta de seña.');
+		expect(alert.querySelector('a')).toHaveAttribute('href', '/odonto/senas');
+	});
+
+	it('sin nada que hacer no avisa, y si no pudo comprobarlas lo dice', () => {
+		render(Page, { data } as never);
+		expect(document.querySelector('[data-deposit-alert]')).toBeNull();
+		cleanup();
+		render(Page, { data: { ...data, depositAlerts: null } } as never);
+		expect(document.querySelector('[data-deposit-alert]')).toHaveTextContent('No pudimos comprobar las señas.');
+	});
+});
+

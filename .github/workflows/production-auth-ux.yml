@@ -1,0 +1,33 @@
+name: UX publicada de confirmación de correo
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: cita-production-auth-ux
+  cancel-in-progress: false
+jobs:
+  browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      NODE_OPTIONS: --max-old-space-size=1536
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version-file: .node-version
+      - name: Prepare existing pinned browser dependencies
+        run: |
+          npm install --global pnpm@10.13.1
+          pnpm install --frozen-lockfile --network-concurrency=1
+          pnpm --filter web exec playwright install --with-deps chromium
+      - name: Check actual production UX sequentially
+        env:
+          CITA_AUTH_UX_20261031: ${{ secrets.CITA_AUTH_UX_20261031 }}
+        run: node scripts/verify-production-auth-ux.mjs
+      - name: Preserve synthetic evidence without credential traces
+        if: always()
+        run: python3 scripts/package-verification-evidence.py

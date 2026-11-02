@@ -127,7 +127,7 @@ describe('validación previa del teléfono al crear un turno', () => {
 
 		await user.type(phone, '351 123 4567');
 
-		expect(phone.className).not.toContain('border-amber-300');
+		expect(phone.className).not.toContain('border-warning-300');
 		expect(phone).not.toHaveAttribute('aria-invalid', 'true');
 	});
 
@@ -145,7 +145,7 @@ describe('validación previa del teléfono al crear un turno', () => {
 		const phone = screen.getByLabelText('Teléfono');
 		await waitFor(() => expect(phone).toHaveFocus());
 		expect(screen.queryByText('El número de teléfono no es válido')).not.toBeInTheDocument();
-		expect(phone.className).toContain('border-amber-300');
+		expect(phone.className).toContain('border-warning-300');
 
 		await user.clear(phone);
 		await user.type(phone, '351 123 4567');
@@ -221,5 +221,56 @@ describe('validación previa del teléfono al crear un turno', () => {
 		expect((container.querySelector('[name="patient_mode"]') as HTMLInputElement).value).toBe(
 			'existing'
 		);
+	});
+});
+
+describe('horario conocido para volver a dar', () => {
+	// A valid slot of 30 minutes: the availability parser refuses a slot that ends before it starts.
+	const availability = (time: string, at: string) => ({
+		slots: [{ date, time, starts_at: at, ends_at: new Date(Date.parse(at) + 30 * 60_000).toISOString(), professional_name: 'Dra. Prueba', professional_id: 'professional-1' }]
+	});
+	const renderWith = (options: { initialValues: Record<string, string>; form?: { values: Record<string, string> }; slots: unknown }) => {
+		vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify(options.slots), { status: 200, headers: { 'content-type': 'application/json' } })));
+		return render(ManualAppointmentWizard, {
+			services: [{ id: 'service-1', name: 'Consulta', duration_minutes: 30 }],
+			professionals: [{ id: 'professional-1', name: 'Dra. Prueba', specialty: null, is_active: true }],
+			serviceProfessionalIds: { 'service-1': ['professional-1'] },
+			patients: [{ id: 'patient-1', full_name: 'Paciente de prueba', phone: '+5493421112222', phone_raw: '+5493421112222', phone_e164: '+5493421112222', dni: null, birth_date: null, activity_at: '2099-01-01T00:00:00.000Z', blocked: false }],
+			patientsLoaded: true,
+			initialDate: date,
+			initialPatientId: 'patient-1',
+			initialValues: options.initialValues,
+			appointmentRequestId: 'a1000000-0000-4000-8000-000000000002',
+			canOperate: true,
+			form: options.form
+		});
+	};
+	const known = { service_id: 'service-1', professional_id: 'professional-1', date, time: '10:00', patient_id: 'patient-1' };
+	it('si la prestación del horario liberado ya no existe empieza por elegir una vigente', async () => {
+		renderWith({ initialValues: { ...known, service_id: 'retired-service' }, slots: availability('10:00', startsAt) });
+		expect(screen.getByRole('heading', { name: '¿Qué necesita el paciente?' })).toBeVisible();
+		expect(screen.getByRole('button', { name: /^Consulta/ })).toBeVisible();
+		expect(screen.queryByRole('button', { name: 'Confirmar turno' })).not.toBeInTheDocument();
+	});
+
+	it('con el horario libre lo deja elegido, listo para confirmar', async () => {
+		renderWith({ initialValues: known, slots: availability('10:00', startsAt) });
+		await waitFor(() => expect(document.querySelector<HTMLInputElement>('input[name="time"]')?.value).toBe('10:00'));
+		expect(document.querySelector<HTMLInputElement>('input[name="service_id"]')?.value).toBe('service-1');
+	});
+
+	it('si el horario ya no está libre vuelve a los horarios y lo dice', async () => {
+		renderWith({ initialValues: known, slots: availability('11:00', '2099-08-25T14:00:00.000Z') });
+		await waitFor(() => expect(screen.getByText('Ese horario ya no está libre. Elegí otro de los horarios disponibles.')).toBeInTheDocument());
+		expect(document.querySelector<HTMLInputElement>('input[name="time"]')?.value).toBe('');
+	});
+
+	it('después de un envío fallido gana lo último que eligió la persona', async () => {
+		renderWith({
+			initialValues: known,
+			form: { values: { ...known, time: '11:00' } },
+			slots: { slots: [...availability('10:00', startsAt).slots, ...availability('11:00', '2099-08-25T14:00:00.000Z').slots] }
+		});
+		await waitFor(() => expect(document.querySelector<HTMLInputElement>('input[name="time"]')?.value).toBe('11:00'));
 	});
 });

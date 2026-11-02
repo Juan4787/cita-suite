@@ -27,6 +27,8 @@ Fulls anteriores aprobados de esta etapa (39220668360 sobre `a940f23`, 392301643
 | Identidad y repositorio | Paquetes, lock, imports y configuración local unificados; inventario y ensayo real de renombrado en un repositorio sintético, revertido y archivado; transición de producción, proveedores y directorio preparada con reversión. | Ensayo con ID y SHA conservados y tres Actions (`identidad-ensayo-github.json`). Los destinos reales se renombran en release (`identidad-cita-suite.md`). |
 | Cursos y noticias intactos | `apps/natalia` sin cambios de fuente respecto del baseline. | `git diff c0129e4 6746491 -- apps/natalia` vacío; medición idéntica. |
 
+*(Nota histórica: desde el 2 de noviembre de 2026 la app tiene modo claro predeterminado y modo oscuro; ver `apps/web/DESIGN.md` y `docs/plans/modo-claro-20261102.md`.)*
+
 ## Garantías de las operaciones extraídas
 
 - Ficha: los errores de proyecciones secundarias no producen vacíos editables; paginación, costos y microsegundos se conservan.

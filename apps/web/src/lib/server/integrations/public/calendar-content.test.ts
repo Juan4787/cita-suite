@@ -1,4 +1,8 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+
+const envState = vi.hoisted(() => ({ publicEnv: {} as Record<string, string | undefined> }));
+vi.mock('$env/dynamic/public', () => ({ env: envState.publicEnv }));
+
 import {
 	calendarDescriptionFor,
 	calendarLocationFor,
@@ -34,9 +38,12 @@ const appointment = (overrides: Partial<PublicAppointmentView> = {}): PublicAppo
 		logo_url: null,
 		timezone: 'America/Argentina/Cordoba',
 		is_active: true,
-		cancellation_policy: null
+		cancellation_policy: null,
+		whatsapp_contact_phone: null
 	},
 	patient_name: 'Juan Pérez',
+	deposit: null,
+	deposit_transfer_details: null,
 	public_status_label: 'Reservado',
 	public_actions_available: true,
 	can_confirm: true,
@@ -88,6 +95,17 @@ describe('icsForAppointment', () => {
 		expect(ics).toContain('STATUS:CONFIRMED\r\n');
 		expect(ics).toContain('METHOD:PUBLISH\r\n');
 		expect(ics).toContain('TRIGGER:-PT24H');
+	});
+
+	it('el UID no sigue al origen público: un .ics ya importado se sigue actualizando', () => {
+		envState.publicEnv.PUBLIC_SITE_URL = 'https://app.cita-suite.com.ar';
+		try {
+			const ics = icsForAppointment(appointment(), { now });
+			expect(ics).toContain('UID:appointment-apt-1@app.cita-suite.workers.dev\r\n');
+			expect(ics).toContain('URL:https://app.cita-suite.com.ar/turno/tok-1\r\n');
+		} finally {
+			delete envState.publicEnv.PUBLIC_SITE_URL;
+		}
 	});
 
 	it('turno cancelado: METHOD:CANCEL, SEQUENCE+1, sin alarmas', () => {

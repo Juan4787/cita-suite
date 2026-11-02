@@ -59,6 +59,60 @@ describe('hooks auth validation', () => {
 		mocks.isMasterEmail.mockReturnValue(false);
 	});
 
+	it.each(['GET', 'POST'])('redirige %s por HTTP a HTTPS antes de leer cookies o resolver la ruta', async (method) => {
+		const raw = 'http://app.cita-suite.example:8080/login?next=%2Fodonto';
+		const event = { ...makeEvent(), request: new Request(raw, { method }) };
+		event.url = new URL(raw);
+		const resolve = vi.fn();
+
+		const response = await handle({ event, resolve } as never);
+
+		expect(response.status).toBe(308);
+		expect(response.headers.get('location')).toBe('https://app.cita-suite.example/login?next=%2Fodonto');
+		expect(response.headers.get('cache-control')).toBe('no-store');
+		expect(resolve).not.toHaveBeenCalled();
+		expect(event.cookies.get).not.toHaveBeenCalled();
+		expect(mocks.createSupabaseServerClient).not.toHaveBeenCalled();
+	});
+
+	it.each(['http://127.0.0.1:5177/login', 'http://localhost:5173/login', 'http://[::1]:8787/login'])(
+		'sirve %s por HTTP: la verificación y el desarrollo locales no tienen TLS',
+		async (raw) => {
+			const event = makeEvent();
+			event.url = new URL(raw);
+			(event.cookies.get as ReturnType<typeof vi.fn>).mockReturnValue(undefined);
+			const resolve = vi.fn(async () => new Response('ok'));
+
+			const response = await handle({ event, resolve } as never);
+
+			expect(response.status).toBe(200);
+			expect(resolve).toHaveBeenCalledOnce();
+		}
+	);
+
+	it.each([
+		[undefined, ''],
+		['dark', 'dark'],
+		['system', 'theme-system'],
+		['oscuro', '']
+	])('renders every document in the color mode of the device (cookie %s)', async (value, expected) => {
+		const event = makeEvent();
+		event.url = new URL('https://app.test/reservar/consultorio');
+		(event.cookies.get as ReturnType<typeof vi.fn>).mockImplementation((key: string) => (key === 'cita-theme' ? value : undefined));
+		let options: { transformPageChunk?: (input: { html: string; done: boolean }) => string } | undefined;
+		const resolve = vi.fn(async (_event: unknown, received: typeof options) => {
+			options = received;
+			return new Response('<!doctype html>', { headers: { 'content-type': 'text/html' } });
+		});
+
+		await handle({ event, resolve } as never);
+
+		const html = options?.transformPageChunk?.({ html: '<html lang="es" class="%cita.theme.class%"><head>%cita.theme.meta%</head><body></body></html>', done: true });
+		expect(html).toContain(`<html lang="es" class="${expected}">`);
+		expect(html).toContain('<meta name="theme-color"');
+		expect(html).not.toContain('%cita.theme');
+	});
+
 	it('keeps public tokens and internal authentication independent of stale user cookies', async () => {
 		mocks.createSupabaseServerClient.mockRejectedValue(new Error('invalid old user session'));
 		for (const path of ['/reservar/clinic', '/embed/v1/integration', '/turno/token/push', '/api/public/contacto/integration', '/internal/jobs/send-push-reminders', '/api/mercadopago/webhook', '/oauth/google-calendar/callback']) {

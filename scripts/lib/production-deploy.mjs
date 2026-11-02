@@ -1,13 +1,19 @@
 import { CLOUDFLARE_ACCOUNT_ID } from './staging-deploy.mjs';
 
 // The only Cloudflare targets the production deployment accepts: the Worker `app`, which
-// serves https://app.cita-suite.workers.dev next to the production database, and its scheduler.
+// serves https://app.cita-suite.com.ar next to the production database, and its scheduler.
 export const PRODUCTION_APP_WORKER = 'app';
 export const PRODUCTION_SCHEDULER_WORKER = 'cita-suite-scheduler';
-export const PRODUCTION_APP_ORIGIN = 'https://app.cita-suite.workers.dev';
-// Natalia's published site and the public key of the integration it books through.
+export const PRODUCTION_APP_ORIGIN = 'https://app.cita-suite.com.ar';
+// The same Worker's workers.dev origin, which links already sent still use.
+export const PRODUCTION_WORKERS_DEV_ORIGIN = 'https://app.cita-suite.workers.dev';
+// Natalia's published site, the app origin its pages book through (the official domain since plan
+// 12.16), the public key of the integration of her own practice, and the domain search engines index
+// (none until she has her own: meanwhile every page asks not to be indexed and there is no sitemap).
 export const PRODUCTION_NATALIA_ORIGIN = 'https://natalia-frutos.vercel.app';
-export const PRODUCTION_NATALIA_INTEGRATION_KEY = '9af3540420584670a6f1bad47711501b';
+export const PRODUCTION_NATALIA_APP_BASE = PRODUCTION_APP_ORIGIN;
+export const PRODUCTION_NATALIA_INTEGRATION_KEY = 'aa46a991730483b855ae11445c95b9bf';
+export const PRODUCTION_NATALIA_SITE_URL = null;
 const refused = () => new Error('The configuration is not the production target. Nothing was deployed.');
 
 // Secrets the application reads at runtime and production must already hold. The deployment

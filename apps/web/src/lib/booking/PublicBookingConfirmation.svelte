@@ -1,11 +1,13 @@
 <script lang="ts">
  import { enhance } from '$app/forms';
+ import { invalidateAll } from '$app/navigation';
  import type { SubmitFunction } from '@sveltejs/kit';
  import { BOOKING_MODALITY_LABELS, type BookingModality, type BookingIntakeField } from '@cita-suite/shared/booking-integration';
  import { isRecord } from '$lib/contracts/json';
  import type { BookingViewData, BookingFormState, BookingConfirmation } from '$lib/scheduling/booking-view';
  import { normalizePatientFullName, patientFullNameErrorMessage, PATIENT_FULL_NAME_INVALID_ERROR_MESSAGE } from '$lib/utils/patient-name';
  import { formatQuotedPrice } from './pricing';
+ import { buildDepositTermsNotice, DEPOSIT_TERMS_UNAVAILABLE_NOTICE } from '$lib/scheduling/deposits';
  import PublicBookingIntakeField from './PublicBookingIntakeField.svelte';
 
  let { data, form, confirmation, requiresRecovery, onUncertain, localDraft = $bindable({}), activeStepCard = $bindable(null) }: {
@@ -13,7 +15,13 @@
   requiresRecovery: boolean; onUncertain: () => void; localDraft: Record<string, unknown>; activeStepCard: HTMLElement | null;
  } = $props();
  const { service: selectedService, slot: selectedSlot, selection, professionalLabel: professionalSelectionLabel,
-  priceQuote: currentPriceQuote, timezone, modality } = $derived(confirmation);
+  priceQuote: currentPriceQuote, depositTerms, timezone, modality } = $derived(confirmation);
+ // Before the person confirms (plan, section 4.9): what the booking will ask, from the database rule.
+ const depositNotice = $derived(
+  depositTerms === 'none' ? null
+   : depositTerms === 'unknown' ? DEPOSIT_TERMS_UNAVAILABLE_NOTICE
+   : buildDepositTermsNotice(depositTerms, timezone, new Date())
+ );
  const selectedProfessional = $derived({ id: confirmation.professionalId });
  const business = $derived(data.state.business);
  const values = $derived(form?.values ?? localDraft);
@@ -92,7 +100,12 @@
 				if (data.integration && (result.type === 'error' || (result.type === 'failure' && result.data?.uncertain === true))) {
 					if (result.type === 'failure') await update({ reset: false });
 					onUncertain();
-				} else await update({ reset: false });
+				} else {
+					await update({ reset: false });
+					// Failure updates form data but does not rerun loads. Fetch the current offer
+					// before enabling another confirmation; entered fields and attempt stay intact.
+					if (result.type === 'failure' && result.data?.refreshDepositTerms === true) await invalidateAll();
+				}
 			} finally { bookingSubmitting = false; }
 			// El token de Turnstile es de un solo uso: tras un intento fallido hay
 			// que regenerarlo o el reintento moriría siempre en el captcha.
@@ -145,6 +158,7 @@
 				    {#if currentPriceQuote?.adjusted}<p class="patient-price-notice">
 				        Este arancel incluye los ajustes del consultorio para la fecha elegida.
 				      </p>{/if}
+				    {#if depositNotice}<p class="patient-price-notice" data-deposit-notice>{depositNotice}</p>{/if}
 				  </section>
 
 				  {#if data.integration}
@@ -156,6 +170,7 @@
 				    <input type="hidden" name="modality" value={modality} />
 				  {/if}
 				  <input type="hidden" name="service_id" value={selectedService.id} />
+				  <input type="hidden" name="deposit_terms" value={JSON.stringify(depositTerms)} />
 				  <input type="hidden" name="booking_mode" value={selection.bookingMode} />
 				  <input
 				    type="hidden"

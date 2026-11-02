@@ -1,0 +1,250 @@
+{
+  "schemaVersion": 1,
+  "gitRevision": "313355a4403e850379ace72bb4f37cd1c7952142",
+  "sourceFingerprint": "52b4ecaaf55dd540a82cdcf3a453e10b330b2810387e35f03bc84b33f909ae40",
+  "startedAt": "2026-10-15T08:07:02.323Z",
+  "finishedAt": "2026-10-15T08:12:59.009Z",
+  "passed": true,
+  "cleanupCompleted": true,
+  "scope": "Local fixtures only; full baseline is not a production/load/physical-device certification.",
+  "browser": "No host-managed browser capability exposed; installed Playwright/Chromium used.",
+  "observations": [
+    {
+      "code": "loader-fetch-lifetime",
+      "occurrences": 6,
+      "owner": "Phase 4: request/loader boundaries",
+      "scope": "SvelteKit development warning; invalidation behavior requires a targeted regression. Not suppressed or counted as a production incident."
+    }
+  ],
+  "fixtureStartup": {
+    "startedAt": "2026-10-15T08:11:44.666Z",
+    "passed": true,
+    "finishedAt": "2026-10-15T08:12:29.271Z"
+  },
+  "stages": [
+    {
+      "name": "types",
+      "command": [
+        "pnpm",
+        "check"
+      ],
+      "startedAt": "2026-10-15T08:07:03.739Z",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 72219
+    },
+    {
+      "name": "server-tests",
+      "command": [
+        "pnpm",
+        "--filter",
+        "web",
+        "test",
+        "--reporter=json",
+        "--outputFile=/tmp/cita-baseline-Y7gbSC/server-tests.json"
+      ],
+      "startedAt": "2026-10-15T08:08:15.960Z",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 65717,
+      "tests": {
+        "files": 135,
+        "passed": 1008,
+        "failed": 0,
+        "pending": 0
+      }
+    },
+    {
+      "name": "component-tests",
+      "command": [
+        "pnpm",
+        "--filter",
+        "web",
+        "test:client",
+        "--reporter=json",
+        "--outputFile=/tmp/cita-baseline-Y7gbSC/component-tests.json"
+      ],
+      "startedAt": "2026-10-15T08:09:21.681Z",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 41346,
+      "tests": {
+        "files": 13,
+        "passed": 100,
+        "failed": 0,
+        "pending": 0
+      }
+    },
+    {
+      "name": "cloudflare-build",
+      "command": [
+        "pnpm",
+        "--filter",
+        "web",
+        "build:cloudflare"
+      ],
+      "startedAt": "2026-10-15T08:10:03.028Z",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 38683
+    },
+    {
+      "name": "natalia-build",
+      "command": [
+        "pnpm",
+        "--filter",
+        "natalia",
+        "exec",
+        "astro",
+        "build"
+      ],
+      "startedAt": "2026-10-15T08:10:41.713Z",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 4903
+    },
+    {
+      "name": "natalia-public-contract",
+      "command": [
+        "pnpm",
+        "--filter",
+        "natalia",
+        "check:assets"
+      ],
+      "startedAt": "2026-10-15T08:10:46.618Z",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 751
+    },
+    {
+      "name": "natalia-fidelity",
+      "command": [
+        "pnpm",
+        "--filter",
+        "natalia",
+        "check:public"
+      ],
+      "startedAt": "2026-10-15T08:10:47.369Z",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 689
+    },
+    {
+      "name": "natalia-browser",
+      "command": [
+        "pnpm",
+        "--filter",
+        "natalia",
+        "test:browser"
+      ],
+      "startedAt": "2026-10-15T08:10:48.059Z",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 6351,
+      "scenarios": 11
+    },
+    {
+      "name": "sql-contracts",
+      "command": [
+        "node",
+        "scripts/test-booking-foundation.mjs",
+        "--all-contracts",
+        "--keep"
+      ],
+      "startedAt": "2026-10-15T08:10:54.411Z",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 50009,
+      "contracts": {
+        "migrations": 97,
+        "sqlContracts": 24,
+        "assertions": 27,
+        "allContracts": true
+      }
+    },
+    {
+      "name": "native-booking-browser",
+      "command": [
+        "node",
+        "scripts/qa-natalia-direct-booking.mjs"
+      ],
+      "startedAt": "2026-10-15T08:12:29.271Z",
+      "passed": true,
+      "exitCode": 0,
+      "durationMs": 19777,
+      "scenarios": 2
+    }
+  ],
+  "nativeBooking": {
+    "scope": "Real local Natalia build and Cita Suite app, disposable PostgreSQL/PostgREST, simulated Auth. Synthetic bookings only; no production requests or writes.",
+    "checks": [
+      {
+        "name": "desktop",
+        "width": 1440,
+        "height": 960,
+        "nativeSameTab": true,
+        "fullManagement": true,
+        "themeSnapshot": "natalia",
+        "colorMode": "light",
+        "systemColorMode": "dark",
+        "reloadPreservesMode": true,
+        "recoveryWithoutDuplicate": true,
+        "oldReceiptCompatible": true,
+        "sdkRequests": 0,
+        "syntheticBookings": 1
+      },
+      {
+        "name": "mobile",
+        "width": 390,
+        "height": 844,
+        "nativeSameTab": true,
+        "fullManagement": true,
+        "themeSnapshot": "natalia",
+        "colorMode": "dark",
+        "systemColorMode": "light",
+        "reloadPreservesMode": true,
+        "recoveryWithoutDuplicate": true,
+        "oldReceiptCompatible": true,
+        "sdkRequests": 0,
+        "syntheticBookings": 1
+      }
+    ],
+    "errors": [],
+    "consoleErrors": [],
+    "consoleWarnings": [],
+    "passed": true
+  },
+  "environment": {
+    "node": "v22.23.2",
+    "pnpm": "10.13.1",
+    "sequential": true,
+    "maxVitestWorkers": 1,
+    "sqlContainerMemory": "384m",
+    "sqlContainerCpus": 1,
+    "host": "Linux, local Chromium viewports; no physical-device or production load assertion"
+  },
+  "developmentHistory": [
+    {
+      "result": "failed",
+      "cause": "Initial 768 MB heap insufficient for complete Svelte type checking; final type stage uses 1024 MB."
+    },
+    {
+      "result": "failed",
+      "cause": "Browser was started when a static asset was ready, before cold SSR startup; final runner waits for the actual SSR/database READY signal."
+    },
+    {
+      "result": "passed negative check",
+      "cause": "Intentional interruption during fixture startup terminated owned processes/containers and released the lock."
+    },
+    {
+      "result": "passed negative check",
+      "cause": "Simulated unavailable Docker prerequisite failed with exit 1 and released the lock."
+    }
+  ],
+  "coverageLimits": [
+    "The 14 private/credential-dependent E2E specs and shell concurrency runners were inventoried, not executed.",
+    "Real Supabase Auth, native Storage HTTP upload, Google OAuth, provider billing and physical notification delivery were not exercised.",
+    "No four/25-tenant capacity test or production deployment gate was certified.",
+    "GitHub required checks and Cloudflare automatic promotion settings were not modified."
+  ]
+}

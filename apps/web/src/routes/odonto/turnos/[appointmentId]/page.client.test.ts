@@ -4,6 +4,7 @@ import { cleanup, render, screen, waitFor } from '@testing-library/svelte';
 import '@testing-library/jest-dom/vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import Page from './+page.svelte';
+import type { ComponentProps } from 'svelte';
 
 // The appointment as the load returns it, every selected column included, so the page
 // is checked against the shape it really receives.
@@ -62,9 +63,12 @@ const appointment = {
 	]
 };
 
-const data = {
+type PageData = ComponentProps<typeof Page>['data'];
+const data: PageData = {
 	context: { canOperate: true, role: 'owner' },
 	appointment,
+	deposit: null,
+	canRecordDeposit: true,
 	auditLogs: [],
 	userLabels: {},
 	reprogramDate: '2026-08-20',
@@ -101,7 +105,7 @@ describe('último paso después de crear un turno desde Agenda', () => {
 		const action = screen.getByRole('link', { name: 'Enviar enlace de activación' });
 		expect(action).toHaveAttribute('href', data.activationWhatsAppWebUrl);
 		expect(action).toHaveAttribute('target', '_blank');
-		expect(action.className).toContain('bg-emerald-500');
+		expect(action.className).toContain('bg-success-500');
 		expect(action.className).toContain('min-h-[4.5rem]');
 		expect(
 			screen.getByText('El paciente recibirá un enlace para activar sus recordatorios.')
@@ -277,3 +281,85 @@ describe('visibilidad de cancelación por estado y fecha', () => {
 		expect(screen.queryByText('Cancelar turno', { selector: 'summary' })).not.toBeInTheDocument();
 	});
 });
+
+describe('seña del turno en el detalle', () => {
+	const deposit = (overrides: Partial<NonNullable<PageData['deposit']>> = {}): NonNullable<PageData['deposit']> => ({
+		appointment_id: 'appointment-1',
+		status: 'pending',
+		amount: 40000,
+		currency: 'ARS',
+		request_from: '2026-08-13T03:00:00.000Z',
+		due_at: '2026-08-18T15:00:00.000Z',
+		auto_cancel: true,
+		waived_reason: null,
+		recorded_at: null,
+		reminder_opened_at: null,
+		expired_at: null,
+		revision: 3,
+		cancelsItself: true,
+		...overrides
+	});
+	const panel = () => document.querySelector('[data-deposit-panel]') as HTMLElement;
+	const fieldsOf = (button: string) => Object.fromEntries(new FormData(screen.getByRole('button', { name: button }).closest('form')!));
+
+	it('con la seña pendiente el estado lo dice y ofrece confirmarla o exceptuarla con la revisión que se vio', () => {
+		render(Page, { data: { ...data, justCreated: false, deposit: deposit() } });
+		expect(screen.getByText('Reservado, seña pendiente')).toBeInTheDocument();
+		expect(panel()).toHaveTextContent('Seña pendiente');
+		expect(panel()).toHaveTextContent('Si no se registra antes del vencimiento, el turno se cancela solo.');
+		expect(fieldsOf('Confirmar seña')).toEqual({ deposit_action: 'paid', expected_revision: '3' });
+		expect(fieldsOf('Sí, exceptuar la seña')).toEqual({ deposit_action: 'waived', expected_revision: '3' });
+		expect(screen.queryByRole('button', { name: /deshacer/i })).toBeNull();
+	});
+
+	it('dice cuando no se cancela sola y cuando no se pudo comprobar', () => {
+		render(Page, { data: { ...data, justCreated: false, deposit: deposit({ cancelsItself: false }) } });
+		expect(panel()).toHaveTextContent('No se cancela sola: si no llega, decide el consultorio.');
+		cleanup();
+		render(Page, { data: { ...data, justCreated: false, deposit: deposit({ cancelsItself: null }) } });
+		expect(panel()).toHaveTextContent('No pudimos comprobar si este turno se cancela solo.');
+	});
+
+	it('con la seña recibida el turno dice Confirmado, seña recibida, y se puede deshacer', () => {
+		render(Page, {
+			data: { ...data, justCreated: false, appointment: { ...appointment, status: 'confirmed' }, deposit: deposit({ status: 'paid', recorded_at: '2026-08-15T15:00:00.000Z' }) }
+		});
+		expect(screen.getByText('Confirmado, seña recibida')).toBeInTheDocument();
+		expect(fieldsOf('Sí, deshacer el registro')).toEqual({ deposit_action: 'pending', expected_revision: '3' });
+		expect(screen.queryByRole('button', { name: 'Confirmar seña' })).toBeNull();
+	});
+
+	it('una exención por apagar la política, un turno cancelado o quien no registra señas no tienen acciones', () => {
+		render(Page, { data: { ...data, justCreated: false, deposit: deposit({ status: 'waived', waived_reason: 'policy_disabled' }) } });
+		expect(panel()).toHaveTextContent('Exceptuada al apagar la seña del consultorio.');
+		expect(panel().querySelector('form')).toBeNull();
+		cleanup();
+		render(Page, { data: { ...data, justCreated: false, appointment: { ...appointment, status: 'cancelled' }, deposit: deposit({ status: 'expired', expired_at: '2026-08-18T15:05:00.000Z' }) } });
+		expect(panel()).toHaveTextContent('Venció sin registrarse: el turno se canceló automáticamente.');
+		expect(panel().querySelector('form')).toBeNull();
+		cleanup();
+		render(Page, { data: { ...data, justCreated: false, canRecordDeposit: false, deposit: deposit() } });
+		expect(panel()).toHaveTextContent('Seña pendiente');
+		expect(panel().querySelector('form')).toBeNull();
+	});
+
+	it('la historia nombra las acciones de la seña con su monto', () => {
+		render(Page, {
+			data: {
+				...data,
+				justCreated: false,
+				userLabels: { 'user-1': 'aye@consultorio.test' },
+				auditLogs: [
+					{ id: 'log-1', user_id: 'user-1', action: 'appointment.deposit_paid', metadata: { amount: 40000, deposit_status: 'paid' }, created_at: '2026-08-15T15:00:00.000Z' },
+					{ id: 'log-slot', user_id: 'user-1', action: 'appointment.slot_release_hidden', metadata: {}, created_at: '2026-08-15T15:01:00.000Z' },
+					{ id: 'log-2', user_id: null, action: 'appointment.deposit_expired', metadata: { from_status: 'reserved', to_status: 'cancelled' }, created_at: '2026-08-18T15:05:00.000Z' }
+				]
+			}
+		});
+		expect(screen.getByText('aye@consultorio.test confirmó la seña')).toBeInTheDocument();
+		expect(screen.getByText('aye@consultorio.test ocultó un aviso de horario liberado')).toBeInTheDocument();
+		expect(screen.getByText(/Seña de \$\s40\.000/)).toBeInTheDocument();
+		expect(screen.getByText('El turno se canceló automáticamente porque no se registró la seña')).toBeInTheDocument();
+	});
+});
+

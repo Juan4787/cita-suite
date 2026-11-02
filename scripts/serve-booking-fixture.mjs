@@ -36,6 +36,9 @@ const network = db + "-e2e-net";
 let storageFixture;
 const rest = db + "-rest";
 const authContainer = db + '-auth';
+const mailContainer = db + '-mail';
+let mailOrigin;
+let mailCreated = false;
 let authOrigin;
 let authCreated = false;
 let fixtureRunId;
@@ -106,6 +109,9 @@ function cleanup() {
   }), null, 2), { mode: 0o600 });
   if (authCreated) {
     try { docker(['rm', '-f', '-v', authContainer]); } catch {}
+  }
+  if (mailCreated) {
+    try { docker(['rm', '-f', '-v', mailContainer]); } catch {}
   }
   try {
     docker(["rm", "-f", rest]);
@@ -217,7 +223,7 @@ try {
       );
       res.setHeader(
         "Access-Control-Allow-Headers",
-        "authorization,apikey,content-type,x-upsert,x-client-info",
+        "authorization,apikey,content-type,x-upsert,x-client-info,x-supabase-api-version",
       );
     }
     if (req.method === "OPTIONS") {
@@ -299,6 +305,7 @@ try {
           : restOrigin + req.url.slice("/rest/v1".length),
         {
           method: req.method,
+          redirect: isAuth ? 'manual' : 'follow',
           headers,
           body: ["GET", "HEAD"].includes(req.method)
             ? undefined
@@ -349,6 +356,22 @@ try {
   await new Promise((resolve) => host.listen(0, "127.0.0.1", resolve));
   const hostOrigin = "https://127.0.0.1:" + host.address().port;
   if (realAuth) {
+    // The internal network has no outbound relay. Actual GoTrue SMTP messages
+    // are captured here and never leave this disposable run.
+    const mailImage = 'ghcr.io/axllent/mailpit:v1.32.0';
+    docker(['image', 'inspect', mailImage]);
+    docker(['run', '-d', '--name', mailContainer, '--label', 'com.cita-suite.booking-fixture=true',
+      '--label', 'com.cita-suite.fixture-run=' + fixtureRunId, '--network', network,
+      '--memory', '64m', '--cpus', '0.25', '--read-only', '--tmpfs', '/tmp:size=16m',
+      '-e', 'MP_DATABASE=/tmp/mailpit.db', '-e', 'MP_MAX_MESSAGES=50', mailImage]);
+    mailCreated = true;
+    mailOrigin = 'http://' + docker(['inspect', '--format', '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}', mailContainer]) + ':8025';
+    let mailReady = false;
+    for (let attempt = 0; attempt < 40; attempt++) {
+      try { if ((await fetch(mailOrigin + '/api/v1/messages', { signal: AbortSignal.timeout(500) })).ok) { mailReady = true; break; } } catch {}
+      await new Promise(resolve => setTimeout(resolve, 250));
+    }
+    if (!mailReady) throw new Error('The owned SMTP capture did not become ready.');
     const authImage = 'public.ecr.aws/supabase/gotrue:v2.196.0';
     docker(['image', 'inspect', authImage]);
     docker(['exec', '-i', db, 'psql', '-X', '-U', 'supabase_admin', '-d', 'postgres', '-v', 'ON_ERROR_STOP=1', '-q'],
@@ -363,7 +386,13 @@ try {
       GOTRUE_JWT_SECRET: secret, GOTRUE_JWT_EXP: '7200', GOTRUE_JWT_AUD: 'authenticated',
 	  GOTRUE_JWT_DEFAULT_GROUP_NAME: 'authenticated',
       GOTRUE_JWT_ADMIN_ROLES: 'service_role', GOTRUE_EXTERNAL_EMAIL_ENABLED: 'true',
-      GOTRUE_MAILER_AUTOCONFIRM: 'true', GOTRUE_DISABLE_SIGNUP: 'false', GOTRUE_LOG_LEVEL: 'error'
+      GOTRUE_MAILER_AUTOCONFIRM: 'false', GOTRUE_DISABLE_SIGNUP: 'false', GOTRUE_LOG_LEVEL: 'error',
+      GOTRUE_URI_ALLOW_LIST: appOrigin + '/**',
+	  GOTRUE_MAILER_URLPATHS_CONFIRMATION: '/auth/v1/verify',
+	  GOTRUE_MAILER_URLPATHS_RECOVERY: '/auth/v1/verify',
+      GOTRUE_SMTP_HOST: mailContainer, GOTRUE_SMTP_PORT: '1025',
+      GOTRUE_SMTP_ADMIN_EMAIL: 'auth@cita-suite.fixture.test', GOTRUE_SMTP_SENDER_NAME: 'Cita Suite',
+      GOTRUE_RATE_LIMIT_EMAIL_SENT: '100'
     };
     docker(['run', '-d', '--name', authContainer, '--label', 'com.cita-suite.booking-fixture=true',
       '--label', 'com.cita-suite.fixture-run=' + fixtureRunId,
@@ -420,7 +449,7 @@ try {
  insert into public.professional_booking_forms(business_id,professional_id,fields) values('${businessId}','${professionalId}','[{"id":"age","label":"Edad","kind":"text","required":true,"maxLength":3,"patientField":"age"},{"id":"medication","label":"Medicación","kind":"textarea","required":false,"maxLength":1000,"patientField":"medication"},{"id":"insurance","label":"Obra social del perfil","kind":"text","required":true,"maxLength":120,"patientField":"insurance"}]');
  insert into public.services(id,business_id,name,duration_minutes) values('90000000-0000-4000-8000-000000000008','${businessId}','Seguimiento de prueba',30);
  insert into public.professional_services(business_id,professional_id,service_id) values('${businessId}','${professionalId}','${serviceId}'),('${businessId}','${professionalId}','90000000-0000-4000-8000-000000000008');
- insert into public.service_price_policies(business_id,service_id,professional_id,base_amount,currency,base_month,first_adjustment_month,monthly_percentage,rounding_unit) values('${businessId}','${serviceId}','${professionalId}',20000,'ARS',date_trunc('month',now())::date,(date_trunc('month',now())+interval '1 month')::date,2,1);
+ insert into public.service_price_policies(business_id,service_id,professional_id,base_amount,currency,base_month,first_adjustment_month,monthly_percentage,rounding_unit) values('${businessId}','${serviceId}','${professionalId}',20000,'ARS',date_trunc('month',now() at time zone 'America/Argentina/Buenos_Aires')::date,(date_trunc('month',now() at time zone 'America/Argentina/Buenos_Aires')+interval '1 month')::date,2,1);
  update public.services set patient_instructions=E'Indicaciones sintéticas\nTraer los estudios previos.',public_reminder_description='Aviso público sintético' where id='${serviceId}';
  insert into public.availability_rules(business_id,professional_id,weekday,start_time,end_time,slot_interval_minutes,break_minutes) select '${businessId}','${professionalId}',n,'09:00','17:00',30,10 from generate_series(0,6)n;
  insert into public.booking_integrations(business_id,public_key,name,is_active,is_default,theme,allowed_origins,allowed_service_ids,allowed_professional_ids,allowed_modalities,video_instructions,intake_schema) values('${businessId}','${key}','Host de prueba',true,false,'natalia',array['${hostOrigin}'],array['${serviceId}','90000000-0000-4000-8000-000000000008']::uuid[],array['${professionalId}']::uuid[],array['in_person','video'],'Instrucciones virtuales sintéticas: se coordina el acceso.','[{"id":"insurance","label":"Obra social y plan","kind":"text","required":true,"maxLength":120},{"id":"labs","label":"Estudios recientes","kind":"boolean","required":false}]');
@@ -465,6 +494,9 @@ try {
       container: db,
       storageOrigin: storageFixture?.origin,
       realAuth,
+      mailOrigin,
+      mailContainer: mailCreated ? mailContainer : null,
+      emailConfirmationRequired: realAuth,
       runtime: runtimeLog,
       runId: fixtureRunId,
       followupId: "90000000-0000-4000-8000-000000000008",

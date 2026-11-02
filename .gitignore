@@ -45,3 +45,17 @@ apps/natalia/.astro/
 /ACCESOS-GOOGLE-CALENDAR/
 /secreto-cliente-auth.json
 **/client_secret_*.json
+/Cita Suite Respaldo.json
+
+# Privado o generado: nunca va al repositorio público (2 de noviembre, docs/ESTADO-VIGENTE.md).
+# Los archivos ya publicados en estas rutas siguen versionados; esto sólo impide agregar nuevos.
+/docs/clientes/
+/.audit-backup-*/
+/audit-evidence/
+apps/web/output/
+/.impeccable/
+/.agents/
+/walkthrough.md
+/.svelte-kit-repro.manifest
+/cita-suite-*-repro.manifest
+**/supabase/.temp/

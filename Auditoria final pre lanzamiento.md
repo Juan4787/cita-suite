@@ -52,7 +52,7 @@
   del scheduler. No modifica `apps/web`, migraciones ni el artefacto publicado; el
   runtime de Cloudflare continúa siendo `fba21de…`.
 
-- [x] Enlace al informe y artefactos: este archivo; resultados Playwright en [apps/web/test-results](</home/usuario/CascadeProjects/Base de Datos Sabrina/apps/web/test-results) y [apps/web/output/playwright](</home/usuario/CascadeProjects/Base de Datos Sabrina/apps/web/output/playwright). Los artefactos contienen capturas/traces de fallos y no se consideran evidencia de aprobación.
+- [x] Enlace al informe y artefactos: este archivo; resultados Playwright en `apps/web/test-results` (no está en el repositorio) y [apps/web/output/playwright](<apps/web/output/playwright>). Los artefactos contienen capturas/traces de fallos y no se consideran evidencia de aprobación.
 
 ## Alcance y principio de aceptación
 
@@ -72,9 +72,9 @@ Al elaborar el contenido original de este plan no se modificó código ni se eje
 
 - [x] Recontar y registrar la suite E2E. Hay 13 specs y 27 pruebas; se observaron 20 lugares con skip condicional. La corrida inicial quedó 19 passed, 2 failed y 6 skipped; la candidata final, tras corregir causas y respetar el rate limit, quedó 14 passed y 13 skips explícitos sin fallos (más 12/12 destructivos y 2/2 clínicos remotos). La corrida local histórica quedó 18 passed, 4 failed y 5 skipped.
 
-- [x] Mantener Playwright limitado a un worker y sin paralelismo en [playwright.config.ts](</home/usuario/CascadeProjects/Base de Datos Sabrina/apps/web/playwright.config.ts:3>), apropiado para esta PC. Se ejecutó con `workers=1`; la corrida certificadora Cloudflare fijó además `retries=0`.
+- [x] Mantener Playwright limitado a un worker y sin paralelismo en [playwright.config.ts](<apps/web/playwright.config.ts>), apropiado para esta PC. Se ejecutó con `workers=1`; la corrida certificadora Cloudflare fijó además `retries=0`.
 
-- [x] Confirmar que Cloudflare sigue usando `nodejs_compat`, assets estáticos `ASSETS`, `keep_vars: true` y placement hacia `aws:sa-east-1` en [wrangler.jsonc](</home/usuario/CascadeProjects/Base de Datos Sabrina/apps/web/wrangler.jsonc:1>); `wrangler versions view` confirmó placement targeted y target `aws:sa-east-1`.
+- [x] Confirmar que Cloudflare sigue usando `nodejs_compat`, assets estáticos `ASSETS`, `keep_vars: true` y placement hacia `aws:sa-east-1` en [wrangler.jsonc](<apps/web/wrangler.jsonc>); `wrangler versions view` confirmó placement targeted y target `aws:sa-east-1`.
 
 - [ ] Correlacionar el deployment activo con Git. El deployment observado el 27 de agosto de 2026 era f360495e-b23d-4fbf-8fc9-7a0b77e937af al 100%, pero aparecía sin tag, mensaje ni relación comprobable con el commit 6914543. Eso impide asegurar qué código exacto está atendiendo producción.
 
@@ -4150,7 +4150,7 @@ certificando ahora.
   `SOURCE_DATE_EPOCH=0`. Los dos directorios `.svelte-kit/cloudflare` fueron idénticos
   mediante comparación recursiva y manifiesto ordenado de **105 archivos**; el
   manifiesto archivado es
-  [4f4b28f5-build-manifest.txt](</home/usuario/CascadeProjects/Base de Datos Sabrina/audit-evidence/cloudflare/4f4b28f-build-manifest.txt>)
+  `audit-evidence/cloudflare/4f4b28f-build-manifest.txt` (no está en el repositorio)
   y su SHA-256 es `d0f21b65991bb4ce8140dbda6f0f9d053a2f345be7b772307b3a565c2991fa62`.
 - [x] El `_worker.js` de ambos builds tiene SHA-256
   `cf4056f946ba2822fb93035da445ea2b74c918e9bbbb7d646dffcc8db657d484`; el
@@ -4242,7 +4242,7 @@ reinterpreta como si nunca hubiera existido.
   el SSR: **105 archivos** de `.svelte-kit/cloudflare` más **267 archivos** de
   `.svelte-kit/output/server`, 372 entradas idénticas en dos builds con
   `SOURCE_DATE_EPOCH=0`. El manifiesto combinado archivado es
-  [1d5fa13-cloudflare-server-manifest.txt](</home/usuario/CascadeProjects/Base de Datos Sabrina/audit-evidence/cloudflare/1d5fa13-cloudflare-server-manifest.txt>)
+  `audit-evidence/cloudflare/1d5fa13-cloudflare-server-manifest.txt` (no está en el repositorio)
   y su SHA-256 es `dd962a9c61c8eee7b1a54f219fc249531a588882de2405e0861db2f6a94748f6`.
   `_worker.js` conserva SHA `cf4056f946ba2822fb93035da445ea2b74c918e9bbbb7d646dffcc8db657d484`;
   el `version.json` generado contiene exactamente el commit `1d5fa13…`.
@@ -4439,7 +4439,7 @@ aprobaciones implícitas de los demás gates. La versión vigente del código es
   `output/server`), no sólo el comportamiento del navegador: **373 archivos,
   byte a byte idénticos** en A/B.
 - [x] El manifiesto de hashes completo está archivado en
-  [audit-evidence/cloudflare/fba21de-cloudflare-tmp-server-manifest.txt](</home/usuario/CascadeProjects/Base de Datos Sabrina/audit-evidence/cloudflare/fba21de-cloudflare-tmp-server-manifest.txt>).
+  [audit-evidence/cloudflare/fba21de-cloudflare-tmp-server-manifest.txt](<audit-evidence/cloudflare/fba21de-cloudflare-tmp-server-manifest.txt>).
   Tiene 373 líneas y su SHA-256 es
   `2324f2e253b33f44eedbec04708a2aaf5d7c775e448bf5ce422cfafdac5f371b`. El
   `cloudflare-tmp/manifest.js` del build final no arrastra los hashes de la corrida

@@ -5,7 +5,10 @@ const mocks = vi.hoisted(() => ({
 	from: vi.fn(),
 	countTomorrowUncovered: vi.fn(),
 	loadInternalAvailabilitySnapshot: vi.fn(),
-	updateAppointmentStatus: vi.fn()
+	updateAppointmentStatus: vi.fn(),
+	loadDepositList: vi.fn(),
+	loadAppointmentSlotReleases: vi.fn(),
+	hideAppointmentSlotRelease: vi.fn()
 }));
 
 vi.mock('$env/dynamic/private', () => ({ env: {} }));
@@ -13,10 +16,20 @@ vi.mock('$lib/server/access/public/business', () => ({ demoBusinessContext: vi.f
 vi.mock('$lib/server/access/public/odonto-context', () => ({ getOdontoContext: mocks.getOdontoContext }));
 vi.mock('$lib/server/platform/supabase', () => ({ createSupabaseAdminClient: vi.fn(async () => ({})) }));
 vi.mock('$lib/server/scheduling/public/reminders', () => ({ countTomorrowUncovered: mocks.countTomorrowUncovered }));
+vi.mock('$lib/server/scheduling/public/slot-releases', async (original) => ({
+ ...(await original<typeof import('$lib/server/scheduling/public/slot-releases')>()),
+ loadAppointmentSlotReleases: mocks.loadAppointmentSlotReleases,
+ hideAppointmentSlotRelease: mocks.hideAppointmentSlotRelease
+}));
 vi.mock('$lib/server/integrations/public/google-calendar', () => ({ processAppointmentGoogleCalendarSync: vi.fn() }));
 vi.mock('$lib/server/scheduling/public/appointments', async (importOriginal) => ({
 	...(await importOriginal<typeof import('$lib/server/scheduling/public/appointments')>()),
 	updateAppointmentStatus: mocks.updateAppointmentStatus
+}));
+// The real summary over a replaced list: the agenda counts what the deposits page lists.
+vi.mock('$lib/server/scheduling/public/deposits', async (importOriginal) => ({
+	...(await importOriginal<typeof import('$lib/server/scheduling/public/deposits')>()),
+	loadDepositList: mocks.loadDepositList
 }));
 vi.mock('$lib/server/scheduling/public/availability-snapshot', () => ({
 	defaultInternalAvailabilitySnapshotRange: () => ({ fromDate: '2026-10-21', toDate: '2026-11-04' }),
@@ -54,11 +67,36 @@ describe('daily agenda load', () => {
 		vi.clearAllMocks();
 		mocks.getOdontoContext.mockResolvedValue({
 			supabase: { from: mocks.from },
-			business: { business: { id: 'business-1', timezone: 'America/Argentina/Buenos_Aires' }, role: 'owner' },
+			business: { business: { id: 'business-1', timezone: 'America/Argentina/Buenos_Aires' }, role: 'owner', access: { canUseBusiness: true } },
 			userId: 'user-1'
 		});
 		mocks.countTomorrowUncovered.mockResolvedValue(2);
 		mocks.loadInternalAvailabilitySnapshot.mockResolvedValue(snapshot);
+		mocks.loadDepositList.mockResolvedValue({ items: [], truncated: false });
+		mocks.loadAppointmentSlotReleases.mockResolvedValue({ items: [], truncated: false });
+	});
+
+	it('carga la ventana de horarios liberados por lote y distingue falla de lista vacía', async () => {
+		mocks.from.mockReturnValue(query({ data: [], error: null }));
+		await expect(load(event('?date=2026-10-21&dias_liberados=30&pagina_liberados=2'))).resolves.toMatchObject({
+			slotReleases: { items: [], truncated: false, days: 30, page: 2 }
+		});
+		expect(mocks.loadAppointmentSlotReleases).toHaveBeenCalledWith(expect.anything(), 'business-1', { days: 30, page: 2, offset: 50 });
+		mocks.loadAppointmentSlotReleases.mockRejectedValue(new Error('read failed'));
+		await expect(load(event())).resolves.toMatchObject({ slotReleases: { items: null, days: 14, page: 1 } });
+	});
+	it('ocultar valida el ID y entrega un resultado propio sin abrir el asistente de crear turno', async () => {
+		const post = (releaseId: string) => actions.hide_slot_release({
+			locals: { auth: { access_token: 'test-token' } }, fetch: vi.fn(), cookies: { get: vi.fn() },
+			request: new Request('http://localhost/odonto/agenda?/hide_slot_release', { method: 'POST', body: new URLSearchParams({ release_id: releaseId }) })
+		} as never);
+		await expect(post('invalid')).resolves.toMatchObject({ status: 404 });
+		expect(mocks.hideAppointmentSlotRelease).not.toHaveBeenCalled();
+		mocks.getOdontoContext.mockResolvedValue({ supabase: {}, business: { business: { id: 'business-1' }, role: 'reception', canOperate: true } });
+		mocks.hideAppointmentSlotRelease.mockResolvedValue(true);
+		const result = await post(professionalId);
+		expect(result).toMatchObject({ slotReleaseMessage: expect.stringContaining('Aviso ocultado') });
+		expect(result).not.toHaveProperty('message');
 	});
 
 	it('lists the day with its references and the reminders to send', async () => {
@@ -67,6 +105,59 @@ describe('daily agenda load', () => {
 			appointments: unknown[]; professionals: unknown[]; reminderCount: number | null;
 		};
 		expect([result.appointments, result.professionals, result.reminderCount]).toEqual([[appointment], snapshot.professionals, 2]);
+	});
+
+	it('no presenta el conteo de una lista incompleta como el total de señas', async () => {
+		mocks.from.mockReturnValue(query({ data: [appointment], error: null }));
+		mocks.loadDepositList.mockResolvedValue({ items: [], truncated: true });
+		await expect(load(event())).resolves.toMatchObject({ depositAlerts: null });
+	});
+
+	it('counts the deposit alerts from the same list as the deposits page, for whoever records deposits', async () => {
+		mocks.from.mockReturnValue(query({ data: [appointment], error: null }));
+		const now = Date.now();
+		const item = (section: string, deposit: Record<string, unknown> = {}) => ({ section, deposit: { reminder_opened_at: null, expired_at: null, ...deposit } });
+		mocks.loadDepositList.mockResolvedValue({
+			items: [
+				item('to_request'),
+				item('to_request', { reminder_opened_at: new Date(now - 3_600_000).toISOString() }),
+				item('due_soon'),
+				item('cancelled', { expired_at: new Date(now - 2 * 3_600_000).toISOString() }),
+				item('cancelled', { expired_at: new Date(now - 30 * 3_600_000).toISOString() })
+			],
+			truncated: false
+		});
+		mocks.getOdontoContext.mockResolvedValue({
+			supabase: { from: mocks.from },
+			business: { business: { id: 'business-1', timezone: 'America/Argentina/Buenos_Aires' }, role: 'reception', access: { canUseBusiness: true } },
+			userId: 'user-1'
+		});
+		const result = (await load(event('?date=2026-10-21'))) as { depositAlerts: unknown };
+		expect(result.depositAlerts).toEqual({ toRequest: 1, dueSoon: 1, cancelledToday: 1 });
+	});
+
+	it('says the deposits could not be checked instead of hiding them, and reads nothing for read-only users', async () => {
+		mocks.from.mockReturnValue(query({ data: [appointment], error: null }));
+		mocks.loadDepositList.mockRejectedValue(new Error('read failed'));
+		const failed = (await load(event('?date=2026-10-21'))) as { depositAlerts: unknown };
+		expect(failed.depositAlerts).toBeNull();
+		mocks.loadDepositList.mockClear();
+		mocks.getOdontoContext.mockResolvedValue({
+			supabase: { from: mocks.from },
+			business: { business: { id: 'business-1', timezone: 'America/Argentina/Buenos_Aires' }, role: 'readonly', access: { canUseBusiness: true } },
+			userId: 'user-1'
+		});
+		const readonly = (await load(event('?date=2026-10-21'))) as { depositAlerts: unknown };
+		expect(readonly.depositAlerts).toEqual({ toRequest: 0, dueSoon: 0, cancelledToday: 0 });
+		expect(mocks.loadDepositList).not.toHaveBeenCalled();
+	});
+
+	it('passes a well-formed time to give again, and nothing for any other value', async () => {
+		mocks.from.mockReturnValue(query({ data: [appointment], error: null }));
+		for (const [hora, expected] of [['10:30', '10:30'], ['23:59', '23:59'], ['24:00', ''], ['9:30', ''], ['10:30;drop', ''], ['', '']]) {
+			const result = (await load(event(`?date=2026-10-21&hora=${encodeURIComponent(hora)}`))) as { selectedTime: string };
+			expect(result.selectedTime).toBe(expected);
+		}
 	});
 
 	it('fails explicitly instead of showing an empty day when the day cannot be read', async () => {
