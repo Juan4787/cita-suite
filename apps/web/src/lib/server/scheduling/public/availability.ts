@@ -32,6 +32,7 @@ export type AvailabilityInput = {
 export type AvailabilitySelection = {
  slots: AvailabilitySlot[];
  configurationRevision: number | null;
+ availabilityRevision: number | null;
  durationMinutes: number | null;
 };
 
@@ -44,11 +45,12 @@ export const getAvailabilitySelection = async (client: CitaSupabaseClient, input
   throw new InvalidDataContractError('availability.range');
  const publicOnly = input.publicOnly ?? false;
  if (publicOnly && (!input.business.is_active || !input.business.public_booking_enabled))
-  return { slots: [], configurationRevision: null, durationMinutes: null };
+  return { slots: [], configurationRevision: null, availabilityRevision: null, durationMinutes: null };
  const catalog = await loadAvailabilityCatalog(client, input.business.id, input.readScope ?? (publicOnly ? 'public' : 'internal'));
  const service = catalog.services.find(row => row.id === input.serviceId && (!publicOnly || row.is_public));
  const selection = (slots: AvailabilitySlot[]): AvailabilitySelection => ({ slots,
-  configurationRevision: catalog.configuration_revision, durationMinutes: service?.duration_minutes ?? null });
+  configurationRevision: catalog.configuration_revision, availabilityRevision: catalog.availability_revision ?? null,
+  durationMinutes: service?.duration_minutes ?? null });
  if (!service) return selection([]);
  const requiredProfessionalIds = [...new Set((input.professionalIds ?? []).map(id => id.trim().toLowerCase()).filter(Boolean))];
  const professionalId = input.professionalId?.trim().toLowerCase();
