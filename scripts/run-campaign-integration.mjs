@@ -5,7 +5,7 @@ import { join, resolve } from 'node:path';
 import { createHash, randomUUID } from 'node:crypto';
 import { fixturePath } from './lib/fixture-path.mjs';
 import { acquireVerificationLock } from './lib/verification-lock.mjs';
-import { assertBrowserReport } from './lib/browser-report.mjs';
+import { CANDIDATE_BEHAVIOR_TAG, assertBrowserReport, browserGrepInvert } from './lib/browser-report.mjs';
 import { cleanupFixtureResources } from './lib/fixture-cleanup.mjs';
 import { assertHostedIntegrationResources } from './lib/verification-resources.mjs';
 import { checkFixtureConnections } from './lib/fixture-connection-check.mjs';
@@ -150,6 +150,7 @@ try {
 		E2E_PASSWORD: 'CitaFixtureLocal!2026', CITA_SUITE_TEST_PASSWORD: 'CitaFixtureLocal!2026',
 		CITA_SUITE_TEST_BUSINESS_ID: runtime.businessId, MASTER_EMAIL: 'master@cita-suite-test.local',
 		E2E_MASTER_PASSWORD: 'E2eMasterLocal!2026', PUBLIC_SITE_URL: runtime.appOrigin,
+		CITA_AUTH_MAILBOX_ORIGIN: runtime.mailOrigin ?? '',
 		MP_ACCESS_TOKEN: '', MP_WEBHOOK_SECRET: '', E2E_VALIDATE_MP_REDIRECT: 'false',
 		PLAYWRIGHT_JSON_OUTPUT_NAME: join(evidence, diagnostic ? 'browser-diagnostic.json' : 'browser.json'),
 		PLAYWRIGHT_OUTPUT_DIR: join(evidence, 'browser-artifacts')
@@ -158,8 +159,15 @@ try {
 	// profiles; they must be reported separately, never counted as local passes.
 	// A filtered diagnostic runs every selected case so independent failures are all
 	// reported; it still fails on any failure and never counts as full verification.
+	if (rollback) {
+		// The previous binary predates the behavior these tests prove: list them in the evidence.
+		const listed = spawnSync('pnpm', ['exec', 'playwright', 'test', '--list', '--grep', CANDIDATE_BEHAVIOR_TAG],
+			{ cwd: join(root, 'apps/web'), env, encoding: 'utf8' });
+		if (listed.status !== 0) throw new Error('Could not list the tests of new behavior left out of rollback compatibility.');
+		writeFileSync(join(evidence, 'excluded-candidate-behavior.txt'), listed.stdout);
+	}
 	await run('pnpm', ['exec', 'playwright', 'test', '--workers=1', ...(diagnostic ? [] : ['--max-failures=1']), '--retries=0', '--forbid-only', '--reporter=line,json',
-		'--grep-invert', 'Reserva pública - modo demo|Google Auth', ...(diagnostic ? ['--grep', diagnostic] : [])],
+		'--grep-invert', browserGrepInvert(rollback), ...(diagnostic ? ['--grep', diagnostic] : [])],
 		{ cwd: join(root, 'apps/web'), env });
 	const report = JSON.parse(readFileSync(env.PLAYWRIGHT_JSON_OUTPUT_NAME, 'utf8'));
 	assertBrowserReport(report);

@@ -8,7 +8,7 @@ Se verifican ficha e historia del paciente, edición de datos, configuración de
 
 Se usa Playwright existente exclusivamente en GitHub Actions, un trabajador, sin reintentos ni suites paralelas; la máquina local no ejecuta navegadores. Aplicación y API están en loopback; PostgreSQL, GoTrue, PostgREST y Storage son servicios reales descartables con datos sintéticos propios. Las intercepciones de carga/error son pruebas de recuperación de interfaz, no caídas reales de un proveedor alojado.
 
-Cita Suite conserva su tema oscuro único, incluso con preferencia clara del navegador. Natalia sí tiene dos modos reales por `color_mode`. Las combinaciones registran preferencia y tema renderizado por separado. Los anchos obligatorios son 320, 390, 768, 1280 y 1600 píxeles.
+Cita Suite conserva su tema oscuro único, incluso con preferencia clara del navegador. Natalia sí tiene dos modos reales por `color_mode`. Las combinaciones registran preferencia y tema renderizado por separado. Los anchos obligatorios son 320, 390, 768, 1280 y 1600 píxeles. *(Nota histórica: desde el 2 de noviembre de 2026 la app tiene modo claro predeterminado y modo oscuro; ver `apps/web/DESIGN.md` y `docs/plans/modo-claro-20261102.md`.)*
 
 ## Cambios que requieren prueba renderizada
 

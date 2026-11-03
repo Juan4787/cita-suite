@@ -19,6 +19,9 @@ import {
 } from '$lib/server/scheduling/public/appointments';
 import { getOdontoContext } from '$lib/server/access/public/odonto-context';
 import { countTomorrowUncovered } from '$lib/server/scheduling/public/reminders';
+import { loadDepositList, summarizeDepositAlerts, type DepositAlerts } from '$lib/server/scheduling/public/deposits';
+import { slotReleaseWindow, type SlotReleaseListView } from '$lib/scheduling/slot-releases';
+import { loadAppointmentSlotReleases, hideAppointmentSlotRelease, slotReleaseErrorMessage, slotReleaseErrorStatus } from '$lib/server/scheduling/public/slot-releases';
 import { createSupabaseAdminClient } from '$lib/server/platform/supabase';
 import { processAppointmentGoogleCalendarSync } from '$lib/server/integrations/public/google-calendar';
 import { createdAppointmentDetailUrl } from '$lib/scheduling/agenda-navigation';
@@ -38,7 +41,10 @@ import type { Actions, PageServerLoad } from './$types';
 
 
 const APPOINTMENT_COLUMNS =
-	'id, patient_id, service_id, professional_id, starts_at, ends_at, status, source, service_name_snapshot, professional_name_snapshot, internal_note, cancelled_reason, patients(full_name, phone_e164, dni, email)';
+	'id, patient_id, service_id, professional_id, starts_at, ends_at, status, source, service_name_snapshot, professional_name_snapshot, internal_note, cancelled_reason, patients(full_name, phone_e164, dni, email), appointment_deposits(status, revision, waived_reason)';
+
+// Who records deposits (the database enforces the same roles): they get the deposit alerts.
+const DEPOSIT_ROLES = new Set(['owner', 'admin', 'reception']);
 
 // Tope de próximos turnos al buscar con "Cualquier día".
 const ANY_DAY_LIMIT = 100;
@@ -47,6 +53,7 @@ const ANY_DAY_LIMIT = 100;
 export const load: PageServerLoad = async ({ locals, fetch, cookies, url }) => {
 	if (!locals.auth) throw redirect(303, '/login');
 	const appointmentRequestId = randomUUID();
+	const releaseWindow = slotReleaseWindow(url.searchParams);
 	if (env.DEMO_MODE === 'true') {
 		return {
 			context: demoBusinessContext(),
@@ -57,6 +64,7 @@ export const load: PageServerLoad = async ({ locals, fetch, cookies, url }) => {
 			selectedStatus: '',
 			selectedServiceId: '',
 			selectedPatientId: '',
+			selectedTime: '',
 			searchApplied: false,
 			appointments: [],
 			stats: APPOINTMENT_STATUSES.map((status) => ({ status, count: 0 })),
@@ -69,6 +77,14 @@ export const load: PageServerLoad = async ({ locals, fetch, cookies, url }) => {
 			patientsLoaded: true,
 			referencesLoaded: true,
 			reminderCount: 0,
+			depositAlerts: { toRequest: 0, dueSoon: 0, cancelledToday: 0 } as DepositAlerts | null,
+			canRecordDeposit: false,
+			slotReleases: { days: 14, page: 1, truncated: false, items: [{
+				id: '00000000-0000-4000-8000-000000000001', appointmentId: '00000000-0000-4000-8000-000000000002',
+				professionalId: '00000000-0000-4000-8000-000000000003', serviceId: '00000000-0000-4000-8000-000000000004',
+				professionalName: 'Dra. de ejemplo', startsAt: new Date(Date.now() + 86_400_000).toISOString(), endsAt: new Date(Date.now() + 90_000_000).toISOString(),
+				releasedAt: new Date().toISOString(), reason: 'patient_cancelled'
+			}] } as SlotReleaseListView,
 			appointmentRequestId,
 			demo: true
 		};
@@ -90,8 +106,24 @@ export const load: PageServerLoad = async ({ locals, fetch, cookies, url }) => {
 	const status = anyDay && !isActiveAppointmentStatus(requestedStatus) ? '' : requestedStatus;
 	const serviceId = url.searchParams.get('service_id') ?? '';
 	const patientId = url.searchParams.get('patient_id') ?? '';
+	// «Volver a dar este horario» (plan, section 4.8) gives a known time to preselect in the manual
+	// booking. Only a well-formed hour; the wizard itself checks that it is still free.
+	const requestedTime = String(url.searchParams.get('hora') ?? '').trim();
+	const selectedTime = /^([01]\d|2[0-3]):[0-5]\d$/.test(requestedTime) ? requestedTime : '';
 	const searchApplied =
 		url.searchParams.has('date') || Boolean(professionalId || status || serviceId || patientId);
+	const depositAlertsPromise = (async (): Promise<DepositAlerts | null> => {
+		if (!DEPOSIT_ROLES.has(business.role) || !business.access.canUseBusiness) return { toRequest: 0, dueSoon: 0, cancelledToday: 0 };
+		try {
+			const now = new Date();
+			const list = await loadDepositList(supabase, business.business.id, now);
+			return list.truncated ? null : summarizeDepositAlerts(list.items, now);
+		} catch (depositError) {
+			// Unknown, not zero: the page says it could not check them.
+			logServerFailure('Error contando las señas de la agenda', depositError);
+			return null;
+		}
+	})();
 	const reminderCountPromise = (async () => {
 		try {
 			const pushSubscriptionsSupabase = await createSupabaseAdminClient('odonto', fetch);
@@ -102,6 +134,15 @@ export const load: PageServerLoad = async ({ locals, fetch, cookies, url }) => {
 			// Unknown, not zero: the page says it could not check them.
 			logServerFailure('Error contando recordatorios pendientes', reminderError);
 			return null;
+		}
+	})();
+	const slotReleasesPromise = (async (): Promise<SlotReleaseListView> => {
+		if (!business.access.canUseBusiness) return { ...releaseWindow, items: [], truncated: false };
+		try {
+			return { ...releaseWindow, ...await loadAppointmentSlotReleases(supabase, business.business.id, releaseWindow) };
+		} catch (releaseError) {
+			logServerFailure('Error cargando horarios liberados', releaseError);
+			return { ...releaseWindow, items: null, truncated: false };
 		}
 	})();
 
@@ -196,6 +237,8 @@ export const load: PageServerLoad = async ({ locals, fetch, cookies, url }) => {
 	// El aviso usa el criterio exacto de Recordatorios: sólo cuenta los turnos sin
 	// calendario, avisos activados ni cobertura automática.
 	const reminderCount = await reminderCountPromise;
+	const depositAlerts = await depositAlertsPromise;
+	const slotReleases = await slotReleasesPromise;
 
 	if (patientId) {
 		const { data: selectedPatient, error: patientError } = await supabase
@@ -217,6 +260,7 @@ export const load: PageServerLoad = async ({ locals, fetch, cookies, url }) => {
 		selectedStatus: status,
 		selectedServiceId: serviceId,
 		selectedPatientId: patientId,
+		selectedTime,
 		searchApplied,
 		appointments: appointments ?? [],
 		stats,
@@ -229,12 +273,31 @@ export const load: PageServerLoad = async ({ locals, fetch, cookies, url }) => {
 		patientsLoaded: false,
 		referencesLoaded: shouldLoadReferences,
 		reminderCount,
+		depositAlerts,
+		slotReleases,
+		canRecordDeposit: DEPOSIT_ROLES.has(business.role) && business.canOperate,
 		appointmentRequestId,
 		demo: false
 	};
 };
 
 export const actions: Actions = {
+	hide_slot_release: async ({ request, locals, fetch, cookies }) => {
+		if (!locals.auth) throw redirect(303, '/login');
+		if (env.DEMO_MODE === 'true') return fail(400, { slotReleaseMessage: 'No disponible en modo demo.' });
+		const form = await request.formData();
+		const releaseId = String(form.get('release_id') ?? '').trim();
+		if (!isUuid(releaseId)) return fail(404, { slotReleaseMessage: 'No encontramos ese aviso.' });
+		const { supabase, business } = await getOdontoContext({ locals, fetch, cookies });
+		if (!business.canOperate || !DEPOSIT_ROLES.has(business.role)) return fail(403, { slotReleaseMessage: slotReleaseErrorMessage(new Error('SLOT_RELEASE_FORBIDDEN')) });
+		try {
+			await hideAppointmentSlotRelease(supabase, business.business.id, releaseId);
+			return { slotReleaseMessage: 'Aviso ocultado. El horario sigue disponible para reservar.' };
+		} catch (releaseError) {
+			logServerFailure('Error ocultando horario liberado', releaseError);
+			return fail(slotReleaseErrorStatus(releaseError), { slotReleaseMessage: slotReleaseErrorMessage(releaseError) });
+		}
+	},
 	create_appointment: async ({ request, locals, fetch, cookies }) => {
 		if (!locals.auth) throw redirect(303, '/login');
 		if (env.DEMO_MODE === 'true') return fail(400, { message: 'No disponible en modo demo.' });

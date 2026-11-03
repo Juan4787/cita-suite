@@ -108,9 +108,12 @@ export type Database = {
           dismissed_at: string | null
           dismissed_by_user_id: string | null
           expires_at: string
+          extended_at: string | null
           id: string
+          kind: string
           requested_by_user_id: string
           revoked_at: string | null
+          revoked_by_role: string | null
           revoked_by_user_id: string | null
           starts_at: string
           status: string
@@ -123,9 +126,12 @@ export type Database = {
           dismissed_at?: string | null
           dismissed_by_user_id?: string | null
           expires_at: string
+          extended_at?: string | null
           id?: string
+          kind?: string
           requested_by_user_id: string
           revoked_at?: string | null
+          revoked_by_role?: string | null
           revoked_by_user_id?: string | null
           starts_at?: string
           status?: string
@@ -138,9 +144,12 @@ export type Database = {
           dismissed_at?: string | null
           dismissed_by_user_id?: string | null
           expires_at?: string
+          extended_at?: string | null
           id?: string
+          kind?: string
           requested_by_user_id?: string
           revoked_at?: string | null
+          revoked_by_role?: string | null
           revoked_by_user_id?: string | null
           starts_at?: string
           status?: string
@@ -276,6 +285,95 @@ export type Database = {
             columns: ["business_id", "integration_id"]
             isOneToOne: false
             referencedRelation: "booking_integrations"
+            referencedColumns: ["business_id", "id"]
+          },
+        ]
+      }
+      appointment_deposits: {
+        Row: {
+          amount: number
+          appointment_id: string
+          auto_cancel: boolean
+          business_id: string
+          created_at: string
+          currency: string
+          deadline_hours: number
+          due_at: string
+          expired_at: string | null
+          min_payment_hours: number
+          note: string | null
+          percentage: number | null
+          policy_revision: number
+          recorded_at: string | null
+          recorded_by: string | null
+          reference_amount: number | null
+          reminder_opened_at: string | null
+          reminder_opened_by: string | null
+          request_days: number
+          request_from: string
+          revision: number
+          status: string
+          updated_at: string
+          waived_reason: string | null
+        }
+        Insert: {
+          amount: number
+          appointment_id: string
+          auto_cancel: boolean
+          business_id: string
+          created_at?: string
+          currency?: string
+          deadline_hours: number
+          due_at: string
+          expired_at?: string | null
+          min_payment_hours: number
+          note?: string | null
+          percentage?: number | null
+          policy_revision: number
+          recorded_at?: string | null
+          recorded_by?: string | null
+          reference_amount?: number | null
+          reminder_opened_at?: string | null
+          reminder_opened_by?: string | null
+          request_days: number
+          request_from: string
+          revision?: number
+          status?: string
+          updated_at?: string
+          waived_reason?: string | null
+        }
+        Update: {
+          amount?: number
+          appointment_id?: string
+          auto_cancel?: boolean
+          business_id?: string
+          created_at?: string
+          currency?: string
+          deadline_hours?: number
+          due_at?: string
+          expired_at?: string | null
+          min_payment_hours?: number
+          note?: string | null
+          percentage?: number | null
+          policy_revision?: number
+          recorded_at?: string | null
+          recorded_by?: string | null
+          reference_amount?: number | null
+          reminder_opened_at?: string | null
+          reminder_opened_by?: string | null
+          request_days?: number
+          request_from?: string
+          revision?: number
+          status?: string
+          updated_at?: string
+          waived_reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointment_deposits_business_id_appointment_id_fkey"
+            columns: ["business_id", "appointment_id"]
+            isOneToOne: true
+            referencedRelation: "appointments"
             referencedColumns: ["business_id", "id"]
           },
         ]
@@ -583,6 +681,82 @@ export type Database = {
             columns: ["business_id", "professional_id"]
             isOneToOne: false
             referencedRelation: "professionals"
+            referencedColumns: ["business_id", "id"]
+          },
+        ]
+      }
+      appointment_slot_releases: {
+        Row: {
+          appointment_id: string
+          business_id: string
+          ends_at: string
+          event_id: string
+          event_order: number
+          hidden_at: string | null
+          hidden_by: string | null
+          id: string
+          occupied_since: string
+          professional_id: string
+          professional_name: string
+          reason: string
+          released_at: string
+          service_id: string
+          starts_at: string
+        }
+        Insert: {
+          appointment_id: string
+          business_id: string
+          ends_at: string
+          event_id: string
+          event_order?: never
+          hidden_at?: string | null
+          hidden_by?: string | null
+          id?: string
+          occupied_since: string
+          professional_id: string
+          professional_name: string
+          reason: string
+          released_at: string
+          service_id: string
+          starts_at: string
+        }
+        Update: {
+          appointment_id?: string
+          business_id?: string
+          ends_at?: string
+          event_id?: string
+          event_order?: never
+          hidden_at?: string | null
+          hidden_by?: string | null
+          id?: string
+          occupied_since?: string
+          professional_id?: string
+          professional_name?: string
+          reason?: string
+          released_at?: string
+          service_id?: string
+          starts_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointment_slot_releases_business_id_appointment_id_fkey"
+            columns: ["business_id", "appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["business_id", "id"]
+          },
+          {
+            foreignKeyName: "appointment_slot_releases_business_id_professional_id_fkey"
+            columns: ["business_id", "professional_id"]
+            isOneToOne: false
+            referencedRelation: "professionals"
+            referencedColumns: ["business_id", "id"]
+          },
+          {
+            foreignKeyName: "appointment_slot_releases_business_id_service_id_fkey"
+            columns: ["business_id", "service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
             referencedColumns: ["business_id", "id"]
           },
         ]
@@ -1654,6 +1828,88 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "patient_radiographs"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      deposit_policies: {
+        Row: {
+          amount_mode: string
+          applies_to_manual: boolean
+          auto_cancel_enabled: boolean
+          business_id: string
+          deadline_hours: number
+          enabled: boolean
+          fixed_amount: number | null
+          min_payment_hours: number
+          percentage: number | null
+          request_days: number
+          revision: number
+          transfer_details: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          amount_mode?: string
+          applies_to_manual?: boolean
+          auto_cancel_enabled?: boolean
+          business_id: string
+          deadline_hours?: number
+          enabled?: boolean
+          fixed_amount?: number | null
+          min_payment_hours?: number
+          percentage?: number | null
+          request_days?: number
+          revision?: number
+          transfer_details?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          amount_mode?: string
+          applies_to_manual?: boolean
+          auto_cancel_enabled?: boolean
+          business_id?: string
+          deadline_hours?: number
+          enabled?: boolean
+          fixed_amount?: number | null
+          min_payment_hours?: number
+          percentage?: number | null
+          request_days?: number
+          revision?: number
+          transfer_details?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deposit_policies_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: true
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deposit_service_exclusions: {
+        Row: {
+          business_id: string
+          service_id: string
+        }
+        Insert: {
+          business_id: string
+          service_id: string
+        }
+        Update: {
+          business_id?: string
+          service_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deposit_service_exclusions_business_id_service_id_fkey"
+            columns: ["business_id", "service_id"]
+            isOneToOne: true
+            referencedRelation: "services"
+            referencedColumns: ["business_id", "id"]
           },
         ]
       }
@@ -3685,6 +3941,10 @@ export type Database = {
           total_count: number
         }[]
       }
+      account_assistance_has_patients: {
+        Args: { target_business_id: string }
+        Returns: boolean
+      }
       activate_account_assistance: {
         Args: { target_business_id: string; target_support_user_id: string }
         Returns: {
@@ -4394,12 +4654,70 @@ export type Database = {
         Args: { target_business_id: string; target_grant_id: string }
         Returns: undefined
       }
+      end_account_assistance: {
+        Args: { target_business_id: string; target_grant_id: string }
+        Returns: {
+          business_id: string
+          created_at: string
+          dismissed_at: string | null
+          dismissed_by_user_id: string | null
+          expires_at: string
+          extended_at: string | null
+          id: string
+          kind: string
+          requested_by_user_id: string
+          revoked_at: string | null
+          revoked_by_role: string | null
+          revoked_by_user_id: string | null
+          starts_at: string
+          status: string
+          support_user_id: string
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "account_assistance_grants"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       ensure_user_default_business: {
         Args: { p_industry?: string; p_name?: string }
         Returns: {
           business_id: string
           role: string
         }[]
+      }
+      extend_account_assistance: {
+        Args: {
+          target_business_id: string
+          target_grant_id: string
+          target_kind: string
+        }
+        Returns: {
+          business_id: string
+          created_at: string
+          dismissed_at: string | null
+          dismissed_by_user_id: string | null
+          expires_at: string
+          extended_at: string | null
+          id: string
+          kind: string
+          requested_by_user_id: string
+          revoked_at: string | null
+          revoked_by_role: string | null
+          revoked_by_user_id: string | null
+          starts_at: string
+          status: string
+          support_user_id: string
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "account_assistance_grants"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       fail_google_calendar_event_sync: {
         Args: {
@@ -4420,6 +4738,25 @@ export type Database = {
           p_radiograph_id: string
         }
         Returns: string
+      }
+      get_appointment_slot_releases: {
+        Args: {
+          p_business_id: string
+          p_days?: number
+          p_limit?: number
+          p_offset?: number
+        }
+        Returns: {
+          appointment_id: string
+          ends_at: string
+          id: string
+          professional_id: string
+          professional_name: string
+          reason: string
+          released_at: string
+          service_id: string
+          starts_at: string
+        }[]
       }
       get_availability_catalog: {
         Args: { p_business_id: string; p_public: boolean }
@@ -4456,6 +4793,23 @@ export type Database = {
       }
       get_clinical_storage_budget: {
         Args: { p_business_id: string }
+        Returns: Json
+      }
+      get_deposit_automation_status: {
+        Args: never
+        Returns: {
+          enabled: boolean
+          last_run_finished_at: string
+        }[]
+      }
+      get_deposit_terms_for_slots: {
+        Args: {
+          p_business_id: string
+          p_price_quote: Json
+          p_service_id: string
+          p_source: string
+          p_starts_at: string[]
+        }
         Returns: Json
       }
       get_integrated_public_availability_snapshot: {
@@ -4627,6 +4981,10 @@ export type Database = {
           storage_path: string
         }[]
       }
+      hide_appointment_slot_release: {
+        Args: { p_business_id: string; p_release_id: string }
+        Returns: boolean
+      }
       is_email_enabled: { Args: { p_email: string }; Returns: boolean }
       legacy_job_entrypoints_enabled: { Args: never; Returns: boolean }
       list_accessible_patients_page: {
@@ -4739,6 +5097,17 @@ export type Database = {
       }
       normalize_phone_e164: { Args: { value: string }; Returns: string }
       normalized_patient_name: { Args: { value: string }; Returns: string }
+      open_appointment_deposit_reminder: {
+        Args: {
+          p_appointment_id: string
+          p_business_id: string
+          p_reopen?: boolean
+        }
+        Returns: {
+          opened_at: string
+          previously_opened_at: string
+        }[]
+      }
       patient_document_in_appointment_scope: {
         Args: {
           p_actor_id: string
@@ -4984,6 +5353,14 @@ export type Database = {
         }
         Returns: Json
       }
+      save_deposit_policy: {
+        Args: {
+          p_business_id: string
+          p_expected_revision: number
+          p_settings: Json
+        }
+        Returns: number
+      }
       save_professional_booking_form: {
         Args: {
           p_business_id: string
@@ -5039,6 +5416,20 @@ export type Database = {
         Args: { p_business_id: string; p_limit?: number; p_query: string }
         Returns: Json
       }
+      set_appointment_deposit: {
+        Args: {
+          p_action: string
+          p_appointment_id: string
+          p_business_id: string
+          p_expected_revision: number
+          p_note?: string
+        }
+        Returns: {
+          appointment_status: string
+          revision: number
+          status: string
+        }[]
+      }
       set_business_clinical_storage_policy: {
         Args: {
           p_actor_id: string
@@ -5087,6 +5478,37 @@ export type Database = {
           p_remind_on: string
         }
         Returns: undefined
+      }
+      start_account_assistance: {
+        Args: {
+          target_business_id: string
+          target_kind: string
+          target_support_user_id: string
+        }
+        Returns: {
+          business_id: string
+          created_at: string
+          dismissed_at: string | null
+          dismissed_by_user_id: string | null
+          expires_at: string
+          extended_at: string | null
+          id: string
+          kind: string
+          requested_by_user_id: string
+          revoked_at: string | null
+          revoked_by_role: string | null
+          revoked_by_user_id: string | null
+          starts_at: string
+          status: string
+          support_user_id: string
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "account_assistance_grants"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       submit_public_booking_information: {
         Args: {

@@ -48,9 +48,12 @@ const appointment = (overrides: Partial<PublicAppointmentView> = {}): PublicAppo
 		logo_url: null,
 		timezone: 'America/Argentina/Buenos_Aires',
 		is_active: true,
-		cancellation_policy: null
+		cancellation_policy: null,
+		whatsapp_contact_phone: null
 	},
 	patient_name: null,
+	deposit: null,
+	deposit_transfer_details: null,
 	public_status_label: 'Reservado',
 	public_actions_available: true,
 	can_confirm: true,

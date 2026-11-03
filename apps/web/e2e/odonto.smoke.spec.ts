@@ -64,6 +64,25 @@ test.describe('Odontologia - flujo base', () => {
 test.describe('Reserva pública - modo demo', () => {
 	test.skip(process.env.DEMO_MODE !== 'true', 'La reserva pública demo requiere DEMO_MODE=true.');
 
+	test('las páginas de señas muestran sus ejemplos sin acciones reales', { tag: '@candidate-behavior' }, async ({ page }) => {
+		await loginWithSharedSession(page, { email: 'demo@example.test', password: 'DemoSinBase!2026' });
+		await page.goto('/odonto/senas');
+		await expect(page.getByRole('heading', { name: 'Señas', exact: true, level: 1 })).toBeVisible();
+		await expect(page.getByText('Juan Pérez', { exact: true })).toBeVisible();
+		await expect(page.getByRole('button', { name: 'Confirmar seña', exact: true }).first()).toBeDisabled();
+		await expect(page.locator('a[href*="/senas/abrir/"], a[href*="wa.me"], a[href*="web.whatsapp.com"]')).toHaveCount(0);
+		await page.goto('/odonto/configuracion/senas');
+		await expect(page.getByRole('heading', { name: 'Señas', exact: true, level: 1 })).toBeVisible();
+		await expect(page.getByRole('button', { name: 'Guardar', exact: true })).toBeDisabled();
+		await expect(page.getByRole('textbox', { name: /^Monto fijo, en pesos/ })).toHaveValue('40000');
+		await page.goto('/odonto/agenda');
+		const releases = page.locator('[data-slot-release-alert]');
+		await expect(releases.getByText('Dra. de ejemplo', { exact: true })).toBeVisible();
+		await expect(releases.getByRole('button', { name: 'Dar este horario', exact: true })).toBeDisabled();
+		await expect(releases.getByRole('button', { name: 'Ocultar', exact: true })).toBeDisabled();
+		await expect(releases.locator('a')).toHaveCount(0);
+	});
+
 	test('muestra reserva pública, turno por token y aliases de respuesta', async ({ page }) => {
 		await page.goto('/reservar/consultorio-demo');
 		await expect(page.getByRole('heading', { name: 'Consultorio demo' })).toBeVisible();

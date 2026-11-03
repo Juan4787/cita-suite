@@ -1,6 +1,18 @@
 # Respaldo y recuperación
 
-## Estado vigente — respaldo diario configurado y recuperación comprobada, 26 de octubre
+## Aplicación a la entrega de confirmación — 31 de octubre
+
+La UI/Auth V8 quedó publicada sin migraciones: el esquema continúa en 128. Respaldo comprobado para esta entrega: `41131024848`, con restauración SQL/Storage aislada y recuperación independiente; datos y ubicación en [el traspaso](../plans/traspaso-confirmacion-email-20261030.md). No se afirma que esa sea la copia programada más reciente.
+
+Por decisión posterior del usuario, la edad inferior a seis horas y la conservación exacta de turnos ficticios no son requisitos automáticos para esta UI/Auth. Elegir protección por el daño concreto posible y conservar una recuperación compatible con `/confirmar-correo`. El criterio de [AGENTS.md](../../AGENTS.md) sustituye los controles históricos incompatibles; no modifica las garantías del sistema de copias ni vuelve descartables secretos o cuentas reales.
+
+## Ampliación vigente — señas y horarios liberados, 30 de octubre
+
+Producción tiene **128 migraciones** desde la entrega C9 (`deb74b023431e4f173eed85d6651c5073ad44557`). La copia previa **41081864440** sí cubre el esquema anterior de126: restaurada en CI y descargada/descifrada independientemente, sin diferencias. El ensayo **staging41050555719** probó128 con las cinco tablas nuevas pobladas, dos trabajos reconstruidos idempotentemente, interruptor general apagado e identidad de horarios segura. Recibo `.verification/senas-avisos-20261029/staging-backup-rehearsal-c7/backup-rehearsal.json`.
+
+La copia posterior productiva **41092046966** está aprobada: instantánea16:44:47.284UTC,110tablas/4295filas/128migraciones/24referencias de archivos, restauración aislada sin diferencias y servicios retirados; descarga y descifrado independientes completados. ManifiestoSHA256 `ef847fb3378d952e3e4d0e853556227a94760dbef3ceac1ec9c117e6987716b5`, copia privada `~/.local/share/cita-suite/backups/production-senas-20261030T164850Z`. Las cinco tablas nuevas están presentes (global1/resto0), después de limpiar el ensayo propio; recibos `respaldo-productivo-posterior` y `production-post-backup-feature-tables.json` bajo la carpeta de evidencia de la campaña. El ejecutor privado continúa en742e5de, sin cambios de secretos, presupuesto ni planes. Su ensayo genérico recupera tablas/datos/historial/objetos/archivos, **no los registros de pg_cron**: después de restaurar128 se debe ejecutar en el destino nuevo `supabase/operations/recover-deposit-automation.sql` y comprobar exactamente sus dos trabajos/globaloff antes de servirlo. Los demás trabajos históricos requieren su procedimiento propio. Detalle y límites en el [cierre de la campaña](../plans/cierre-senas-avisos-natalia.md).
+
+## Automatización configurada y comprobada — antecedente del 26 de octubre
 
 Cuenta elegida **juanmarquez56783@gmail.com**, carpeta privada [Copias automáticas cifradas](https://drive.google.com/drive/folders/122AAiXE1qX2FED6IFUkF33ZCswLQoVYK). Ejecutor independiente y privado [Juan4787/cita-suite-respaldos](https://github.com/Juan4787/cita-suite-respaldos), revisión **742e5ded813a57ec769a4d846d43c984fcde2a46**. Copia diaria **04:07UTC / 01:07Argentina** y monitor **10:43UTC / 07:43Argentina**. **Primera ejecución natural comprobada:** [40303961884](https://github.com/Juan4787/cita-suite-respaldos/actions/runs/40303961884), evento `schedule` sobre esta revisión, iniciada a10:00:17UTC y terminada a10:04:41UTC. Estaba prevista a04:07UTC: demora de5h53min17s, sin garantía de puntualidad. Instantánea10:04:16.270UTC,105tablas/3930filas/126migraciones/24objetos, todos reutilizados y0bytes de Storage. Descarga independiente desdeDrive y huella comprobadas; no se repitió restauraciónSQL. Las pruebas anteriores siguientes fueron manuales. No hace falta tener esta computadora encendida.
 
@@ -44,11 +56,15 @@ Cita Suite sigue ese procedimiento con `scripts/lib/supabase-backup.mjs`, que ad
    - comprueba cada archivo contra el manifiesto;
    - restaura en una sola transacción, con el comando de la guía ampliado: roles, esquema, datos con `session_replication_role = replica`, después `managed.sql` y `history.sql`;
    - sube los archivos almacenados.
-3. Configurar la app con la URL y las claves del proyecto nuevo.
+3. Si el respaldo incluye señas, ejecutar contra el **destino restaurado**, antes de servirlo, `supabase/operations/recover-deposit-automation.sql`. Recupera exactamente los dos trabajos versionados de esta función y deja el interruptor general apagado. No cambia señas, políticas ni turnos. Los registros de pg_cron no se recuperan por volver a cargar el historial de migraciones. Los otros trabajos históricos requieren su procedimiento propio; este paso cubre los dos agregados por la campaña de señas.
+   - El ensayo `backup-rehearsal.mjs` usa `recoverDepositAutomation` exclusivamente dentro de su contenedor restaurado, nunca contra staging/origen. Repite la operación, verifica nombres, horarios, estado activo y huellas de ambos comandos, y exige el interruptor apagado.
+   - Si existe `appointment_slot_releases`, comprueba que el próximo valor de su identidad sea mayor que el máximo restaurado (incluye `is_called`). No consume ni adelanta la secuencia para hacer pasar el control. Familias incompletas, valores nulos o trabajos faltantes/duplicados/alterados impiden certificar la recuperación.
+   - El recibo distingue respaldo anterior sin señas, respaldo B y respaldo B/C; informa filas por cada tabla nueva y si se comprobó la identidad. La prueba real staging41050555719 recuperó1política/1exclusión/3señas/1global/1horario, repitió la operación y verificó dos trabajos e identidad segura. Los verdes anteriores de126migraciones no sustituyen esa prueba.
+4. Configurar la app con la URL y las claves del proyecto nuevo.
    - Las contraseñas se conservan, porque están en `auth.users`.
    - Las sesiones vigentes dejan de valer, porque el proyecto nuevo firma con otra clave.
    - Volver a cargar los secretos de las tareas.
-4. Verificar como el ensayo: filas por tabla, historial de migraciones, objetos de plataforma y huella de cada archivo.
+5. Verificar como el ensayo: filas por tabla, historial de migraciones, objetos de plataforma, huella de cada archivo y recuperación de los trabajos de señas con identidad segura. Habilitar la automatización sólo por decisión explícita después de comprobar el destino.
 
 ## Qué agrega al procedimiento oficial
 

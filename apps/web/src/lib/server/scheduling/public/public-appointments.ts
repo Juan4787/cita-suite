@@ -1,5 +1,6 @@
 import { parsePriceQuote } from '$lib/scheduling/price-contracts';
 import type { CitaSupabaseClient, CitaUpdate } from '$lib/types/database';
+import { BOOKING_INTEGRATION_KEY_PATTERN } from '@cita-suite/shared/booking-integration';
 import { bookingContextsAvailable } from '$lib/server/sites/public/booking-integration-flags';
 import { loadAppointmentBookingContext, type AppointmentBookingContext } from '$lib/server/sites/public/booking-integrations';
 import { isActiveAppointmentStatus } from '$lib/utils/appointment-visibility';
@@ -18,6 +19,8 @@ import {
 	recordPublicBookingAttempt
 } from '$lib/server/scheduling/public/public-booking';
 import { sanitizePublicImageUrl } from '$lib/server/sites/public/public-image';
+import { normalizeArgentineWhatsAppPhone } from '$lib/utils/phone';
+import { parseAppointmentDeposit, type AppointmentDepositView } from '$lib/scheduling/deposits';
 
 export type PublicAppointmentAction = 'confirm' | 'cancel' | 'reschedule';
 
@@ -50,8 +53,14 @@ export type PublicAppointmentView = {
 		timezone: string;
 		is_active: boolean;
 		cancellation_policy: string | null;
+		/** WhatsApp público del consultorio, normalizado; null si no lo habilitó o no se puede abrir. */
+		whatsapp_contact_phone: string | null;
 	};
 	patient_name: string | null;
+	/** The turn's deposit, or null when it asks for none (señas y avisos, stage B). */
+	deposit: AppointmentDepositView | null;
+	/** How to transfer, only while the deposit is pending. */
+	deposit_transfer_details: string | null;
 	public_status_label: string;
 	public_actions_available: boolean;
 	can_confirm: boolean;
@@ -88,9 +97,12 @@ export const demoPublicAppointment = (token: string): PublicAppointmentView => (
 		logo_url: null,
 		timezone: 'America/Argentina/Cordoba',
 		is_active: true,
-		cancellation_policy: null
+		cancellation_policy: null,
+		whatsapp_contact_phone: '+5493515550101'
 	},
 	patient_name: 'Paciente demo',
+	deposit: null,
+	deposit_transfer_details: null,
 	public_status_label: 'Reservado',
 	public_actions_available: true,
 	can_confirm: true,
@@ -99,7 +111,10 @@ export const demoPublicAppointment = (token: string): PublicAppointmentView => (
 	is_past: false
 });
 
-const appointmentSelect = `id,confirmation_token,status,starts_at,ends_at,service_name_snapshot,    price_quote_snapshot,patient_instructions_snapshot,public_reminder_description_snapshot,professional_name_snapshot,calendar_action_status,calendar_action_at,calendar_action_count,calendar_sequence,calendar_update_required_at,businesses!inner(${PUBLIC_BUSINESS_SELECT}),patients(full_name),appointment_professionals(professional_id)` as const;
+// The practice's WhatsApp is read only here, never in PUBLIC_BUSINESS_SELECT: that
+// one also feeds the booking page, whose data reaches the browser even when the
+// practice did not enable a public WhatsApp contact.
+const appointmentSelect = `id,confirmation_token,status,starts_at,ends_at,service_name_snapshot,    price_quote_snapshot,patient_instructions_snapshot,public_reminder_description_snapshot,professional_name_snapshot,calendar_action_status,calendar_action_at,calendar_action_count,calendar_sequence,calendar_update_required_at,businesses!inner(${PUBLIC_BUSINESS_SELECT},whatsapp_phone,whatsapp_contact_enabled,deposit_policies(transfer_details)),patients(full_name),appointment_professionals(professional_id),appointment_deposits(appointment_id,status,amount,currency,request_from,due_at,auto_cancel,waived_reason,recorded_at,reminder_opened_at,expired_at,revision)` as const;
 
 const publicActionAttempt: Record<
 	PublicAppointmentAction,
@@ -122,6 +137,9 @@ export const publicAppointmentPlace = (
 				address_instructions: business.address_instructions ?? null,
 				maps_link: resolveMapsUrl({ address: business.address ?? null, maps_url: business.maps_url ?? null })
 			};
+
+// A to-one relation as the generated types describe it: never a list.
+type OneToOne<T> = T extends readonly unknown[] ? never : T;
 
 export const loadPublicAppointmentByToken = async (
 	supabase: CitaSupabaseClient,
@@ -152,6 +170,12 @@ export const loadPublicAppointmentByToken = async (
 		? await canUsePublicBusiness(supabase, String(business.id), business.created_at ?? null)
 		: false;
 	const canAct = isBusinessActive && canUsePublicTokens && !isPast;
+	// With the deposit pending, paying it is what confirms the turn (plan, section 4.2). The relation
+	// is one-to-one: if the generated types ever read it as a list again, this stops compiling
+	// instead of reading a list as a missing deposit.
+	const depositRow: OneToOne<typeof data.appointment_deposits> = data.appointment_deposits;
+	const deposit = parseAppointmentDeposit(depositRow ?? null);
+	const depositPending = deposit?.status === 'pending';
 	const professionalCount = Math.max(
 		1,
 		Array.isArray(data.appointment_professionals)
@@ -185,16 +209,69 @@ export const loadPublicAppointmentByToken = async (
 			logo_url: sanitizePublicImageUrl(business.logo_url),
 			timezone: String(business.timezone),
 			is_active: Boolean(business.is_active),
-			cancellation_policy: business.cancellation_policy ?? null
+			cancellation_policy: business.cancellation_policy ?? null,
+			whatsapp_contact_phone:
+				business.whatsapp_contact_enabled === true ? normalizeArgentineWhatsAppPhone(business.whatsapp_phone) : null
 		},
 		patient_name: data.patients?.full_name ?? null,
+		deposit,
+		deposit_transfer_details: depositPending ? (business.deposit_policies?.transfer_details ?? null) : null,
 		public_status_label: APPOINTMENT_STATUS_LABELS[status],
 		public_actions_available: canUsePublicTokens,
-		can_confirm: canAct && status === 'reserved',
+		can_confirm: canAct && status === 'reserved' && !depositPending,
 		can_cancel: canAct && (status === 'reserved' || status === 'confirmed' || status === 'reschedule_requested'),
 		can_request_reschedule: canAct && (status === 'reserved' || status === 'confirmed'),
 		is_past: isPast
 	};
+};
+
+/**
+ * Where the person can book again after the automatic cancellation (plan, section 4.9): the
+ * integration they booked through while it is active, or else the practice's public page if it
+ * takes bookings. Null when there is neither; the WhatsApp button stays as the way back. Only
+ * asked for that cancelled turn, so a normal visit does not pay for these reads.
+ */
+export const loadRebookUrl = async (
+	supabase: CitaSupabaseClient,
+	appointment: Pick<PublicAppointmentView, 'id'> & { business: Pick<PublicAppointmentView['business'], 'id' | 'slug'> }
+): Promise<string | null> => (await loadRebookUrls(supabase, appointment.business, [appointment.id])).get(appointment.id) ?? null;
+
+/** The same rebooking destinations for a bounded page, with at most three reads in total. */
+export const loadRebookUrls = async (
+	supabase: CitaSupabaseClient,
+	business: Pick<PublicAppointmentView['business'], 'id' | 'slug'>,
+	appointmentIds: readonly string[]
+): Promise<Map<string, string | null>> => {
+	const ids = [...new Set(appointmentIds)];
+	if (ids.length > 300) throw new Error('REBOOK_WINDOW_INVALID');
+	const paths = new Map<string, string | null>(ids.map(id => [id, null]));
+	if (!ids.length) return paths;
+	if (bookingContextsAvailable()) {
+		const { data: contexts, error: contextError } = await supabase.from('appointment_booking_contexts')
+			.select('appointment_id, integration_id').eq('business_id', business.id).in('appointment_id', ids).limit(ids.length);
+		if (contextError) throw contextError;
+		const integrationIds = [...new Set((contexts ?? []).map(row => row.integration_id))];
+		if (integrationIds.length) {
+			const { data: integrations, error: integrationError } = await supabase.from('booking_integrations')
+				.select('id, public_key, is_active').eq('business_id', business.id).in('id', integrationIds).limit(integrationIds.length);
+			if (integrationError) throw integrationError;
+			const byId = new Map((integrations ?? []).map(row => [row.id, row]));
+			for (const row of contexts ?? []) {
+				const integration = byId.get(row.integration_id);
+				if (paths.has(row.appointment_id) && integration?.is_active === true && BOOKING_INTEGRATION_KEY_PATTERN.test(integration.public_key)) {
+					paths.set(row.appointment_id, `/embed/v1/${integration.public_key}`);
+				}
+			}
+		}
+	}
+	if ([...paths.values()].some(path => path === null)) {
+		const { data: row, error } = await supabase.from('businesses').select('public_booking_enabled').eq('id', business.id).maybeSingle();
+		if (error) throw error;
+		if (row?.public_booking_enabled === true) {
+			for (const [id, path] of paths) if (path === null) paths.set(id, `/reservar/${encodeURIComponent(business.slug)}`);
+		}
+	}
+	return paths;
 };
 
 export const getPublicAppointmentMessage = (appointment: PublicAppointmentView | null) => {
@@ -223,6 +300,7 @@ const assertCanApplyPublicAction = (
 		throw new Error('PUBLIC_TOKEN_APPOINTMENT_CLOSED');
 	}
 	if (action === 'confirm' && appointment.status === 'confirmed') return;
+	if (action === 'confirm' && appointment.deposit?.status === 'pending') throw new Error('PUBLIC_TOKEN_DEPOSIT_PENDING');
 	if (action === 'confirm' && appointment.status !== 'reserved') throw new Error('PUBLIC_TOKEN_CONFIRM_DENIED');
 	if (action === 'cancel' && !appointment.can_cancel) throw new Error('PUBLIC_TOKEN_CANCEL_DENIED');
 	if (action === 'reschedule' && !appointment.can_request_reschedule) {
@@ -350,6 +428,10 @@ export const getPublicTokenErrorMessage = (error: unknown) => {
 	}
 	if (raw.includes('PUBLIC_TOKEN_APPOINTMENT_PAST')) return 'Este turno ya no admite cambios online.';
 	if (raw.includes('PUBLIC_TOKEN_APPOINTMENT_CLOSED')) return 'Este turno ya está cerrado.';
+	// The database rule is the last guard: it answers the same if the link raced a change.
+	if (raw.includes('PUBLIC_TOKEN_DEPOSIT_PENDING') || raw.includes('APPOINTMENT_DEPOSIT_PENDING')) {
+		return 'Tu turno se confirma cuando el consultorio recibe la seña. Si ya la transferiste, mandales el comprobante por WhatsApp.';
+	}
 	if (raw.includes('PUBLIC_TOKEN_CONFIRM_DENIED')) return 'Este turno no se puede confirmar desde este enlace.';
 	if (raw.includes('PUBLIC_TOKEN_CANCEL_DENIED')) return 'Este turno no se puede cancelar desde este enlace.';
 	if (raw.includes('PUBLIC_TOKEN_RESCHEDULE_DENIED')) {

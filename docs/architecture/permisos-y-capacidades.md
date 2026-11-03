@@ -83,3 +83,30 @@ Las capas y suites de cada punto están en la [matriz de regresiones](matriz-reg
 - **punto 7:** historia clínica y documentos por rol.
 
 Las pruebas de interfaz de roles siguen la regla de ocultar y redirigir: una sección sin permiso no se muestra ni se abre, y no hay vistas de sólo lectura sustitutas.
+
+## Señas (campaña del 29 de octubre de 2026)
+
+**Horarios liberados (etapa C):** la lectura usa los mismos conjuntos autorizados que turnos y señas: dueño/admin/recepción/sólo lectura ven el consultorio operativo; profesional, sólo sus turnos asignados. La app sigue dirigiendo profesionales a «Mis turnos». Sólo dueño/admin/recepción ocultan avisos; SQL bloquea y revalida autoridad/comercial, aplica cambio y auditoría en una transacción. Soporte conserva únicamente su concesión vigente. Anónimo no lee ni ejecuta; ningún rol API escribe directamente el registro. El disparador es la única fuente de los hechos. `appointment_slot_releases.sql` verifica estos límites; la prueba de navegador no los sustituye.
+
+La migración `20261029010000_appointment_deposits.sql` y `private.deposit_actor` vuelven a comprobar la membresía activa y la operación comercial dentro de la transacción. La interfaz no reemplaza ese permiso.
+
+| Acción | Autoridad | Límite |
+|---|---|---|
+| Leer la seña interna | Mismo permiso que leer su turno, mediante RLS por conjuntos | No cruza consultorios; un profesional sólo ve sus turnos autorizados |
+| Registrar, exceptuar, deshacer o abrir el pedido de WhatsApp | Dueño, administración o recepción con operación comercial vigente | RPC autenticada, turno activo, revisión observada cuando cambia la seña; no escritura directa en tablas |
+| Configurar la política | Dueño o administración con operación vigente | Política completa y revisión obligatoria; recepción/profesional/lectura sola no guardan |
+| Leer el estado público | Servidor mediante token del turno | Proyección mínima, datos de transferencia sólo con seña pendiente; sin acceso anónimo a tablas/RPC |
+| Calcular condiciones previas a reservar | Servidor `service_role` | Lote acotado de horarios, sin datos para transferir ni permiso de mutación |
+| Operar el interruptor general y ejecutar la baja | Operador y pg_cron | Funciones privadas sin `EXECUTE` para roles API; global y política apagados al instalar |
+
+Las rutas `senas` redirigen a profesional y lectura sola; configuración redirige también a recepción. Si una lectura falla, no se fabrica una lista vacía ni un estado saludable. Release exacto C9 **41082416537**: SQL B25/C15, diez carreras y deadlocks0; tipos0/0; navegador53fuente/53paquete y49compatibilidad B11. Lectura productiva:74relaciones sin exposición anónima; las pruebas HTTP de acciones usaron exclusivamente la dueña sintética propia, con lectura SQL y limpieza. Detalle por capa en el [cierre](../plans/cierre-senas-avisos-natalia.md) y el [registro](../plans/registro-senas-avisos-natalia.md); no atribuir una prueba de interfaz al catálogo íntegro de permisos.
+
+## E — permisos a implementar y comprobar (2 de noviembre)
+
+El [plan 12.18](../plans/propuesta-senas-avisos-natalia.md#etapa-e-vigente) y su [especificación](../plans/etapa-e-correo-autogestion.md) añaden requisitos, no permisos ya aplicados:
+
+- Dueña/administración configuran obligación de email, botones, identidad de correo y políticas de reprogramación con la capacidad comercial/contexto correspondiente. Las credenciales del proveedor no se exponen al navegador ni al consultorio como un secreto global compartido.
+- Recepción continúa sin email sólo tras aviso; puede completar el contacto de su paciente y registrar/exceptuar señas según las capacidades actuales, siempre revalidadas. No inventar permisos para profesional o lectura sola.
+- El paciente gestiona un único turno mediante una capacidad validada, limitada y revocable; no puede elegir actor, consultorio, turno excluido, monto o excepción de personal.
+- Consultar/cancelar una cita vigente cuando la reserva online está apagada no habilita nuevas reservas. Una excepción para suspensión/archivo requiere comando específico y pruebas de aislamiento; no retirar guardias globales ni reactivar el consultorio.
+- Funciones nuevas sin exposición anónima directa por inercia: revisar grants, RLS, referencias compuestas y las suites de catálogo. Webhooks autenticados y relacionados con el envío/consultorio correctos.

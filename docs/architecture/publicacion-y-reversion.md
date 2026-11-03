@@ -1,10 +1,153 @@
 # Publicación y reversión
 
-## Continuación vigente — 27 de octubre, 04:20 UTC
+## Último estado comprobado — V12b: 2 de noviembre de 2026, 12:33 hora argentina (15:33 UTC)
 
-**Hosts (27 de octubre, 04:20 UTC):** la aplicación se sirve en `app.cita-suite.com.ar` y `app.cita-suite.workers.dev`; `cita-suite.com.ar` sirve la landing desde el Worker `cita-suite-landing`. `PUBLIC_SITE_URL`, `PRODUCTION_APP_ORIGIN` y las verificaciones siguen en workers.dev hasta la entrega de origen. Topología, procedimientos y reversión de dominios: [dominio](dominio.md). Las publicaciones de la app no tocan dominios (`wrangler.jsonc` no declara `routes`). No agregarlas: `wrangler deploy` reemplaza el conjunto de dominios del Worker y, sin terminal interactiva, reasigna dominios de otros Workers y pisa registros DNS en conflicto (comprobado en el código de wrangler 4.86.0).
+**Producción sirve V12b** `771fac5950c532b1123f11d4dde93eef9b42ceba`, Worker `app`, versión de Cloudflare **`277d332d-1794-4367-8ef0-567ced159f1b`**, en los dos orígenes.
 
-**Publicada y verificada:** producción sirve `b108c1912e2c3bc57403b006bcf33b71cdb91c23`, versión `d0ac2bcf-7e6a-4786-b2fb-5ff14687d643`. Programador `f105c4ff-160b-4e00-8b5d-14deb9f33b84` con cinco cron y eventos reales observados. La secuencia ejecutada y sus recibos están en el registro y en [el traspaso del panel](../plans/traspaso-apertura-panel-20261026.md). Recuperación: `wrangler rollback e3af637d-a115-4f06-a89a-ba64583f5e9c --name app` (compatible `dbd69d2`, con la corrección de recuperación), con las verificaciones de este documento. El acceso local a la base exige que esta máquina no salga por ProtonVPN (el pooler de sesión no responde por esa ruta). El dominio `cita-suite.com.ar` sirve el mismo Worker; el cambio de `PUBLIC_SITE_URL` será una entrega propia, después de que el usuario agregue los retornos de Supabase y Google.
+**Qué es V12b:** V12 con el fondo general del modo claro apenas más cálido: `#f6f5f3` en lugar de `#f5f6f8`.
+- Fue a pedido de Juan (plan de modo claro, 12.5).
+- No tiene migraciones.
+
+**Verificación:**
+- **CI sobre la revisión exacta:** `fast` 41469851263, paquete 41470383141 y navegador 41470743564, con 64 de 64 y el recorrido completo sin problemas de contraste ni de diseño.
+- **`verify-production-release.mjs`:** aprobado (`verificacion-produccion-v12b.log`).
+- **Primer pintado del servidor:** correcto, con la barra `#f6f5f3` (`produccion-modo-servidor-v12b.txt`).
+- **Capturas contra V12:** la reserva de Natalia y el oscuro son idénticos; en el claro cambia sólo el tinte del fondo.
+- **Puntero de la fuente:** `.verification/ci-source.json` en V12b, recibo `ci-source-v12b.json`.
+
+**Vuelta atrás:**
+- **A V12:** `wrangler rollback f18a80f2-fd65-4ffc-b92f-fc0101d4f85f`, que es el mismo modo claro con el fondo anterior.
+- **A antes del modo claro:** `986cf666-ae09-423b-ae05-1928007dccde`, como se explica abajo. **Nunca** `59f81e89…`.
+- **Datos:** ninguna de las dos necesita pasos de datos.
+
+## Estado anterior — V12, modo claro: 2 de noviembre de 2026, 11:46 hora argentina (14:46 UTC)
+
+**Producción sirve V12** `c21a19839c814a8a5f476cb522a13273a10f89c4`, Worker `app`, versión de Cloudflare **`f18a80f2-fd65-4ffc-b92f-fc0101d4f85f`**, en `app.cita-suite.com.ar` y en `app.cita-suite.workers.dev`.
+
+**Qué es V12:** V11f más el modo claro, que pasa a ser el predeterminado, conservando el oscuro.
+- Selector Claro, Oscuro y Automático, con la preferencia por dispositivo en la cookie `cita-theme`.
+- La reserva de Natalia se ve igual que antes.
+- Plan: [modo claro](../plans/modo-claro-20261102.md); registro y traspaso homónimos.
+
+**Base de datos:** sin cambios, porque V12 no tiene migraciones.
+
+**Verificación:**
+- **CI sobre la revisión exacta:**
+  - `fast` 41460642336;
+  - paquete 41462444575;
+  - navegador completo sobre ese paquete 41462806211, con 64 de 64. Incluye el recorrido de 242 pantallas y estados en los dos modos sin problemas de contraste ni de diseño.
+- **Después de publicar:**
+  - `verify-production-release.mjs` aprobado: 140 archivos del cliente idénticos, HTTPS y 0 de 74 relaciones expuestas (`.verification/modo-claro-20261102/verificacion-produccion-v12.log`);
+  - los dos orígenes sirven la revisión;
+  - el primer pintado del servidor es correcto con cada valor de la cookie (`produccion-modo-servidor.txt`);
+  - la reserva de Natalia es idéntica, píxel a píxel, a la de antes de publicar, en sus dos modos y con la app en cualquier modo (`produccion/`).
+- **Puntero de la fuente:** `.verification/ci-source.json` en V12, recibo `ci-source-v12.json`. El de V11f no se había movido; el anterior, de V10b, quedó guardado.
+
+**Vuelta atrás, si hiciera falta:**
+- **Comando:** desde `apps/web`, `NODE_OPTIONS=--max-old-space-size=192 npx wrangler rollback 986cf666-ae09-423b-ae05-1928007dccde --name app --message "<motivo>" --yes`.
+  - Esa versión es V11f con el cliente nuevo de Google Calendar, instalado el 2 de noviembre a las 03:03 UTC.
+  - **Nunca volver a `59f81e89-412f-49be-b65b-3a2378ddf71e`:** es V11f con el cliente anterior de Calendar.
+- **Comprobación:** los dos `/_app/version.json` deben decir `72d59ab00db67a8502ca560c762c61e6cfac1923`. Después correr `node scripts/verify-production-release.mjs .verification/ayuda-duraciones-20261101/release-candidate-v11f/cloudflare-staging-72d59ab00db67a8502ca560c762c61e6cfac1923`.
+- **Sin pasos de datos:** V11f ignora la cookie `cita-theme`, y no hay migraciones.
+
+## Estado anterior — V11f, 2 de noviembre de 2026, 02:12 UTC
+
+Revisión `72d59ab00db67a8502ca560c762c61e6cfac1923`, de la campaña del 1 de noviembre (evidencia en `.verification/ayuda-duraciones-20261101/`; traspaso [de señas y avisos](../plans/traspaso-senas-avisos-natalia.md)).
+- **Base:** la migración `20261101030000` se aplicó a las 02:10 UTC; producción quedó con 131 migraciones.
+- **Publicación:** a las 02:12 UTC, versión `59f81e89-412f-49be-b65b-3a2378ddf71e`.
+- **Su propia vuelta atrás** era `wrangler rollback 1d2b4acd-7dd8-4cb7-81e3-a205bafe9f8d`, a V10b, sin tocar la base.
+- **Cliente nuevo de Google Calendar:** se instaló a las 03:03 UTC y produjo la versión `986cf666-ae09-423b-ae05-1928007dccde`, con el mismo código.
+
+## Estado anterior — V10b, 1 de noviembre de 2026, 07:31 hora argentina (10:31 UTC)
+
+**Producción sirve V10b** `68f31741f6ff7f2253c036800b1369f1eda16510`, Worker `app`, versión de Cloudflare **`1d2b4acd-7dd8-4cb7-81e3-a205bafe9f8d`**, en `app.cita-suite.com.ar` y en `app.cita-suite.workers.dev`. V10b es V9 más:
+- la vista aparte de consultorios archivados en el panel maestro;
+- el rubro «medicina»;
+- preguntas de opciones de hasta 40;
+- la web de Natalia reservando en su consultorio real por el dominio oficial;
+- dos correcciones de pruebas.
+
+Detalle en el plan de señas y avisos, 12.16, y en su registro, sección «1 de noviembre».
+
+- **Base:** 130 migraciones. Las dos nuevas (`20261101010000` y `20261101020000`) se aplicaron a las 02:40:51 UTC con la copia previa `~/.local/share/cita-suite/backups/production-2026-11-01T02-39-07-585Z`.
+- **Verificación:**
+  - `sql` 41265804819, `fast` 41265937843 y paquete 41266013495 (manifiesto `e3c6e647f33fd8bd19a78964444a1e10fabea365a3c433b1a2c893b140a1f574`);
+  - navegador sobre el paquete exacto 41267444767, 7 de 7;
+  - después de publicar, `verify-production-release.mjs`: 139 archivos del cliente idénticos, HTTPS y 0 de 74 relaciones expuestas;
+  - la pantalla de confirmación de correo y el turnero de Natalia como paciente.
+- **Web de Natalia:** commit `8ac6dfee28121e6f5abc7bf4e9d5608e68ab0d0a` en `juan-altamira/web-natalia`, despliegue de Vercel `dpl_2Xtgk4uEqhRumxb4t3Fc4dqdR6sU`. Sus 36 archivos servidos son idénticos al paquete.
+- **Puntero de la fuente:** `.verification/ci-source.json` en V10b.
+
+**Recuperación de la app, en este orden** (la base no se toca: las migraciones de V10 aceptan los datos de V9 y los de V10):
+
+1. **Antes de volver a V9, dejar los datos legibles para V9.** V9 rechaza el rubro «medicina» y las preguntas de más de 20 opciones, y el consultorio de Natalia tiene las dos cosas.
+   - Ejecutar `node .verification/natalia-configuracion-20261101/revertir-para-v9.mjs ensayo` y, si aprueba, `aplicar`; la aplicación exige un ensayo de la última hora.
+   - Esto pasa todo consultorio de «medicina» a «otro» y toda pregunta de opciones de más de 20 a texto libre, con la misma identidad y el mismo destino en la ficha.
+   - Su ensayo se comprobó el 1 de noviembre a las 10:16 UTC.
+2. **Volver a V9:** `NODE_OPTIONS=--max-old-space-size=192 pnpm --filter web exec wrangler rollback 2ef53723-0a46-4879-bf6e-4af5ed5320c9 --name app --message "<motivo>" --yes`. Después comprobar que los dos `/_app/version.json` digan `a3c707f368736da90d2adf5850d291460f657af0` y correr `node scripts/verify-production-release.mjs .verification/confirmacion-email-v9-20261031/release-candidate-v9`.
+3. **Si V9 también fallara:** la recuperación del apartado siguiente (V8 y después el paquete compatible `c195b1e`), siempre con el paso 1 hecho.
+
+**Recuperación de la web de Natalia** (independiente de la app):
+- **Inmediata:** en Vercel, volver a promover el despliegue anterior `dpl_6zBnr7E2FVg11SQ5mHiHv8rdPPKk`. Ojo: ese sitio reserva en el consultorio de prueba y por workers.dev.
+- **Duradera:** un commit nuevo en `main` (nunca reescribir historia) cuyo `vercel.json` sirva `rollback/`, que es exactamente el sitio anterior.
+
+## Estado anterior — V9, 31 de octubre de 2026, 18:58 hora argentina (21:58 UTC)
+
+**Producción servía V9** `a3c707f368736da90d2adf5850d291460f657af0`, Worker `app`, versión de Cloudflare `2ef53723-0a46-4879-bf6e-4af5ed5320c9`, en `app.cita-suite.com.ar` y en `app.cita-suite.workers.dev`. V9 es V8 más el registro de las fallas al comprobar el enlace de confirmación (sin migraciones; 128 aplicadas). Verificación: nivel `fast` 41244933261, paquete 41244945074 (manifiesto `3a604dc3b3ea180a00fcd781e5098322428e21926668f7cf2fc7c47268e1f1b6`), navegador sobre el programa exacto 41245436407 (12 de 12, workerd, mismo SHA-256 del programa) y, después de publicar, `verify-production-release.mjs` (139 archivos del cliente idénticos, política sólo del proyecto productivo, HTTPS en los dos orígenes y 74 relaciones sin exposición anónima) más `comprobar-publicacion.mjs` (revisión, cabeceras de `/confirmar-correo`, respuesta neutra a un enlace inválido e ingreso). Evidencia: `.verification/confirmacion-email-v9-20261031/` y `docs/plans/registro-confirmacion-email-20261030.md`.
+
+**Recuperación que valía con V9 publicada (desde V10b, rige la del apartado de arriba, que exige primero el paso de datos):**
+
+1. Volver a V8, que ya está en el historial del Worker y conserva `/confirmar-correo`: `NODE_OPTIONS=--max-old-space-size=192 pnpm --filter web exec wrangler rollback a1844665-447e-40bb-b9e5-ce7c03ed29d7 --name app --message "<motivo>" --yes`. Después comprobar `https://app.cita-suite.com.ar/_app/version.json` y el de workers.dev (deben decir `408ca04d9e6750e4657dc087264644665a63fb37`) y correr `node scripts/verify-production-release.mjs .verification/confirmacion-email-20261030/release-candidate-v8`.
+2. Sólo si V8 también falla: instalar el paquete compatible `c195b1e` con `NODE_OPTIONS=--max-old-space-size=192 node scripts/deploy-production-workers.mjs app .verification/confirmacion-email-20261030/release-recovery-v7` (manifiesto `961ffbdb1c3e61e5cbb38aed9f3f887a5b7eb57126e06064c1a0ddf5e9c6a0fb`; copia privada en `~/.local/share/cita-suite/releases/c195b1e388f3acc947464363514ae99f94c413da`). Ese paquete nunca se instaló en producción: se ensayó en staging, no acá. Comprobar después con `verify-production-release.mjs` sobre esa misma carpeta.
+3. Ninguno de los dos pasos toca la base ni el programador: V9 no tiene migraciones.
+
+### Antecedente inmediato: V8, 31 de octubre de 2026, 17:22 hora argentina (20:22 UTC)
+
+La confirmación de correo **quedó publicada y verificada**, fuente V8 `408ca04d9e6750e4657dc087264644665a63fb37`, Worker `app`, versión `a1844665-447e-40bb-b9e5-ce7c03ed29d7`. Ambos dominios sirven el paquete aprobado: 139 archivos cliente, 128 migraciones, ingreso/agenda operativos y 74 relaciones sin exposición anónima. Navegador productivo `41238345216` aprobado; cuentas temporales y secreto CI eliminados. El [traspaso de confirmación](../plans/traspaso-confirmacion-email-20261030.md) conserva paquetes, recibos y límites. La llegada del correo de confirmación al buzón externo no se observó: el enlace probado fue generado por Auth real.
+
+Con V8 publicada, la recuperación compatible era `c195b1e388f3acc947464363514ae99f94c413da`, paquete `41136024072`: conserva `/confirmar-correo`. Desde V9 la recuperación vigente es la del apartado anterior. **C9/B11 y los IDs anteriores no son una recuperación válida**, porque pueden romper enlaces de confirmación ya emitidos. Los apartados fechados inferiores conservan la historia de cada entrega; no ejecutarlos como pendientes actuales.
+
+Rige el criterio contextual inicial de [AGENTS.md](../../AGENTS.md): rigor y auditorías profundas; pruebas directas en producción autorizadas; staging, copias y ensayos de reversión cuando aporten protección o evidencia concreta. Para esta UI/Auth sin migraciones no son puertas automáticas un backup menor a seis horas, detener el scheduler, preservar hashes de pacientes ficticios ni repetir el circuito completo. Las reglas incompatibles de procedimientos históricos quedan sustituidas. Esta entrega histórica de UI/Auth no habilitó Natalia/D/E ni cambió su acceso. El alcance posterior de E está en [plan 12.18](../plans/propuesta-senas-avisos-natalia.md#etapa-e-vigente): definición revisada, sin implementación ni publicación todavía.
+
+## Entrega anterior — señas y horarios liberados, 30 de octubre
+
+Aplicación **C9 `deb74b023431e4f173eed85d6651c5073ad44557`**, paquete41081146798, versión productiva **`e5dddd3c-90e2-423c-8ce9-fc9ed4b9be15`** en ambos orígenes,32bindings conservados,136archivos cliente/35Natalia exactos, CSP propia,74relaciones sin exposición anónima y HTTPS. Esquema128, señas/global/cancelación automática apagados. No se configuró el consultorio de Natalia ni se tocó landingVercel/DNS.
+
+**Recuperación compatible B11:** `bf0fd1892b1adc769d93c8ac369c533ee80a58b7`, paquete41049721655, versión productiva ensayada **`0fbe672e-607c-4358-b335-3b047642ff09`**. Conserva los controles de señas existentes; apagar el interruptor general **antes** de instalarla. Ensayo productivo con tres estados propios, registrar/deshacer por HTTP y SQL/auditoría, luego retorno **nativo** a C9 y mismas comprobaciones. Los datos propios se retiraron; huellas completas de21consultorios/122pacientes/108turnos idénticas al antes. No usar los IDs de recuperación históricos de abajo para esta entrega.
+
+Programador restaurado **`16c73f28-eb48-4651-ac71-f2fd9f4087f9`**,5cron productivos/0staging,APP→app. **Observación natural aprobada:** ocho eventos16:51:46→17:03:31UTC de calendario/notificaciones/reseñas/cargas, todosok/sinexcepciones/versión16c73f28; tail terminado. Mantenimiento cada3h configurado, sin tick observado en esta ventana. Control final `cierre-productivo.json`17:04:43ok: Auth/agenda en ambos orígenes después de limpiar, mismosSHA de21consultorios/122pacientes/108turnos, globaloff y ningún dato de la fixture. Copia posterior41092046966 aprobada y recuperada independientemente,128migraciones/110tablas; manifiesto `ef847fb3378d952e3e4d0e853556227a94760dbef3ceac1ec9c117e6987716b5`. La secuencia reproducible y el estado exacto se conservan en [publicación de esta campaña](../plans/publicacion-senas-avisos-natalia.md), [cierre](../plans/cierre-senas-avisos-natalia.md) y [traspaso](../plans/traspaso-senas-avisos-natalia.md). La autorización anticipada12.8 sustituye otra consulta de permiso; los controles de respaldo/recuperación/drenaje/reversión/destino se conservan.
+
+## Publicación anterior — 28 de octubre, 05:10 UTC
+
+**Publicada y verificada el 28 de octubre, 03:55–05:06 UTC** (autorización expresa del usuario; recibos en `.verification/publicacion-agenda-20261028/`, detalle en el registro):
+
+- Aplicación `aacba5b10ff6030ac061e20ce0cccdf28126c180` (horas de la agenda y del detalle del turno en la zona del consultorio; hora de la tarjeta sin partirse en celulares). Instalada como `a18e6001-84a5-4502-ba12-57c686291197`; dos mediciones limpias de `verify-production-release.mjs` (131 archivos de cliente). **Versión vigente `4e29aba6-8039-4340-8869-5e0b77bda328`**: la misma aplicación sin el secreto `GOOGLE_CALENDAR_REDIRECT_URI` (32 enlaces). La creó `wrangler secret delete` y no tiene mensaje («Secret Change»): la lectura posterior compara el mensaje de versión y lo marca como diferente; la revisión servida en las dos direcciones es `aacba5b`.
+- Calendar pide el retorno del subdominio (ver [dominio](dominio.md), punto 6).
+- Programador **`ba7b746d-7d86-4016-91aa-dfbea35ba464`** con los cinco cron (mismo código del programador que `95b2596`). Eventos reales desde las 04:42 UTC (unos 6 minutos de propagación): push, calendario, reseñas y cargas, 15 eventos `ok` sin excepciones hasta las 05:06; mantenimiento (`17 */3`) observado a las 06:17:28 UTC, `ok` sin excepciones, también de `ba7b746d`.
+- Copia previa `40629440330` certificada y descargada de Drive (105 tablas, 4152 filas, 24 adjuntos).
+- **Recuperación de esa entrega (ya no vigente; la actual está en el primer apartado):** detener primero el programador (`node scripts/deploy-production-workers.mjs scheduler-without-crons`) y después `NODE_OPTIONS=--max-old-space-size=192 pnpm --filter web exec wrangler rollback 8b41ec56-5df3-4050-94f2-8b0f40347365 --name app --message "<motivo>" --yes` (`95b2596`). Ensayada a las 04:20 UTC: sirve `95b2596`, recupera su secreto de Calendar (workers.dev) y sus 33 enlaces; lectura aprobada. Regreso nativo a `4e29aba6` a las 04:34.
+- El límite de ingresos de la cuenta de prueba (abajo) se respetó separando las lecturas: 04:18, 04:20, 04:33:49 y 04:35:27.
+
+## Continuación anterior — 27 de octubre, 15:00 UTC (antecedente)
+
+**Direcciones (desde la entrega de origen, 27 de octubre, 14:19 UTC):**
+
+- La aplicación se sirve en `app.cita-suite.com.ar` y en `app.cita-suite.workers.dev`.
+- `cita-suite.com.ar` es la landing, servida por Vercel por decisión del usuario.
+- `PUBLIC_SITE_URL` y `PRODUCTION_APP_ORIGIN` son `https://app.cita-suite.com.ar`. `PUBLIC_SITE_URL_FALLBACK`, Natalia y el retorno de Calendar (secreto `GOOGLE_CALENDAR_REDIRECT_URI`) siguen en workers.dev. Las verificaciones comprueban las dos direcciones.
+- Por HTTP, workers.dev responde 308 a HTTPS desde la propia aplicación; el subdominio, 301 desde el borde de Cloudflare.
+
+**Publicada y verificada el 27 de octubre, 14:03–14:57 UTC** (autorización expresa del usuario; recibos en `.verification/dominio-landing-20261027/`, detalle en el registro):
+
+- Aplicación `95b2596a9b4f24d8ae50d78a94e3f1c9f95b811a`, versión **`8b41ec56-5df3-4050-94f2-8b0f40347365`**, servida en las dos direcciones; 130 archivos de cliente exactos, CSP sólo del proyecto propio, 0 de 70 relaciones expuestas, 33 enlaces idénticos.
+- Programador **`cae02746-2b69-4481-b9b6-d6441b512f10`** con los cinco cron. Eventos reales observados entre las 14:50:33 y las 15:21:11 UTC: los cinco tipos (push, calendario, reseñas, cargas y mantenimiento), 20 eventos, todos `ok`, sin excepciones y sin huecos. El primero llegó 10 min 42 s después de instalar, dentro de la propagación de hasta 15 minutos que documenta Cloudflare: una primera ventana de observación vacía no indica una falla.
+- Copia previa `40516167872`, certificada y descargada de Drive.
+- **Recuperación de esa entrega (ya no vigente; la actual está en el primer apartado):** `NODE_OPTIONS=--max-old-space-size=192 pnpm --filter web exec wrangler rollback d0ac2bcf-7e6a-4786-b2fb-5ff14687d643 --name app --message "<motivo>" --yes` (compatible `b108c19`), ensayada el 27-oct a las 14:22 UTC con verificación y lectura aprobadas. Primero se detiene el programador (`deploy-production-workers.mjs scheduler-without-crons`). Con `b108c19`, workers.dev vuelve a aceptar HTTP sin redirigir.
+- **Límite de ingreso de la cuenta de prueba:** la aplicación admite 5 ingresos por correo en una ventana móvil de 15 minutos (`login_password_by_email`), y cada lectura posterior (`production-readback.mjs`) ingresa dos veces, una por dirección. No hacer más de dos lecturas posteriores en 15 minutos; la tercera falla con `CONFIGURED_TEST_LOGIN_FAILED` sin que haya una regresión (pasó el 27-oct a las 14:24 UTC).
+
+Topología, procedimientos y reversión de dominios: [dominio](dominio.md). Las publicaciones de la app no tocan dominios (`wrangler.jsonc` no declara `routes`). No agregarlas: `wrangler deploy` reemplaza el conjunto de dominios del Worker y, sin terminal interactiva, reasigna dominios de otros Workers y pisa registros DNS en conflicto (comprobado en el código de wrangler 4.86.0).
+
+**Antecedente, publicada y verificada el 27-oct a las 03:11 UTC:** producción servía `b108c1912e2c3bc57403b006bcf33b71cdb91c23`, versión `d0ac2bcf-7e6a-4786-b2fb-5ff14687d643`. Programador `f105c4ff-160b-4e00-8b5d-14deb9f33b84` con cinco cron y eventos reales observados. La secuencia ejecutada y sus recibos están en el registro y en [el traspaso del panel](../plans/traspaso-apertura-panel-20261026.md). Recuperación: `wrangler rollback e3af637d-a115-4f06-a89a-ba64583f5e9c --name app` (compatible `dbd69d2`, con la corrección de recuperación), con las verificaciones de este documento. El acceso local a la base exige que esta máquina no salga por ProtonVPN (el pooler de sesión no responde por esa ruta). El subdominio `app.cita-suite.com.ar` sirve el mismo Worker. El cambio de `PUBLIC_SITE_URL` es una entrega propia: el usuario ya agregó los retornos de Supabase y Google, comprobados el 27-oct.
 
 ## Antecedente — recuperación, 26 de octubre, 17:59 UTC
 
@@ -18,7 +161,9 @@ Procedimiento del [plan íntegro](../plans/refactorizacion-cita-suite.md). Actua
 
 La autorización del 17 de octubre permite publicación y ensayos sintéticos en producción. La decisión del 20 exige demostrar el lanzamiento de dos consultorios en infraestructura gratuita; no autoriza contratar. **Publicar para verificar no habilita abrir a clientes reales.** La instrucción del 24 permite controlar el Samsung y continuar sin preguntas intermedias; las dependencias externas se informan al final.
 
-## Estado y revisiones vigentes
+## Estado y revisiones del 24 y 25 de octubre (antecedente)
+
+Esta sección se tituló «vigentes» hasta el 27 de octubre. Ya no lo es: la aplicación, el programador y la copia actuales están en «Continuación vigente», al principio de este documento. Lo que sigue conserva el estado de su fecha.
 
 Comprobación del 24 de octubre, posterior al ensayo de las 13:15 UTC. Las cargas40078561771 y40099997857 fallaron latencia e impiden aprobar el lanzamiento. Cierre25-oct01:40UTC:130app/35Natalia/70relaciones públicos comprobados; Vercel conserva su despliegue. La sesión administrativaCFactual no ve la cuenta destino y devuelve403/10000; las versiones y cron de la tabla son la última metadata aprobada24-oct13:36, no una relectura25-oct. Restaurar acceso y comprobar antes de cualquier mutación; no desplegar por ese403.
 
@@ -41,7 +186,7 @@ Los ensayos y versiones anteriores se conservan en sus recibos. El resto del pro
 | Recurso | Identificador estable |
 |---|---|
 | Cuenta Cloudflare |`52b358653379c162b5a07b10ae5e84b3`, planFree |
-| App / programador |`app.cita-suite.workers.dev`, Worker `app`; `cita-suite-scheduler`, bindingAPP→app, cinco cron del plan |
+| App / programador | Worker `app`, servido en `app.cita-suite.com.ar` (dominio de Worker) y en `app.cita-suite.workers.dev`. Programador `cita-suite-scheduler`, con *binding* `APP`→`app` y los cinco cron del plan. Landing aparte: `cita-suite.com.ar`, en Vercel ([dominio](dominio.md)). |
 | Producción Supabase |`yjzferwuzbtgpmdnzlcb`,sa-east-1; conservar API/Auth/Storage/refs, nombres visibles se tratan por separado |
 | Staging |`cita-suite-staging`, `ikaudqoilclfnztkxubz`,us-west-2; programador de staging sin cron durante la observación productiva |
 | Natalia Vercel |`natalia-frutos.vercel.app`, proyecto `prj_ddhAhez9VNro373XWSykLkhU5vBS`, equipo `team_CGSlkRXKKlw98jb3O2wSmcyt`,Hobby |
@@ -134,7 +279,13 @@ Promoción con padre/lease del HEAD leído, preservando índice/HEAD del usuario
 
 ## Dependencias y criterio de cierre
 
-Dominio pendiente de compra por el usuario; continuar desde [la guía específica](acceso-google-calendar.md#retomar-cuando-el-usuario-comunique-la-compra-del-dominio), con DNS, presentación pública, privacidad/términos, marca y ambos recorridosGoogle separados. SMTP está activado pero no tiene proveedor/remitente configurados; la entrega de recuperación no está comprobada. Destino de respaldos para futuros datos reales requiere decisión del usuario. No inventar ni contratar esos recursos.
+El dominio `cita-suite.com.ar` está comprado y operativo desde el 27-oct ([dominio](dominio.md)). Siguen pendientes:
+
+- **Verificación de marca de Google:** no se envió. Bloqueo probable: el dominio autorizado de Supabase no se puede verificar ([guía](acceso-google-calendar.md#retomar-cuando-el-usuario-comunique-la-compra-del-dominio)).
+- **SMTP:** configurado con Gmail (`citasuite@gmail.com`) y comprobado con un correo real el 27-oct ([correo de recuperación](correo-de-recuperacion.md)).
+- **Respaldos:** el destino ya lo eligió el usuario (Drive, 26-oct). Su estado está en la [auditoría final](auditoria-final.md), punto 6.
+
+No inventar ni contratar esos recursos.
 
 La auditoría final contrasta todos los requisitos, distingue CI/simulación/producción/dispositivo y conserva fallos. Si Free no cumple, la campaña no se declara cerrada ni el lanzamiento habilitado. Se entrega evidencia concreta, alternativas y pasos restantes; no se enmascara el impedimento con un verde parcial.
 
@@ -146,3 +297,9 @@ La expansión/reconciliación/contracción, las versiones antiguas, sus comandos
 ## Identidad aplicada: alcance y comprobación
 
 El principal se promovió a37f625b y se renombró a `Juan4787/cita-suite` manteniendoID1115936156, historia, otras ramas, tags, issues/PR y políticas. Origin apunta a `github-secundaria:Juan4787/cita-suite.git`; ambas direccionesGit se comprobaron. Plugin sinpermiso deescritura enprincipal: Git nativo usó expectativaexacta deHEAD y padre directo comprobado, con dry-run adversario rechazado; no se reescribió historia. App, programador y Natalia conservaron sus deploymentIDs después de la transición, sin builds reconectados. Directorio físicoCitaSuite con enlace anterior compatible. Los recibos de identidad identifican elSHA ejecutado; actualizaciones documentales posteriores conservan exactamente las fuentes verificadas.
+
+## E — publicación futura, aún sin ejecutar (2 de noviembre)
+
+La [especificación de E](../plans/etapa-e-correo-autogestion.md) requiere migraciones aditivas, proyección actual de seña compatible y controles para productores/consumidores de correo. Los procedimientos anteriores no prueban recuperación con historia de varias señas o eventos de E. Al implementarse, comprobar específicamente ese estado y documentar qué automatización se detiene antes de volver; no elegir una recuperación antigua sólo por haber sido válida para A/B/C.
+
+En este paso no hubo cambios de aplicación/base, secretos, DNS, envíos ni publicación. La versión productiva sigue siendo la del estado vigente y Juan dará después la instrucción para empezar.

@@ -1,4 +1,5 @@
 import { authUnavailableResponse } from '$lib/server/access/public/auth-unavailable';
+import { THEME_COOKIE, applyThemeToDocument, parseThemePreference, themeClass } from '$lib/theme/preference';
 import { dev } from '$app/environment';
 import {
 	createSupabaseServerClient,
@@ -64,6 +65,8 @@ export const handle: Handle = async ({ event, resolve }) => {
 		secure.port = '';
 		return new Response(null, { status: 308, headers: { location: secure.href, 'cache-control': 'no-store' } });
 	}
+	// Color mode chosen on this device: every document is rendered in it from the server.
+	const themePreference = parseThemePreference(event.cookies.get(THEME_COOKIE));
 	// Assigned only after this request's Auth response is verified. A decoded
 	// cookie payload is not the identity exposed to private request contexts.
 	event.locals.verifiedUser = null;
@@ -177,7 +180,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 				event.locals.verifiedUser = { id: data.user.id, email: data.user.email ?? null };
 			}
 		} catch (err) {
-			if (isTransientAuthError(err)) return authUnavailableResponse(!event.isDataRequest && event.request.headers.get('accept')?.includes('text/html') === true);
+			if (isTransientAuthError(err)) return authUnavailableResponse(!event.isDataRequest && event.request.headers.get('accept')?.includes('text/html') === true, themeClass(themePreference));
 			clearAuthCookies();
 			throw redirect(303, '/login');
 		}
@@ -216,7 +219,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 		}
 	}
 
-	const response = await resolve(event);
+	const response = await resolve(event, { transformPageChunk: ({ html }) => applyThemeToDocument(html, themePreference) });
 	const renderedPolicy = response.headers.get('content-security-policy');
 	if (renderedPolicy) response.headers.set('content-security-policy', withSupabaseOrigin(renderedPolicy, publicEnv.PUBLIC_ODONTO_SUPABASE_URL));
 	// Only a validated public integration may opt into framing. Private routes
@@ -228,11 +231,11 @@ export const handle: Handle = async ({ event, resolve }) => {
 		response.headers.set('content-security-policy', policy + "; frame-ancestors " + event.locals.bookingFrameAncestors.join(' '));
 	}
 	const securityHeaders: Record<string, string> = {
-		...(event.url.pathname.startsWith('/embed/v1/') ? { 'cache-control': 'no-store' } : {}),
+		...(event.url.pathname.startsWith('/embed/v1/') || event.url.pathname === '/confirmar-correo' ? { 'cache-control': 'no-store' } : {}),
 		'strict-transport-security': 'max-age=31536000',
 		'x-content-type-options': 'nosniff',
 		...(event.locals.bookingFrameAncestors?.length ? {} : { 'x-frame-options': 'DENY' }),
-		'referrer-policy': 'strict-origin-when-cross-origin',
+		'referrer-policy': event.url.pathname === '/confirmar-correo' ? 'no-referrer' : 'strict-origin-when-cross-origin',
 		'permissions-policy': 'camera=(), microphone=(), geolocation=()'
 	};
 	for (const [name, value] of Object.entries(securityHeaders)) {

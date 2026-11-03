@@ -203,6 +203,7 @@ const requestKey = 'a1000000-0000-4000-8000-000000000001';
 
 const createAtomicAppointmentMock = (options: { replayData?: Record<string, unknown> | null } = {}) => {
 	const rpcCalls: Array<{ name: string; payload: Record<string, unknown> }> = [];
+	const headers: Array<[string, string]> = [];
 	let tableReads = 0;
 	const supabase = {
 		from: () => {
@@ -218,7 +219,8 @@ const createAtomicAppointmentMock = (options: { replayData?: Record<string, unkn
 				patient_created: payload.p_patient_mode !== 'existing',
 				idempotent_replay: false
 			};
-			return {
+			const builder = {
+				setHeader: (name: string, value: string) => { headers.push([name, value]); return builder; },
 				single: async () => ({
 					data: generated,
 					error: null
@@ -228,16 +230,28 @@ const createAtomicAppointmentMock = (options: { replayData?: Record<string, unkn
 					error: null
 				})
 			};
+			return builder;
 		}
 	};
 	return {
 		supabase: supabase as never,
 		rpcCalls,
+		headers,
 		getTableReads: () => tableReads
 	};
 };
 
 describe('patient identity during appointment creation', () => {
+	it('envía las condiciones de seña en la petición atómica, también sin el módulo de cuestionarios', async () => {
+		const { supabase, headers } = createAtomicAppointmentMock();
+		const terms = { amount: 40000, dueAt: '2026-07-28T13:00:00.000Z', autoCancel: true };
+		await createManualAppointment(supabase, {
+			businessId: 'business-1', patient: { mode: 'public', name: 'Ana Prueba', phone: '3425048209' },
+			serviceId: 'service-1', professionalId: 'professional-1', startsAt: new Date('2026-07-30T13:00:00Z'),
+			source: 'public_booking', idempotencyKey: requestKey, depositTerms: terms
+		});
+		expect(headers).toEqual([['x-cita-deposit-terms', JSON.stringify(terms)]]);
+	});
     it('commits required declarations with the public reservation through the information wrapper', async () => {
         const {supabase, rpcCalls} = createAtomicAppointmentMock();
         await createManualAppointment(supabase, {
@@ -507,6 +521,30 @@ describe('rescheduleAppointment y versionado de calendario', () => {
 		});
 		expect(updates[0].calendar_sequence).toBe(1);
 		expect(updates[0].calendar_update_required_at).toBeNull();
+	});
+
+	it('con la seña recibida o exceptuada el turno sigue Confirmado en la fecha nueva', async () => {
+		for (const depositStatus of ['paid', 'waived']) {
+			const { supabase, updates } = createRescheduleMock({
+				...baseRow,
+				confirmed_at: '2026-06-10T12:00:00.000Z',
+				appointment_deposits: { status: depositStatus }
+			});
+			await rescheduleAppointment(supabase, { businessId: 'biz-1', appointmentId: 'apt-1', userId: 'user-1', startsAt: newStart, now });
+			expect(updates[0]).toMatchObject({ status: 'confirmed', confirmed_at: '2026-06-10T12:00:00.000Z' });
+		}
+	});
+
+	it('sin seña, con la seña pendiente o vencida el turno vuelve a Reservado como siempre', async () => {
+		for (const deposit of [null, { status: 'pending' }, { status: 'expired' }]) {
+			const { supabase, updates } = createRescheduleMock({ ...baseRow, appointment_deposits: deposit });
+			await rescheduleAppointment(supabase, { businessId: 'biz-1', appointmentId: 'apt-1', userId: 'user-1', startsAt: newStart, now });
+			expect(updates[0]).toMatchObject({ status: 'reserved', confirmed_at: null });
+		}
+	});
+
+	it('si la seña se deshizo en el medio, la regla de la base se explica a quien reprograma', () => {
+		expect(getHumanAppointmentErrorMessage({ message: 'APPOINTMENT_DEPOSIT_PENDING', code: 'P0001' })).toContain('Confirmar seña');
 	});
 
 	it('vuelve a respetar el descanso salvo que la nueva reprogramación lo ignore explícitamente', async () => {

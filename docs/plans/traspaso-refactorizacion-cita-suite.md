@@ -1,10 +1,38 @@
 # Traspaso de la campaña de refactorización de Cita Suite
 
-## Punto exacto vigente — 27 de octubre, 04:20 UTC
+> **Nota del 2 de noviembre de 2026:** las instrucciones de este documento de preservar el `HEAD` `80268e2` y el índice `55cd8f79…` quedaron superadas. Esa regla dejó divergir la copia local de GitHub y de producción. Ahora la rama de trabajo es `main`, que contiene la historia completa. El estado vigente está en [el registro único](../ESTADO-VIGENTE.md) y se comprueba con `node scripts/check-repo-sync.mjs`.
 
-**Continuar desde [el traspaso del panel y la recuperación](traspaso-apertura-panel-20261026.md)** y [dominio](../architecture/dominio.md). **Producción publicada y verificada en `b108c1912e2c3bc57403b006bcf33b71cdb91c23`** (recuperación de contraseña + corrección del clic perdido al abrir el panel), versión `d0ac2bcf…`. Auditoría `40434124045` aprobada, copia actual verificada, ensayo compatible y retorno nativo en producción, y cinco cron restituidos con eventos reales de las cinco categorías. Por decisión del usuario, `cita-suite.com.ar` sirve la landing (Worker `cita-suite-landing`) y `app.cita-suite.com.ar` la aplicación, verificados; workers.dev se conserva.
+## Continuidad vigente — 31 de octubre
 
-Pendiente del usuario, en este orden: activar «Always Use HTTPS» en Cloudflare (HTTP hoy responde sin redirección), agregar `https://app.cita-suite.com.ar/**` a los retornos de Supabase, agregar `https://app.cita-suite.com.ar/oauth/google-calendar/callback` en Google Cloud, renombrar los proyectos de Supabase, crear la contraseña de aplicación de Gmail (el archivo entregado no lo era) y reabrir el editor en la ruta `Cita Suite`. Después, la campaña publica la entrega de origen (`PUBLIC_SITE_URL`, `PRODUCTION_APP_ORIGIN`, `GOOGLE_CALENDAR_REDIRECT_URI` y redirección HTTPS en la app). La campaña permanece abierta.
+Desde el 1 de noviembre a las 10:15 UTC producción sirve V10b `68f31741f6ff7f2253c036800b1369f1eda16510`, versión `1d2b4acd-7dd8-4cb7-81e3-a205bafe9f8d` (plan de señas y avisos, 12.16); la recuperación, que antes de volver a V9 exige un paso de datos, está en `docs/architecture/publicacion-y-reversion.md`. Del 31 de octubre a esa hora sirvió V9 `a3c707f368736da90d2adf5850d291460f657af0` (V8 más el registro de las fallas al comprobar el enlace). Antes, la entrega de confirmación de correo quedó **publicada y comprobada**, V8 `408ca04d9e6750e4657dc087264644665a63fb37`, versión productiva `a1844665-447e-40bb-b9e5-ce7c03ed29d7`. Consultar [el traspaso de cierre](traspaso-confirmacion-email-20261030.md): es la referencia de versión, recuperación compatible, evidencia y límites. No volver a publicar esta corrección ni usar como actuales las revisiones y próximos pasos de los apartados fechados inferiores.
+
+Los datos comerciales pendientes de Natalia y D conservan su estado; E se define en [12.18 del plan de señas y avisos](propuesta-senas-avisos-natalia.md#etapa-e-vigente) y su [especificación](etapa-e-correo-autogestion.md), con ejecución completa autorizada después en [12.20](propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada); [preparación y continuidad de E](ejecucion-etapa-e-20261103.md) en curso, sin implementación funcional todavía. No modificar el acceso de Natalia. Rige el criterio contextual inicial de [AGENTS.md](../../AGENTS.md): auditoría rigurosa y producción autorizada, sin circuitos de staging, backups por antigüedad o reversión obligatorios para toda modificación. Se protegen cuentas, secretos, permisos, configuración comercial e infraestructura; los turnos/pacientes ficticios pueden alterarse para probar.
+
+Los puntos siguientes conservan la historia y los pendientes de sus fechas. No permiten concluir que todas las dependencias generales de la campaña estén resueltas ni que sigan abiertas por no figurar su cierre aquí: consultar la guía específica y sus recibos antes de actuar.
+
+## Antecedente — punto del 27 de octubre, 08:30 UTC
+
+**Continuar desde [el traspaso del dominio y la entrega de origen](traspaso-dominio-origen-20261027.md)** y [dominio](../architecture/dominio.md), que tiene el estado vigente.
+
+**Producción publicada y verificada en `b108c1912e2c3bc57403b006bcf33b71cdb91c23`** (recuperación de contraseña más la corrección del clic perdido al abrir el panel), versión `d0ac2bcf…`:
+
+- Auditoría `40434124045` aprobada.
+- Copia actual verificada.
+- Ensayo compatible y retorno nativo hechos en producción.
+- Cinco cron restituidos, con eventos reales de las cinco categorías.
+
+Por decisión del usuario, `cita-suite.com.ar` es la landing, servida por Vercel, y `app.cita-suite.com.ar` es la aplicación; workers.dev se conserva. El usuario ya activó «Always Use HTTPS» y configuró Google y Supabase para el subdominio (comprobado).
+
+**Pendiente del usuario:**
+
+- Probar el ingreso con Google desde el subdominio.
+- Renombrar los proyectos de Supabase.
+- Crear la contraseña de aplicación de Gmail: el archivo entregado no lo era.
+- Reabrir el editor en la ruta `Cita Suite`.
+
+**Pendiente de la campaña:** la entrega de origen, desde el paso 1 del traspaso nuevo, y después la corrección de las horas de la agenda. La campaña permanece abierta.
+
+Las secciones de antecedentes de abajo conservan el estado de su fecha: lo que dicen sobre el dominio «pendiente de compra» ya no rige.
 
 ## Antecedente — 27 de octubre, 02:05 UTC
 
@@ -73,7 +101,7 @@ Procedimiento y rutas privadas de la clave: [Drive para respaldos](../architectu
 
 *Antecedente reemplazado:* la intervención anterior tenía como instrucción cerrar la fase 5, avisar y detenerse antes de fase 6. Ya no está vigente.
 
-## Punto vigente — primer consultorio aceptado en los planes gratuitos, 25 de octubre (actualizado 15:55 UTC)
+## Antecedente — primer consultorio aceptado en los planes gratuitos, 25 de octubre (actualizado 15:55 UTC)
 
 **Prevalece sobre los puntos inferiores.** Pedido literal del usuario: «no probes mas 2 consultorios. optimicemos para 1, a partir del 2 pago supabase pro. avanza en eso». Quedó como ampliación al final del plan, con su huella en el registro de integridad (documento `80acfef5…`, ampliación `de2d7a1c…`, documento anterior `796853d3…`), y en `AGENTS.md`, control de consumo, capacidad y auditoría final. No ensayar más dos consultorios sobre los planes gratuitos: las cargas 40078561771 y 40099997857 se conservan fallidas. Supabase Pro desde el segundo consultorio lo contrata el usuario, con tope de gasto; el agente no contrata.
 
@@ -89,13 +117,15 @@ Procedimiento y rutas privadas de la clave: [Drive para respaldos](../architectu
 
 ## Restricción económica vigente — 25 de octubre, 05:13 UTC
 
+**Alcance posterior:** esta restricción de infraestructura conserva su historia; para correo existe la excepción expresa de costo controlado del 2 de noviembre en [12.18](propuesta-senas-avisos-natalia.md#etapa-e-vigente) y [control de consumo](../architecture/control-de-consumo.md).
+
 El usuario confirmó una venta de pago único y fijó que **comprará el dominio, pero no asumirá servicios pagos recurrentes para un consultorio**. Recién desde el segundo consultorio podrá evaluarse pagar infraestructura. Sustituye la previsión económica del tercero; no autoriza automáticamente contratar, migrar ni cambiar planes. La compra del dominio queda a cargo del usuario. Decisión literal y aplicación en [control de consumo](../architecture/control-de-consumo.md#decisión-económica-del-usuario-y-aplicación).
 
 Priorizar los pendientes que puedan resolverse sin nuevos cargos recurrentes. Para el primer consultorio, un plan pago no es la solución operativa autorizada. Si Free no satisface los requisitos, conservar el impedimento y estudiar alternativas compatibles con la restricción; no rebajar criterios ni prometer que un plan pago solucionaría la causa. Las dos cargas fallidas siguen vigentes y el diagnóstico breve de un consultorio no es aceptación de su operación. No se modificaron pruebas, criterios ni el plan original para adaptar el resultado a esta decisión. **Campaña y lanzamiento siguen abiertos.**
 
 Intervención exclusivamente documental `decision-costos-primer-consultorio-20261025`; preestado, copias de los cuatro documentos y verificación de preservación en `.verification/decision-costos-primer-consultorio-20261025/`. No se inició otro ensayo ni se cambió producción.
 
-## Punto vigente — ronda dirigida terminada, 25 de octubre
+## Antecedente — ronda dirigida terminada, 25 de octubre
 
 **Diagnóstico completado; lanzamiento aún sin aprobar.** Informe [diagnóstico de rendimiento](../architecture/diagnostico-rendimiento-20261025.md), conclusiones y límites en [capacidad](../architecture/capacidad.md). No se confirmó un defecto de app o SQL que justifique modificarla. No repetir otra carga de 48 minutos sin corrección concreta o cambio controlado justificado.
 
@@ -119,7 +149,7 @@ El cierre `9fcf4eef9f8317f4ecaf651e83ba51eea2f42c61` ya fue publicado y su fastm
 
 [Fase6](../archive/production-verification-20261024/phase6/README.md) conserva recibos finales:5archivos+manifest/11815bytes, manifiesto3b6095bc6bc3600c168385b20a189e2ff8b3d03d1621109153b86cda1f675371. Localización adicional offline: seis peticiones servidor≥2s; tres rutas a14:22:34–39UTC con4,3–5,2sdepared/8–16msCPU. No basta una demora exclusivamente generador→borde para explicarlas; base/redinterna/locks/costoSQL siguen como hipótesis, sincausaúnica niotroensayo. Fuentes en capacity-two-control-offline-localization-20261025.json. Lo siguiente es resolver las dependencias y la investigación nueva listadas debajo, no recuperar una carga/limpieza/publicación ya terminadas. **Campaña y lanzamiento permanecen abiertos.**
 
-## Punto vigente — cierre de comparación única,25-oct01:40UTC
+## Antecedente — cierre de comparación única, 25-oct 01:40 UTC
 
 **Campaña abierta y lanzamiento sin aprobar.** No quedan medición, semilla, limpieza, ensayoSamsung, observador ni publicación de aplicación pendientes de esta continuación. No repetirlos. El cierre documental posterior debe conservar0851 como fuente compilada; no mover `.verification/ci-source.json` a un commit de documentación.
 
@@ -220,7 +250,7 @@ Consentimiento/readback inicial ya hechos: no repetirlos sin motivo. Después de
 
 El usuario creó secreto nuevo del mismo cliente **Cita Suite - Auth - Produccion**, inhabilitó el anterior, guardó nuevo en Supabase y confirmó **pude entrar perfecto**. Acceso manual de su cuenta confirmado; no comparación administrativa independiente del valor ni prueba de todos los roles. No pedir login/guardado/Authde nuevo. API y cuotasCalendar son del proyecto: el filtro de métricasAuth no asigna Calendar al cliente de autenticación. Fuente cuota .verification/google-calendar-quota-applied-20261023.json.100/min limita ritmo desde el proveedor; no equivale a presupuesto monetario absoluto ni gratuidad permanente. CPUFree/capacidad2yotraspuertas siguen pendientes: ninguna se cierra por la rotación de credenciales.
 
-## Alcance de lanzamiento vigente (enmienda del usuario del 20 de octubre)
+## Alcance de lanzamiento del 20 de octubre (la decisión del 25 de octubre reemplazó dos consultorios por uno)
 
 Leer la decisión literal al final del plan. En resumen: no hay usuarios reales y todos los datos son ficticios; el lanzamiento es para dos consultorios sobre Workers Free y Supabase Free; no se contrata nada, ni servicios con cobro variable sin tope. El despliegue gratuito debe demostrar los criterios del plan con dos consultorios antes de publicar, y si un límite del proveedor lo impide, es un impedimento que se informa con alternativas. La capacidad de 5 y 25 consultorios deja de ser condición de cierre, sin rebajar calidad, seguridad ni integridad. Las protecciones de consumo se deciden por mérito y las postergadas se documentan con su riesgo residual. Se siguen corrigiendo los defectos reales de eficiencia, y se distinguen de los límites del proveedor.
 
@@ -339,7 +369,7 @@ Prevalece sobre 3j en lo que cambia. El respaldo y retorno alojado ya aprobados 
 - Preparación de Natalia/árbol principal de a354 debe regenerarse para la candidata nueva, conservando 147 archivos no seleccionados y las 109 eliminaciones revisadas. Se concretó en el procedimiento la instalación/registro de un baseline compatible de producción **antes de contraer**; todavía no ejecutado.
 - Identidad: corregida la falsa equivalencia entre pausa de Vercel y desconexión Git; secuencia unificada con publicación. SMTP propio sigue **no verificado**, no ausente (CLI sin lectura de Auth, sin token de administración en entorno/conector). Acreditar entrega antes de clientes; sólo si falta, decidir cuenta transaccional. Siguen pendientes las dos desconexiones del usuario; no asumir que «seguí» las confirma. Capacidad gratuita y resto de puertas originales vigentes.
 
-## 3j. Punto exacto vigente (23 de octubre, desde ~03:46 UTC)
+## 3j. Antecedente: punto exacto del 23 de octubre (desde ~03:46 UTC)
 
 Reemplaza a 3i en lo que cambia; conservar abajo los antecedentes y el registro detallado.
 

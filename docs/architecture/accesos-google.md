@@ -2,7 +2,7 @@
 
 La carpeta padre **`ACCESOS-GOOGLE-CITA-SUITE/`** reúne los accesos Google del producto y su operación. Su nombre se conserva: abarca autenticación, Calendar y respaldos externos. **No implica una sola cuenta ni un solo proyecto.** Su `LEEME.md`, índices y subcarpetas distinguen cada finalidad.
 
-**Autenticación y Calendar:** administradora indicada `juampiluduena@gmail.com`, proyecto **Dashboard Odontologia**, ID `dashboard-odontologia`. **Respaldos externos:** Drive elegido `juanmarquez56783@gmail.com`, proyecto **Cita Suite Respaldos**, ID `project-ae0f9447-d7a0-49d1-b0b`. Sin auditoría IAM; el perfil de Drive de respaldo sí se comprobó mediante el conector.
+**Autenticación:** administradora indicada `juampiluduena@gmail.com`, proyecto **Dashboard Odontologia**, ID `dashboard-odontologia`. **Calendar, desde el 2 de noviembre:** proyecto **Cita Suite Calendar**, ID `cita-suite-calendar-513502`, con la misma administradora; el cliente de Calendar de Dashboard Odontologia es el anterior. **Respaldos externos:** Drive elegido `juanmarquez56783@gmail.com`, proyecto **Cita Suite Respaldos**, ID `project-ae0f9447-d7a0-49d1-b0b`. Sin auditoría IAM; el perfil de Drive de respaldo sí se comprobó mediante el conector.
 
 [Abrir los clientes del proyecto en Google Cloud](https://console.cloud.google.com/auth/clients?project=dashboard-odontologia).
 
@@ -10,6 +10,15 @@ La carpeta padre **`ACCESOS-GOOGLE-CITA-SUITE/`** reúne los accesos Google del 
 |---|---|---|
 | `GOOGLE-CALENDAR/` | Cita Suite - Google Calendar - Producción | Vincular Google Calendar y crear, reprogramar o cancelar el evento de un turno. |
 | `AUTENTICACION-GOOGLE/` | Cita Suite - Auth - Produccion | Iniciar sesión en Cita Suite con Google mediante Supabase Auth. |
+| `GOOGLE-CALENDAR-PROYECTO-CITA-SUITE/` | «Cita Suite» del proyecto propio «Cita Suite Calendar» (`cita-suite-calendar-513502`) | El cliente de Calendar **vigente**: reemplazó al de `GOOGLE-CALENDAR/` el 2 de noviembre a las 03:03 UTC. |
+
+**Proyecto propio de Calendar (decisión de Juan, 2 de noviembre):**
+- **Por qué:** «Dashboard Odontologia» no puede verificarse para Calendar porque comparte la pantalla de permiso con el ingreso, que exige el dominio de Supabase. Por eso Calendar pasa a un proyecto aparte, gratis, con cliente web `702611060405-mkcoqcsgsod4s3cjb1cliqmjn9th33vs.apps.googleusercontent.com`.
+- **Retorno único:** `https://app.cita-suite.com.ar/oauth/google-calendar/callback`, aceptado por Google (`.verification/calendar-proyecto-propio-20261102/`).
+- **Permiso único:** `calendar.events.owned`.
+- **Instalación:** instalado en producción el 2 de noviembre de 2026 a las 03:03 UTC (versión del Worker `986cf666-ae09-423b-ae05-1928007dccde`) y comprobado de punta a punta: permiso real de Juan, evento creado en su calendario y borrado al cancelar el turno.
+- **Vuelta atrás:** `wrangler rollback 59f81e89-412f-49be-b65b-3a2378ddf71e`.
+- **Lo que falta:** la verificación del permiso; ver `docs/plans/pendientes-vigentes.md`, sección 4, punto 1.
 
 La carpeta general y sus archivos están excluidos de Git. Cada integración tiene su JSON de credenciales propio: **Calendar**, `GOOGLE-CALENDAR/CREDENCIALES-GOOGLE-CALENDAR-CITA-SUITE-PRODUCCION.json`; **autenticación**, `AUTENTICACION-GOOGLE/CREDENCIALES-AUTENTICACION-GOOGLE-CITA-SUITE-PRODUCCION.json`. El segundo contiene el secreto nuevo creado por el usuario dentro del cliente Auth existente. Sus guías y metadatos están separados; no intercambiar los archivos. Guardarlos localmente no acredita que los secretos nuevos estén instalados o que los recorridos completos funcionen.
 

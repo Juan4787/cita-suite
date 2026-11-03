@@ -1,8 +1,14 @@
 # Matriz de regresiones obligatoria
 
+## Confirmación de correo — entrega del 31 de octubre
+
+V8 `408ca04d9e6750e4657dc087264644665a63fb37` publicada y comprobada. Release exacto `41137595117`: 20/20 fases; navegador fuente 58/58, compilado candidato 58/58 y recuperación compatible 51/51. Prueba productiva `41238345216`: alta pendiente sin alerta, reenvío, corrección de dirección, ingreso no confirmado, enlace de Auth real en otro navegador, rechazo de enlaces falsos/usados y cinco anchos sin desbordes ni errores de ejecución. Ingreso/agenda en ambos dominios y 74 relaciones sin exposición anónima comprobados. [Recibos y límites](../plans/traspaso-confirmacion-email-20261030.md); recepción externa de confirmación no observada. Las entregas anteriores siguientes conservan sus propias revisiones y no son la versión productiva vigente.
+
 Este documento responde a la matriz de la sección 4 del [plan](../plans/refactorizacion-cita-suite.md): qué protege cada punto, qué pruebas lo comprueban y en qué capa. Las corridas que lo demuestran están en el [registro](../plans/registro-refactorizacion-cita-suite.md). La evidencia de cierre es el full de la revisión que se publique, que ejecuta todas estas suites juntas. Una corrida anterior no certifica cambios hechos después de su snapshot.
 
 Capas: **SQL** es PostgreSQL real descartable con las migraciones completas y claims sintéticos (pgTAP); **carreras**, dos conexiones controladas dentro de una prueba (`supabase/tests/run_*.sh`); **unidad**, Vitest de servidor y cliente; **navegador**, Playwright contra GoTrue, PostgREST y Storage reales descartables; **capacidad**, los escenarios de [capacidad](capacidad.md); **staging**, el despliegue aislado.
+
+**Entrega A/B/C del30-oct:** release exacto C9 `deb74b023431e4f173eed85d6651c5073ad44557`, **41082416537**,20/20fases: todas las suites juntas, SQL B25/C15/diez carreras/deadlocks0,53casos de navegador sobre fuente y53sobre el paquete,49de compatibilidadB11/demo3; ninguna omitida, inesperada, inestable ni reintentada. La publicación y las pruebas productivas HTTP/SQL, la recuperación B11→C9, las huellas completas y los límites se contrastan por requisito en el [cierre propio](../plans/cierre-senas-avisos-natalia.md). Las matrices no sustituyen una medición de capacidad ni pruebas de teléfono o Realtime alojado.
 
 ## 1. Cruces de consultorio
 
@@ -21,6 +27,10 @@ Lecturas, escrituras, identificadores manipulados y funciones llamadas directame
 
 ## 2. Revocación de membresía, cambio de rol y estados comerciales
 
+- **Horarios liberados:** `appointment_slot_releases.sql` comprueba RLS, escrituras directas rechazadas y ocultar sólo por dueño/admin/recepción, con auditoría única; el actor reutiliza la revalidación bajo bloqueo verificada por las carreras de señas. La ruta valida ID y permiso antes de ejecutar; profesional y sólo lectura no tienen acciones en la interfaz.
+
+- **Señas:** `appointment_deposits.sql` comprueba roles, consultorio ajeno, suspensión, acceso anónimo y rechazo de escrituras directas; `senas.server.test.ts`, `senas-config.server.test.ts`, `abrir.server.test.ts` y `appointment-detail.server.test.ts` cubren rutas y mensajes. SQL no delega el permiso a la pantalla. Ver [registro propio](../plans/registro-senas-avisos-natalia.md) para no confundir las capas aprobadas con las pendientes.
+
 - **SQL:** `tenant_context_revocation.sql` (el contexto refleja el rol nuevo y la revocación de inmediato, también para RPC clínicos directos); `appointment_actor_revalidation.sql` (17 controles: una creación en curso revalida el rol en SQL, la recuperación idempotente no expone el turno a quien perdió el permiso); `patient_archive_actor_scope.sql`, `patient_registration_transaction.sql` y `team_editor_atomic_commands.sql` (membresía revocada, asistencia revocada y pausa comercial); `availability_windows.sql` (la revocación actúa en la siguiente llamada SQL); `role_access_audit.sql`, `team_access_transactions.sql` y `manual_access_then_mp_payment.sql`.
 - **Carreras:** `run_appointment_actor_concurrency.sh`, `run_patient_archive_actor_concurrency.sh`, `run_patient_registration_concurrency.sh` y `run_team_editor_concurrency.sh`: el cambio de rol o la revocación entre la comprobación y la escritura.
 - **SQL, auditoría transversal:** `user_business_contexts.sql` (una ayuda vencida, terminada o revocada, un soporte deshabilitado o un consultorio sin operación no dan contexto) y `assistance_business_settings.sql` (la ayuda vencida no lee ni guarda).
@@ -34,6 +44,10 @@ Lecturas, escrituras, identificadores manipulados y funciones llamadas directame
 - **Navegador:** `clinical-storage-policy.spec.ts` (política maestra por consultorio), `patient-structure-ux.spec.ts` (alcance por rol).
 
 ## 4. Reservas simultáneas, repetidas y reprogramadas
+
+- **Horarios liberados:** `appointment_slot_releases.sql` prueba OLD de equipo, antigüedad por intervalo, correcciones rápidas, paso desde fecha pasada, ocupación parcial, bloqueos, orden de hechos con marcas iguales, fecha efectiva, cancelación por seña real y rollback si el registro falla. `appointment-slot-releases.spec.ts` recorre cancelación por la UI, reasignación real, desaparición por ocupación y ocultar sin cambiar la disponibilidad. Su ejecución está identificada en el registro; no deducir aprobación de su mera presencia.
+
+- **Señas:** `appointment_deposits.sql` exige seña/Confirmado coherentes y auditoría atómica, fotografía histórica, idempotencia, apagado seguro y condiciones de cancelación. `run_deposit_expiry_concurrency.sh` verifica los dos órdenes de cobro/baja, reprogramación/deshacer, hijos con FK, `skip locked` y apagado de política, con cero bloqueos mutuos. `appointment-deposits.spec.ts` comprueba reserva nativa con condiciones, apertura de WhatsApp interceptando sólo el destino externo, registro real, agenda, vista pública y baja invocada sobre datos sintéticos en PostgreSQL; no simula la persistencia.
 
 - **SQL:** `patient_identity_atomicity.sql` (creación de paciente y turno atómica e idempotente); `price_confirmation_lifecycle.sql` (un reintento tras una respuesta perdida devuelve la reserva confirmada aunque cambie la política); `joint_appointments.sql`; `public_booking_patient_policy.sql`; `availability_windows.sql`.
 - **Carreras:** `run_patient_identity_idempotency_concurrency.sh`, `run_public_booking_limit_concurrency.sh`, `run_public_patient_resolution_concurrency.sh`, `run_availability_snapshot_concurrency.sh`, `run_availability_configuration_concurrency.sh`.
@@ -89,6 +103,10 @@ Lecturas, escrituras, identificadores manipulados y funciones llamadas directame
 
 ## 12. Vistas de 320, 390, 768, 1280 y 1600 píxeles, contenido largo y teclado
 
+- **Horarios liberados:** `appointment-slot-releases.spec.ts` añade los cinco anchos con nombre profesional largo, `layoutIssues` acumulado, captura alineada y activación por teclado de «Dar este horario»; modo demo sin acciones reales. Sólo los recibos completos del registro acreditan su ejecución.
+
+- **Señas:** `appointment-deposits.spec.ts` agrega los cinco anchos en configuración, lista, condiciones previas y turno pendiente/cancelado; Natalia claro y oscuro en las superficies públicas. Acumula `layoutIssues`, alinea cada tarea para la captura y exige comprobaciones de salud del navegador. `odonto.smoke.spec.ts` agrega las páginas nuevas al perfil demo. Estado de ejecución en el registro propio; escribir una matriz no significa haberla aprobado.
+
 - **Guardas de diseño** sobre todas las vistas (`scripts/lib`): `font-weights.test.mjs` (sólo pesos cargados), `heading-kickers.test.mjs` (sin rótulos sobre los títulos), `glyph-icons.test.mjs` (íconos dibujados, no emojis ni glifos), `type-scale.test.mjs` (tamaños de la escala, no literales) y `text-truncation.test.mjs` (el texto de la tarea ajusta; los recortes revisados se declaran). En el navegador, `layoutIssues` reporta además un texto de ayuda más ancho que el espacio de su campo (`clipped-placeholder`), y `login-register-ux.spec.ts` y `patients-real-ux-audit.spec.ts` lo comprueban a 320 y 390 px.
 - **Navegador:** `patient-structure-ux.spec.ts` (los cinco anchos, contenido largo y teclado por rol), `access-recovery-ui.spec.ts` (los cinco anchos y teclado), `booking-embed.spec.ts` (cinco anchos en las tareas profesionales y la reserva nativa), `clinical-storage-policy.spec.ts`, `layout-usability.spec.ts` (el detector de palabras comprimidas), `mobile-navigation-ux.spec.ts`, `roles-agenda-regression.spec.ts`. Las matrices visuales usan `layoutIssues` y `alignTaskForCapture` según la [guía de verificación](verificacion.md).
 
@@ -100,3 +118,11 @@ El plan pide distinguir viajes HTTP a la base, llamadas a proveedores y trabajo 
 - **Trabajo SQL:** los escenarios de capacidad lo miden con `pg_stat_statements` (sentencias anidadas incluidas), esperas de locks y `auto_explain`.
 - **Contenido de los registros:** `platform/logging.ts` registra una etiqueta fija y sólo el SQLSTATE y el estado HTTP del error; `logging.test.ts` comprueba que excluye datos clínicos, tokens, URLs y metadatos arbitrarios. La guarda `scripts/lib/server-logging.test.mjs` recorre el árbol sintáctico del servidor y rechaza cualquier `console` con un error, una plantilla o un alias. `worker-tail` descarta encabezados, consultas y otros registros al recibirlos.
 - **Retención:** la telemetría push se conserva 90 días por pg_cron (`scheduled_job_batches.sql`), los eventos de límites de servidor 7 días, y los límites de lectura de integraciones y los intentos de OAuth se depuran. Los intentos de reserva pública (`public_booking_attempts`: teléfono, hash de la dirección y agente de usuario), que nada borraba, se conservan 7 días desde `20261020040000` (`public_booking_attempts_retention.sql`); el limitador sólo lee los últimos 10 y 30 minutos. Los eventos de webhooks de Mercado Pago y de WhatsApp se conservan 180 días (`webhook_events_retention.sql`); `audit_logs` y `patient_profile_change_events` son historia del producto y no se depuran ([control de consumo](control-de-consumo.md)).
+
+## E — matriz nueva pendiente de ejecución (2 de noviembre)
+
+La [matriz identificada de E](../plans/etapa-e-correo-autogestion.md#4-matriz-completa-de-casos-y-aceptación) es la fuente única de casos EM/AC/RP/SN/RM/ZH/UI/OP. El [contraste C01–C13](../plans/etapa-e-correo-autogestion.md#2-contraste-con-el-código-qué-se-reutiliza-y-qué-debe-cambiar) es una revisión estática, no una corrida.
+
+Al implementar: pruebas negativas antes de la corrección, SQL de atomicidad/historia/roles, carreras controladas en ambos órdenes y con el mismo estado de turno, unidades de tiempo/importe/plantillas, navegador real y correo real en buzones acordados. Verificar respuesta perdida después de guardar, resultado incierto del proveedor, identidad corregida sin fugas de credenciales, crédito acumulado, último momento y presupuesto de tareas existentes. La evidencia de cada capa debe indicar revisión, resultado y límites. Los dos envíos previos que informó Juan no son prueba integral de E.
+
+Los casos de E no se marcan aprobados por actualizar este documento ni por reutilizar los verdes históricos de A/B/C o de Auth. La ejecución está autorizada en [12.20](../plans/propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada); el [registro activo](../plans/ejecucion-etapa-e-20261103.md) conserva los 97 casos pendientes y su evidencia, sin dar por ejecutadas las pruebas funcionales.

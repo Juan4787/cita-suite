@@ -1,6 +1,29 @@
 # Documentación de Cita Suite
 
+**Todo lo que queda pendiente está en una sola lista:** [pendientes vigentes](plans/pendientes-vigentes.md). Natalia ya tiene su cuenta real y su consultorio. Sus datos todavía faltantes y D siguen en la lista. E tiene [definición vigente con Zoho](plans/etapa-e-correo-autogestion.md), revisada contra código; sustituye la elección histórica de Resend. [Zoho por terminal](architecture/zoho-cpaas-terminal.md) quedó conectado el 3 de noviembre, con acceso persistente; Juan autorizó después E completa, incluidas pruebas/publicación; [preparación, decisiones iniciales y continuidad](plans/ejecucion-etapa-e-20261103.md) en curso; contrato contextual E1 local probado, sin integración publicada.
+
+## Estado operativo y criterio actuales — 2 de noviembre
+
+**Qué historia y qué cambios están vigentes:** [estado vigente](ESTADO-VIGENTE.md), el registro único; lo comprueba `node scripts/check-repo-sync.mjs`.
+
+**Producción sirve V12b** `771fac5950c532b1123f11d4dde93eef9b42ceba` (versión `277d332d-1794-4367-8ef0-567ced159f1b`) desde el 2 de noviembre a las 15:33 UTC. Es V12 (`c21a1983…`, 14:46 UTC) con el fondo general del modo claro apenas más cálido.
+- Es V11f más el modo claro predeterminado, con el oscuro conservado y el selector Claro, Oscuro y Automático.
+- Documentos: [plan](plans/modo-claro-20261102.md), [registro](plans/registro-modo-claro-20261102.md), [traspaso](plans/traspaso-modo-claro-20261102.md) y [publicación y reversión](architecture/publicacion-y-reversion.md).
+
+Antes, V11f `72d59ab00db67a8502ca560c762c61e6cfac1923` (2 de noviembre a las 02:12 UTC). Antes aún, V10b `68f31741f6ff7f2253c036800b1369f1eda16510`, versión `1d2b4acd-7dd8-4cb7-81e3-a205bafe9f8d` desde el 1 de noviembre a las 10:15 UTC (plan de señas y avisos, 12.16): V9 más la vista de consultorios archivados, el rubro «medicina», preguntas de hasta 40 opciones y la web de Natalia reservando en su consultorio real. Antes de volver a V9 hay que dejar los datos legibles para V9 ([publicación y reversión](architecture/publicacion-y-reversion.md)). V9 `a3c707f368736da90d2adf5850d291460f657af0` (31 de octubre) es V8 más el registro de las fallas al comprobar el enlace. La confirmación de correo está publicada y comprobada: [traspaso de cierre](plans/traspaso-confirmacion-email-20261030.md), [registro y evidencias](plans/registro-confirmacion-email-20261030.md), [guía funcional](architecture/confirmacion-de-correo.md) y [publicación](plans/publicacion-confirmacion-email-20261030.md). Fuente V8 `408ca04d9e6750e4657dc087264644665a63fb37`, versión `a1844665-447e-40bb-b9e5-ce7c03ed29d7`. Las revisiones anteriores de otros traspasos son históricas y no indican una publicación pendiente.
+
+Los datos comerciales faltantes de Natalia y D conservan sus pendientes. E se rige por [12.18](plans/propuesta-senas-avisos-natalia.md#etapa-e-vigente): revisión documental terminada; conexión administrativa local de Zoho comprobada por el pedido posterior [12.19](plans/propuesta-senas-avisos-natalia.md#zoho-terminal-vigente), y ejecución íntegra posterior autorizada en [12.20](plans/propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada). La preparación actual no acredita implementación ni cierre funcional. El acceso de Natalia no se modifica. El criterio inicial de [AGENTS.md](../AGENTS.md) prevalece sobre procedimientos antiguos: máximo rigor, controles proporcionados y producción autorizada; no duplicar entornos ni renovar copias por antigüedad como rutina para una UI sin migraciones. La ausencia de pacientes reales no vuelve descartables cuentas, secretos, permisos, configuración comercial o infraestructura.
+
 La fuente de verdad de esta campaña es el [plan aprobado íntegro](plans/refactorizacion-cita-suite.md), incluidas sus ampliaciones y decisiones posteriores. El [registro](plans/registro-refactorizacion-cita-suite.md) identifica cambios, fallas, corridas, revisiones y evidencias. El [traspaso](plans/traspaso-refactorizacion-cita-suite.md) fija el siguiente trabajo pendiente. Una conclusión histórica no certifica el estado actual.
+
+## Campaña de señas y avisos (desde el 29 de octubre)
+
+Para el consultorio de Natalia Frutos, la primera clienta, rigen estos documentos:
+- el [plan aprobado](plans/propuesta-senas-avisos-natalia.md), cuya sección 12 tiene la aprobación literal y los ajustes posteriores;
+- el [registro](plans/registro-senas-avisos-natalia.md);
+- el [traspaso](plans/traspaso-senas-avisos-natalia.md);
+- la [especificación de E](plans/etapa-e-correo-autogestion.md), con decisiones de la conversación, contraste C01–C13 y matriz de aceptación todavía sin ejecutar;
+- la información que mandó la clienta (documento privado `docs/clientes/natalia-frutos/informacion-20261029.md`, sólo en la computadora de trabajo).
 
 ## Contratos y operación vigentes
 
@@ -16,9 +39,11 @@ La fuente de verdad de esta campaña es el [plan aprobado íntegro](plans/refact
 | Pruebas y límites del equipo local | [Verificación](architecture/verificacion.md), [matriz de regresiones](architecture/matriz-regresiones.md) |
 | Carga, límites y consumo | [Capacidad](architecture/capacidad.md), [control de consumo](architecture/control-de-consumo.md) |
 | Respaldo, publicación y reversión | [Respaldo y recuperación](architecture/respaldo-y-recuperacion.md), [publicación y reversión](architecture/publicacion-y-reversion.md) |
+| Confirmación de correo y alta | [Flujo publicado y límites](architecture/confirmacion-de-correo.md) |
 | Correo para recuperar contraseñas | [Configuración temporal con Gmail y prueba real](architecture/correo-de-recuperacion.md) |
 | Estado punto por punto | [Auditoría final](architecture/auditoria-final.md) |
 | Nombres y destinos | [Identidad Cita Suite](architecture/identidad-cita-suite.md) |
+| Dominio, landing y direcciones públicas | [Dominio](architecture/dominio.md) |
 | Decisiones y trabajo nuevo | [Decisiones](architecture/decisiones.md), [guía para nuevas funciones](architecture/guia-nuevas-funciones.md) |
 
 ## Evidencias e historia

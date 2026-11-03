@@ -28,6 +28,8 @@ import type { BookingIntegration } from '$lib/server/sites/public/booking-integr
 import { assertIntegrationSelection, bookingPresentation, intakeAnswersFromForm, integratedBookingErrorMessage } from '$lib/server/sites/public/booking-integrations';
 import { BOOKING_REQUEST_ID_PATTERN } from '@cita-suite/shared/booking-integration';
 import type { CitaSupabaseClient } from '$lib/types/database';
+import { loadDepositTermsForSlots } from '$lib/server/scheduling/public/deposits';
+import { parseBookingDepositTerms, type BookingDepositTerms, type DepositSlotTerms } from '$lib/scheduling/deposits';
 
 const valuesFromForm = (form: FormData) => Object.fromEntries(form.entries());
 
@@ -121,6 +123,7 @@ export const loadPublicBookingPage = async ({ params, fetch, url, setHeaders }: 
 			mapsLink: resolveMapsUrl({ address: 'Av. Demo 123' }),
 			turnstileSiteKey: null,
 			bookingRequestId,
+			depositTerms: {} as Record<string, DepositSlotTerms> | null,
 			demo: true
 		};
 	}
@@ -172,13 +175,36 @@ export const loadPublicBookingPage = async ({ params, fetch, url, setHeaders }: 
         const patientFields = bookingInformationEnabled() && state.business && (selected.professionalId || selected.professionalIds.length)
             ? await loadProfessionalBookingSchema(supabase, state.business.id, selected.professionalId ? [selected.professionalId] : selected.professionalIds, integration?.id, bookingRequestId) : null;
 		let priceQuote: PriceQuote | null = null;
+		// The deposit each slot of the day would ask, with the rule the booking applies and the same
+		// quote it fixes (plan, section 4.9, adjustment 4). If it cannot be computed the booking goes
+		// on and the turn's page shows the deposit; null tells that apart from «no slot asks one».
+		let depositTerms: Record<string, DepositSlotTerms> | null = {};
         if (state.business && state.days.some(day=>day.date===selected.date) && selected.serviceId && selected.date && (selected.professionalId || selected.professionalIds.length)) {
             const { data: quote, error: quoteError } = await supabase.rpc('get_public_service_price_quote', { p_business_id: state.business.id, p_service_id: selected.serviceId, p_professional_ids: selected.professionalId ? [selected.professionalId] : selected.professionalIds, p_date: selected.date });
             if (quoteError) throw quoteError;
             priceQuote = parsePriceQuote(quote);
-        }
+			if (state.slots.length) {
+				try {
+					// The quote as the database returned it: its policy holds the rounding unit.
+					depositTerms = await loadDepositTermsForSlots(supabase, {
+						businessId: state.business.id,
+						serviceId: selected.serviceId,
+						slotStartsAt: state.slots.map((slot) => slot.starts_at),
+						source: 'public_booking',
+						priceQuote: quote
+					});
+				} catch (termsError) {
+					logServerFailure('Error calculando las condiciones de la seña', termsError);
+					depositTerms = null;
+				}
+			}
+        } else if (state.slots.length) {
+			// Slots without the quote the booking would fix: no terms are shown as certain.
+			depositTerms = null;
+		}
         return {
             priceQuote,
+            depositTerms,
             patientFields,
 			state,
 			selected,
@@ -297,6 +323,12 @@ export const submitPublicBookingPage = async ({ request, params, fetch, url, get
 
 		try {
 			if ((integration || bookingInformationEnabled()) && (!isUuid(serviceId) || professionalIds.some((id) => !isUuid(id)) || slotStartsAt.length > 35 || !Number.isFinite(new Date(slotStartsAt).getTime()))) throw new Error('BOOKING_FORM_INVALID');
+			let depositTerms: BookingDepositTerms;
+			try {
+				const rawTerms = String(form.get('deposit_terms') ?? '"unknown"');
+				if (rawTerms.length > 1024) throw new Error('DEPOSIT_TERMS_INVALID');
+				depositTerms = parseBookingDepositTerms(JSON.parse(rawTerms));
+			} catch { throw new Error('DEPOSIT_TERMS_INVALID'); }
 			if ((integration || bookingInformationEnabled()) && (rawPatientName.length > 200 || patientPhone.length > 50 || patientEmail.length > 254 || note.length > 2000 || professionalIds.length > 16)) throw new Error('BOOKING_FORM_INVALID');
 			const modality = String(form.get('modality') ?? '');
 			const selectedModality = integration ? assertIntegrationSelection(integration, { serviceId, professionalIds, modality }) : null;
@@ -335,6 +367,7 @@ export const submitPublicBookingPage = async ({ request, params, fetch, url, get
 				idempotencyKey,
 				ipHash: publicHash(ip),
 				userAgent,
+				depositTerms,
                 bookingInformation: patientSchema ? { schemaHash: String(form.get('patient_schema_hash') ?? ''), answers: intakeAnswers!, priceQuoteHash: String(form.get('price_quote_hash') ?? '') } : undefined,
 				bookingIntegration: integration && selectedModality ? {
 					integrationId: integration.id, integrationRevision, entryPoint,
@@ -359,6 +392,7 @@ export const submitPublicBookingPage = async ({ request, params, fetch, url, get
 			if (integration) logServerFailure('Error creando reserva integrada', { code: getPublicBookingErrorCode(error) });
 			else logServerFailure('Error creando reserva publica', error);
 			return fail(400, {
+				...(getPublicBookingErrorCode(error) === 'DEPOSIT_TERMS_CHANGED' ? { refreshDepositTerms: true } : {}),
 				message: publicErrorMessage(error).includes('PRICE_') ? 'El arancel cambió mientras reservabas. Actualizá la página, revisá el precio para tu fecha y confirmá nuevamente.' : /BOOKING_(INFORMATION|PROFILE|INTAKE)/.test(publicErrorMessage(error)) ? informationErrorMessage(error) : integrationMessage ?? getPublicBookingErrorMessage(error),
 				uncertain: Boolean(!/PRICE_|SCHEDULE_SERVICE|SCHEDULE_BLOCKED/.test(publicErrorMessage(error)) && integration && ((!integrationMessage && getPublicBookingErrorCode(error) === 'PUBLIC_BOOKING_UNEXPECTED') || publicErrorMessage(error).includes('APPOINTMENT_IDEMPOTENCY_CONFLICT'))),
 				values: valuesFromForm(form)
