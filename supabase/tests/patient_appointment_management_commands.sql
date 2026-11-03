@@ -2,7 +2,7 @@
 -- The backend has already checked the selected slot with the shared calculator;
 -- the command must hold its configuration version and enforce atomic persistence.
 begin;
-select extensions.plan(37);
+select extensions.plan(38);
 create temporary table command_fixture(label text primary key,id uuid not null,extra jsonb);
 create function pg_temp.cid(p_label text) returns uuid language sql as $$
  select id from command_fixture where label=p_label
@@ -424,5 +424,26 @@ select extensions.throws_ok($q$select pg_temp.move('clock_expiry')$q$,'P0001','A
  '36. Expired commercial access cannot authorize a new move using the transaction-start clock');
 select extensions.is(pg_temp.cstate('clock_expiry'),(select extra from command_fixture where label='clock_expiry_before'),
  '37. Rejected expired access preserves appointment, money, events, release and audit together');
+update public.business_subscriptions set is_permanent=true,paid_until=null where business_id=pg_temp.cid('business');
+select pg_temp.command_case('payment_clock',true,'forfeit','pending');
+create function pg_temp.cross_payment_window() returns trigger language plpgsql as $$
+begin
+ if new.id=pg_temp.cid('payment_clock') and new.starts_at is distinct from old.starts_at then
+  perform pg_sleep_until(new.starts_at-interval '72 hours'+interval '25 milliseconds');
+ end if;
+ return new;
+end $$;
+create trigger zzz_cross_payment_window before update of starts_at on public.appointments for each row execute function pg_temp.cross_payment_window();
+do $$ declare target timestamptz:=clock_timestamp()+interval '72 hours 2 seconds'; terms jsonb; token text; begin
+ terms:=pg_temp.cterms('payment_clock',target);
+ if (terms->>'auto_cancel')::boolean is distinct from true then raise exception 'PAYMENT_CLOCK_FIXTURE_NOT_CANCELLABLE'; end if;
+ select extra->>'token' into token from command_fixture where label='payment_clock';
+ perform pg_temp.command_call(token,gen_random_uuid(),pg_temp.crevision('payment_clock'),'reschedule',target,pg_temp.configuration(),terms);
+ if not exists(select 1 from public.appointment_deposits where appointment_id=pg_temp.cid('payment_clock') and status='pending' and auto_cancel=false)
+  or (select count(*) from public.appointment_deposit_requirements where appointment_id=pg_temp.cid('payment_clock'))<>1 then
+  raise exception 'PATIENT_REENABLED_UNSAFE_PAYMENT_WINDOW'; end if;
+end $$;
+drop trigger zzz_cross_payment_window on public.appointments;
+select extensions.pass('38. An unpaid move cannot restore auto-cancellation after a later trigger observes less than the minimum payment window');
 select * from extensions.finish();
 rollback;

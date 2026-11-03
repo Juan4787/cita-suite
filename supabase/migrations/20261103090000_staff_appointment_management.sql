@@ -31,6 +31,25 @@ language sql volatile security definer set search_path=pg_catalog,pg_temp as $$
  select private.business_operation_actor(p_business_id,p_allowed,auth.uid())
 $$;
 
+-- Every agenda writer uses this trigger for an existing unpaid obligation.
+-- Its minimum payment window starts after the actual parent/child locks, not
+-- at the beginning of a transaction that may have waited for another writer.
+create or replace function private.reschedule_appointment_deposit() returns trigger
+language plpgsql security definer set search_path=pg_catalog,pg_temp as $$
+declare d public.appointment_deposits; v_timezone text; s record; v_now timestamptz;
+begin
+ if new.starts_at is not distinct from old.starts_at then return null; end if;
+ select * into d from public.appointment_deposits ad
+ where ad.appointment_id=new.id and ad.business_id=new.business_id and ad.status='pending' for update;
+ if not found then return null; end if;
+ v_now:=clock_timestamp();
+ select b.timezone into v_timezone from public.businesses b where b.id=new.business_id;
+ select * into s from private.deposit_schedule(new.starts_at,v_now,v_timezone,d.request_days,d.deadline_hours,d.min_payment_hours);
+ update public.appointment_deposits set request_from=s.request_from,due_at=s.due_at,auto_cancel=d.auto_cancel and s.auto_cancel,
+  revision=d.revision+1,updated_at=v_now where appointment_id=d.appointment_id;
+ return null;
+end $$;
+
 -- A computed field: same SELECT snapshot as the displayed appointment and its
 -- embeds. Read the actual row, not a caller-fabricated composite. The existing
 -- set-based appointment visibility applies even to a direct SQL invocation.
@@ -160,7 +179,7 @@ begin
  return v_result;
 end $$;
 
-revoke all on function private.business_operation_actor(uuid,text[],uuid),private.deposit_actor(uuid,text[]),
+revoke all on function private.business_operation_actor(uuid,text[],uuid),private.deposit_actor(uuid,text[]),private.reschedule_appointment_deposit(),
  public.appointment_management_revision(public.appointments),
  public.apply_staff_appointment_management(uuid,uuid,uuid,uuid,text,text,timestamptz,boolean,bigint,text,boolean)
  from public,anon,authenticated,service_role;
