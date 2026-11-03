@@ -37,7 +37,7 @@ Fuentes: [plan íntegro y ajustes](propuesta-senas-avisos-natalia.md#ejecucion-e
 
 **Fase:** E0 completo; E1 y primera integración E2 en implementación. Siete migraciones comprobadas en SQL descartable; adaptadores y pantalla compartida escritos, sin publicar ni aplicar SQL en producción. Personal/roles/contacto/cola pendientes. **Publicación de E:** no. **Pruebas integrales E:** no ejecutadas.
 
-**Siguiente acción:** reproducir la nueva prueba de vencimiento comercial del comando (grupos 36–37 escritos, sin ejecutar), luego corregir por evidencia y completar fast de E2. Tercer fast `41658244414` aprobó tipado/arquitectura/1772 unidades servidor y falló una regresión de texto de seña; corregida con verde dirigido. Suite SQL íntegra anterior `41653421061`, siete migraciones; no atribuirle los dos grupos nuevos. Falta E1 personal/identidad/roles/cola, pruebas de navegador/paquete y E3–E6; después P1/P2/P3.
+**Siguiente acción:** recuperar SQL de corrección de reloj y trece carreras (E1.39), cotejar digest/tipos; completar fast E2 después, sin pruebas pesadas en paralelo. Último SQL íntegro `41653421061` corresponde a la fuente anterior, no al helper nuevo. Roja comercial `41659705885` comprobada. E1 personal/ayuda/identidad/cola y E3–E6, así como navegador/paquete, siguen pendientes; después P1/P2/P3.
 
 **Evidencia privada de esta ejecución:** `.verification/etapa-e-20261103/`. Ningún secreto, dirección de paciente, cuerpo de correo recibido o dato personal se incluye en Git ni en documentos públicos. Las rutas de evidencia no equivalen a resultados aprobados.
 
@@ -484,3 +484,11 @@ La regla de cada caso se lee en la especificación; esta tabla registra su acept
 
 - Revisión del comando/lector: invocan business_allows_operation, cuyo now() es del comienzo de transacción. La ayuda de deposit_actor y la revocación también requieren auditar vencimiento después de esperar; no se afirma corrección de estos bordes por las carreras anteriores.
 - Se amplía el contrato del comando a **37 grupos**: 35 previamente aprobados y dos nuevos. Suscripción real vence mientras la transacción sigue abierta (espera acotada 150 ms); mover debe rechazar sin afectar turno/dinero/eventos. Pruebas escritas, **sin ejecutar**; no se añadió aún helper ni corrección. Reproducir antes de cambiar autorización y completar también carreras con espera real de bloqueo/ayuda.
+
+
+### E1.39 — vencimiento comercial reproducido y corrección inicial
+
+- **Roja de comportamiento 41659705885**, fuente `4a12c70195fbd7707d1688ff810b6240b27916d6`, main `02a9523`: los 35 grupos previos del comando pasan; **36–37 fallan por aserción**. Caught: no exception, y se modificaron turno/dinero/eventos aun con suscripción vencida desde la hora real. Log `sql-reloj-roja-41659705885.log:3790…`. No es falla de infraestructura/compilación.
+- Fundamento: business_allows_operation usaba now() del comienzo de la transacción; esperar no avanzaba esa autoridad. En .010 no aplicada se extrae la misma regla comercial a helper privado STABLE con reloj explícito; función pública anterior delega con transaction_timestamp y conserva su contrato/firma/grants. Sin dos copias del criterio comercial ni cambio de plazos/flags. .040 y .050 usan el reloj de decisión después del bloqueo o de su lectura coherente, respectivamente. No modifica la excepción mínima para cancelar.
+- Carrera agregada a `run_patient_management_concurrency.sh`: suscripción bloqueada mientras el comando espera (pg_blocking_pids real); se deja pasar su vencimiento antes de commit y se exige rechazo sin movimiento. Las doce anteriores siguen; nueva cantidad trece. Bash syntax comprobada; carrera nueva todavía sin ejecutar. No atribuirle la roja anterior ni un verde de doce carreras.
+- Nueva suite SQL/digest/tipos pendientes para .010/.040/.050 modificadas (ninguna E aplicada en producción). Ayuda que vence y operaciones del personal todavía requieren su propia revalidación/carreras; esta corrección no cierra OP02.

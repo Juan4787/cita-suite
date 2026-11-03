@@ -125,7 +125,7 @@ returns jsonb language sql stable security definer set search_path=pg_catalog,pg
    case
     when a.status not in ('reserved','confirmed','reschedule_requested') or a.starts_at<=p_now then 'appointment_closed'
     when runtime.reschedule_enabled is not true then 'operations_paused'
-    when b.is_active is not true or b.public_booking_enabled is not true or public.business_allows_operation(b.id) is not true then 'booking_unavailable'
+    when b.is_active is not true or b.public_booking_enabled is not true or private.appointment_business_allows_operation_at(b.id,p_now) is not true then 'booking_unavailable'
     when s.id is null or s.is_active is not true or s.is_public is not true then 'service_unavailable'
     when coalesce(cardinality(team.ids),0) not between 1 and 16 or team.available is not true then 'professional_unavailable'
     when patient.blocked or patient.archived_at is not null then 'patient_unavailable'
@@ -229,7 +229,7 @@ begin
   if a.starts_at<=v_now or a.status<>'reserved' then raise exception 'APPOINTMENT_CANNOT_CONFIRM'; end if;
   if exists(select 1 from public.appointment_deposits where business_id=v_business and appointment_id=a.id and status='pending') then
    raise exception 'APPOINTMENT_DEPOSIT_PENDING'; end if;
-  if not exists(select 1 from public.businesses where id=v_business and is_active) or not public.business_allows_operation(v_business) then
+  if not exists(select 1 from public.businesses where id=v_business and is_active) or not private.appointment_business_allows_operation_at(v_business,v_now) then
    raise exception 'APPOINTMENT_CANNOT_CONFIRM'; end if;
   update public.appointments set status='confirmed',confirmed_at=v_now,updated_by_user_id=null,updated_at=v_now
    where business_id=v_business and id=a.id returning * into a;
