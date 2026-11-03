@@ -72,6 +72,16 @@ begin
  select enabled into v_enabled from private.deposit_automation where singleton;
  select timezone into v_timezone from public.businesses where id=p_business_id;
  v_quote:=private.appointment_quote_amount(a.price_quote_snapshot);
+ -- The initial page reads the CURRENT interval with this same helper. Expose
+ -- readiness even for a no-op, so it can hide an unavailable reschedule action
+ -- without inventing a hypothetical target or duplicating the financial policy.
+ if v_has_basis then
+  if v_enabled is not true then v_reason:='deposit_automation_paused';
+  elsif exists(select 1 from public.appointment_deposit_requirements where business_id=p_business_id and appointment_id=p_appointment_id
+   and status='paid' and allocation='unresolved') then v_reason:='payment_unresolved';
+  elsif v_has_current and d.status='pending' and dp.enabled is not true then v_reason:='policy_change_pending';
+  end if;
+ end if;
 
  <<decision>>
  begin
@@ -86,13 +96,8 @@ begin
   if not v_has_basis then exit decision; end if;
   -- An operator pause freezes financial changes. It is not a business decision
   -- to waive a new advance or forfeit/credit an existing payment.
-  if v_enabled is not true then v_kind:='unavailable'; v_reason:='deposit_automation_paused'; exit decision; end if;
-  if exists(select 1 from public.appointment_deposit_requirements where business_id=p_business_id and appointment_id=p_appointment_id
-   and status='paid' and allocation='unresolved') then
-   v_kind:='unavailable'; v_reason:='payment_unresolved'; exit decision;
-  end if;
+  if v_reason is not null then v_kind:='unavailable'; exit decision; end if;
   if v_has_current and d.status='pending' then
-   if dp.enabled is not true then v_kind:='unavailable'; v_reason:='policy_change_pending'; exit decision; end if;
    v_kind:='reuse_pending'; v_amount:=d.amount; exit decision;
   end if;
   -- No new penalty is applied to uninformed reservations. Current relaxation
