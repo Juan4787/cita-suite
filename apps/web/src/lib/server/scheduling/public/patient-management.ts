@@ -1,10 +1,11 @@
 import { isUuid } from '@cita-suite/shared/uuid';
 import { BOOKING_THEMES, BOOKING_INTEGRATION_KEY_PATTERN, parseBookingModalityWindows } from '@cita-suite/shared/booking-integration';
-import { InvalidDataContractError, readArray, readBoolean, readNullableText, readRecord, readText } from '$lib/contracts/json';
+import { InvalidDataContractError, readArray, readBoolean, readNullableText, readRecord, readText, readJson } from '$lib/contracts/json';
 import { parsePriceQuote } from '$lib/scheduling/price-contracts';
 import { parseAppointmentDeposit } from '$lib/scheduling/deposits';
 import { parseRescheduleFinancialTerms } from '$lib/scheduling/reschedule-terms';
 import { isAvailabilityDate } from '$lib/availability/windows';
+import { zonedDate } from '$lib/availability/calculate';
 import { sanitizePublicImageUrl } from '$lib/server/sites/public/public-image';
 import { resolveMapsUrl } from '$lib/sites/location';
 import { normalizeArgentineWhatsAppPhone } from '$lib/utils/phone';
@@ -20,7 +21,8 @@ const counter = (value: unknown, minimum = 1): number =>
  typeof value === 'number' && Number.isSafeInteger(value) && value >= minimum ? value : invalid();
 const token = (value: unknown): string => typeof value === 'string' && /^[a-f0-9]{64}$/.test(value) ? value : invalid();
 const instant = (value: unknown): string => {
- if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})$/.test(value) || !Number.isFinite(Date.parse(value))) return invalid();
+ if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})$/.test(value) ||
+  !isAvailabilityDate(value.slice(0, 10)) || !Number.isFinite(Date.parse(value))) return invalid();
  return value;
 };
 const nullableInstant = (value: unknown): string | null => value === null ? null : instant(value);
@@ -129,4 +131,73 @@ export const listPatientManagementSlots = async (client: CitaSupabaseClient, vie
  });
  if (selection.availabilityRevision === null || selection.durationMinutes !== view.durationMinutes) throw new Error('APPOINTMENT_AVAILABILITY_CHANGED');
  return selection;
+};
+
+export type PatientManagementCommand = {
+ operationId: string; expectedRevision: string; action: 'cancel' | 'confirm' | 'reschedule';
+ startsAt?: string | null; availabilityRevision?: number | null; integrationRevision?: number | null; financialTerms?: unknown;
+};
+const parseCommandResult = (value: unknown) => {
+ const row = readRecord(value, 'appointment.management.result');
+ if (!isAppointmentStatus(row.status)) return invalid();
+ return { appointmentId: uuid(row.appointment_id), status: row.status, startsAt: instant(row.starts_at), endsAt: instant(row.ends_at),
+  revision: token(row.revision), scheduleRevision: counter(row.schedule_revision),
+  changed: readBoolean(row.changed, 'appointment.management.result.changed'), idempotentReplay: readBoolean(row.idempotent_replay, 'appointment.management.result.replay') };
+};
+
+/** Only the exact authorized receipt may bypass current-slot preflight. A new
+ * move always uses the shared calculator and submits the patient's ORIGINAL
+ * observed revision, availability version and financial conditions to SQL.
+ */
+export const applyPatientManagementCommand = async (client: CitaSupabaseClient, access: PatientManagementAccess, input: PatientManagementCommand) => {
+ token(access.token); uuid(input.operationId); token(input.expectedRevision);
+ if (typeof access.legacy !== 'boolean' || !['cancel', 'confirm', 'reschedule'].includes(input.action)) return invalid();
+ const moving = input.action === 'reschedule';
+ if (!moving && [input.startsAt, input.availabilityRevision, input.integrationRevision, input.financialTerms].some(value => value != null)) return invalid();
+ const startsAt = moving ? instant(input.startsAt) : null;
+ const terms = moving ? parseRescheduleFinancialTerms(input.financialTerms) : null;
+ const args = {
+  p_token: access.token, p_legacy: access.legacy, p_operation_id: input.operationId, p_expected_revision: input.expectedRevision,
+  p_action: input.action, p_starts_at: startsAt, p_availability_revision: moving ? counter(input.availabilityRevision) : null,
+  p_integration_revision: input.integrationRevision == null ? null : counter(input.integrationRevision), p_financial_terms: terms ? readJson(terms) : null
+ };
+ if (moving) {
+  const { data: cached, error: recoveryError } = await client.rpc('recover_patient_appointment_management', args);
+  if (recoveryError) throw recoveryError;
+  if (cached !== null) return parseCommandResult(cached);
+  const view = await loadPatientManagementView(client, access, startsAt);
+  if (!view) throw new Error('APPOINTMENT_LINK_UNAVAILABLE');
+  if (view.revision !== input.expectedRevision) throw new Error('APPOINTMENT_MANAGEMENT_CHANGED');
+  if ((view.integration?.revision ?? null) !== args.p_integration_revision) throw new Error('APPOINTMENT_AVAILABILITY_CHANGED');
+  // A same-time operation is intentionally a SQL no-op. Never penalize or
+  // manufacture a fresh obligation by selecting the already scheduled start.
+  if (Date.parse(startsAt!) !== Date.parse(view.appointment.starts_at)) {
+   const date = zonedDate(new Date(startsAt!), view.appointment.business.timezone);
+   const selection = await listPatientManagementSlots(client, view, date, date);
+   if (selection.availabilityRevision !== input.availabilityRevision) throw new Error('APPOINTMENT_AVAILABILITY_CHANGED');
+   if (!selection.slots.some(slot => Date.parse(slot.starts_at) === Date.parse(startsAt!))) throw new Error('APPOINTMENT_SLOT_UNAVAILABLE');
+  }
+ }
+ const { data, error } = await client.rpc('apply_patient_appointment_management', args);
+ if (error) throw error;
+ return parseCommandResult(data);
+};
+
+export const patientManagementErrorMessage = (error: unknown): string => {
+ const candidate = error instanceof Error ? { message: error.message, code: '' } :
+  typeof error === 'object' && error !== null ? error as { message?: unknown; code?: unknown } : {};
+ const raw = typeof candidate.message === 'string' ? candidate.message : '';
+ if (raw.includes('APPOINTMENT_LINK_UNAVAILABLE')) return 'Este enlace ya no está disponible. Pedile al consultorio un enlace actualizado.';
+ if (raw.includes('APPOINTMENT_OPERATION_CONFLICT')) return 'Esta acción ya se utilizó con otros datos. Revisá el turno antes de continuar.';
+ if (raw.includes('APPOINTMENT_MANAGEMENT_CHANGED') || raw.includes('APPOINTMENT_FINANCIAL_TERMS_CHANGED'))
+  return 'El turno o sus condiciones cambiaron. Revisá la información actualizada antes de confirmar.';
+ if (raw.includes('APPOINTMENT_AVAILABILITY_CHANGED') || raw.includes('APPOINTMENT_SLOT_UNAVAILABLE') || candidate.code === '23P01')
+  return 'Ese horario cambió o dejó de estar disponible. Tu turno anterior se conserva; elegí otro horario.';
+ if (raw.includes('APPOINTMENT_RESCHEDULE_UNAVAILABLE') || raw.includes('APPOINTMENT_CANNOT_RESCHEDULE'))
+  return 'No se puede reprogramar este turno online ahora. Tu turno se conserva; podés contactar al consultorio.';
+ if (raw.includes('APPOINTMENT_CANNOT_CANCEL')) return 'Este turno ya no admite cancelación online. Revisá su estado y, si necesitás ayuda, contactá al consultorio.';
+ if (raw.includes('APPOINTMENT_DEPOSIT_PENDING')) return 'El turno se confirma cuando el consultorio registra la seña. Si ya transferiste, enviales el comprobante.';
+ if (raw.includes('APPOINTMENT_CANNOT_CONFIRM')) return 'Este turno ya no admite esa confirmación. Revisá su estado actual.';
+ if (raw.includes('APPOINTMENT_RESCHEDULE_TIME_INVALID')) return 'Elegí un horario válido de la lista antes de continuar.';
+ return 'No pudimos comprobar el resultado. Revisá el turno y volvé a intentar la misma acción; si sigue ocurriendo, contactá al consultorio.';
 };

@@ -46,6 +46,7 @@ A	supabase/migrations/20261103030000_appointment_reschedule_financial_terms.sql
 A	supabase/migrations/20261103040000_patient_appointment_management_commands.sql
 A	supabase/migrations/20261103050000_patient_appointment_management_view.sql
 A	supabase/migrations/20261103060000_appointment_creation_replay_identity.sql
+A	supabase/migrations/20261103070000_patient_appointment_management_recovery.sql
 M	supabase/templates/recovery.html
 A	supabase/tests/appointment_management_capabilities.sql
 A	supabase/tests/appointment_management_foundation.sql
@@ -73,13 +74,13 @@ A	supabase/tests/run_patient_management_view_concurrency.sh
 | Migración `20261103020000` y `supabase/tests/appointment_management_capabilities.sql` | Enlaces revocables y recibo idempotente; comprobados en CI SQL `41600939474` | No: no se aplicó ni se integró a rutas; sólo CI descartable |
 | `packages/shared/src/database.types.ts` | Tipos oficiales, dos generaciones iguales en CI y digest de las migraciones locales cotejado antes de importar | No: todavía sin publicar |
 | Migración `20261103030000` y `supabase/tests/appointment_reschedule_financial_terms.sql` | Resumen económico de reprogramación sólo lectura, 19/19 y suite SQL aprobados en CI `41605022654`; sin consumidores | No: sólo CI descartable, sin aplicar ni conectar a rutas |
-| Migración `20261103040000` y `patient_appointment_management_commands.sql` | Comandos del paciente/eventos atómicos, Comando ampliado 35/35 y doce carreras aprobados en CI `41616550006`; regla compartida y conjunto de cinco migraciones verificados en CI 41650084150 | No: sólo CI descartable, interruptores apagados al instalar |
+| Migración `20261103040000` y `patient_appointment_management_commands.sql` | Comandos del paciente/eventos atómicos, Comando ampliado 35/35 y doce carreras aprobados en CI `41616550006`; regla compartida y conjunto de cinco migraciones verificados en CI 41650084150; extracción de huella para lookup .070 pendiente de nueva suite | No: sólo CI descartable, interruptores apagados al instalar |
 | `availability.ts` y su prueba | Contrato y calculador compartido con revisiones de catálogo/reserva y duración de la misma lectura; contrato anterior de slots conservado, 19/19 locales junto con ventanas | No: todavía sin publicar |
 | `run_patient_management_concurrency.sh` | Doce carreras y cero deadlocks comprobados en CI `41614887283`, incluida corrección de heartbeat; sólo loopback descartable | No: sólo CI |
 | `reschedule-terms.ts` y su prueba | Validación y formato preciso de las condiciones SQL, 20/20 locales, sin consumidores todavía | No: desarrollo sin publicar |
-| Migración .060 y prueba de reasignación ampliada | Rechazar recuperación con identidad reasignada, inicial después de roja 41651423223, sin verificar | No: sólo CI descartable |
-| `patient-management.ts` y su prueba | Adaptador mínimo y disponibilidad fija, 24/24 locales; todavía sin rutas | No: desarrollo sin publicar |
-| `patient_appointment_management_recovery.sql` | Siete grupos previos al lookup de recibo, función ausente, roja pendiente | No: sólo CI |
+| Migración .060 y prueba de reasignación ampliada | Rechazar recuperación con identidad reasignada, prueba ampliada aprobada en 41652233660; falta suite nueva completa | No: sólo CI descartable |
+| `patient-management.ts` y su prueba | Adaptador mínimo, disponibilidad y comando, 30/30 locales; todavía sin rutas/tipado remoto | No: desarrollo sin publicar |
+| `patient_appointment_management_recovery.sql` | Siete grupos del lookup de recibo .070, roja estructural comprobada, implementación pendiente de CI | No: sólo CI |
 | `patient_appointment_management_view.sql` | Lectura mínima con migración `20261103050000`, 16 grupos y lectura coherente comprobados en CI 41650084150 | No: sólo CI descartable |
 | `run_patient_management_view_concurrency.sh` | Carrera de lectura con modificación simultánea entre autorización/presentación aprobada en CI 41650084150 | No: sólo CI descartable |
 | `supabase/templates/recovery.html` | Plantilla del correo de recuperación, modificada en otro trabajo | No se despliega con la app: se carga aparte en Supabase. **No está verificado** si la versión de Supabase coincide con este archivo |

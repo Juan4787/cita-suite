@@ -1,11 +1,16 @@
 import { describe, expect, it, vi } from 'vitest';
-import { loadPatientManagementView, parsePatientManagementView, listPatientManagementSlots } from './patient-management';
+import { loadPatientManagementView, parsePatientManagementView, listPatientManagementSlots, applyPatientManagementCommand, patientManagementErrorMessage } from './patient-management';
 import { getAvailabilitySelection } from './availability';
 vi.mock('./availability', () => ({ getAvailabilitySelection: vi.fn() }));
 vi.mock('$env/dynamic/private', () => ({ env: {} }));
 vi.mock('$env/dynamic/public', () => ({ env: {} }));
 
 const id = (n: number) => `a1000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
+const terms = () => ({ kind: 'none', unavailable_reason: null, required: false, amount: null, base_amount: null, currency: 'ARS',
+ previous_applicable_payment_amount: '0', previous_payment_disposition: 'none', forfeit_amount: '0', credit_amount: '0',
+ quote_amount: null, quote_remainder: null, request_from: null, due_at: null, auto_cancel: false, last_minute: false,
+ terms_informed: false, current_deposit_status: null, current_deposit_amount: null, current_payment_allocation: null,
+ request_days: null, deadline_hours: null, min_payment_hours: null });
 const fixture = () => ({
  schema_version: 1, id: id(1), revision: 'a'.repeat(64), generation: 1, schedule_revision: 1, access_kind: 'capability',
  status: 'reserved', starts_at: '2026-12-01T12:00:00+00:00', ends_at: '2026-12-01T12:30:00+00:00', now: '2026-11-03T14:00:00+00:00',
@@ -19,6 +24,56 @@ const fixture = () => ({
  business: { id: id(4), name: 'Consultorio', slug: 'consultorio', timezone: 'America/Argentina/Cordoba', phone: null,
   address: 'Dirección', address_instructions: 'Timbre', maps_url: null, logo_url: null, is_active: true,
   public_booking_enabled: true, cancellation_policy: null, whatsapp_contact_phone: null }
+});
+
+describe('patient management command adapter', () => {
+ const access = { token: 'c'.repeat(64), legacy: false };
+ const move = () => ({ operationId: id(8), expectedRevision: 'a'.repeat(64), action: 'reschedule' as const,
+  startsAt: '2026-12-02T12:00:00.000Z', availabilityRevision: 9, integrationRevision: null, financialTerms: terms() });
+ const result = () => ({ appointment_id: id(1), changed: true, status: 'reserved', starts_at: move().startsAt,
+  ends_at: '2026-12-02T12:45:00.000Z', schedule_revision: 2, revision: 'd'.repeat(64), idempotent_replay: false });
+ const client = () => ({ rpc: vi.fn().mockImplementation(async (name: string) => ({ error: null, data:
+  name === 'recover_patient_appointment_management' ? null : name === 'get_patient_appointment_management_view' ? { ...fixture(), financial_terms: terms() } : result()
+ })) });
+ it('checks the real selected slot before mutation, retaining the observed revision and accepted conditions', async () => {
+  const db = client(); const selected = move();
+  vi.mocked(getAvailabilitySelection).mockResolvedValue({ slots: [{ date: '2026-12-02', time: '09:00', starts_at: selected.startsAt,
+   ends_at: result().ends_at, professional_id: id(3), professional_name: 'Profesional' }], configurationRevision: 4, availabilityRevision: 9, durationMinutes: 45 });
+  await applyPatientManagementCommand(db as never, access, selected);
+  expect(db.rpc).toHaveBeenLastCalledWith('apply_patient_appointment_management', {
+   p_token: access.token, p_legacy: false, p_operation_id: id(8), p_expected_revision: selected.expectedRevision,
+   p_action: 'reschedule', p_starts_at: selected.startsAt, p_availability_revision: 9, p_integration_revision: null, p_financial_terms: terms()
+  });
+ });
+ it('recovers an exact lost response before availability when the appointment has already moved', async () => {
+  const cached = { ...result(), idempotent_replay: true }; const rpc = vi.fn().mockResolvedValue({ data: cached, error: null });
+  vi.mocked(getAvailabilitySelection).mockClear();
+  expect((await applyPatientManagementCommand({ rpc } as never, access, move())).idempotentReplay).toBe(true);
+  expect(rpc).toHaveBeenCalledTimes(1); expect(getAvailabilitySelection).not.toHaveBeenCalled();
+ });
+ it('never replaces an old observed revision with a fresh read', async () => {
+  const db = client();
+  await expect(applyPatientManagementCommand(db as never, access, { ...move(), expectedRevision: 'e'.repeat(64) })).rejects.toThrow('APPOINTMENT_MANAGEMENT_CHANGED');
+  expect(db.rpc.mock.calls.some(call => call[0] === 'apply_patient_appointment_management')).toBe(false);
+ });
+ it('rejects a changed availability version and an unavailable chosen slot without mutation', async () => {
+  for (const revision of [8, 9]) {
+   const db = client(); vi.mocked(getAvailabilitySelection).mockResolvedValue({ slots: [], configurationRevision: 4, availabilityRevision: revision, durationMinutes: 45 });
+   await expect(applyPatientManagementCommand(db as never, access, move())).rejects.toThrow();
+   expect(db.rpc.mock.calls.some(call => call[0] === 'apply_patient_appointment_management')).toBe(false);
+  }
+ });
+ it('does not turn cancel/confirm into a reschedule or require public availability for cancellation', async () => {
+  const rpc = vi.fn().mockResolvedValue({ data: { ...result(), status: 'cancelled' }, error: null });
+  vi.mocked(getAvailabilitySelection).mockClear();
+  await applyPatientManagementCommand({ rpc } as never, access, { operationId: id(8), expectedRevision: 'a'.repeat(64), action: 'cancel' });
+  expect(rpc).toHaveBeenCalledExactlyOnceWith('apply_patient_appointment_management', expect.objectContaining({ p_action: 'cancel', p_starts_at: null, p_financial_terms: null }));
+  expect(getAvailabilitySelection).not.toHaveBeenCalled();
+ });
+ it('preserves an uncertain request for exact retry rather than telling the patient no change was saved', () => {
+  const message = patientManagementErrorMessage(new Error('network timeout'));
+  expect(message).toMatch(/comprobar|revisá/i); expect(message).not.toMatch(/no se guardó|network|timeout|RPC|SQL/);
+ });
 });
 
 describe('patient management snapshot boundary', () => {
