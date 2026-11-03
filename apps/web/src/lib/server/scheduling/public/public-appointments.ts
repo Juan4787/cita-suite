@@ -1,28 +1,21 @@
 import { parsePriceQuote } from '$lib/scheduling/price-contracts';
-import type { CitaSupabaseClient, CitaUpdate } from '$lib/types/database';
+import type { CitaSupabaseClient } from '$lib/types/database';
 import { BOOKING_INTEGRATION_KEY_PATTERN } from '@cita-suite/shared/booking-integration';
 import { bookingContextsAvailable } from '$lib/server/sites/public/booking-integration-flags';
 import { loadAppointmentBookingContext, type AppointmentBookingContext } from '$lib/server/sites/public/booking-integrations';
-import { isActiveAppointmentStatus } from '$lib/utils/appointment-visibility';
-import { writeAuditLog } from '$lib/server/platform/audit';
 import { resolveMapsUrl } from '$lib/sites/location';
 import {
 	APPOINTMENT_STATUS_LABELS,
 	type AppointmentStatus,
-	addMinutes,
 	isAppointmentStatus
 } from '$lib/server/scheduling/public/appointments';
 import {
 	PUBLIC_BUSINESS_SELECT,
-	canUsePublicBusiness,
-	publicHash,
-	recordPublicBookingAttempt
+	canUsePublicBusiness
 } from '$lib/server/scheduling/public/public-booking';
 import { sanitizePublicImageUrl } from '$lib/server/sites/public/public-image';
 import { normalizeArgentineWhatsAppPhone } from '$lib/utils/phone';
 import { parseAppointmentDeposit, type AppointmentDepositView } from '$lib/scheduling/deposits';
-
-export type PublicAppointmentAction = 'confirm' | 'cancel' | 'reschedule';
 
 export type PublicAppointmentView = {
 	booking_context?: AppointmentBookingContext | null;
@@ -115,15 +108,6 @@ export const demoPublicAppointment = (token: string): PublicAppointmentView => (
 // one also feeds the booking page, whose data reaches the browser even when the
 // practice did not enable a public WhatsApp contact.
 const appointmentSelect = `id,confirmation_token,status,starts_at,ends_at,service_name_snapshot,    price_quote_snapshot,patient_instructions_snapshot,public_reminder_description_snapshot,professional_name_snapshot,calendar_action_status,calendar_action_at,calendar_action_count,calendar_sequence,calendar_update_required_at,businesses!inner(${PUBLIC_BUSINESS_SELECT},whatsapp_phone,whatsapp_contact_enabled,deposit_policies(transfer_details)),patients(full_name),appointment_professionals(professional_id),appointment_deposits(appointment_id,status,amount,currency,request_from,due_at,auto_cancel,waived_reason,recorded_at,reminder_opened_at,expired_at,revision)` as const;
-
-const publicActionAttempt: Record<
-	PublicAppointmentAction,
-	'token_confirm' | 'token_cancel' | 'token_reschedule'
-> = {
-	confirm: 'token_confirm',
-	cancel: 'token_cancel',
-	reschedule: 'token_reschedule'
-};
 
 /** Where the appointment takes place: a video appointment shows its instructions, never the address. */
 export const publicAppointmentPlace = (
@@ -287,136 +271,6 @@ export const getPublicAppointmentMessage = (appointment: PublicAppointmentView |
 		return 'Recibimos tu pedido de reprogramación. El consultorio lo gestionará.';
 	}
 	return 'Tu turno está reservado.';
-};
-
-const assertCanApplyPublicAction = (
-	appointment: PublicAppointmentView,
-	action: PublicAppointmentAction
-) => {
-	if (!appointment.business.is_active) throw new Error('PUBLIC_TOKEN_BUSINESS_DISABLED');
-	if (!appointment.public_actions_available) throw new Error('PUBLIC_TOKEN_COMMERCIAL_UNAVAILABLE');
-	if (appointment.is_past) throw new Error('PUBLIC_TOKEN_APPOINTMENT_PAST');
-	if (!isActiveAppointmentStatus(appointment.status)) {
-		throw new Error('PUBLIC_TOKEN_APPOINTMENT_CLOSED');
-	}
-	if (action === 'confirm' && appointment.status === 'confirmed') return;
-	if (action === 'confirm' && appointment.deposit?.status === 'pending') throw new Error('PUBLIC_TOKEN_DEPOSIT_PENDING');
-	if (action === 'confirm' && appointment.status !== 'reserved') throw new Error('PUBLIC_TOKEN_CONFIRM_DENIED');
-	if (action === 'cancel' && !appointment.can_cancel) throw new Error('PUBLIC_TOKEN_CANCEL_DENIED');
-	if (action === 'reschedule' && !appointment.can_request_reschedule) {
-		throw new Error('PUBLIC_TOKEN_RESCHEDULE_DENIED');
-	}
-};
-
-export const applyPublicAppointmentAction = async (
-	supabase: CitaSupabaseClient,
-	input: {
-		token: string;
-		action: PublicAppointmentAction;
-		note?: string | null;
-		ip?: string | null;
-		userAgent?: string | null;
-		now?: Date;
-	}
-) => {
-	const now = input.now ?? new Date();
-	let appointment: PublicAppointmentView | null = null;
-	const attemptAction = publicActionAttempt[input.action];
-
-	try {
-		appointment = await loadPublicAppointmentByToken(supabase, input.token, now);
-		if (!appointment) throw new Error('PUBLIC_TOKEN_NOT_FOUND');
-		assertCanApplyPublicAction(appointment, input.action);
-
-		if (input.action === 'confirm' && appointment.status === 'confirmed') {
-			await recordPublicBookingAttempt(supabase, {
-				businessId: appointment.business.id,
-				ipHash: publicHash(input.ip),
-				action: attemptAction,
-				success: true,
-				userAgent: input.userAgent,
-				metadata: { appointment_id: appointment.id, action: input.action, changed: false }
-			});
-			return { appointment, changed: false };
-		}
-
-		const updates: CitaUpdate<'appointments'> = {
-			updated_at: now.toISOString(),
-			updated_by_user_id: null
-		};
-		const metadata: Record<string, unknown> = {
-			source: 'public_token',
-			from_status: appointment.status,
-			note: input.note?.trim() || null
-		};
-		let auditAction = '';
-
-		if (input.action === 'confirm') {
-			updates.status = 'confirmed';
-			updates.confirmed_at = now.toISOString();
-			auditAction = 'appointment.public_confirmed';
-			metadata.to_status = 'confirmed';
-		} else if (input.action === 'cancel') {
-			updates.status = 'cancelled';
-			updates.cancelled_at = now.toISOString();
-			updates.cancelled_by_user_id = null;
-			updates.cancelled_reason = input.note?.trim() || 'Cancelado por paciente desde link público';
-			auditAction = 'appointment.public_cancelled';
-			metadata.to_status = 'cancelled';
-			metadata.reason = updates.cancelled_reason;
-		} else {
-			updates.status = 'reschedule_requested';
-			updates.reschedule_requested_at = now.toISOString();
-			auditAction = 'appointment.public_reschedule_requested';
-			metadata.to_status = 'reschedule_requested';
-		}
-
-		const { data: changedAppointment, error } = await supabase
-			.from('appointments')
-			.update(updates)
-			.eq('id', appointment.id)
-			.eq('business_id', appointment.business.id)
-			// Serialize competing public actions at the row's observed state. Without
-			// this predicate, confirm/cancel/reschedule requests could all read the
-			// same status and report success even though only the last write survived.
-			.eq('status', appointment.status)
-			.select('id')
-			.maybeSingle();
-		if (error) throw error;
-		if (!changedAppointment) throw new Error('PUBLIC_TOKEN_ACTION_CONFLICT');
-
-		await writeAuditLog(supabase, {
-			businessId: appointment.business.id,
-			userId: null,
-			action: auditAction,
-			entityType: 'appointment',
-			entityId: appointment.id,
-			metadata
-		});
-
-		await recordPublicBookingAttempt(supabase, {
-			businessId: appointment.business.id,
-			ipHash: publicHash(input.ip),
-			action: attemptAction,
-			success: true,
-			userAgent: input.userAgent,
-			metadata: { appointment_id: appointment.id, action: input.action }
-		});
-
-		const updated = await loadPublicAppointmentByToken(supabase, input.token, addMinutes(now, 0));
-		return { appointment: updated ?? appointment, changed: true };
-	} catch (error) {
-		await recordPublicBookingAttempt(supabase, {
-			businessId: appointment?.business.id ?? null,
-			ipHash: publicHash(input.ip),
-			action: attemptAction,
-			success: false,
-			errorCode: (error as Error)?.message ?? 'UNKNOWN',
-			userAgent: input.userAgent,
-			metadata: { appointment_id: appointment?.id ?? null, action: input.action }
-		});
-		throw error;
-	}
 };
 
 export const getPublicTokenErrorMessage = (error: unknown) => {

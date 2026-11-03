@@ -5476,6 +5476,20 @@ export type Database = {
         Args: { recover_time?: string }
         Returns: number
       }
+      recover_patient_appointment_management: {
+        Args: {
+          p_action: string
+          p_availability_revision?: number
+          p_expected_revision: string
+          p_financial_terms?: Json
+          p_integration_revision?: number
+          p_legacy: boolean
+          p_operation_id: string
+          p_starts_at?: string
+          p_token: string
+        }
+        Returns: Json
+      }
       register_patient_safely: {
         Args: {
           p_business_id: string

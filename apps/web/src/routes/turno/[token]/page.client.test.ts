@@ -7,6 +7,7 @@ import { notificationBrowserProfile } from '$lib/device';
 import { formatDepositAmount, type AppointmentDepositView } from '$lib/scheduling/deposits';
 import { formatInTimeZone } from '$lib/utils/format';
 import Page from './+page.svelte';
+import type { PatientManagementPanelData } from '$lib/scheduling/patient-management-page';
 
 const USER_AGENT = {
 	samsung:
@@ -58,7 +59,13 @@ const appointment = {
 };
 
 const pageData = {
-	appointment,
+ appointment,
+ management: {
+  url: '/turno/public-token', revision: 'a'.repeat(64), operationId: 'a1000000-0000-4000-8000-000000000001', mode: 'overview',
+  startsAt: appointment.starts_at, timezone: appointment.business.timezone, now: '2026-08-01T12:00:00Z', canCancel: true, canConfirm: true, canReschedule: true,
+  date: '2026-08-02', slots: [], selectedStart: null, availabilityRevision: null, integrationRevision: null, durationMinutes: 30,
+  financialTerms: null, financialSummary: {appliedAmount:'0',forfeitedAmount:'0',unresolvedAmount:'0'}, unavailableMessage: null
+ } satisfies PatientManagementPanelData,
 	message: '',
 	created: false,
 	suggestedAction: '',
@@ -967,6 +974,14 @@ describe('turno cancelado', () => {
 		expect(screen.queryByRole('heading', { name: 'Acciones' })).not.toBeInTheDocument();
 		expect(screen.queryByText('Cancelar turno')).not.toBeInTheDocument();
 	});
+
+	it('ofrece una reserva nueva disponible también después de una cancelación voluntaria sin seña', () => {
+		render(Page, { data: { ...pageData, rebookUrl: '/reservar/consultorio', appointment: {
+			...appointment, status: 'cancelled', can_confirm: false, can_cancel: false, can_request_reschedule: false
+		} } });
+		expect(screen.getByRole('link', { name: 'Reservar otro turno' })).toHaveAttribute('href', '/reservar/consultorio');
+		expect(screen.queryByRole('link', { name: 'Cancelar turno' })).not.toBeInTheDocument();
+	});
 });
 
 describe('visibilidad de cancelación por estado y fecha', () => {
@@ -990,7 +1005,7 @@ describe('visibilidad de cancelación por estado y fecha', () => {
 				}
 			});
 
-			expect(screen.getByText('Cancelar turno', { selector: 'summary' })).toBeInTheDocument();
+			expect(screen.getByRole('link', { name: 'Cancelar turno' })).toBeInTheDocument();
 		}
 	);
 
@@ -1006,7 +1021,7 @@ describe('visibilidad de cancelación por estado y fecha', () => {
 			}
 		});
 
-		expect(screen.queryByText('Cancelar turno', { selector: 'summary' })).not.toBeInTheDocument();
+		expect(screen.queryByRole('link', { name: 'Cancelar turno' })).not.toBeInTheDocument();
 	});
 });
 

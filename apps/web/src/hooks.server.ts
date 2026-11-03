@@ -115,7 +115,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 	// signature or job credential. Unrelated user cookies must neither identify
 	// their actor nor prevent their authorization from running.
 	const path = event.url.pathname;
-	const independentAuthorization = ['/reservar/', '/embed/v1/', '/turno/', '/api/public/', '/internal/jobs/']
+	const independentAuthorization = ['/reservar/', '/embed/v1/', '/turno/', '/gestion/', '/api/public/', '/internal/jobs/']
 		.some(prefix => path.startsWith(prefix)) ||
 		['/api/mercadopago/webhook', '/api/whatsapp/webhook', '/oauth/google-calendar/callback'].includes(path);
 

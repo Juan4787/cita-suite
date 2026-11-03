@@ -26,6 +26,12 @@ const instant = (value: unknown): string => {
  return value;
 };
 const nullableInstant = (value: unknown): string | null => value === null ? null : instant(value);
+const epochMicroseconds = (value: string): bigint => {
+ instant(value);
+ const fraction = /\.(\d+)(?:Z|[+-]\d{2}:\d{2})$/.exec(value)?.[1] ?? '';
+ return BigInt(Date.parse(value)) * 1000n + BigInt(fraction.padEnd(6, '0').slice(3));
+};
+export const sameManagementInstant = (left: string, right: string): boolean => epochMicroseconds(left) === epochMicroseconds(right);
 const money = (value: unknown): string => typeof value === 'string' && /^(0|[1-9]\d{0,127})$/.test(value) ? value : invalid();
 
 /** Validate the explicit SQL projection, then construct only the patient DTO.
@@ -40,13 +46,13 @@ export const parsePatientManagementView = (value: unknown) => {
  const professionalIds = readArray(row.professional_ids, 'appointment.management.professionals').map(uuid);
  if (professionalIds.length > 100 || new Set(professionalIds).size !== professionalIds.length) return invalid();
  const startsAt = instant(row.starts_at), endsAt = instant(row.ends_at), now = instant(row.now);
- if (Date.parse(endsAt) <= Date.parse(startsAt)) return invalid();
+ if (epochMicroseconds(endsAt) <= epochMicroseconds(startsAt)) return invalid();
  const isPast = readBoolean(row.is_past, 'appointment.management.past');
  const canCancel = readBoolean(row.can_cancel, 'appointment.management.cancel');
  const canConfirm = readBoolean(row.can_confirm, 'appointment.management.confirm');
  const canReschedule = readBoolean(row.can_reschedule, 'appointment.management.reschedule');
  const isActive = ['reserved', 'confirmed', 'reschedule_requested'].includes(row.status);
- if (isPast !== (Date.parse(startsAt) <= Date.parse(now)) || ((!isActive || isPast) && (canCancel || canConfirm || canReschedule)) ||
+ if (isPast !== (epochMicroseconds(startsAt) <= epochMicroseconds(now)) || ((!isActive || isPast) && (canCancel || canConfirm || canReschedule)) ||
   (canConfirm && row.status !== 'reserved')) return invalid();
  const isBusinessActive = readBoolean(business.is_active, 'appointment.management.business.active');
  const publicBookingEnabled = readBoolean(business.public_booking_enabled, 'appointment.management.business.publicBooking');
@@ -171,11 +177,11 @@ export const applyPatientManagementCommand = async (client: CitaSupabaseClient, 
   if ((view.integration?.revision ?? null) !== args.p_integration_revision) throw new Error('APPOINTMENT_AVAILABILITY_CHANGED');
   // A same-time operation is intentionally a SQL no-op. Never penalize or
   // manufacture a fresh obligation by selecting the already scheduled start.
-  if (Date.parse(startsAt!) !== Date.parse(view.appointment.starts_at)) {
+  if (!sameManagementInstant(startsAt!, view.appointment.starts_at)) {
    const date = zonedDate(new Date(startsAt!), view.appointment.business.timezone);
    const selection = await listPatientManagementSlots(client, view, date, date);
    if (selection.availabilityRevision !== input.availabilityRevision) throw new Error('APPOINTMENT_AVAILABILITY_CHANGED');
-   if (!selection.slots.some(slot => Date.parse(slot.starts_at) === Date.parse(startsAt!))) throw new Error('APPOINTMENT_SLOT_UNAVAILABLE');
+   if (!selection.slots.some(slot => sameManagementInstant(slot.starts_at, startsAt!))) throw new Error('APPOINTMENT_SLOT_UNAVAILABLE');
   }
  }
  const { data, error } = await client.rpc('apply_patient_appointment_management', args);

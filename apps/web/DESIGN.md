@@ -381,3 +381,7 @@ El diálogo del SDK v1 define su propio centrado y límite de ancho, sin depende
 - **Don't** dejar menús, calendarios o confirmaciones interiores con acabado nativo cuando están mejorados con JavaScript.
 - **Don't** cortar con «…» el texto de la tarea dentro de `main` o de un diálogo, separar una cantidad de su unidad ni bloquear el zoom del navegador.
 - **Don't** convertir patrones de esta entrega en afirmaciones sobre páginas que no se revisaron.
+
+## Gestión contextual del turno — desarrollo del 3 de noviembre
+
+Extensión del turno existente con un panel de cancelación/elección de horario/resumen, preservando BookingAppearance y ux/bk en ambos temas. Ruta de capacidad y ruta legada comparten el componente completo; no hay raster nuevo. Contrato en `.impeccable/surfaces/gestion-del-turno.md`. Unidades parciales, revisión visual y navegador todavía pendientes; no es un cierre de diseño ni una publicación.

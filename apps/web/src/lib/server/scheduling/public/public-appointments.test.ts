@@ -3,7 +3,6 @@ const bookingFlags = vi.hoisted(() => ({ BOOKING_INTEGRATIONS_ENABLED: 'false', 
 vi.mock('$env/dynamic/private', () => ({ env: bookingFlags }));
 beforeEach(() => { bookingFlags.BOOKING_INTEGRATIONS_ENABLED = 'false'; bookingFlags.BOOKING_CONTEXTS_AVAILABLE = 'false'; });
 import {
-	applyPublicAppointmentAction,
 	getPublicAppointmentMessage,
 	getPublicTokenErrorMessage,
 	loadPublicAppointmentByToken,
@@ -352,15 +351,7 @@ describe('loadPublicAppointmentByToken · seña', () => {
 		expect(withoutDeposit).toMatchObject({ deposit: null, deposit_transfer_details: null, can_confirm: true });
 	});
 
-	it('el enlace no confirma un turno con la seña pendiente, y no toca el turno al rechazarlo', async () => {
-		const { supabase, writes } = client(depositRow('pending'));
-		await expect(applyPublicAppointmentAction(supabase, { token: 'token-1', action: 'confirm', now })).rejects.toThrow(
-			'PUBLIC_TOKEN_DEPOSIT_PENDING'
-		);
-		expect(writes).not.toContain('update:appointments');
-		expect(getPublicTokenErrorMessage(new Error('PUBLIC_TOKEN_DEPOSIT_PENDING'))).toContain('recibe la seña');
-		expect(getPublicTokenErrorMessage({ message: 'APPOINTMENT_DEPOSIT_PENDING' })).toContain('recibe la seña');
-	});
+
 });
 
 describe('getPublicTokenErrorMessage', () => {
