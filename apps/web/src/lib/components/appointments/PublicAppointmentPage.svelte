@@ -57,6 +57,8 @@
 	} = $props();
 
 	const appointment = $derived(data.appointment);
+ const managementDecision = $derived(!!data.management && data.management.mode !== 'overview' && !form?.success);
+ const managementPriority = $derived(!!data.management && (managementDecision || !!form?.message));
 	const isVirtual = $derived(appointment?.booking_context?.modality === 'video');
 
 	// El server clasifica por User-Agent; acá solo se corrige el iPad que se
@@ -1567,8 +1569,20 @@
 	</section>
 {/snippet}
 
+
+{#snippet managementControls()}
+			{#if appointment && data.management}
+    <PatientManagementPanel context={{ ...data.management,
+     canCancel: isActive && appointment.can_cancel && data.management.canCancel,
+     canReschedule: isActive && appointment.can_request_reschedule && data.management.canReschedule,
+     canConfirm: isActive && appointment.status === 'reserved' && appointment.can_confirm && data.management.canConfirm &&
+      (!appointment.deposit || appointment.deposit.waived_reason === 'policy_disabled')
+    }} feedback={form} />
+   {/if}
+{/snippet}
+
 <BookingAppearance theme={appointment?.booking_context?.theme ?? 'cita-suite'}>
-<main class="min-h-screen bg-fill-06111f px-4 py-6 text-fg sm:py-10 bk-text">{#if data.appointment?.price_quote_snapshot}<section class="ux-card mb-5"><h2 class="ux-section-title">Arancel registrado al reservar</h2><p class="mt-2 font-bold">{formatQuotedPrice(data.appointment.price_quote_snapshot)}</p></section>{/if}{#if data.appointment?.patient_instructions_snapshot}<section class="ux-card mb-5"><h2 class="ux-section-title">Indicaciones para tu turno</h2><p class="mt-2 whitespace-pre-wrap break-words">{data.appointment.patient_instructions_snapshot}</p></section>{/if}
+<main class="min-h-screen bg-fill-06111f px-4 py-6 text-fg sm:py-10 bk-text">{#if !managementDecision && data.appointment?.price_quote_snapshot}<section class="ux-card mb-5"><h2 class="ux-section-title">Arancel registrado al reservar</h2><p class="mt-2 font-bold">{formatQuotedPrice(data.appointment.price_quote_snapshot)}</p></section>{/if}{#if !managementDecision && data.appointment?.patient_instructions_snapshot}<section class="ux-card mb-5"><h2 class="ux-section-title">Indicaciones para tu turno</h2><p class="mt-2 whitespace-pre-wrap break-words">{data.appointment.patient_instructions_snapshot}</p></section>{/if}
 	<div class="mx-auto flex w-full max-w-3xl flex-col gap-5">
 		<section class="ux-hero">
 			{#if appointment?.business?.logo_url}
@@ -1576,7 +1590,7 @@
 			{/if}
 			<h1 class="ux-title">{data.created ? 'Tu turno quedó reservado' : 'Tu turno'}</h1>
 			{#if isActive && whenLabels}
-				<p class="ux-subtitle">Te esperamos el {whenLabels.full}.</p>
+				<p class="ux-subtitle">{managementDecision ? whenLabels.full : `Te esperamos el ${whenLabels.full}.`}</p>
 			{:else}
 				<p class="ux-subtitle">{data.message}</p>
 			{/if}
@@ -1589,6 +1603,8 @@
 		</section>
 
 		{#if appointment}
+   {#if managementPriority}{@render managementControls()}{/if}
+   {#if !managementDecision}
 			{#if isActive && depositPending && appointment.deposit}
 				{@render depositCard(appointment, appointment.deposit)}
 			{:else if isActive && data.created && data.practiceWhatsApp}
@@ -1617,6 +1633,7 @@
 			{#if isActive}
 				{@render reminderCard()}
 			{/if}
+   {/if}
 
 			<section class="ux-card">
 				<div class="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
@@ -1709,14 +1726,7 @@
 				</section>
 			{/if}
 
-			{#if data.management}
-    <PatientManagementPanel context={{ ...data.management,
-     canCancel: isActive && appointment.can_cancel && data.management.canCancel,
-     canReschedule: isActive && appointment.can_request_reschedule && data.management.canReschedule,
-     canConfirm: isActive && appointment.status === 'reserved' && appointment.can_confirm && data.management.canConfirm &&
-      (!appointment.deposit || appointment.deposit.waived_reason === 'policy_disabled')
-    }} feedback={form} />
-   {/if}
+   {#if !managementPriority}{@render managementControls()}{/if}
 		{:else}
 			<section class="ux-card">No encontramos un turno asociado a este enlace.</section>
 		{/if}

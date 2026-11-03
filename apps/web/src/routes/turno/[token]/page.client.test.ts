@@ -239,6 +239,17 @@ describe('activación de notificaciones en el teléfono', () => {
 		vi.unstubAllGlobals();
 	});
 
+ it.each(['cancel', 'reschedule'] as const)('prioritizes the requested %s decision before auxiliary tasks', mode => {
+  installNotificationEnvironment({ initialPermission: 'default' });
+  render(Page, { data: { ...pageData, bookingInformationEnabled: true, management: { ...pageData.management, mode } } });
+  const question = screen.getByRole('heading', { name: mode === 'cancel' ? '¿Querés cancelar este turno?' : '¿Querés reprogramar este turno?' });
+  expect(question).toBeVisible();
+  expect(question.compareDocumentPosition(screen.getByRole('heading', { name: 'Consultorio', exact: true })) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  expect(screen.queryByRole('heading', { name: 'Información para tu consulta' })).not.toBeInTheDocument();
+  expect(screen.queryByRole('heading', { name: /Último paso/ })).not.toBeInTheDocument();
+  expect(screen.queryByText(/^Te esperamos el /)).not.toBeInTheDocument();
+ });
+
 	it.each([
 		{ label: 'vencido reservado', status: 'reserved' as const, past: true },
 		{ label: 'vencido confirmado', status: 'confirmed' as const, past: true },
@@ -1116,6 +1127,18 @@ describe('seña del turno', () => {
 		cleanup();
 		vi.unstubAllGlobals();
 	});
+
+ it('keeps the saved result first and shows the new pending deposit after rescheduling', () => {
+  installNotificationEnvironment();
+  render(Page, { data: { ...pageData, appointment: withDeposit(pendingDeposit), depositWhatsApp },
+   form: { success: true, message: 'La reprogramación quedó registrada.' } });
+  const result = screen.getByText('La reprogramación quedó registrada.', { exact: true });
+  const deposit = screen.getByRole('heading', { name: 'Seña del turno' });
+  expect(result.compareDocumentPosition(deposit) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  expect(screen.getByText('Tu turno se confirma cuando el consultorio registra la seña.')).toBeVisible();
+  expect(screen.getByRole('link', { name: 'Ya transferí: enviar el comprobante' })).toBeVisible();
+  expect(screen.queryByRole('button', { name: 'Confirmo que voy' })).not.toBeInTheDocument();
+ });
 
 	it('con la seña pendiente muestra monto, vencimiento, datos y los dos caminos por WhatsApp, sin «Confirmo que voy»', () => {
 		installNotificationEnvironment();
