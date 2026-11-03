@@ -188,6 +188,13 @@ race move_before_configuration "select patient_management_race.act('move_config'
 race overlapping_target "select patient_management_race.act('slot_a');" "select patient_management_race.act('slot_b');" 'exclusion constraint'
 "${psql_command[@]}" -c "select patient_management_race.assert_state('slot_a','reserved','pending',true,1); select patient_management_race.assert_state('slot_b','reserved','pending',false,0);"
 
+# A switch change still serializes, independently from heartbeat-only writes.
+"${psql_command[@]}" -c "select patient_management_race.prepare('pause_move');"
+race financial_pause_before_move "update private.deposit_automation set enabled=false;" "select patient_management_race.act('pause_move');" APPOINTMENT_RESCHEDULE_UNAVAILABLE
+"${psql_command[@]}" -c "select patient_management_race.assert_state('pause_move','reserved','pending',false,0); update private.deposit_automation set enabled=true; select patient_management_race.prepare('move_pause');"
+race move_before_financial_pause "select patient_management_race.act('move_pause');" "update private.deposit_automation set enabled=false;"
+"${psql_command[@]}" -c "select patient_management_race.assert_state('move_pause','reserved','pending',true,1); update private.deposit_automation set enabled=true;"
+
 # Inverse expiry order: the worker must SKIP the held appointment instead of
 # waiting. A separate signal after the worker exits proves overlap without a
 # timing-only sleep or a permanently open third connection.
@@ -226,4 +233,4 @@ echo 'Patient management inverse expiry: holder returned; assert state.' >&2
 echo 'PASS: expiry skips the appointment held by a completed uncommitted patient move.'
 deadlocks_after=$("${psql_command[@]}" -c 'select deadlocks from pg_stat_database where datname=current_database();')
 [[ "$deadlocks_before" == "$deadlocks_after" ]]
-echo 'PASS: ten controlled patient-management races; no PostgreSQL deadlock.'
+echo 'PASS: twelve controlled patient-management races; no PostgreSQL deadlock.'

@@ -10,6 +10,19 @@ create table private.appointment_management_runtime (
 insert into private.appointment_management_runtime(singleton) values(true);
 revoke all on private.appointment_management_runtime from public,anon,authenticated,service_role;
 
+-- Only a change of the global financial switch conflicts with a management
+-- command. The expiry worker updates heartbeat columns on the same row and
+-- must remain free to SKIP LOCKED appointments. A row SHARE lock here would
+-- stop that worker before it reaches its candidate query (race reproduced).
+create function private.lock_deposit_automation_configuration() returns trigger
+language plpgsql security definer set search_path=pg_catalog,pg_temp as $$
+begin
+ perform pg_advisory_xact_lock(hashtextextended('cita-suite:deposit-automation-configuration',0));
+ return new;
+end $$;
+create trigger deposit_automation_configuration_lock before update of enabled on private.deposit_automation
+ for each row when (new.enabled is distinct from old.enabled) execute function private.lock_deposit_automation_configuration();
+
 alter table public.appointment_management_states add column schedule_revision bigint not null default 1 check(schedule_revision>0);
 create table private.appointment_email_events (
  id uuid primary key default gen_random_uuid(),
@@ -125,7 +138,7 @@ begin
   -- writers take the child first and then advance this business/config version.
   select * into b from public.businesses where id=v_business for share;
   perform 1 from public.business_subscriptions where business_id=v_business for share;
-  perform 1 from private.deposit_automation where singleton for share;
+  perform pg_advisory_xact_lock_shared(hashtextextended('cita-suite:deposit-automation-configuration',0));
   perform 1 from public.deposit_policies where business_id=v_business for share;
   perform 1 from public.appointment_email_policies where business_id=v_business for share;
   select reschedule_enabled into v_runtime from private.appointment_management_runtime where singleton for share;
@@ -292,7 +305,7 @@ begin
  return v_result;
 end $$;
 
-revoke all on function private.record_appointment_email_event(),
+revoke all on function private.record_appointment_email_event(),private.lock_deposit_automation_configuration(),
  public.apply_patient_appointment_management(text,boolean,uuid,text,text,timestamptz,bigint,jsonb,bigint) from public,anon,authenticated,service_role;
 grant execute on function public.apply_patient_appointment_management(text,boolean,uuid,text,text,timestamptz,bigint,jsonb,bigint) to service_role;
 notify pgrst,'reload schema';
