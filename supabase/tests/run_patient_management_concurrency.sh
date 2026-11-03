@@ -20,6 +20,7 @@ previous_runtime=$(psql_owned -c "select reschedule_enabled||'|'||email_producer
 cleanup() {
  local status=$?
  trap - EXIT
+ echo "Patient management cleanup begins, status $status." >&2
  if [[ -n "$holder_pid" ]]; then kill "$holder_pid" 2>/dev/null || true; wait "$holder_pid" 2>/dev/null || true; fi
  if ! psql_owned <<SQL
 update private.deposit_automation set enabled='$previous_deposit'::boolean;
@@ -31,6 +32,7 @@ delete from auth.users where id='$owner_id' and email='patient-management-race@e
 SQL
  then status=1; fi
  rm -r -- "$task_directory"
+ echo "Patient management cleanup finished, status $status." >&2
  exit "$status"
 }
 trap cleanup EXIT
@@ -185,7 +187,9 @@ psql_owned -c "select patient_management_race.assert_state('slot_a','reserved','
 # Inverse expiry order: the worker must SKIP the held appointment instead of
 # waiting. A separate signal after the worker exits proves overlap without a
 # timing-only sleep or a permanently open third connection.
+echo 'Patient management inverse expiry: prepare.' >&2
 psql_owned -c "select patient_management_race.prepare('move_expiry',true);"
+echo 'Patient management inverse expiry: start holder.' >&2
 psql_owned >"$task_directory/holder.log" 2>&1 <<'SQL' &
 set statement_timeout='12s';
 begin;
@@ -201,14 +205,19 @@ end $$;
 commit;
 SQL
 holder_pid=$!
+echo 'Patient management inverse expiry: await holder marker.' >&2
 wait_marker
+echo 'Patient management inverse expiry: worker begins while holder is open.' >&2
 psql_owned >"$task_directory/other.log" 2>&1 <<'SQL'
 set statement_timeout='1s';
 select private.expire_unpaid_deposits(clock_timestamp(),100);
 SQL
+echo 'Patient management inverse expiry: worker returned.' >&2
 kill -0 "$holder_pid"
 psql_owned -c "insert into patient_management_race.signals values('expiry_finished');"
+echo 'Patient management inverse expiry: signal committed; await holder.' >&2
 wait "$holder_pid"; holder_pid=''
+echo 'Patient management inverse expiry: holder returned; assert state.' >&2
 psql_owned -c "select patient_management_race.assert_state('move_expiry','reserved','pending',true,1);"
 echo 'PASS: expiry skips the appointment held by a completed uncommitted patient move.'
 deadlocks_after=$(psql_owned -c 'select deadlocks from pg_stat_database where datname=current_database();')
