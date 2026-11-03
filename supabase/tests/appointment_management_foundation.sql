@@ -2,7 +2,7 @@
 -- and durable history. A green here does not certify rescheduling, email or a mailbox.
 -- Each read happens after the writing statement; NULL must never pass a check silently.
 begin;
-select extensions.plan(16);
+select extensions.plan(22);
 
 create temporary table management_fixture(label text primary key, id uuid not null);
 grant select on management_fixture to authenticated;
@@ -188,6 +188,58 @@ set local role authenticated;
 select extensions.is((select count(*) from public.appointment_deposit_requirements where business_id=pg_temp.mid('business')),0::bigint,
  '16. Otro consultorio no puede leer obligaciones ni dinero');
 reset role;
+
+do $$ declare before text:=pg_temp.management_revision('legacy'); begin
+ update public.appointments set starts_at=starts_at+interval '1 hour',ends_at=ends_at+interval '1 hour',
+  blocking_starts_at=blocking_starts_at+interval '1 hour',blocking_ends_at=blocking_ends_at+interval '1 hour' where id=pg_temp.mid('legacy');
+ update public.appointments set starts_at=starts_at-interval '1 hour',ends_at=ends_at-interval '1 hour',
+  blocking_starts_at=blocking_starts_at-interval '1 hour',blocking_ends_at=blocking_ends_at-interval '1 hour' where id=pg_temp.mid('legacy');
+ if pg_temp.management_revision('legacy') is not distinct from before then raise exception 'E1_ABA_UNDETECTED'; end if;
+end $$;
+select extensions.pass('17. Mover y volver no vuelve válida una pantalla anterior a ambos cambios');
+
+do $$ declare before text:=pg_temp.management_revision('deposit'); begin
+ perform set_config('TimeZone','Pacific/Auckland',true);
+ if pg_temp.management_revision('deposit') is distinct from before then raise exception 'E1_TIMEZONE_CONFLICT'; end if;
+ perform set_config('TimeZone','UTC',true);
+end $$;
+select extensions.pass('18. La misma revisión no depende de la zona horaria de la sesión SQL');
+
+select extensions.is(private.appointment_semantic_revision(pg_temp.mid('other_business'),pg_temp.mid('deposit')),null::text,
+ '19. Consultorio ajeno no obtiene una revisión del turno');
+
+select set_config('request.jwt.claim.sub',pg_temp.mid('owner')::text,true);
+select pg_temp.management_payment_action('deposit','paid');
+update public.appointments set status='cancelled',cancelled_at=now(),cancelled_reason='Prueba E1'
+ where id=pg_temp.mid('deposit');
+do $$ begin
+ if (select allocation from public.appointment_deposit_requirements where appointment_id=pg_temp.mid('deposit') and is_current) is distinct from 'unresolved'
+  or (select status from public.appointment_deposit_requirements where appointment_id=pg_temp.mid('deposit') and is_current) is distinct from 'paid'
+  or (select status from public.appointment_deposits where appointment_id=pg_temp.mid('deposit')) is distinct from 'paid' then
+  raise exception 'E1_CANCEL_ERASED_OR_FORFEITED_PAYMENT'; end if;
+end $$;
+select extensions.pass('20. Cancelar conserva el pago, sin devolución ni pérdida automática');
+
+do $$ declare patient uuid; begin
+ select patient_id into patient from public.appointments where id=pg_temp.mid('legacy');
+ begin
+  update public.appointments set patient_id=patient where id=pg_temp.mid('deposit');
+  raise exception 'E1_REASSIGNMENT_SHOULD_FAIL';
+ exception when others then
+  if sqlerrm is distinct from 'APPOINTMENT_DEPOSIT_IDENTITY_CHANGE' then raise; end if;
+ end;
+end $$;
+select extensions.pass('21. Reasignar un turno con dinero no traslada el pago a otra persona');
+
+do $$ begin
+ begin
+  update public.appointment_deposit_events set amount=0 where appointment_id=pg_temp.mid('deposit');
+  raise exception 'E1_EVENT_REWRITE_SHOULD_FAIL';
+ exception when others then
+  if sqlerrm is distinct from 'APPOINTMENT_DEPOSIT_EVENT_IMMUTABLE' then raise; end if;
+ end;
+end $$;
+select extensions.pass('22. Los eventos económicos no se reescriben para corregir un registro');
 
 select * from extensions.finish();
 rollback;
