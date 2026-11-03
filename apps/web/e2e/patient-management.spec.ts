@@ -23,13 +23,13 @@ for (const brand of ['cita-suite', 'natalia'] as const) {
  test(`@candidate-behavior isolated patient management ${brand}: context, money, replay, revocation and no JavaScript`, async ({ page, context, request, browser }, info) => {
   test.setTimeout(180_000);
   const f = ownedAppointmentFixture();
+  const ownerId = randomUUID();
   const businessId = randomUUID(), professionalId = randomUUID(), serviceId = randomUUID(), patientId = randomUUID();
   const appointmentId = randomUUID(), noJsAppointmentId = randomUUID(), integrationId = randomUUID();
   const integrationKey = randomUUID().replaceAll('-', '');
   const app = new URL(process.env.E2E_BASE_URL!);
   if (app.protocol !== 'http:' || app.hostname !== '127.0.0.1') throw new Error('Management browser audit requires its owned loopback app');
   const appOrigin = app.origin;
-  const owner = await must(f.admin.from('business_users').select('user_id').eq('business_id', f.businessId).eq('role', 'owner').single());
   const previous: unknown = JSON.parse(f.sql(`select jsonb_build_object('deposit',(select enabled from private.deposit_automation where singleton),
    'reschedule',(select reschedule_enabled from private.appointment_management_runtime where singleton),
    'producer',(select email_producer_enabled from private.appointment_management_runtime where singleton));`));
@@ -40,22 +40,29 @@ for (const brand of ['cita-suite', 'natalia'] as const) {
   let noJsContext: Awaited<ReturnType<typeof browser.newContext>> | null = null;
   try {
    f.sql(`begin;
+    \\echo CITA_FIXTURE_PHASE account
+    insert into auth.users(id,email) values('${ownerId}','management-owner-${ownerId}@example.test');
+    \\echo CITA_FIXTURE_PHASE business
     insert into public.businesses(id,name,slug,industry,timezone,public_booking_enabled,max_booking_days_ahead)
      values('${businessId}','Consultorio sintético de gestión','management-${businessId}','other','America/Argentina/Cordoba',true,180);
     update public.business_subscriptions set commercial_access_enabled=true,is_permanent=true,subscription_status='active',
      paid_until=null,grace_until=null,restricted_until=null,archived_at=null where business_id='${businessId}';
-    insert into public.business_users(business_id,user_id,role,status,accepted_at) values('${businessId}','${owner.user_id}','owner','active',now());
+    \\echo CITA_FIXTURE_PHASE membership
+    insert into public.business_users(business_id,user_id,role,status,accepted_at) values('${businessId}','${ownerId}','owner','active',now());
+    \\echo CITA_FIXTURE_PHASE professional_service
     insert into public.professionals(id,business_id,name,is_public) values('${professionalId}','${businessId}','Profesional de gestión',true);
     insert into public.services(id,business_id,name,duration_minutes,is_public) values('${serviceId}','${businessId}','Consulta sintética',45,true);
     insert into public.professional_services(business_id,professional_id,service_id) values('${businessId}','${professionalId}','${serviceId}');
     insert into public.availability_rules(business_id,professional_id,weekday,start_time,end_time,slot_interval_minutes,break_minutes)
      select '${businessId}','${professionalId}',n,'09:00','17:00',30,0 from generate_series(0,6)n;
+    \\echo CITA_FIXTURE_PHASE patient_deposit
     insert into public.patients(id,business_id,owner_id,full_name,email)
-     values('${patientId}','${businessId}','${owner.user_id}','Paciente sintético de autogestión','synthetic+${patientId}@example.test');
+     values('${patientId}','${businessId}','${ownerId}','Paciente sintético de autogestión','synthetic+${patientId}@example.test');
     insert into public.deposit_policies(business_id,enabled,auto_cancel_enabled,amount_mode,fixed_amount,transfer_details,applies_to_manual)
      values('${businessId}',true,true,'fixed',40000,'Alias de prueba sin cuenta bancaria',true);
     update private.deposit_automation set enabled=true;
     update private.appointment_management_runtime set reschedule_enabled=true,email_producer_enabled=false;
+    \\echo CITA_FIXTURE_PHASE appointments
     insert into public.appointments(id,business_id,patient_id,professional_id,service_id,starts_at,ends_at,status,source,
      service_name_snapshot,professional_name_snapshot,duration_minutes_snapshot)
      select appointment,'${businessId}','${patientId}','${professionalId}','${serviceId}',starts,starts+interval '45 minutes','reserved','manual',
@@ -64,10 +71,12 @@ for (const brand of ['cita-suite', 'natalia'] as const) {
        ('${noJsAppointmentId}'::uuid,((now() at time zone 'America/Argentina/Cordoba')::date+22+time '12:00') at time zone 'America/Argentina/Cordoba')) v(appointment,starts);
     update public.appointment_management_states set terms_acknowledged=true,require_deposit_on_reschedule=true,
      previous_deposit_disposition='forfeit',accepted_at=now(),accepted_policy_revision=1 where business_id='${businessId}';
+    \\echo CITA_FIXTURE_PHASE record_payment
     do $$ begin
-     perform set_config('request.jwt.claim.sub','${owner.user_id}',true);
+     perform set_config('request.jwt.claim.sub','${ownerId}',true);
      perform public.set_appointment_deposit('${businessId}','${appointmentId}','paid',1,null);
     end $$;
+    \\echo CITA_FIXTURE_PHASE integration
     insert into public.booking_integrations(id,business_id,public_key,name,is_active,theme,allowed_origins,allowed_service_ids,allowed_professional_ids)
      values('${integrationId}','${businessId}','${integrationKey}','Synthetic management',true,'${brand}',array['${appOrigin}'],array['${serviceId}']::uuid[],array['${professionalId}']::uuid[]);
     insert into public.appointment_booking_contexts(appointment_id,business_id,integration_id,integration_revision,contract_version,
@@ -140,7 +149,7 @@ for (const brand of ['cita-suite', 'natalia'] as const) {
    const icsBefore = await request.get(`/turno/${original.confirmation_token}/calendario.ics`);
    expect(icsBefore.status()).toBe(200); const uid = /^UID:(.+)$/m.exec(await icsBefore.text())?.[1]?.trim(); expect(uid).toBeTruthy();
    f.sql(`do $$ begin
-    perform set_config('request.jwt.claim.sub','${owner.user_id}',true);
+    perform set_config('request.jwt.claim.sub','${ownerId}',true);
     perform public.revoke_appointment_management_access('${businessId}','${appointmentId}','${randomUUID()}',private.appointment_semantic_revision('${businessId}','${appointmentId}'));
    end $$;`);
    for (const revoked of [path, `/turno/${original.confirmation_token}`]) {
@@ -165,8 +174,10 @@ for (const brand of ['cita-suite', 'natalia'] as const) {
     delete from public.appointments where business_id='${businessId}';
     delete from public.booking_integrations where business_id='${businessId}';
     delete from public.businesses where id='${businessId}' and slug='management-${businessId}';
+    delete from auth.users where id='${ownerId}' and email='management-owner-${ownerId}@example.test';
     commit;`);
    expect(f.sql(`select count(*) from public.businesses where id='${businessId}';`)).toBe('0');
+   expect(f.sql(`select count(*) from auth.users where id='${ownerId}';`)).toBe('0');
   }
  });
 }
