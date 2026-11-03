@@ -1,6 +1,6 @@
 # Registro de la campaña de señas y avisos (consultorio de Natalia Frutos)
 
-**Estado de E, 2 de noviembre:** revisión documental contra código terminada; [especificación vigente](etapa-e-correo-autogestion.md) y [registro de esta revisión](#etapa-e-revision). Configuración/implementación esperan la próxima instrucción de Juan. Las pausas D/E, Resend y tareas antiguas que siguen abajo son historia fechada; D sí permanece en pausa.
+**Estado de E, 3 de noviembre:** ejecución íntegra autorizada en [12.20](propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada), incluidas pruebas/publicación productivas. [Registro activo y regla de continuidad](ejecucion-etapa-e-20261103.md): Q01/Q02 resueltas en 12.21/12.22; contrato contextual E1 probado localmente, sin integración todavía. La [especificación](etapa-e-correo-autogestion.md) conserva sus 97 casos sin cierre funcional todavía. Las pausas D/E, Resend y esperas de una instrucción que siguen abajo son historia fechada; D sí permanece en pausa.
 
 **Fuente de verdad:** el [plan aprobado](propuesta-senas-avisos-natalia.md), incluida su sección 12, que contiene la aprobación literal y los ajustes posteriores.
 
@@ -1153,3 +1153,9 @@ Pedidos literales y precedencia en [plan 12.19](propuesta-senas-avisos-natalia.m
 - No cambian app/base, producción, DNS, SMTP de Auth, configuración de Natalia ni webhooks. Sin clave nueva de envío, compras, comprobación de KYC/facturación o escrituras administrativas. D no se inicia.
 
 **Continuación:** utilizar el acceso guardado sin recrearlo ni pedir secretos. Consultas desde raíz: `python3 scripts/zoho-cpaas.py status`, luego `python3 scripts/zoho-cpaas.py agents`; renovación automática al vencer. Integración, envío real autorizado y aceptación funcional de E siguen pendientes. El cierre de Git/sincronización se comprueba antes del informe.
+
+## Ejecución de E autorizada — 3 de noviembre de 2026
+
+Juan encargó ejecutar E completa, auditar, probar y publicar, con autonomía posterior a las dudas iniciales y una regla de continuidad ante compactaciones. Literal y precedencia en [12.20](propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada). Sustituye los puntos de continuación históricos que esperaban otra instrucción de inicio.
+
+Se crea [registro activo de E](ejecucion-etapa-e-20261103.md) para concentrar checkpoint, decisiones, trabajo y evidencia de los 97 casos, sin duplicar sus reglas. Allí continúa el detalle técnico de E; este registro conserva la historia A/B/C y el enlace al trabajo actual. Preparación inicial y conexiones comprobadas; Q01/Q02 planteadas antes de implementar, pendientes de respuesta. Ningún cambio funcional, migración, envío nuevo ni publicación en esta preparación.

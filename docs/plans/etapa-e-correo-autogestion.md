@@ -1,6 +1,6 @@
 # Etapa E: correo del consultorio, reprogramación autónoma y señas
 
-**Definición conversada el 2 de noviembre de 2026; revisión documental cerrada el 3:** el 3 Juan pidió conectar Zoho por terminal y guardar el acceso tras reinicios ([12.19](propuesta-senas-avisos-natalia.md#zoho-terminal-vigente)). Conexión administrativa OAuth local y renovación comprobadas; [guía de operación](../architecture/zoho-cpaas-terminal.md). **La integración de la app, implementación y pruebas funcionales de E todavía no se iniciaron.** D permanece en pausa. Producción sigue en V12b; consultar siempre el [estado vigente](../ESTADO-VIGENTE.md).
+**Definición conversada el 2 de noviembre de 2026; revisión documental cerrada el 3:** el 3 Juan pidió conectar Zoho por terminal y guardar el acceso tras reinicios ([12.19](propuesta-senas-avisos-natalia.md#zoho-terminal-vigente)). Conexión administrativa OAuth local y renovación comprobadas; [guía de operación](../architecture/zoho-cpaas-terminal.md). **Juan autorizó después la ejecución íntegra, pruebas y publicación de E ([12.20](propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada)); Q01/Q02 resueltas y E1 en preparación de contratos/pruebas.** [Registro y continuidad](ejecucion-etapa-e-20261103.md). La integración de la app y sus pruebas funcionales todavía no se iniciaron. D permanece en pausa. Producción sigue en V12b; consultar siempre el [estado vigente](../ESTADO-VIGENTE.md).
 
 Esta es la especificación vigente de E, incorporada por la sección 12.18 del [plan aprobado](propuesta-senas-avisos-natalia.md#etapa-e-vigente). Sustituye en este alcance la antigua sección 4.14, su proveedor Resend, la pausa conjunta D/E y las reglas anteriores sobre reprogramación iniciada por el paciente. El texto aprobado anterior se conserva como historia. [Registro](registro-senas-avisos-natalia.md#etapa-e-revision) y [traspaso](traspaso-senas-avisos-natalia.md#etapa-e-punto).
 
@@ -11,14 +11,15 @@ Esta es la especificación vigente de E, incorporada por la sección 12.18 del [
 | Email del paciente | Obligatorio por defecto en reservas públicas, incluidas las integradas. Dueña/administración pueden desactivar la obligación. Es diferente de la confirmación de email de la cuenta de acceso, que permanece habilitada. |
 | Turnos de recepción | Permitir continuar sin email después de «Sin un correo electrónico, este paciente no recibirá recordatorios por email», con «Continuar sin email» y «Agregar email». Revisar la ficha seleccionada, no sólo el campo del formulario. |
 | Mensajes | Comprobante de reserva, comprobante de cambio, comprobante de cancelación, pedido de seña cuando corresponda y recordatorios a las **72 y 24 horas** del turno. No cambia el push existente de 24 h/2 h ni las alarmas de calendario. |
-| Botones | Dos controles independientes para mostrar CANCELAR y REPROGRAMAR, en comprobantes y recordatorios. Se puede mostrar ninguno, uno o ambos. Son controles de presentación del correo, no nuevos permisos de agenda. |
+| Botones | Habilitados por defecto cuando el contexto permite actuar, con controles independientes para mostrar CANCELAR y REPROGRAMAR. Comprobante de turno vigente puede ofrecerlos; comprobante de cancelación no muestra ninguno. Se puede configurar ninguno, uno o ambos. Son presentación, no nuevos permisos de agenda. |
 | Recorrido de cancelación | «¿Querés cancelar este turno?», fecha/hora, «Sí, cancelar turno» y alternativa discreta «Prefiero reprogramar». Abrir o cambiar de recorrido no modifica nada. |
 | Recorrido de reprogramación | «¿Querés reprogramar este turno?», selección autónoma de otro horario, resumen y «Confirmar reprogramación». Alternativa «Prefiero cancelar sin reprogramar». Ya no termina en un pedido a recepción. |
 | Identidad | Prioridad visual del consultorio: su nombre, logo si existe, colores, asunto, remitente visible y contacto. Sin nombre, logo ni promoción de Cita Suite en el contenido del email. Los enlaces de gestión sí van al dominio oficial de la app. |
 | Nueva seña | Si el turno exige seña, exigir una nueva al reprogramar por iniciativa del paciente, por defecto; opción de desactivar esta exigencia. Cambios del consultorio no la generan por defecto. |
 | Destino del pago anterior | Por defecto deja de aplicarse al precio de la consulta al concretarse la reprogramación del paciente; el consultorio puede elegir sumarlo a cuenta. No se borra el pago recibido. |
 | Momento del cambio | Guardar el nuevo horario como reservado con la nueva seña pendiente, cuando corresponda. La transferencia sigue registrándose por el consultorio; no se integra un cobro automático en E. |
-| Proveedor | **Zoho CPaaS**, elegido por Juan, sustituye Resend. Gmail sigue dedicado a Auth; no se cambia SMTP de recuperación/alta por esta etapa. |
+| Proveedor | **Zoho CPaaS**, elegido por Juan, sustituye Resend. Cada consultorio usa su subdominio de cita-suite.com.ar verificado para enviar, sin compra de otro dominio. Gmail sigue como SMTP de Auth y su conector se usa para leer el buzón de pruebas; no se cambia SMTP por esta etapa. |
+| Activación | Envíos habilitados por defecto y desactivables por el consultorio. La preferencia no simula preparación del emisor: falta de dominio/contacto/datos exigidos se muestra pendiente, sin emitir ni marcar enviado. No exigir otra activación manual al quedar listo. |
 | Economía | Juan acepta el gasto controlado de correo también con un consultorio. No exigir gratuidad indefinida ni interpretar esto como permiso para contratar otra infraestructura. Las compras las hace Juan, sin recargas automáticas del agente. |
 
 Si no hay nueva obligación pendiente, conservar una confirmación previa válida cuando corresponda; un turno sin seña que estaba reservado no se confirma artificialmente por abrir el correo. No crear estados nuevos de turno para representar pagos.
@@ -203,6 +204,17 @@ Cada identificador exige una prueba o comprobación registrada durante la implem
 | OP06 | Pruebas y destinatarios: fixtures reconocibles, buzones expresamente acordados, separación de simulación/proveedor real/recepción real. No escribir a pacientes reales por inferencia ni usar sus datos como prueba. |
 | OP07 | Consumo: respetar las 40 llamadas y el plazo de la cadena Free, presupuesto separado dentro del existente y progreso de push/calendario. Medir CPU, cola y consultas; no afirmar suficiencia por cantidad de consultorios. |
 
+### 4.8 Provisión por consultorio — ZH02, ZH13, UI05, UI06, OP05
+
+Decisión posterior [12.21/12.22](propuesta-senas-avisos-natalia.md#etapa-e-decisiones-iniciales): un subdominio de Cita Suite por consultorio, envíos activos por defecto y acciones contextuales. Estos detalles amplían las comprobaciones de esos casos existentes, sin convertir el registro administrativo de Zoho en una integración funcional aprobada.
+
+- El subdominio debe ser válido, único y vinculado al consultorio correcto; reservar app/landing/avisos y otros nombres de infraestructura. No derivarlo de un dato personal ni permitir suplantar el de otro consultorio.
+- Verificar dominio/From realmente en Zoho y asociarlo al agente correcto. El dominio compartido existente no implica que otro subdominio esté verificado; el nombre visible no sustituye la verificación.
+- Provisión repetible ante fallas parciales, consultando antes de crear/alterar. Escribir sólo los registros DNS exactos del emisor, sin sobrescribir app/landing/Auth o eliminar registros ajenos. Un cambio de nombre/slug del consultorio no destruye por reflejo su dominio de envío.
+- Preferencia de envíos habilitada por defecto separada de preparación efectiva. Configuración incompleta/pendiente/fallida visible, sin remitentes/contactos inventados, sin envíos falsamente exitosos ni compras/recargas automáticas.
+- Reply-To y pie corresponden al contacto real del consultorio; un subdominio de emisión no crea una casilla que reciba respuestas. No compartir destinatarios, bajas, claves de gestión ni estados entre consultorios.
+- La selección de acciones usa el estado actual y propósito del mensaje, además de preferencias/permisos/tiempo. Comprobante de turno vigente: acciones pertinentes; comprobante de cancelación: ninguna de Cancelar/Reprogramar. No ofrecer acciones por conservar botones configurados cuando el estado ya no las admite. El enlace antiguo consulta el estado actual.
+
 ## 5. Correcciones a la propuesta conversada y límites de prueba
 
 - **Se conserva el enfoque**, pero no basta con conectar dos botones al cambio de estado anterior. C03–C08 exigen nuevas operaciones e historia.
@@ -216,15 +228,15 @@ Cada identificador exige una prueba o comprobación registrada durante la implem
 - **Correos ya aceptados y calendarios externos** tienen límites reales de recuperación. La base puede ser atómica; no hay una transacción común con Zoho, Gmail y Google. No prometer retractación ni recepción exacta a una hora.
 - **Cancelación y devolución:** la política del consultorio sobre devolución sigue pendiente. E registra hechos y no mueve dinero. La nueva regla de pérdida sólo cubre la reprogramación voluntaria informada.
 
-## 6. Orden de ejecución cuando Juan indique empezar
+## 6. Orden de ejecución de E (autorizado en 12.20; decisiones iniciales en preparación)
 
-1. **E0 — ya hecho en este paso:** definición, lectura estática, registro de decisiones y revisión documental. No configuración, implementación ni publicación.
+1. **E0 — definición terminada; preparación de ejecución en curso:** revisión documental, conexiones locales verificadas, autorización 12.20, decisiones iniciales Q01/Q02 y registro de continuidad. Las conexiones administrativas no acreditan integración de la app ni pruebas funcionales.
 2. **E1 — contratos y transacciones:** pruebas que fallen primero para revisión semántica, identidad de operación, historial de señas, destino de importes y cola de eventos; migraciones aditivas, permisos, exposición API y tipos. Conservar la proyección uno a uno y las garantías de A/B/C.
 3. **E2 — autogestión:** disponibilidad compartida, pantallas de confirmación, movimiento autónomo, tratamiento de pedidos antiguos, revocación de gestión y actualización de calendario. Probar cada carrera en ambos órdenes.
 4. **E3 — configuración y email obligatorio:** política por consultorio, aviso de recepción para ficha nueva/existente, preferencias/destinatarios y condiciones antes de reservar/cambiar. Plantillas con identidad del consultorio y las cuatro combinaciones de botones.
 5. **E4 — Zoho:** comprobar cuenta existente, dominio/remitente/región, límites y vencimiento reales; custodiar credenciales fuera del chat/repositorio; preparar agente/clave/webhook firmados y envío HTTPS con conciliación. El KYC pendiente no obliga a esperar para preparar y probar lo permitido por la cuenta inicial; no comprar créditos por Juan.
 6. **E5 — comprobación:** unidades/SQL/carreras/paquete/navegador en secuencia y con recursos apropiados; adversarias de cada fila, presupuesto de tareas, recibos de Zoho y recepción/uso de enlaces desde los buzones acordados. Anchos 320/390/768/1280/1600, claro/oscuro, accesibilidad y clientes de email. No atribuir al sandbox entrega real.
-7. **E6 — publicación:** sólo tras la instrucción de inicio y los controles pertinentes al cambio; registrar versión exacta, migraciones, estado de interruptores/colas, recuperación compatible y pruebas del destino. La autorización productiva general persiste, pero no adelantar esta fase durante la revisión documental que Juan pidió terminar primero.
+7. **E6 — publicación:** autorizada por 12.20, con los controles pertinentes al cambio; registrar versión exacta, migraciones, estado de interruptores/colas, recuperación compatible y pruebas del destino. La revisión documental previa terminó; no pedir otra instrucción de inicio ni confundir esta autorización con publicación ya realizada.
 
 Las pruebas pesadas son secuenciales y se reutiliza evidencia aplicable. No renovar copias ni repetir entornos por rutina; sí comprobar específicamente recuperación, integridad de dinero, permisos y ejecución de colas nuevas. No modificar la configuración real de Natalia ni activar señas/cancelación automática con datos comerciales faltantes.
 
@@ -249,4 +261,4 @@ Las pruebas pesadas son secuenciales y se reutiliza evidencia aplicable. No reno
 
 ## 9. Punto de continuación
 
-Conexión administrativa local de Zoho completada por instrucción posterior de Juan, con persistencia y renovación comprobadas: [guía](../architecture/zoho-cpaas-terminal.md). Esperar la instrucción de inicio para las funciones de E1–E4 y la integración de la app. KYC y pago posteriores son de Juan. Al retomar: comprobar sincronización, leer plan 12.18, este documento, registro, traspaso y pendientes. La configuración de la integración y los nuevos comportamientos **no están desplegados ni comprobados de punta a punta**.
+Conexión administrativa local de Zoho completada por instrucción posterior de Juan, con persistencia y renovación comprobadas: [guía](../architecture/zoho-cpaas-terminal.md). La instrucción posterior [12.20](propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada) autoriza E1–E6 completas, incluida producción. Q01/Q02 están resueltas; continuar autónomamente según el [registro activo y su regla de continuidad](ejecucion-etapa-e-20261103.md), sin otra espera de autorización. KYC y pago posteriores son de Juan. Al retomar: comprobar sincronización, leer plan 12.18, este documento, registro, traspaso y pendientes. La configuración de la integración y los nuevos comportamientos **no están desplegados ni comprobados de punta a punta**.

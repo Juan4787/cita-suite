@@ -2,7 +2,7 @@
 
 **Este es el registro único de qué historia y qué cambios están vigentes.** Se actualiza en el mismo paso de trabajo que cambia cualquiera de estos datos, nunca después. Eso incluye publicar, cambiar de rama, integrar, o dejar código distinto de producción. `node scripts/check-repo-sync.mjs`, desde la raíz, lo compara con Git, con GitHub y con la revisión que sirve producción, y falla ante cualquier diferencia.
 
-Última actualización: 3 de noviembre de 2026, conexión local persistente de Zoho por terminal. Producción y código servido sin cambios.
+Última actualización: 3 de noviembre de 2026, autorización de ejecución íntegra de E y regla de continuidad. Decisiones iniciales resueltas; E1 en preparación; producción y código servido sin cambios.
 
 ## Datos verificables
 
@@ -18,13 +18,15 @@ produccion_repositorio: github-secundaria:Juan4787/cita-suite-verificacion.git
 
 ## Actualización documental de E — 2 de noviembre
 
-Se revisó E contra el código de main 45ad4dad3259386b445d3306ca66bb16bf51f285 y se incorporó al [plan 12.18](plans/propuesta-senas-avisos-natalia.md#etapa-e-vigente) su [especificación](plans/etapa-e-correo-autogestion.md), con Zoho y autogestión. Sólo documentación: no cambia el código distinto de producción listado abajo, la revisión servida ni su recuperación. El 3 de noviembre Juan indicó conectar Zoho desde la terminal y guardar el acceso para reinicios: [plan 12.19](plans/propuesta-senas-avisos-natalia.md#zoho-terminal-vigente) y [guía de operación](architecture/zoho-cpaas-terminal.md). OAuth local, consultas y renovación comprobados; herramienta guardada en Git y credenciales privadas persistentes fuera del repositorio. La integración de la app y las funciones de E siguen pendientes de inicio. D permanece en pausa.
+Se revisó E contra el código de main 45ad4dad3259386b445d3306ca66bb16bf51f285 y se incorporó al [plan 12.18](plans/propuesta-senas-avisos-natalia.md#etapa-e-vigente) su [especificación](plans/etapa-e-correo-autogestion.md), con Zoho y autogestión. Sólo documentación: no cambia el código distinto de producción listado abajo, la revisión servida ni su recuperación. El 3 de noviembre Juan indicó conectar Zoho desde la terminal y guardar el acceso para reinicios: [plan 12.19](plans/propuesta-senas-avisos-natalia.md#zoho-terminal-vigente) y [guía de operación](architecture/zoho-cpaas-terminal.md). OAuth local, consultas y renovación comprobados; herramienta guardada en Git y credenciales privadas persistentes fuera del repositorio. Juan autorizó después implementar/auditar/probar/publicar E íntegra: [plan 12.20](plans/propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada). El [registro activo](plans/ejecucion-etapa-e-20261103.md) contiene continuidad y los 97 casos; decisiones iniciales resueltas (subdominio por consultorio, correo activo por defecto y acciones contextuales), contrato de contexto E1 implementado y probado localmente, todavía sin integrar a rutas/envíos y sin otra espera de autorización. D permanece en pausa.
 
 ## Código que difiere de producción
 
 El chequeo compara esta lista con `git diff --name-status <produccion_revision> HEAD` sobre el código (`apps`, `packages`, `scripts`, `supabase` y los archivos de configuración de la raíz, sin `apps/web/output`). Tiene que coincidir exactamente.
 
 ```codigo-distinto-de-produccion
+A	apps/web/src/lib/scheduling/patient-action-context.test.ts
+A	apps/web/src/lib/scheduling/patient-action-context.ts
 A	scripts/check-repo-sync.mjs
 A	scripts/verify-production-auth-ux.mjs
 A	scripts/zoho-cpaas.py
@@ -33,6 +35,7 @@ M	supabase/templates/recovery.html
 
 | Archivo | Qué es | ¿Afecta a producción? |
 |---|---|---|
+| `apps/web/src/lib/scheduling/patient-action-context.ts` y su prueba | Contrato E1 de acciones/contexto para turno vigente y cancelación, todavía sin consumidores | No: desarrollo sin publicar |
 | `scripts/check-repo-sync.mjs` | Este chequeo | No: es una herramienta local |
 | `scripts/zoho-cpaas.py` | Administración local de Zoho por OAuth, con credenciales fuera de Git | No: no se despliega ni configura el correo de la app |
 | `scripts/verify-production-auth-ux.mjs` | Lectura de la pantalla de ingreso en producción, de otro trabajo (flujo manual `production-auth-ux.yml`) | No: no se despliega |

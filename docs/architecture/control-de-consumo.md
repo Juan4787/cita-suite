@@ -10,7 +10,7 @@
 
 Base aportada: 500 pacientes/mes × 3 mensajes = 1.500 mensajes/mes, más cambios, cancelaciones y pedidos. Dimensionar por turnos/destinatarios reales y picos, no sólo promedio ni pacientes únicos. Cupos iniciales, saldo, reinicio diario y vencimiento efectivos se leen en la cuenta al configurar. Créditos temporales no son disponibilidad indefinida; tampoco se afirma que 1.500 mensajes prueben insuficiencia de otro proveedor.
 
-Costos y alertas controlados, compras de Juan y sin auto-recarga. Esta excepción sólo cubre correo: no habilita Supabase Pro/Workers Paid para el primero, IP dedicada, WhatsApp/SMS/Voice ni compras del agente. Los límites del programador actual y el aislamiento por consultorio siguen siendo requisitos; preparación/configuración espera la próxima instrucción.
+Costos y alertas controlados, compras de Juan y sin auto-recarga. Esta excepción sólo cubre correo: no habilita Supabase Pro/Workers Paid para el primero, IP dedicada, WhatsApp/SMS/Voice ni compras del agente. Los límites del programador actual y el aislamiento por consultorio siguen siendo requisitos; ejecución de E autorizada después en [12.20](../plans/propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada), con [preparación y continuidad](../plans/ejecucion-etapa-e-20261103.md) en curso. No acredita consumo ni publicación nuevos.
 
 ## Decisión económica del usuario y aplicación
 

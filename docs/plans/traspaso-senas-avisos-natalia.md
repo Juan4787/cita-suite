@@ -4,11 +4,11 @@
 
 <a id="etapa-e-punto"></a>
 
-## Etapa E — definición lista y Zoho conectado por terminal, 3 de noviembre de 2026
+## Etapa E — ejecución íntegra autorizada, preparación del 3 de noviembre de 2026
 
 **Revisión cerrada el 3 de noviembre (hora argentina); definición conversada el 2.** Después Juan pidió conectar Zoho por terminal y guardar todo para no perder acceso al reiniciar: [12.19](propuesta-senas-avisos-natalia.md#zoho-terminal-vigente). Conexión OAuth local, consultas y renovación reales comprobadas. Herramienta versionada y credenciales persistentes privadas; [guía de operación](../architecture/zoho-cpaas-terminal.md).
 
-**Al retomar:** `python3 scripts/zoho-cpaas.py status` y `python3 scripts/zoho-cpaas.py agents`. No necesita terminal abierta; renueva al vencer usando el refresh token guardado. No imprimir el archivo de credenciales ni volver a pedirlas si funcionan. **Siguiente funcional:** esperar la instrucción de Juan para implementar E e integrar el correo de la app. No hubo nuevas migraciones, envíos ni publicación.
+**Al retomar:** `python3 scripts/zoho-cpaas.py status` y `python3 scripts/zoho-cpaas.py agents`. No necesita terminal abierta; renueva al vencer usando el refresh token guardado. No imprimir el archivo de credenciales ni volver a pedirlas si funcionan. **Instrucción posterior:** Juan autorizó E completa, pruebas y publicación en [12.20](propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada). Q01/Q02 resueltas: subdominio por consultorio, envíos activos por defecto y botones contextuales; continuar E1–E6 autónomamente. Contrato contextual E1 local 44/44 y cuatro mutaciones detectadas, todavía sin integración. Punto exacto, evidencia y regla obligatoria ante compactaciones en el [registro activo de E](ejecucion-etapa-e-20261103.md). No hubo nuevas migraciones, envíos ni publicación.
 
 - Leer el [plan 12.18](propuesta-senas-avisos-natalia.md#etapa-e-vigente), la [especificación de E](etapa-e-correo-autogestion.md), el [registro de revisión](registro-senas-avisos-natalia.md#etapa-e-revision) y los [pendientes](pendientes-vigentes.md#etapa-e-pendientes).
 - **Cuenta Zoho ya existe:** Juan probó dos envíos, informó KYC pendiente y 100 emails gratuitos por día. Pagará al verificarse. No volver a preguntar por Resend ni exigir KYC para preparar las pruebas permitidas al iniciar; no asumir dominio, credenciales o recepción integral por ese informe.
@@ -16,7 +16,7 @@
 - **Cuidado al implementar:** conservar disponibilidad compartida y exclusión del propio turno; revisión semántica y transacción para horario/dinero/eventos; historia separada con proyección uno a uno; credencial revocable sin fugas de token legado; saldo limitado a información real y presupuesto de cron medido. La lectura no acredita pruebas de E.
 - **D sigue en pausa.** Los datos comerciales faltantes de Natalia y su configuración real no se inventan ni se activan por esta revisión.
 - **Producción:** V12b, sin cambios. Historial y recuperación actuales en [estado vigente](../ESTADO-VIGENTE.md) y [publicación/reversión](../architecture/publicacion-y-reversion.md), no en las versiones históricas de abajo.
-- La autorización productiva general persiste. El pedido posterior de conexión local está cumplido; la implementación funcional de E sigue pendiente de la instrucción de inicio. No solicitar otro permiso para reutilizar el acceso local ya encargado y guardado.
+- La autorización de ejecución y producción de E es expresa y vigente; no solicitar otra. Q01/Q02 ya están resueltas en 12.21/12.22; no hay otra espera de inicio. Los cierres se sostienen por evidencia por caso y revisión, no por un verde aislado.
 
 ## Historia — ayuda con duraciones desde el 1 de noviembre (V11, plan 12.17)
 
@@ -253,7 +253,7 @@ Las reglas de HEAD/índice y las pausas siguientes no se aplican como instruccio
 
 ## Pendientes históricos de otros al 30 de octubre
 
-No usar esta lista histórica para volver a pedir cuenta/proveedor. La lista actual es pendientes vigentes, sección 3; Zoho ya tiene conexión administrativa local; la implementación funcional de E espera instrucción para empezar.
+No usar esta lista histórica para volver a pedir cuenta/proveedor. La lista actual es pendientes vigentes, sección 3; Zoho ya tiene conexión administrativa local y E tiene ejecución autorizada; seguir el registro activo del 3 de noviembre, no estas pausas históricas.
 
 - **De Natalia:** las preguntas de la sección 5 de su información (documento privado `docs/clientes/natalia-frutos/informacion-20261029.md`, sólo en la computadora de trabajo).
 - **De Juan:**

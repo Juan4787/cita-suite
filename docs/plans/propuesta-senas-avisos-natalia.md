@@ -1,6 +1,6 @@
 # Propuesta: señas, avisos por WhatsApp y horarios liberados para el consultorio de Natalia Frutos
 
-**Estado:** **aprobada íntegramente por Juan el 29 de octubre de 2026**, con la revisión 2. Es la fuente de verdad de la campaña. **Actualización vigente del 3 de noviembre:** E conserva su definición revisada en [12.18](#etapa-e-vigente) y su [especificación](etapa-e-correo-autogestion.md). Juan pidió conectar Zoho por terminal y conservar el acceso tras reinicios: [12.19](#zoho-terminal-vigente), conexión local comprobada. La integración de la app y las funciones de E siguen pendientes de inicio; D sigue en pausa. Las pausas y Resend anteriores son historia en lo que estos ajustes reemplazan.
+**Estado:** **aprobada íntegramente por Juan el 29 de octubre de 2026**, con la revisión 2. Es la fuente de verdad de la campaña. **Actualización vigente del 3 de noviembre:** E conserva su definición revisada en [12.18](#etapa-e-vigente) y su [especificación](etapa-e-correo-autogestion.md). Juan pidió conectar Zoho por terminal y conservar el acceso tras reinicios: [12.19](#zoho-terminal-vigente), conexión local comprobada. **E quedó autorizada íntegramente para implementación, auditoría, pruebas y publicación el 3 de noviembre, en [12.20](#ejecucion-e-autorizada).** Decisiones iniciales resueltas en 12.21/12.22 y E1 en preparación; [registro de ejecución](ejecucion-etapa-e-20261103.md). D sigue en pausa. Las pausas y Resend anteriores son historia en lo que estos ajustes reemplazan.
 - La aprobación literal y los ajustes posteriores están en la sección 12, que sólo crece hacia el final.
 - El texto aprobado está guardado tal cual en `.verification/senas-avisos-20261029/plan-aprobado-20261029.md`, con SHA-256 `24abe324…4d3c43`.
 - Después de la aprobación cambiaron sólo esta línea de estado y la sección 12; el registro deja la comprobación.
@@ -1238,3 +1238,53 @@ Instrucciones literales de Juan, posteriores a la revisión:
 **Resultado:** Self Client OAuth, credenciales recibidas en ventana local sin pasar por chat/Git, refresh token guardado fuera del repositorio. Se comprobaron agentes, dominios, registros de email y renovación real con lectura posterior. La herramienta sin secretos queda versionada; los tokens y respuestas completas permanecen privados. No requiere un proceso permanente para sobrevivir a un reinicio. Guía de custodia, comandos, evidencia, límites y revocación en [Zoho por terminal](../architecture/zoho-cpaas-terminal.md).
 
 Esto acredita acceso a las APIs consultadas y renovación OAuth, no entrega de nuevos mensajes, integración de Cita Suite, botones, webhooks, KYC o facturación. La definición y aceptación funcionales de 12.18 permanecen íntegras.
+
+<a id="ejecucion-e-autorizada"></a>
+
+### 12.20 Ejecución íntegra de E, autonomía y continuidad (3 de noviembre)
+
+Pedido literal posterior de Juan:
+
+> Bueno, ya esta todo, el plan, con los edge case y las conexiones listas. empeza con todo lo que acordamos, establece una regla para no perder informacion ante compataciones, actua con el rigor mas extremo posible, no dejes ni una sola inconsistancia, no tomes decisiones a la ligera sin verificar de forma exhaustiva y  no supongas que un test verde implicca necesariamente ausencia de errores, documenta todo lo que hagas, no dejes documentacion contradictoria, tenes autorizacion para subir y probar produccion pero respeta la regla de no dejar contradicciones (hay una regla documentada revisa todo). Avanza, audita y testea a fondo que todo haya quedado completado consistente y hecho de la mejor forma posible. Si tenes dudas, damelas ahora antes de empezar, una vez empieces avanza por tu cuenta, te doy autorizacion
+
+**Aplicación y precedencia:** autoriza E1–E6 completas: código, migraciones/configuración pertinentes, pruebas, auditorías y publicación en producción. Sustituye la espera de 12.18.10, la limitación de 12.19 a conectar Zoho y las entradas activas que esperaban una instrucción de inicio. No se solicita otra autorización de producción. D permanece en pausa; no autoriza compras, auto-recargas, cambiar SMTP de Auth, inventar condiciones comerciales de Natalia ni mensajes a terceros ajenos a las pruebas acordadas.
+
+**Antes de implementar:** se plantearon juntas Q01/Q02, sobre el remitente técnico compartido y los valores iniciales de botones/activación de correos. Se espera su respuesta, no otro permiso de implementación. Las definiciones no cuestionadas de 12.18 permanecen íntegras. Los datos comerciales faltantes siguen pendientes sin impedir desarrollar y verificar la función con fixtures propios.
+
+**Continuidad y rigor:** [registro activo de E](ejecucion-etapa-e-20261103.md), con regla obligatoria tras compactaciones, checkpoint y los 97 casos por evidencia. La [especificación](etapa-e-correo-autogestion.md) sigue siendo la definición funcional única. El registro histórico, traspaso, estado vigente, contratos, permisos, regresiones y guías de operación se actualizan en cada cambio pertinente, con historia fechada y precedencia explícita. No confundir preparación, simulación, CI, proveedor, recepción real y publicación; una prueba verde no sustituye la búsqueda adversaria de inconsistencias ni el contraste posterior de datos.
+
+**Autonomía posterior:** una vez resueltas las decisiones iniciales, continuar por cuenta propia hasta completar E y sus comprobaciones. Registrar decisiones técnicas justificadas, fallas, correcciones, evidencia y dependencias externas; no detener por una nueva pregunta de permiso ni declarar completado lo que siga sin demostrar.
+
+
+<a id="etapa-e-decisiones-iniciales"></a>
+
+### 12.21 Respuestas iniciales: subdominio por consultorio y envíos activos (3 de noviembre)
+
+Respuesta literal de Juan sobre el remitente:
+
+> Subdominio de Cita Suite
+> odontologia-rojas.cita-suite.com.ar
+> Sin comprar otro dominio
+> Es la opción más económica y sencilla de implementar.
+
+Sobre botones y envíos:
+
+> Que esten activos por defecto cuando sea razonable que esten, si acabo de cancelar, que la confirmacion no diga de nuevo cancelar, siempre en contexto y que los envios de emails estan activos por defecto con opcion de desactivar. decime que opinas de ambas cosas, si estas de acuerdo continua
+
+**Aplicación:** se acepta. Cada consultorio usará un subdominio de `cita-suite.com.ar`, sin comprar otro dominio, por ejemplo `turnos@odontologia-rojas.cita-suite.com.ar`. Ese ejemplo no es un consultorio real por crear. El nombre/logo/contenido son del consultorio y Reply-To dirige a su contacto real. Verificar cada subdominio en Zoho; el dominio `avisos.cita-suite.com.ar` ya comprobado no verifica automáticamente los demás. El alta DNS/proveedor debe ser repetible, acotada a sus registros y sin alterar app/landing/Auth.
+
+Los envíos están **habilitados por defecto**, con opción de desactivarlos. Se distinguen preferencia habilitada y preparación real del emisor: si faltan verificación/contacto/datos exigidos, mostrar pendiente y no simular un envío ni usar datos inventados. No exigir una activación manual adicional como valor inicial una vez que estén dadas las condiciones. Email requerido por defecto conserva su regla independiente.
+
+Los botones están habilitados por defecto **cuando el contexto permite la acción**, y son configurables por separado. Sustituye la propuesta inicial de apagar envíos hasta activación manual, que Juan no eligió. Q01/Q02 quedan resueltas; continuar por cuenta propia bajo 12.20, sin otra pregunta de inicio.
+
+### 12.22 Coherencia contextual: comprobante de turno y de cancelación (3 de noviembre)
+
+Correcciones literales posteriores de Juan:
+
+> Especial atencion a eso, porque me planteaste esos 2 botones por defecto algo que ya definimos pero tambien definimos que todo deben adecuarse al contexto y ser coherente. No solo nos mostrar cancelar en el comprobate, tampoco mostrar reprogramar, entre tantos otros casos. Asegurate que todo quede coherente, consistente, sin error de logica de ni de UX
+
+> Aclaro algo, en el comprobante del turno si puede aparecer cancelar o reprogramar, me referia  a que no deberia aparecer cancelar ni reprogramar en el comprobante de la cancelacion del turno, repito: CONTEXTO y COHERENCIA
+
+**Aplicación inequívoca:** un comprobante de turno vigente puede mostrar CANCELAR y REPROGRAMAR, según las preferencias y permisos efectivos. **Un comprobante de cancelación no muestra ninguno de los dos.** Sólo puede ofrecer reservar un turno nuevo si hay reserva pública disponible, además de contacto pertinente. No reprograma ni resucita el cancelado. Turnos iniciados/pasados tampoco muestran esas acciones; los enlaces antiguos resuelven el estado actual. La preferencia de mostrar un botón no autoriza una acción que el contexto impide.
+
+Esta es una reafirmación de AC05/AC06/OP03 y de la decisión contextual original, no un cambio para quitar botones de todos los comprobantes. Verificar correos, comprobantes, páginas de gestión, alternativas cruzadas, estado de pago y acciones finales en conjunto, incluidos cambios de estado concurrentes. Textos e información deben coincidir con el resultado persistente, sin anunciar pagos, confirmaciones, envíos o disponibilidad no demostrados.

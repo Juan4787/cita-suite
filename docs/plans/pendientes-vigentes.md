@@ -2,7 +2,7 @@
 
 **Para qué existe:** Juan pidió el 31 de octubre de 2026 que no se pierda nada de lo que queda pendiente (plan de señas y avisos, sección 12.15). Esta es la lista única. Cada punto remite a su documento de origen, que conserva el detalle. Al cerrar un punto, se lo marca como hecho acá con la fecha y la evidencia, y se actualiza su documento de origen.
 
-**Última revisión:** 3 de noviembre de 2026, cierre documental de la definición de E conversada el 2 de noviembre y registrada en plan 12.18. Las otras entradas conservan sus fechas y evidencias; esta revisión no acredita ejecución de E.
+**Última revisión:** 3 de noviembre de 2026, autorización íntegra de E (plan 12.20), preparación y regla de continuidad. Las otras entradas conservan sus fechas y evidencias; E todavía no tiene implementación ni pruebas funcionales aprobadas.
 
 ## 1. Lo que sigue para la entrega a Natalia
 
@@ -43,7 +43,7 @@ Fuente: `docs/clientes/natalia-frutos/informacion-20261029.md`, secciones 4 y 5,
 
 <a id="etapa-e-pendientes"></a>
 
-2. **E, correo y autogestión: definición revisada y conexión administrativa local de Zoho comprobada; integración de la app e implementación funcional pendientes de inicio.**
+2. **E, correo y autogestión: ejecución completa autorizada, preparación en curso; Zoho y Gmail conectados.** [Registro activo y continuidad](ejecucion-etapa-e-20261103.md). Q01/Q02 resueltas; E1 en preparación; ningún comportamiento nuevo de E publicado.
    - Fuente: [plan 12.18](propuesta-senas-avisos-natalia.md#etapa-e-vigente) y [especificación completa](etapa-e-correo-autogestion.md). La revisión de código/documentación está hecha; ningún comportamiento nuevo de E está publicado.
    - **Ya hecho por Juan:** registro en Zoho y prueba de dos envíos. Informó KYC pendiente y 100 correos gratuitos diarios; pagará al completarlo. No falta crear cuenta Resend ni volver a crear Zoho.
    - **Al iniciar:** comprobar dominio/remitente/región, credenciales fuera de chat/git, cuota/saldo/vencimiento reales, configuración del emisor, webhooks y buzones autorizados. Sus dos mensajes no prueban integración ni recepción/acciones desde Cita Suite.
@@ -52,7 +52,7 @@ Fuente: `docs/clientes/natalia-frutos/informacion-20261029.md`, secciones 4 y 5,
    - **Economía:** aceptado gasto controlado de correo con un consultorio. KYC/compras de créditos a cargo de Juan, sin recarga automática ni cambios de infraestructura/Auth.
    - **Continúa pendiente de la clienta:** condiciones de devolución al cancelar y datos de la seña del punto 2.5. La pérdida acordada al reprogramar no define esas devoluciones.
    - **Conexión local terminada el 3 de noviembre:** Juan pidió acceso por terminal y conservarlo al reiniciar ([12.19](propuesta-senas-avisos-natalia.md#zoho-terminal-vigente)). OAuth, consultas y renovación comprobados; herramienta versionada y credenciales privadas persistentes. [Guía y comandos](../architecture/zoho-cpaas-terminal.md). No necesita una terminal abierta.
-   - **Ahora:** esperar su instrucción para implementar E e integrar el correo de la app; no volver a pedir cuenta/cliente/credenciales si el acceso guardado funciona.
+   - **Ahora:** aplicar las decisiones resueltas Q01/Q02 del [registro activo](ejecucion-etapa-e-20261103.md) y continuar E1–E6 por cuenta propia, con autorización de publicación/pruebas productivas [12.20](propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada). No pedir otra instrucción de inicio ni cuenta/cliente/credenciales si funcionan.
 
 ## 4. Lanzamiento y operación general
 
@@ -200,4 +200,4 @@ Fuente: `docs/clientes/natalia-frutos/informacion-20261029.md`, secciones 4 y 5,
 
 ## 7. Trabajo en curso
 
-La revisión documental de E y la conexión administrativa local de Zoho quedaron terminadas; credenciales/renovación persistentes guardadas. La implementación funcional y la integración de la app esperan la instrucción de inicio de Juan (sección 3). El modo claro sigue publicado; la insignia del botón de cuenta conserva su pendiente de la sección 4.
+La revisión documental de E y la conexión administrativa local de Zoho quedaron terminadas; credenciales/renovación persistentes guardadas. Juan autorizó después la ejecución completa, pruebas y publicación de E; preparación y Q01/Q02 en el [registro activo](ejecucion-etapa-e-20261103.md), sin volver a pedir inicio (sección 3). El modo claro sigue publicado; la insignia del botón de cuenta conserva su pendiente de la sección 4.
