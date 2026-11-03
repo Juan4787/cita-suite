@@ -39,6 +39,7 @@ M	supabase/templates/recovery.html
 A	supabase/tests/appointment_management_capabilities.sql
 A	supabase/tests/appointment_management_foundation.sql
 A	supabase/tests/appointment_reschedule_financial_terms.sql
+A	supabase/tests/patient_appointment_management_commands.sql
 A	supabase/tests/migrations/20261103010000_appointment_management_foundation.sql.after.sql
 A	supabase/tests/migrations/20261103010000_appointment_management_foundation.sql.before.sql
 M	supabase/tests/run_deposit_expiry_concurrency.sh
@@ -56,6 +57,7 @@ M	supabase/tests/run_deposit_expiry_concurrency.sh
 | Migración `20261103020000` y `supabase/tests/appointment_management_capabilities.sql` | Enlaces revocables y recibo idempotente; comprobados en CI SQL `41600939474` | No: no se aplicó ni se integró a rutas; sólo CI descartable |
 | `packages/shared/src/database.types.ts` | Tipos oficiales, dos generaciones iguales en CI y digest de las migraciones locales cotejado antes de importar | No: todavía sin publicar |
 | Migración `20261103030000` y `supabase/tests/appointment_reschedule_financial_terms.sql` | Resumen económico de reprogramación sólo lectura, 19/19 y suite SQL aprobados en CI `41605022654`; sin consumidores | No: sólo CI descartable, sin aplicar ni conectar a rutas |
+| `supabase/tests/patient_appointment_management_commands.sql` | Contrato de cambios reales, 24 grupos de comprobación; pendiente de roja e implementación | No: sólo CI descartable |
 | `supabase/templates/recovery.html` | Plantilla del correo de recuperación, modificada en otro trabajo | No se despliega con la app: se carga aparte en Supabase. **No está verificado** si la versión de Supabase coincide con este archivo |
 
 ## Historia
