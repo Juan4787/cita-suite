@@ -27,6 +27,10 @@ select extensions.is((select sum(amount) from public.appointment_deposit_require
 select * from extensions.finish();
 rollback;
 begin;
+-- The existing appointments -> patients FK is RESTRICT. Remove this owned
+-- fixture's appointments before its practice/patients, as older upgrade fixtures
+-- do; never weaken a money/history FK just to make test cleanup succeed.
+delete from public.appointments where business_id=(select business_id from private.e1_upgrade_fixture);
 delete from public.businesses where id=(select business_id from private.e1_upgrade_fixture);
 delete from auth.users where id=(select owner_id from private.e1_upgrade_fixture);
 drop table private.e1_upgrade_fixture;
