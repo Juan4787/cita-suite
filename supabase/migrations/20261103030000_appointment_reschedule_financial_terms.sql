@@ -62,12 +62,12 @@ begin
  if v_has_current and (r.status,r.amount,r.patient_id) is distinct from (d.status,d.amount,a.patient_id) then
   raise exception 'APPOINTMENT_FINANCIAL_STATE_INVALID'; end if;
  select * into basis from public.appointment_deposit_requirements
- where business_id=p_business_id and appointment_id=p_appointment_id order by ordinal desc limit 1;
+ where business_id=p_business_id and appointment_id=p_appointment_id and patient_id=a.patient_id order by ordinal desc limit 1;
  v_has_basis:=found;
  if v_has_current then basis:=r; end if;
  if v_has_basis then v_base:=basis.base_amount; end if;
  select coalesce(sum(amount),0) into v_credit from public.appointment_deposit_requirements
- where business_id=p_business_id and appointment_id=p_appointment_id and status='paid' and allocation='applied';
+ where business_id=p_business_id and appointment_id=p_appointment_id and patient_id=a.patient_id and status='paid' and allocation='applied';
  select * into dp from public.deposit_policies where business_id=p_business_id;
  select enabled into v_enabled from private.deposit_automation where singleton;
  select timezone into v_timezone from public.businesses where id=p_business_id;
@@ -77,7 +77,7 @@ begin
  -- without inventing a hypothetical target or duplicating the financial policy.
  if v_has_basis then
   if v_enabled is not true then v_reason:='deposit_automation_paused';
-  elsif exists(select 1 from public.appointment_deposit_requirements where business_id=p_business_id and appointment_id=p_appointment_id
+  elsif exists(select 1 from public.appointment_deposit_requirements where business_id=p_business_id and appointment_id=p_appointment_id and patient_id=a.patient_id
    and status='paid' and allocation='unresolved') then v_reason:='payment_unresolved';
   elsif v_has_current and d.status='pending' and dp.enabled is not true then v_reason:='policy_change_pending';
   end if;

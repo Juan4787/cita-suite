@@ -216,6 +216,24 @@ begin
   and exists(select 1 from public.appointment_deposit_requirements where business_id=old.business_id and appointment_id=old.id and status='paid') then
   raise exception 'APPOINTMENT_DEPOSIT_IDENTITY_CHANGE';
  end if;
+ if new.patient_id is distinct from old.patient_id then
+  -- The controlled identity-repair RPC already audits the actor and detaches
+  -- the former patient's calendar/push. An unpaid/waived requirement belongs
+  -- to that former patient, as does acceptance of its economic conditions.
+  -- Preserve zero-money history, close its current projection, and never
+  -- describe closing it as a payment, waiver or transfer to the replacement.
+  for r in select * from public.appointment_deposit_requirements
+   where business_id=old.business_id and appointment_id=old.id and is_current order by ordinal for update loop
+   update public.appointment_deposit_requirements set is_current=false,updated_at=clock_timestamp() where id=r.id;
+   insert into public.appointment_deposit_events(business_id,appointment_id,requirement_id,event_type,actor_id,metadata)
+   values(r.business_id,r.appointment_id,r.id,'requirement_updated',new.updated_by_user_id,
+    jsonb_build_object('reason','patient_reassigned','closed',true));
+  end loop;
+  delete from public.appointment_deposits where business_id=old.business_id and appointment_id=old.id;
+  update public.appointment_management_states set terms_acknowledged=false,require_deposit_on_reschedule=false,
+   previous_deposit_disposition='credit',accepted_at=null,accepted_policy_revision=null,terms_snapshot='{}'::jsonb
+  where business_id=old.business_id and appointment_id=old.id;
+ end if;
  if (new.business_id,new.patient_id,new.service_id,new.professional_id,new.starts_at,new.ends_at,new.blocking_starts_at,
   new.blocking_ends_at,new.status,new.price_quote_snapshot,new.duration_minutes_snapshot,new.ignore_break,
   new.break_minutes_snapshot,new.buffer_before_minutes_snapshot,new.buffer_after_minutes_snapshot)
