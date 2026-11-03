@@ -4,6 +4,13 @@ import { parseAvailabilityCatalog, parseAvailabilityWindow } from './contracts';
 import { id, scope, catalog, expectedWindow, window } from './__fixtures__/availability';
 
 describe('availability JSON boundaries', () => {
+	it('keeps the compatible reader but never manufactures or accepts an invalid mutation version', () => {
+		expect(parseAvailabilityCatalog(catalog(), scope).availability_revision).toBeUndefined();
+		expect(parseAvailabilityCatalog({ ...catalog(), availability_revision: 71 }, scope).availability_revision).toBe(71);
+		for (const version of [null, '71', 0, -1, 1.5, Number.MAX_SAFE_INTEGER + 1]) {
+			expect(() => parseAvailabilityCatalog({ ...catalog(), availability_revision: version }, scope)).toThrow();
+		}
+	});
 	it('preserves an explicitly restricted catalog rule after its last service is removed', () => {
 		const parsed = parseAvailabilityCatalog(catalog(), scope);
 		expect(parsed.rules[0]).toMatchObject({ service_scope: 'restricted', allowed_service_ids: [], break_minutes: 15 });

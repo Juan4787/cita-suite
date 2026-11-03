@@ -60,10 +60,8 @@ create trigger zzzz_appointment_email_event after insert or update on public.app
 -- do NOT invalidate it. Mutations use the business's broader booking revision,
 -- which already covers dated exceptions and their restricted service mappings.
 -- Expose that version from the SAME catalog snapshot; never look it up after
--- calculating a slot. Modality changes must participate in that broader version.
-create trigger integration_management_availability_revision after insert or update or delete on public.booking_integrations
- for each row execute function private.advance_booking_availability_revision();
-
+-- calculating a slot. Integrations retain their own existing revision, checked
+-- separately by the command without altering public booking revision semantics.
 create or replace function public.get_availability_catalog(p_business_id uuid,p_public boolean)
 returns jsonb language plpgsql stable security definer set search_path=pg_catalog,pg_temp as $$
 declare business public.businesses%rowtype; revision bigint; result jsonb;
@@ -102,7 +100,7 @@ end $$;
 
 create function public.apply_patient_appointment_management(p_token text,p_legacy boolean,p_operation_id uuid,
  p_expected_revision text,p_action text,p_starts_at timestamptz default null,p_availability_revision bigint default null,
- p_financial_terms jsonb default null) returns jsonb
+ p_financial_terms jsonb default null,p_integration_revision bigint default null) returns jsonb
 language plpgsql security definer set search_path=pg_catalog,pg_temp as $$
 declare access jsonb; locked_access jsonb; a public.appointments; before_a public.appointments;
  b public.businesses; s public.services; context public.appointment_booking_contexts; integration public.booking_integrations;
@@ -114,7 +112,7 @@ declare access jsonb; locked_access jsonb; a public.appointments; before_a publi
 begin
  if p_legacy is null or p_operation_id is null or not coalesce(p_expected_revision ~ '^[0-9a-f]{64}$',false)
   or not coalesce(p_action in ('cancel','reschedule','confirm'),false) then raise exception 'APPOINTMENT_MANAGEMENT_CHANGED'; end if;
- if p_action<>'reschedule' and (p_starts_at is not null or p_availability_revision is not null or p_financial_terms is not null) then
+ if p_action<>'reschedule' and (p_starts_at is not null or p_availability_revision is not null or p_financial_terms is not null or p_integration_revision is not null) then
   raise exception 'APPOINTMENT_MANAGEMENT_CHANGED'; end if;
  if p_action='reschedule' and (p_starts_at is null or not isfinite(p_starts_at)) then raise exception 'APPOINTMENT_RESCHEDULE_TIME_INVALID'; end if;
  if p_financial_terms is not null and (jsonb_typeof(p_financial_terms)<>'object' or octet_length(p_financial_terms::text)>8192) then
@@ -146,7 +144,7 @@ begin
   raise exception 'APPOINTMENT_LINK_UNAVAILABLE'; end if;
  v_fingerprint:=encode(extensions.digest(jsonb_build_object('action',p_action,'appointment_id',a.id,'patient_id',a.patient_id,
   'generation',locked_access->'generation','expected_revision',p_expected_revision,'starts_at',extract(epoch from p_starts_at),
-  'availability_revision',p_availability_revision,'financial_terms',p_financial_terms)::text,'sha256'),'hex');
+  'availability_revision',p_availability_revision,'integration_revision',p_integration_revision,'financial_terms',p_financial_terms)::text,'sha256'),'hex');
  select * into prior from private.appointment_management_operations where business_id=v_business and operation_id=p_operation_id;
  if found then
   if prior.appointment_id is distinct from a.id or prior.request_fingerprint is distinct from v_fingerprint
@@ -196,11 +194,18 @@ begin
     raise exception 'APPOINTMENT_RESCHEDULE_UNAVAILABLE'; end if;
    select * into context from public.appointment_booking_contexts where business_id=v_business and appointment_id=a.id;
    if found then
-    select * into integration from public.booking_integrations where business_id=v_business and id=context.integration_id;
-    if not found or not integration.is_active or not (context.modality=any(integration.allowed_modalities))
+    -- Normal saves hold business -> integration. A privileged direct edit may
+    -- hold only the integration; NOWAIT fails safely instead of introducing an
+    -- inverse wait against an older integration -> business booking path.
+    begin
+     select * into integration from public.booking_integrations where business_id=v_business and id=context.integration_id for share nowait;
+    exception when lock_not_available then raise exception 'APPOINTMENT_AVAILABILITY_CHANGED'; end;
+    if integration.id is null or not integration.is_active or not (context.modality=any(integration.allowed_modalities))
      or (cardinality(integration.allowed_service_ids)>0 and not (a.service_id=any(integration.allowed_service_ids)))
      or (cardinality(integration.allowed_professional_ids)>0 and not (v_teams<@integration.allowed_professional_ids)) then
      raise exception 'APPOINTMENT_RESCHEDULE_UNAVAILABLE'; end if;
+    if p_integration_revision is distinct from integration.revision then raise exception 'APPOINTMENT_AVAILABILITY_CHANGED'; end if;
+   elsif p_integration_revision is not null then raise exception 'APPOINTMENT_AVAILABILITY_CHANGED';
    end if;
    v_ends_at:=p_starts_at+make_interval(mins=>s.duration_minutes);
    v_terms:=private.appointment_reschedule_financial_terms(v_business,a.id,p_starts_at,v_now);
@@ -288,7 +293,7 @@ begin
 end $$;
 
 revoke all on function private.record_appointment_email_event(),
- public.apply_patient_appointment_management(text,boolean,uuid,text,text,timestamptz,bigint,jsonb) from public,anon,authenticated,service_role;
-grant execute on function public.apply_patient_appointment_management(text,boolean,uuid,text,text,timestamptz,bigint,jsonb) to service_role;
+ public.apply_patient_appointment_management(text,boolean,uuid,text,text,timestamptz,bigint,jsonb,bigint) from public,anon,authenticated,service_role;
+grant execute on function public.apply_patient_appointment_management(text,boolean,uuid,text,text,timestamptz,bigint,jsonb,bigint) to service_role;
 notify pgrst,'reload schema';
 commit;

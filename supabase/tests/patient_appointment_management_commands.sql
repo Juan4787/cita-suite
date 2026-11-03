@@ -293,9 +293,9 @@ select extensions.pass('22. A second paid voluntary move consumes its own curren
 select extensions.ok((select count(*) from private.appointment_email_events where appointment_id=pg_temp.cid('many') and purpose='reschedule_receipt')=2
  and (select schedule_revision from public.appointment_management_states where appointment_id=pg_temp.cid('many'))=3,
  '23. Schedule versions track moves independently of payment/status changes');
-select extensions.ok(has_function_privilege('service_role','public.apply_patient_appointment_management(text,boolean,uuid,text,text,timestamptz,bigint,jsonb)','EXECUTE')
- and not has_function_privilege('anon','public.apply_patient_appointment_management(text,boolean,uuid,text,text,timestamptz,bigint,jsonb)','EXECUTE')
- and not has_function_privilege('authenticated','public.apply_patient_appointment_management(text,boolean,uuid,text,text,timestamptz,bigint,jsonb)','EXECUTE')
+select extensions.ok(has_function_privilege('service_role','public.apply_patient_appointment_management(text,boolean,uuid,text,text,timestamptz,bigint,jsonb,bigint)','EXECUTE')
+ and not has_function_privilege('anon','public.apply_patient_appointment_management(text,boolean,uuid,text,text,timestamptz,bigint,jsonb,bigint)','EXECUTE')
+ and not has_function_privilege('authenticated','public.apply_patient_appointment_management(text,boolean,uuid,text,text,timestamptz,bigint,jsonb,bigint)','EXECUTE')
  and not has_table_privilege('service_role','private.appointment_email_events','INSERT'),
  '24. Only the validated backend invokes patient commands; no direct event write or arbitrary patient actor');
 

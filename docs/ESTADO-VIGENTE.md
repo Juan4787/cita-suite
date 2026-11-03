@@ -25,6 +25,7 @@ Se revisó E contra el código de main 45ad4dad3259386b445d3306ca66bb16bf51f285 
 El chequeo compara esta lista con `git diff --name-status <produccion_revision> HEAD` sobre el código (`apps`, `packages`, `scripts`, `supabase` y los archivos de configuración de la raíz, sin `apps/web/output`). Tiene que coincidir exactamente.
 
 ```codigo-distinto-de-produccion
+M	apps/web/src/lib/availability/contracts.test.ts
 M	apps/web/src/lib/availability/contracts.ts
 A	apps/web/src/lib/scheduling/patient-action-context.test.ts
 A	apps/web/src/lib/scheduling/patient-action-context.ts
@@ -47,6 +48,7 @@ A	supabase/tests/migrations/20261103010000_appointment_management_foundation.sql
 A	supabase/tests/migrations/20261103010000_appointment_management_foundation.sql.before.sql
 A	supabase/tests/patient_appointment_management_commands.sql
 M	supabase/tests/run_deposit_expiry_concurrency.sh
+A	supabase/tests/run_patient_management_concurrency.sh
 ```
 
 | Archivo | Qué es | ¿Afecta a producción? |
@@ -63,6 +65,7 @@ M	supabase/tests/run_deposit_expiry_concurrency.sh
 | Migración `20261103030000` y `supabase/tests/appointment_reschedule_financial_terms.sql` | Resumen económico de reprogramación sólo lectura, 19/19 y suite SQL aprobados en CI `41605022654`; sin consumidores | No: sólo CI descartable, sin aplicar ni conectar a rutas |
 | Migración `20261103040000` y `patient_appointment_management_commands.sql` | Comandos del paciente/eventos atómicos, 29 grupos; roja comprobada, implementación inicial sin verificar | No: sólo CI descartable, interruptores apagados al instalar |
 | `availability.ts` y su prueba | Contrato y calculador compartido con revisiones de catálogo/reserva y duración de la misma lectura; contrato anterior de slots conservado, 19/19 locales junto con ventanas | No: todavía sin publicar |
+| `run_patient_management_concurrency.sh` | Diez carreras controladas del comando, todavía sin ejecutar; sólo loopback descartable | No: sólo CI |
 | `supabase/templates/recovery.html` | Plantilla del correo de recuperación, modificada en otro trabajo | No se despliega con la app: se carga aparte en Supabase. **No está verificado** si la versión de Supabase coincide con este archivo |
 
 ## Historia
