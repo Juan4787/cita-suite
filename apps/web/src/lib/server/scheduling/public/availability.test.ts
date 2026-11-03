@@ -6,6 +6,7 @@ import {
 	addMinutes,
 	calculateAvailabilitySlots,
 	getAvailabilitySlots,
+	getAvailabilitySelection,
 	overlaps,
 	zonedDateTimeToUtc
 } from '$lib/server/scheduling/public/availability';
@@ -52,6 +53,27 @@ beforeEach(() => { vi.useFakeTimers(); vi.setSystemTime(new Date('2026-06-20T12:
 afterEach(() => vi.useRealTimers());
 
 describe('availability core', () => {
+	it('transporta la revisión y duración del mismo catálogo que calculó los horarios, sin cambiar la API anterior', async () => {
+		const client = supabaseForAvailability({ professionalName: 'Dra. Uno', rules: [{
+			professional_id: '00000000-0000-4000-8000-000000000003', weekday: 1,
+			start_time: '09:00', end_time: '10:00', slot_interval_minutes: 30, is_active: true
+		}] });
+		const input = { business, serviceId: '00000000-0000-4000-8000-000000000002',
+			fromDate: '2026-06-22', toDate: '2026-06-22', publicOnly: true };
+		const selection = await getAvailabilitySelection(client, input);
+		expect(selection.configurationRevision).toBe(1);
+		expect(selection.durationMinutes).toBe(30);
+		expect(selection.slots.map(slot => slot.time)).toEqual(['09:00', '09:30']);
+		expect(await getAvailabilitySlots(client, input)).toEqual(selection.slots);
+	});
+
+	it('no inventa una revisión o duración cuando no puede consultar el catálogo público', async () => {
+		const client = supabaseForAvailability({ professionalName: 'Dra. Uno', rules: [] });
+		expect(await getAvailabilitySelection(client, {
+			business: { ...business, public_booking_enabled: false }, serviceId: '00000000-0000-4000-8000-000000000002',
+			fromDate: '2026-06-22', toDate: '2026-06-22', publicOnly: true
+		})).toEqual({ slots: [], configurationRevision: null, durationMinutes: null });
+	});
 	it('detecta solapamientos con rango semiabierto', () => {
 		const base = new Date('2026-05-13T10:00:00.000Z');
 		expect(overlaps(base, addMinutes(base, 60), addMinutes(base, 15), addMinutes(base, 45))).toBe(true);
