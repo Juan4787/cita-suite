@@ -5,8 +5,13 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import Panel from './PatientManagementPanel.svelte';
 import type { PatientManagementPanelData } from '$lib/scheduling/patient-management-page';
 import type { ComponentProps } from 'svelte';
+import { tick } from 'svelte';
+import type { SubmitFunction } from '@sveltejs/kit';
 const renderPanel = (props: ComponentProps<typeof Panel>) => render(Panel, { props });
-vi.mock('$app/forms', () => ({ enhance: () => ({ destroy() {} }) }));
+const enhancement = vi.hoisted(() => ({ submitters: new Map<HTMLFormElement, SubmitFunction>() }));
+vi.mock('$app/forms', () => ({ enhance: (node: HTMLFormElement, submit: SubmitFunction) => {
+ enhancement.submitters.set(node, submit); return { destroy() { enhancement.submitters.delete(node); } };
+} }));
 afterEach(cleanup);
 const context = (overrides: Partial<PatientManagementPanelData> = {}): PatientManagementPanelData => ({
  url: '/gestion/personal-token', revision: 'observed-revision', operationId: 'original-operation', mode: 'overview',
@@ -54,5 +59,21 @@ describe('contextual patient management panel', () => {
   expect(container.querySelector('input[name="operation_id"]')).toHaveValue('lost-operation');
   expect(container.querySelector('input[name="expected_revision"]')).toHaveValue('old-revision');
   expect(screen.queryByRole('link', { name: 'Cancelar turno' })).not.toBeInTheDocument();
+ });
+ it('keeps the original request on a browser-side network error before a server response can arrive', async () => {
+  const { container } = renderPanel({ context: context({ mode: 'cancel' }) });
+  const button = screen.getByRole('button', { name: 'Sí, cancelar turno' });
+  const form = button.closest('form')!; const action = new URL(form.action); const formData = new FormData(form);
+  const submit = enhancement.submitters.get(form)!;
+  const complete = await submit({ action, formData, formElement: form, controller: new AbortController(), cancel: vi.fn(), submitter: button });
+  if (!complete) throw new Error('Expected progressive form continuation');
+  const update = vi.fn();
+  await complete({ action, formData, formElement: form, update, result: { type: 'error', status: 500, error: new Error('network unavailable') } });
+  await tick();
+  expect(update).not.toHaveBeenCalled();
+  expect(screen.getByRole('button', { name: 'Volver a comprobar la misma acción' })).toBeVisible();
+  expect(container.querySelector('input[name="operation_id"]')).toHaveValue('original-operation');
+  expect(container.querySelector('input[name="expected_revision"]')).toHaveValue('observed-revision');
+  expect(screen.getByRole('alert')).not.toHaveTextContent(/network unavailable|no se guardó/i);
  });
 });

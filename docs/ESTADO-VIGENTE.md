@@ -37,6 +37,7 @@ A	apps/web/src/lib/components/appointments/PublicAppointmentPage.svelte
 A	apps/web/src/lib/scheduling/patient-action-context.test.ts
 A	apps/web/src/lib/scheduling/patient-action-context.ts
 A	apps/web/src/lib/scheduling/patient-management-page.ts
+A	apps/web/src/lib/scheduling/public-appointment.ts
 A	apps/web/src/lib/scheduling/reschedule-terms.test.ts
 A	apps/web/src/lib/scheduling/reschedule-terms.ts
 M	apps/web/src/lib/server/scheduling/public/availability.test.ts
@@ -101,7 +102,7 @@ A	supabase/tests/run_patient_management_view_concurrency.sh
 | `patient_appointment_management_recovery.sql` | Siete grupos del lookup de recibo .070, suite completa aprobada 41653421061 | No: sólo CI |
 | `patient_appointment_management_view.sql` | Lectura mínima con migración `20261103050000`, 16 grupos y lectura coherente comprobados en CI 41650084150 | No: sólo CI descartable |
 | `run_patient_management_view_concurrency.sh` | Carrera de lectura con modificación simultánea entre autorización/presentación aprobada en CI 41650084150 | No: sólo CI descartable |
-| Rutas `/turno`/`gestion`, hooks, componentes y flujos nuevos | Primera integración E2 con pantalla compartida, mutación antigua retirada; 84/84 dirigidos y panel 6/6, CI general/paquete/navegador pendientes | No: todavía sin publicar |
+| Rutas `/turno`/`gestion`, hooks, componentes y flujos nuevos | Primera integración E2 con pantalla compartida, mutación antigua retirada; 84/84 dirigidos y panel 7/7, fast inicial falló en tipado (corregido, nueva corrida pendiente); paquete/navegador pendientes | No: todavía sin publicar |
 | `apps/web/DESIGN.md` y superficie de gestión | Dirección de extensión/contexto, revisión visual pendiente | No: documentación de desarrollo |
 | `supabase/templates/recovery.html` | Plantilla del correo de recuperación, modificada en otro trabajo | No se despliega con la app: se carga aparte en Supabase. **No está verificado** si la versión de Supabase coincide con este archivo |
 

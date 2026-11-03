@@ -17,7 +17,7 @@
 		type NotificationBrowserProfile,
 		type NotificationGuide
 	} from '$lib/device';
-	import type { PublicAppointmentView } from '$lib/server/scheduling/public/public-appointments';
+	import type { PublicAppointmentView } from '$lib/scheduling/public-appointment';
 	import type { PatientManagementPanelData, PatientManagementFeedback } from '$lib/scheduling/patient-management-page';
 
 	let { data, form }: {
@@ -1410,7 +1410,7 @@
 	{/if}
 {/snippet}
 
-{#snippet depositCard(current: NonNullable<PageData['appointment']>, deposit: NonNullable<NonNullable<PageData['appointment']>['deposit']>)}
+{#snippet depositCard(current: PublicAppointmentView, deposit: NonNullable<PublicAppointmentView['deposit']>)}
 	<section class="ux-card">
 		<h2 class="ux-section-title">Seña del turno</h2>
 		<p class="mt-2 text-fg-80 bk-muted">
@@ -1473,7 +1473,7 @@
 	</section>
 {/snippet}
 
-{#snippet locationCard(current: NonNullable<PageData['appointment']>)}
+{#snippet locationCard(current: PublicAppointmentView)}
 	<section class="ux-card">
 		{#if data.isSoon}
 			<h2 class="ux-section-title">{isVirtual ? 'Tu turno es pronto: revisá el acceso a tu consulta' : 'Tu turno es pronto: revisá la dirección'}</h2>
@@ -1688,9 +1688,9 @@
 								Escribir al consultorio por WhatsApp
 							</a>
 						{/if}
-						{#if data.rebookUrl}
-							<a href={data.rebookUrl} class="ux-btn-secondary mt-3 w-full">Reservar otro turno</a>
-						{/if}
+					{/if}
+					{#if data.rebookUrl}
+						<a href={data.rebookUrl} class="ux-btn-secondary mt-3 w-full">Reservar otro turno</a>
 					{/if}
 					{#if data.googleCalendar.state === 'removed'}
 						<p class="mt-3 text-sm text-fg-70 bk-muted">También quitamos el evento de tu cuenta Google.</p>

@@ -6,11 +6,30 @@
  import type { PatientManagementPanelData, PatientManagementFeedback } from '$lib/scheduling/patient-management-page';
  let { context, feedback }: { context: PatientManagementPanelData; feedback?: PatientManagementFeedback | null } = $props();
  let busy = $state(false);
- const progressive: SubmitFunction = () => {
+ let transportFeedback = $state<PatientManagementFeedback | null>(null);
+ const outcome = $derived(transportFeedback ?? feedback);
+ const progressive: SubmitFunction = ({ action, formData, cancel }) => {
+  if (busy) { cancel(); return; }
   busy = true;
-  return async ({ update }) => { try { await update({ reset: false }); } finally { busy = false; } };
+  transportFeedback = null;
+  const submittedAction = (['cancel', 'confirm', 'reschedule'] as const).find(candidate => action.searchParams.has(`/${candidate}`));
+  const submitted = Object.fromEntries([...formData].flatMap(([key, value]) => typeof value === 'string' ? [[key, value]] : []));
+  const preserveRequest = (message: string) => {
+   transportFeedback = { message, action: submittedAction, submitted, retrySameOperation: !!submittedAction };
+  };
+  return async ({ result, update }) => {
+   try {
+    if (result.type === 'error') {
+     preserveRequest('No pudimos comprobar el resultado. Revisá el turno o volvé a comprobar la misma acción.');
+     return;
+    }
+    await update({ reset: false });
+   } catch {
+    preserveRequest('No pudimos actualizar el turno. Comprobá la misma acción para conocer el resultado.');
+   } finally { busy = false; }
+  };
  };
- const mode = $derived(feedback?.success ? 'overview' : context.mode);
+ const mode = $derived(outcome?.success ? 'overview' : context.mode);
  const terms = $derived(context.financialTerms);
  const fields = $derived({ operation_id: context.operationId, expected_revision: context.revision });
  const cancelUrl = $derived(`${context.url}?accion=cancelar`);
@@ -24,15 +43,15 @@
 {/snippet}
 
 <section class="ux-card mt-5" aria-label="Gestión de tu turno" aria-busy={busy}>
- {#if feedback?.message}
-  <p role={feedback.success ? 'status' : 'alert'} class={feedback.success ? 'ux-alert ux-alert-success mb-4' : 'ux-alert mb-4'}>{feedback.message}</p>
+ {#if outcome?.message}
+  <p role={outcome.success ? 'status' : 'alert'} class={outcome.success ? 'ux-alert ux-alert-success mb-4' : 'ux-alert mb-4'}>{outcome.message}</p>
  {/if}
 
- {#if feedback?.submitted && !feedback.success}
+ {#if outcome?.submitted && !outcome.success}
   <a class="ux-btn-secondary" href={context.url}>Revisar el turno</a>
-  {#if feedback.retrySameOperation && feedback.action}
-   <form method="POST" action={`?/${feedback.action}`} class="mt-4" use:enhance={progressive}>
-    {@render hiddenFields(feedback.submitted)}
+  {#if outcome.retrySameOperation && outcome.action}
+   <form method="POST" action={`?/${outcome.action}`} class="mt-4" use:enhance={progressive}>
+    {@render hiddenFields(outcome.submitted)}
     <button class="ux-btn-primary w-full" disabled={busy}>{busy ? 'Comprobando…' : 'Volver a comprobar la misma acción'}</button>
    </form>
   {/if}
