@@ -244,7 +244,7 @@ describe('activación de notificaciones en el teléfono', () => {
   render(Page, { data: { ...pageData, bookingInformationEnabled: true, management: { ...pageData.management, mode } } });
   const question = screen.getByRole('heading', { name: mode === 'cancel' ? '¿Querés cancelar este turno?' : '¿Querés reprogramar este turno?' });
   expect(question).toBeVisible();
-  expect(question.compareDocumentPosition(screen.getByRole('heading', { name: 'Consultorio', exact: true })) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  expect(question.compareDocumentPosition(screen.getByRole('heading', { name: /^Consultorio$/ })) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   expect(screen.queryByRole('heading', { name: 'Información para tu consulta' })).not.toBeInTheDocument();
   expect(screen.queryByRole('heading', { name: /Último paso/ })).not.toBeInTheDocument();
   expect(screen.queryByText(/^Te esperamos el /)).not.toBeInTheDocument();

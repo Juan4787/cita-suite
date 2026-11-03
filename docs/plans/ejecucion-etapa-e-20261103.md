@@ -588,3 +588,9 @@ La regla de cada caso se lee en la especificación; esta tabla registra su acept
 - Lectura de la versión instalada de SvelteKit: applyAction resetea el foco al body con preventScroll; colocar el resultado primero no garantiza que quede visible tras enviar desde un resumen largo. Roja dirigida `foco-resultado-roja.log`: 1 falla/7 omitidos, alerta de resultado incierto sin foco. El panel enfoca sólo el mensaje resultante de una acción, con tabindex -1 y roles status/alert; no enfoca la confirmación destructiva al entrar. Verde dirigido **11/11**, 51 omitidos, `foco-resultado-verde.log`.
 - Navegador ampliado exige resultado guardado en viewport, además de la pregunta antes de alinear capturas. Prueba real de foco/desplazamiento y fast completos pendientes; la unidad no los sustituye.
 - Contratos, permisos, matriz y especificación actualizados: se retiraron frases activas «aún sin ejecutar»/«todavía no implementada» que negaban las pruebas parciales ya realizadas. Se conserva aceptación integral pendiente y límites de cada fuente. El cuerpo histórico aprobado del plan no se altera. No se activó E ni se inició P1/P2/P3.
+
+
+### E2.13 — fast de prioridad detenido por tipado del verificador
+
+- Fast **41707061744**, fuente `638c5566adc5c42f71c30218c212c5cf5b32fb4a`, main `4178617`: web-types detecta **1 error/0 warnings** en la prueba nueva, no en la pantalla. Se usó la opción exact de Playwright en ByRoleOptions de Testing Library, donde no existe. `fast-prioridad-inicial-41707061744.log:284–299`; pasos posteriores no ejecutados, sin aprobación general.
+- Se reemplaza por nombre regexp anclado `^Consultorio$`, conservando la coincidencia exacta sin casts/ignores ni debilitar la aserción. Nueva corrida fast pendiente antes de navegador. El SQL de ocho migraciones sigue sin cambios desde su recibo aprobado; no se repite por este ajuste de prueba.
