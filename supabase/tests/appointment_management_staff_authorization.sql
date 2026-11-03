@@ -8,7 +8,7 @@ do $$ declare b uuid:=gen_random_uuid(); owner_id uuid:=gen_random_uuid(); suppo
  p uuid:=gen_random_uuid(); s uuid:=gen_random_uuid(); patient uuid; a uuid; begin
  insert into auth.users(id,email) values(owner_id,'staff-clock-owner-'||owner_id||'@example.test'),(support_id,'staff-clock-support-'||support_id||'@example.test');
  insert into public.businesses(id,name,slug,industry,timezone) values(b,'Synthetic staff clock',b::text,'other','UTC');
- update public.business_subscriptions set is_permanent=true,commercial_access_enabled=true,archived_at=null where business_id=b;
+ update public.business_subscriptions set is_permanent=true,commercial_access_enabled=true,subscription_status='active',paid_until=null,grace_until=null,restricted_until=null,archived_at=null where business_id=b;
  insert into public.business_users(business_id,user_id,role,status,accepted_at) values(b,owner_id,'owner','active',now());
  insert into public.account_assistance_support_users(user_id,email,enabled) values(support_id,'staff-clock-support-'||support_id||'@example.test',true);
  insert into public.professionals(id,business_id,name) values(p,b,'Synthetic professional');

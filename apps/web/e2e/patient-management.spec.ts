@@ -114,10 +114,16 @@ for (const brand of ['cita-suite', 'natalia'] as const) {
    }
    expect(state()).toBe(beforeOpen);
    await page.getByRole('link', { name: 'Prefiero reprogramar' }).click();
+   await expect(page.getByRole('heading', { name: '¿Querés reprogramar este turno?' })).toBeVisible();
+   await matrix(page, info, 'day-selection', page.getByLabel('Día para el nuevo turno'), issues);
    await page.getByLabel('Día para el nuevo turno').fill(targetDate);
    await page.getByRole('button', { name: 'Ver horarios', exact: true }).click();
+   await expect(page).toHaveURL(url => url.searchParams.get('fecha') === targetDate);
+   await expect(page.getByLabel('Día para el nuevo turno')).toHaveValue(targetDate);
+   await expect(page.locator('[aria-label="Horarios disponibles"] a').first()).toHaveAttribute('href', new RegExp(`horario=${targetDate}T`));
    await page.locator('[aria-label="Horarios disponibles"] a').first().click();
    await expect(page.getByRole('heading', { name: 'Revisá el cambio antes de confirmar' })).toBeVisible();
+   await expect(page.locator('input[name="starts_at"]')).toHaveValue(new RegExp(`^${targetDate}T`));
    await expect(page.getByText(/La seña anterior de.*dejará de aplicarse/)).toBeVisible();
    await expect(page.getByText(/Nueva seña pendiente/)).toBeVisible();
    await expect(page.getByText('Duración vigente: 45 minutos.')).toBeVisible();
