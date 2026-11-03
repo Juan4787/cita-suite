@@ -31,6 +31,7 @@ A	scripts/check-repo-sync.mjs
 A	scripts/verify-production-auth-ux.mjs
 A	scripts/zoho-cpaas.py
 M	supabase/templates/recovery.html
+A	supabase/tests/appointment_management_foundation.sql
 ```
 
 | Archivo | Qué es | ¿Afecta a producción? |
@@ -39,6 +40,7 @@ M	supabase/templates/recovery.html
 | `scripts/check-repo-sync.mjs` | Este chequeo | No: es una herramienta local |
 | `scripts/zoho-cpaas.py` | Administración local de Zoho por OAuth, con credenciales fuera de Git | No: no se despliega ni configura el correo de la app |
 | `scripts/verify-production-auth-ux.mjs` | Lectura de la pantalla de ingreso en producción, de otro trabajo (flujo manual `production-auth-ux.yml`) | No: no se despliega |
+| `supabase/tests/appointment_management_foundation.sql` | Contrato SQL E1 previo a implementación: se espera rojo por esquema ausente; no se ejecuta contra producción | No: sólo CI descartable |
 | `supabase/templates/recovery.html` | Plantilla del correo de recuperación, modificada en otro trabajo | No se despliega con la app: se carga aparte en Supabase. **No está verificado** si la versión de Supabase coincide con este archivo |
 
 ## Historia
