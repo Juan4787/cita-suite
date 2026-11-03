@@ -224,14 +224,16 @@ do $$ begin
 end $$;
 select extensions.pass('20. Cancelar conserva el pago, sin devolución ni pérdida automática');
 
-do $$ declare patient uuid; begin
+do $$ declare patient uuid; before text:=pg_temp.management_revision('deposit'); begin
  select patient_id into patient from public.appointments where id=pg_temp.mid('legacy');
  begin
-  update public.appointments set patient_id=patient where id=pg_temp.mid('deposit');
+  perform public.reassign_appointment_patient_safely(pg_temp.mid('business'),pg_temp.mid('deposit'),patient,
+   pg_temp.mid('owner'),'Corrección sintética para verificar que no se traslada dinero');
   raise exception 'E1_REASSIGNMENT_SHOULD_FAIL';
  exception when others then
   if sqlerrm is distinct from 'APPOINTMENT_DEPOSIT_IDENTITY_CHANGE' then raise; end if;
  end;
+ if pg_temp.management_revision('deposit') is distinct from before then raise exception 'E1_PARTIAL_REASSIGNMENT'; end if;
 end $$;
 select extensions.pass('21. Reasignar un turno con dinero no traslada el pago a otra persona');
 
