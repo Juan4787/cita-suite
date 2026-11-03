@@ -153,6 +153,14 @@ returns jsonb language sql stable security definer set search_path=pg_catalog,pg
   'integration_id',integration_id,'integration_revision',integration_revision,'modality_windows',modality_windows) from scope
 $$;
 
+create function private.patient_management_request_fingerprint(p_action text,p_appointment_id uuid,p_patient_id uuid,p_generation bigint,
+ p_expected_revision text,p_starts_at timestamptz,p_availability_revision bigint,p_financial_terms jsonb,p_integration_revision bigint)
+returns text language sql immutable set search_path=pg_catalog,pg_temp as $$
+ select encode(extensions.digest(jsonb_build_object('action',p_action,'appointment_id',p_appointment_id,'patient_id',p_patient_id,
+  'generation',p_generation,'expected_revision',p_expected_revision,'starts_at',extract(epoch from p_starts_at),
+  'availability_revision',p_availability_revision,'integration_revision',p_integration_revision,'financial_terms',p_financial_terms)::text,'sha256'),'hex')
+$$;
+
 create function public.apply_patient_appointment_management(p_token text,p_legacy boolean,p_operation_id uuid,
  p_expected_revision text,p_action text,p_starts_at timestamptz default null,p_availability_revision bigint default null,
  p_financial_terms jsonb default null,p_integration_revision bigint default null) returns jsonb
@@ -197,9 +205,8 @@ begin
  locked_access:=public.resolve_appointment_management_access(p_token,p_legacy);
  if (locked_access->>'business_id',locked_access->>'appointment_id') is distinct from (v_business::text,v_appointment::text) then
   raise exception 'APPOINTMENT_LINK_UNAVAILABLE'; end if;
- v_fingerprint:=encode(extensions.digest(jsonb_build_object('action',p_action,'appointment_id',a.id,'patient_id',a.patient_id,
-  'generation',locked_access->'generation','expected_revision',p_expected_revision,'starts_at',extract(epoch from p_starts_at),
-  'availability_revision',p_availability_revision,'integration_revision',p_integration_revision,'financial_terms',p_financial_terms)::text,'sha256'),'hex');
+ v_fingerprint:=private.patient_management_request_fingerprint(p_action,a.id,a.patient_id,(locked_access->>'generation')::bigint,
+  p_expected_revision,p_starts_at,p_availability_revision,p_financial_terms,p_integration_revision);
  select * into prior from private.appointment_management_operations where business_id=v_business and operation_id=p_operation_id;
  if found then
   if prior.appointment_id is distinct from a.id or prior.request_fingerprint is distinct from v_fingerprint
@@ -344,6 +351,7 @@ begin
 end $$;
 
 revoke all on function private.record_appointment_email_event(),private.lock_deposit_automation_configuration(),private.appointment_reschedule_scope(uuid,uuid,timestamptz),
+ private.patient_management_request_fingerprint(text,uuid,uuid,bigint,text,timestamptz,bigint,jsonb,bigint),
  public.apply_patient_appointment_management(text,boolean,uuid,text,text,timestamptz,bigint,jsonb,bigint) from public,anon,authenticated,service_role;
 grant execute on function public.apply_patient_appointment_management(text,boolean,uuid,text,text,timestamptz,bigint,jsonb,bigint) to service_role;
 notify pgrst,'reload schema';
