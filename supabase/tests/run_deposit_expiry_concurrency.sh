@@ -27,6 +27,10 @@ cleanup() {
  if ! psql "$database_url" -X -v ON_ERROR_STOP=1 -q <<SQL
 update private.deposit_automation set enabled='$previous_switch'::boolean;
 drop schema if exists deposit_race cascade;
+-- Money history deliberately retains its patient reference. Follow the parent
+-- appointment-first cleanup order instead of relying on FK cascade trigger order.
+delete from public.appointments a using public.businesses b
+ where a.business_id=b.id and b.id='$business_id' and b.slug='$slug';
 delete from public.businesses where id='$business_id' and slug='$slug';
 delete from auth.users where id in('$owner_id','$reception_id') and email like 'deposit-race-%@example.test';
 SQL
