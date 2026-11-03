@@ -36,7 +36,7 @@ trap cleanup_staff EXIT
 trap 'status=$?; echo "Staff authorization race failed at line $LINENO, status $status." >&2; for log in "$staff_directory"/*.log; do [[ ! -f "$log" ]] || cat "$log" >&2; done' ERR
 "${staff_psql[@]}" <<SQL
 create schema staff_authorization_race;
-create table staff_authorization_race.requests(label text primary key,appointment_id uuid,operation_id uuid,revision text);
+create table staff_authorization_race.requests(label text primary key,appointment_id uuid,operation_id uuid,revision text,release_id uuid);
 insert into auth.users(id,email) values('$staff_owner','staff-authorization-owner@example.test'),('$staff_support','staff-authorization-support@example.test');
 insert into public.businesses(id,name,slug,industry,timezone) values('$staff_business','Synthetic staff authorization','e2e-staff-authorization-race','other','UTC');
 update public.business_subscriptions set is_permanent=true,commercial_access_enabled=true,subscription_status='active',paid_until=null,grace_until=null,restricted_until=null,archived_at=null where business_id='$staff_business';
@@ -50,13 +50,19 @@ update private.deposit_automation set enabled=true;
 SQL
 "${staff_psql[@]}" <<'SQL'
 create function staff_authorization_race.prepare(p_label text) returns void language plpgsql as $$
-declare b uuid:='e3200000-0000-4000-8000-000000000001'; a uuid; patient uuid; starts timestamptz; begin
+declare b uuid:='e3200000-0000-4000-8000-000000000001'; a uuid; patient uuid; starts timestamptz; v_release uuid; begin
  insert into public.patients(business_id,owner_id,full_name) values(b,'e3200000-0000-4000-8000-000000000002','Synthetic '||p_label) returning id into patient;
  starts:=date_trunc('hour',clock_timestamp())+make_interval(days=>20+(select count(*)::integer from staff_authorization_race.requests));
  insert into public.appointments(business_id,patient_id,professional_id,service_id,starts_at,ends_at,status,source,
   service_name_snapshot,professional_name_snapshot,duration_minutes_snapshot)
  values(b,patient,'e3200000-0000-4000-8000-000000000004','e3200000-0000-4000-8000-000000000005',starts,starts+interval '30 minutes','reserved','manual','Synthetic staff service','Synthetic staff professional',30) returning id into a;
- insert into staff_authorization_race.requests values(p_label,a,gen_random_uuid(),private.appointment_semantic_revision(b,a));
+ if p_label='hide' then
+  -- Create an actual stage-C release using the ordinary appointment trigger.
+  update public.appointments set created_at=clock_timestamp()-interval '2 hours' where id=a;
+  update public.appointments set starts_at=starts_at+interval '6 hours',ends_at=ends_at+interval '6 hours' where id=a;
+  select id into strict v_release from public.appointment_slot_releases where appointment_id=a;
+ end if;
+ insert into staff_authorization_race.requests values(p_label,a,gen_random_uuid(),private.appointment_semantic_revision(b,a),v_release);
  delete from public.account_assistance_grants where business_id=b;
  insert into public.account_assistance_grants(business_id,requested_by_user_id,support_user_id,starts_at,expires_at)
  values(b,'e3200000-0000-4000-8000-000000000002','e3200000-0000-4000-8000-000000000003',clock_timestamp()-interval '1 minute',clock_timestamp()+interval '3 seconds');
@@ -68,8 +74,9 @@ declare r staff_authorization_race.requests; b uuid:='e3200000-0000-4000-8000-00
  if p_action='revoke' then perform public.revoke_appointment_management_access(b,r.appointment_id,r.operation_id,r.revision);
  elsif p_action='pay' then perform public.set_appointment_deposit(b,r.appointment_id,'paid',1,null);
  elsif p_action='remind' then perform public.open_appointment_deposit_reminder(b,r.appointment_id,false);
- elsif p_action='policy' then
-  settings:=jsonb_build_object('enabled',true,'auto_cancel_enabled',false,'amount_mode','fixed','fixed_amount',50000,'percentage',null,
+ elsif p_action='hide' then perform public.hide_appointment_slot_release(b,r.release_id);
+ elsif p_action in ('policy','policy_off') then
+  settings:=jsonb_build_object('enabled',p_action='policy','auto_cancel_enabled',false,'amount_mode','fixed','fixed_amount',50000,'percentage',null,
    'request_days',7,'deadline_hours',48,'min_payment_hours',24,'transfer_details','Changed synthetic transfer','applies_to_manual',true,'excluded_service_ids','[]'::jsonb);
   perform public.save_deposit_policy(b,settings,1);
  else raise exception 'STAFF_RACE_INVALID_ACTION'; end if;
@@ -78,7 +85,10 @@ create function staff_authorization_race.assert_unchanged(p_label text) returns 
 declare r staff_authorization_race.requests; begin
  select * into strict r from staff_authorization_race.requests where label=p_label;
  if (select status from public.appointments where id=r.appointment_id) is distinct from 'reserved'
-  or not exists(select 1 from public.appointment_deposits where appointment_id=r.appointment_id and status='pending' and revision=1 and reminder_opened_at is null)
+  or not exists(select 1 from public.appointment_deposits where appointment_id=r.appointment_id and status='pending' and reminder_opened_at is null)
+  or private.appointment_semantic_revision('e3200000-0000-4000-8000-000000000001',r.appointment_id) is distinct from r.revision
+  or (r.release_id is not null and not exists(select 1 from public.appointment_slot_releases where id=r.release_id and hidden_at is null))
+  or exists(select 1 from public.audit_logs where business_id='e3200000-0000-4000-8000-000000000001' and action='appointment.slot_release_hidden')
   or not exists(select 1 from public.appointment_management_states where appointment_id=r.appointment_id and generation=1 and legacy_management_allowed)
   or exists(select 1 from private.appointment_management_operations where appointment_id=r.appointment_id)
   or exists(select 1 from public.appointment_deposit_requirements where appointment_id=r.appointment_id and status='paid')
@@ -88,10 +98,11 @@ declare r staff_authorization_race.requests; begin
 end $$;
 SQL
 staff_deadlocks=$("${staff_psql[@]}" -c 'select deadlocks from pg_stat_database where datname=current_database();')
-for staff_action in revoke pay remind policy; do
+for staff_action in revoke pay remind policy policy_off hide; do
  "${staff_psql[@]}" -c "select staff_authorization_race.prepare('$staff_action');"
  staff_lock="select id from public.appointments where id=(select appointment_id from staff_authorization_race.requests where label='$staff_action') for no key update;"
  [[ "$staff_action" != policy ]] || staff_lock="select business_id from public.deposit_policies where business_id='$staff_business' for no key update;"
+ [[ "$staff_action" != hide ]] || staff_lock="select id from public.appointment_slot_releases where id=(select release_id from staff_authorization_race.requests where label='$staff_action') for no key update;"
  "${staff_psql[@]}" >"$staff_directory/holder.log" 2>&1 <<SQL &
 begin;
 $staff_lock
@@ -122,11 +133,12 @@ SQL
  wait "$staff_holder"; staff_holder=''
  staff_error=DEPOSIT_FORBIDDEN
  [[ "$staff_action" != revoke ]] || staff_error=APPOINTMENT_MANAGEMENT_FORBIDDEN
- [[ "$staff_action" != policy ]] || staff_error=DEPOSIT_POLICY_FORBIDDEN
+ [[ "$staff_action" != policy && "$staff_action" != policy_off ]] || staff_error=DEPOSIT_POLICY_FORBIDDEN
+ [[ "$staff_action" != hide ]] || staff_error=SLOT_RELEASE_FORBIDDEN
  if [[ "$staff_result" == 0 ]] || ! grep -Fq "$staff_error" "$staff_directory/actor.log"; then
   cat "$staff_directory/actor.log" >&2; echo "FAIL: expired help executed $staff_action after a verified lock wait." >&2; exit 1
  fi
- "${staff_psql[@]}" -c "select staff_authorization_race.assert_unchanged('$staff_action');"
+ "${staff_psql[@]}" -c "select staff_authorization_race.assert_unchanged(label) from staff_authorization_race.requests;"
  echo "PASS: expired help rejects $staff_action after a verified lock wait, with no partial state."
 done
 [[ $("${staff_psql[@]}" -c 'select deadlocks from pg_stat_database where datname=current_database();') == "$staff_deadlocks" ]]
