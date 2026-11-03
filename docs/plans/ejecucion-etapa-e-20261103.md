@@ -37,7 +37,7 @@ Fuentes: [plan íntegro y ajustes](propuesta-senas-avisos-natalia.md#ejecucion-e
 
 **Fase:** E0 completo; E1 en implementación, con alcance de ejecución autorizado. **Implementación iniciada:** contrato puro y primera migración E1 escrita; todavía sin rutas ni envíos integrados, sin migración aplicada en producción. **Publicación de E:** no. **Pruebas integrales E:** no ejecutadas.
 
-**Siguiente acción:** solicitar/recuperar SQL inicial de lectura mínima y regla compartida extraída (E1.32): cinco migraciones escritas, último getter todavía sin verificar, 16 grupos y nueva carrera de fotografía. Roja estructural `41617669734` comprobada. Última fuente completa aprobada sigue `0ed587d…` en `41616550006`; no atribuirle el refactor nuevo. Sin aplicar/integrar/publicar E; continuar E1–E6 y después P1/P2/P3.
+**Siguiente acción:** integrar la lectura y comandos comprobados mediante adaptadores de servidor y recorrido de autogestión; continuar identidad/roles/cola pendientes de E1. Última suite SQL completa `41650084150`, fuente `64cb1c3…`, cinco migraciones; no acredita consumidores, correo ni publicación. Continuar E1–E6 y luego P1/P2/P3.
 
 **Evidencia privada de esta ejecución:** `.verification/etapa-e-20261103/`. Ningún secreto, dirección de paciente, cuerpo de correo recibido o dato personal se incluye en Git ni en documentos públicos. Las rutas de evidencia no equivalen a resultados aprobados.
 
@@ -409,3 +409,18 @@ La regla de cada caso se lee en la especificación; esta tabla registra su acept
 - Se extrae en la migración .040 no aplicada la preparación general de reprogramación a `private.appointment_reschedule_scope`, consumida por lectura y comando: negocio, servicio, equipo, paciente, modalidad y pausa. Condiciones específicas del horario/versiones/bloqueos siguen en el comando; el motor de slots TypeScript no se duplica. Este refactor posterior necesita su nueva suite; el verde anterior acredita su fuente anterior.
 - Carrera nueva `run_patient_management_view_concurrency.sh`: puerta de prueba después de resolver autorización, movimiento real mientras la lectura espera y comprobación de una vista vieja coherente, seguida de otra completamente nueva. Modifica/restaura sólo la función privada del fixture descartable, con reloj explícito, tiempos acotados, cliente psql directo y restauración del mismo objeto/grants originales. Todavía sin ejecutar.
 - Fundamento contrastado en [volatilidad y MVCC de PostgreSQL 17](https://www.postgresql.org/docs/17/xfunc-volatility.html): los helpers STABLE heredan la fotografía de su consulta y una función VOLATILE puede iniciar nuevas fotografías. No es por sí mismo prueba de nuestro getter; recuperar 16 grupos, carrera real, resto de SQL y tipos de cinco migraciones antes de cerrar esta pieza.
+
+
+### E1.33 — lectura coherente y regla compartida aprobadas
+
+- Suite SQL completa **41650084150**, fuente exacta `64cb1c378511001cdeea3a47e628c398eb8055d0`, main de código `2184ed7`. **754 aserciones pgTAP y 17 scripts de carreras**, sin errores: lectura 16 grupos, comandos 35 y doce carreras conservados. La carrera nueva demuestra lectura previa coherente de autorización/horario/dinero durante un movimiento real, seguida de lectura completamente nueva. No equivale a prueba de la app ni del proveedor.
+- Recibo `type-generation.json`: ok/sqlVerified verdaderos, `sql-and-types-generation-only`. Evidencia privada `sql-lectura-41650084150.zip`, colección `sql-lectura-evidence`, SHA-256 `e7f5708c138196faf0b4f52da66bfc2887b298af9f9b5b5e3866401fe07fceca`; log extraído `sql-lectura-41650084150.log`.
+- Dos generaciones oficiales iguales, SHA-256 `5e48632df86fc9342ba03361f58921d1f6ec23a22fb26959115b229778513dbb`, digest de todas las migraciones `c8c0d41c0945df10b9346ddf08605381e7859f4f2ce3fed88c54d3e1d9e93bd5` cotejado antes de importar tipos. Se añade la firma del getter; no se escriben tipos a mano.
+- Próximo: adaptador mínimo validado, autogestión y cierre de brechas E1 (personal/identidad/roles/cola). Ninguna migración E aplicada en producción ni correo nuevo enviado. La producción V12b sigue intacta.
+
+
+### E1.34 — prueba adversaria de recuperación tras reasignar, previa a corrección
+
+- Lectura estática del creador: la rama de repetición compara la huella original y devuelve la ficha/token **actuales**. La reparación cambia ficha/token y conserva huella/key; hipótesis de exposición del reemplazo a quien conserva la solicitud original. No se declara reproducida hasta obtener la roja.
+- Se amplía el fixture real `appointment_patient_reassignment.sql`: tras reparar por RPC, repetir la solicitud pública y manual en modo normal y sólo-recuperación debe dar conflicto sin otra reserva ni revelar la nueva identidad. Mantener procedencia y clave reservada; no borrar la huella ni crear otra reserva como corrección.
+- Próximo: CI roja y revisión del adaptador de presentación mientras se recupera. Sin cambio de la función de producción ni migración nueva todavía.

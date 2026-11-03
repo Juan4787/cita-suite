@@ -459,6 +459,34 @@ begin
 		v_owner_id,
 		'Corrección de una reserva pública'
 	);
+
+	-- A creation retry is a capability held by the original caller. It must
+	-- never disclose the replacement patient's current identity/calendar token.
+	-- Keep the creation key reserved: retry must not recreate the old booking.
+	for i in 0..1 loop
+		begin
+			perform public.create_appointment_with_patient_identity(
+				v_business_id, 'public', null, 'Juan Carlos', '342 504 8209', '+5493425048209', null,
+				false, null, v_service_id, array[v_professional_id], v_start + interval '2 days', null,
+				null, false, 'public_booking', 'valid', false,
+				'a3000000-0000-4000-8000-000000000002', i=1
+			);
+			raise exception 'TEST_REASSIGNED_PUBLIC_REPLAY_DISCLOSED_REPLACEMENT';
+		exception when others then
+			if sqlerrm is distinct from 'APPOINTMENT_IDEMPOTENCY_CONFLICT' then raise; end if;
+		end;
+		begin
+			perform public.create_appointment_with_patient_identity(
+				v_business_id, 'existing', v_old_patient_id, null, '342 504 8209', '+5493425048209', null,
+				false, null, v_service_id, array[v_professional_id], v_start, null,
+				v_owner_id, false, 'manual', 'valid', false,
+				'a3000000-0000-4000-8000-000000000001', i=1
+			);
+			raise exception 'TEST_REASSIGNED_MANUAL_REPLAY_DISCLOSED_REPLACEMENT';
+		exception when others then
+			if sqlerrm is distinct from 'APPOINTMENT_IDEMPOTENCY_CONFLICT' then raise; end if;
+		end;
+	end loop;
 	if not exists (
 		select 1
 		from public.appointments appointment
