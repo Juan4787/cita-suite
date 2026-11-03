@@ -30,7 +30,7 @@ const supabaseForAvailability = (input: { professionalName: string; rules: unkno
    const scope = params.p_public ? 'public' : 'internal';
    const visible = scope === 'internal' || Boolean(input.professionalName.trim());
    const payload = String(url).endsWith('get_availability_catalog') ? {
-    schema_version: 2, business_id: business.id, scope, configuration_revision: 1, generated_at: new Date().toISOString(), business,
+    schema_version: 2, business_id: business.id, scope, configuration_revision: 1, availability_revision: 71, generated_at: new Date().toISOString(), business,
     services: [{ id: service, business_id: business.id, name: 'Consulta', duration_minutes: 30,
      buffer_before_minutes: 0, buffer_after_minutes: 0, is_public: true, is_active: true, sort_order: 0, description: null, price_label: null }],
     professionals: visible ? [{ id: pro, name: input.professionalName, is_public: true, is_active: true, sort_order: 0, specialty: null, avatar_url: null }] : [],
@@ -62,6 +62,7 @@ describe('availability core', () => {
 			fromDate: '2026-06-22', toDate: '2026-06-22', publicOnly: true };
 		const selection = await getAvailabilitySelection(client, input);
 		expect(selection.configurationRevision).toBe(1);
+		expect(selection.availabilityRevision).toBe(71);
 		expect(selection.durationMinutes).toBe(30);
 		expect(selection.slots.map(slot => slot.time)).toEqual(['09:00', '09:30']);
 		expect(await getAvailabilitySlots(client, input)).toEqual(selection.slots);
@@ -72,7 +73,7 @@ describe('availability core', () => {
 		expect(await getAvailabilitySelection(client, {
 			business: { ...business, public_booking_enabled: false }, serviceId: '00000000-0000-4000-8000-000000000002',
 			fromDate: '2026-06-22', toDate: '2026-06-22', publicOnly: true
-		})).toEqual({ slots: [], configurationRevision: null, durationMinutes: null });
+		})).toEqual({ slots: [], configurationRevision: null, availabilityRevision: null, durationMinutes: null });
 	});
 	it('detecta solapamientos con rango semiabierto', () => {
 		const base = new Date('2026-05-13T10:00:00.000Z');

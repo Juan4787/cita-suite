@@ -9,6 +9,8 @@ export type AvailabilityCatalog = Pick<IntegratedAvailabilityRows, 'services' | 
 	business_id: string;
 	scope: AvailabilityScope;
 	configuration_revision: number;
+	/** Broader mutation version; absent only on the compatible older backend. */
+	availability_revision?: number;
 	generated_at: string;
 	business: AvailabilityBusiness & { min_booking_notice_minutes: number };
 };
@@ -66,7 +68,9 @@ export function parseAvailabilityCatalog(value: unknown, expected: { businessId:
 	const business = parseAvailabilityBusiness(root.business);
 	const rows = parseIntegratedAvailabilityRows({ ...root, exceptions: [], blocks: [] });
 	validateAvailabilityConfiguration(rows, expected);
-	return { schema_version: 2, ...metadata, business, services: rows.services,
+	return { schema_version: 2, ...metadata,
+		...(root.availability_revision === undefined ? {} : { availability_revision: integer(root.availability_revision, 1, 'mutationRevision') }),
+		business, services: rows.services,
 		professionals: rows.professionals, assignments: rows.assignments, rules: rows.rules };
 }
 

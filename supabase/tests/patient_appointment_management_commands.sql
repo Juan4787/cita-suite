@@ -2,7 +2,7 @@
 -- The backend has already checked the selected slot with the shared calculator;
 -- the command must hold its configuration version and enforce atomic persistence.
 begin;
-select extensions.plan(24);
+select extensions.plan(29);
 create temporary table command_fixture(label text primary key,id uuid not null,extra jsonb);
 create function pg_temp.cid(p_label text) returns uuid language sql as $$
  select id from command_fixture where label=p_label
@@ -27,7 +27,7 @@ create function pg_temp.crevision(p_label text) returns text language sql as $$
  select private.appointment_semantic_revision(pg_temp.cid('business'),pg_temp.cid(p_label))
 $$;
 create function pg_temp.configuration() returns bigint language sql as $$
- select revision from private.availability_configuration_versions where business_id=pg_temp.cid('business')
+ select booking_availability_revision from public.businesses where id=pg_temp.cid('business')
 $$;
 create function pg_temp.ctarget(p_label text) returns timestamptz language sql as $$
  select starts_at+interval '6 hours' from public.appointments where id=pg_temp.cid(p_label)
@@ -298,5 +298,65 @@ select extensions.ok(has_function_privilege('service_role','public.apply_patient
  and not has_function_privilege('authenticated','public.apply_patient_appointment_management(text,boolean,uuid,text,text,timestamptz,bigint,jsonb)','EXECUTE')
  and not has_table_privilege('service_role','private.appointment_email_events','INSERT'),
  '24. Only the validated backend invokes patient commands; no direct event write or arbitrary patient actor');
+
+select pg_temp.command_case('recreated');
+do $$ declare old_revision bigint; before jsonb; begin
+ select revision into old_revision from public.appointment_deposits where appointment_id=pg_temp.cid('recreated');
+ update public.appointment_email_policies set require_deposit_on_reschedule=false where business_id=pg_temp.cid('business');
+ perform pg_temp.move('recreated');
+ if exists(select 1 from public.appointment_deposits where appointment_id=pg_temp.cid('recreated')) then raise exception 'E1_PROJECTION_NOT_REMOVED'; end if;
+ update public.appointment_email_policies set require_deposit_on_reschedule=true where business_id=pg_temp.cid('business');
+ perform pg_temp.move('recreated'); before:=pg_temp.cstate('recreated');
+ if (select revision from public.appointment_deposits where appointment_id=pg_temp.cid('recreated'))<=old_revision then raise exception 'E1_PROJECTION_REVISION_REUSED'; end if;
+ begin perform public.set_appointment_deposit(pg_temp.cid('business'),pg_temp.cid('recreated'),'paid',old_revision,null);
+  raise exception 'E1_STALE_PAYMENT_FORM_ACCEPTED'; exception when others then if sqlerrm<>'DEPOSIT_CHANGED' then raise; end if; end;
+ if pg_temp.cstate('recreated') is distinct from before then raise exception 'E1_STALE_PAYMENT_FORM_WROTE'; end if;
+end $$;
+select extensions.pass('25. Removing/recreating the current advance cannot reuse a previous cycle revision or accept its stale payment form');
+
+select pg_temp.command_case('uninformed');
+update public.appointment_management_states set terms_acknowledged=false,require_deposit_on_reschedule=false,
+ previous_deposit_disposition='credit',accepted_at=null,accepted_policy_revision=null where appointment_id=pg_temp.cid('uninformed');
+select pg_temp.move('uninformed');
+select extensions.ok(not exists(select 1 from public.appointment_deposits where appointment_id=pg_temp.cid('uninformed'))
+ and (select sum(amount) from public.appointment_deposit_requirements where appointment_id=pg_temp.cid('uninformed') and status='paid' and allocation='applied')=40000
+ and not exists(select 1 from public.appointment_deposit_events where appointment_id=pg_temp.cid('uninformed') and event_type='payment_forfeited'),
+ '26. A real move of an uninformed existing booking retains its money with no retroactive fee or loss');
+
+select pg_temp.command_case('same_interval');
+do $$ declare before jsonb:=pg_temp.cstate('same_interval'); begin
+ begin perform pg_temp.command_call((select extra->>'token' from command_fixture where label='same_interval'),gen_random_uuid(),pg_temp.crevision('same_interval'),
+  'staff_reschedule',pg_temp.ctarget('same_interval'),pg_temp.configuration(),pg_temp.cterms('same_interval'));
+  raise exception 'E1_PATIENT_DECLARED_STAFF'; exception when others then if sqlerrm<>'APPOINTMENT_MANAGEMENT_CHANGED' then raise; end if; end;
+ if pg_temp.cstate('same_interval') is distinct from before then raise exception 'E1_FALSE_STAFF_WROTE'; end if;
+end $$;
+select extensions.pass('27. A patient command cannot select staff origin or bypass the voluntary-change consequences');
+
+do $$ declare old_catalog bigint; old_mutation bigint; new_mutation bigint; catalog jsonb;
+ previous_role text:=current_setting('request.jwt.claim.role',true); begin
+ select revision into old_catalog from private.availability_configuration_versions where business_id=pg_temp.cid('business');
+ select booking_availability_revision into old_mutation from public.businesses where id=pg_temp.cid('business');
+ insert into public.availability_exceptions(business_id,starts_at,ends_at,type)
+ values(pg_temp.cid('business'),now()+interval '180 days',now()+interval '180 days 1 hour','extra_available');
+ select booking_availability_revision into new_mutation from public.businesses where id=pg_temp.cid('business');
+ perform set_config('request.jwt.claim.role','service_role',true);
+ catalog:=public.get_availability_catalog(pg_temp.cid('business'),true);
+ perform set_config('request.jwt.claim.role',coalesce(previous_role,''),true);
+ if new_mutation<=old_mutation or (catalog->>'availability_revision')::bigint is distinct from new_mutation
+  or (catalog->>'configuration_revision')::bigint is distinct from old_catalog then raise exception 'E1_MIXED_AVAILABILITY_REVISIONS'; end if;
+end $$;
+select extensions.pass('28. Dated exceptions change the mutation version while preserving the established catalog/window configuration contract');
+
+select pg_temp.command_case('event_rollback');
+create function pg_temp.reject_command_event() returns trigger language plpgsql as $$
+begin if new.appointment_id=pg_temp.cid('event_rollback') and new.purpose='reschedule_receipt' then raise exception 'E1_FORCED_EMAIL_EVENT_FAILURE'; end if; return new; end $$;
+create trigger e1_fail_email_event before insert on private.appointment_email_events for each row execute function pg_temp.reject_command_event();
+do $$ declare before jsonb:=pg_temp.cstate('event_rollback'); begin
+ begin perform pg_temp.move('event_rollback'); raise exception 'E1_FAILED_EVENT_COMMITTED';
+ exception when others then if sqlerrm<>'E1_FORCED_EMAIL_EVENT_FAILURE' then raise; end if; end;
+ if pg_temp.cstate('event_rollback') is distinct from before then raise exception 'E1_PARTIAL_MOVE_AFTER_EVENT_FAILURE'; end if;
+end $$;
+select extensions.pass('29. Forced email-event failure rolls back the same appointment, financial history and released slot transaction');
+drop trigger e1_fail_email_event on private.appointment_email_events;
 select * from extensions.finish();
 rollback;

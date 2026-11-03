@@ -56,18 +56,52 @@ end $$;
 create trigger zzzz_appointment_email_event after insert or update on public.appointments
  for each row execute function private.record_appointment_email_event();
 
--- A slot calculated before an exception, restricted-service assignment or
--- modality edit must not be saved with a version that ignores that edit.
--- These writers already serialize on the business (or only their child); the
--- shared version uses business -> version, with no business -> child row lock.
-do $$ declare t text; begin
- foreach t in array array['availability_exceptions','availability_exception_services','booking_integrations'] loop
-  execute format('create trigger availability_configuration_changed after insert or update or delete on public.%I for each row execute function private.advance_availability_configuration()',t);
- end loop;
+-- Preserve the existing catalog/window configuration contract: dated exceptions
+-- do NOT invalidate it. Mutations use the business's broader booking revision,
+-- which already covers dated exceptions and their restricted service mappings.
+-- Expose that version from the SAME catalog snapshot; never look it up after
+-- calculating a slot. Modality changes must participate in that broader version.
+create trigger integration_management_availability_revision after insert or update or delete on public.booking_integrations
+ for each row execute function private.advance_booking_availability_revision();
+
+create or replace function public.get_availability_catalog(p_business_id uuid,p_public boolean)
+returns jsonb language plpgsql stable security definer set search_path=pg_catalog,pg_temp as $$
+declare business public.businesses%rowtype; revision bigint; result jsonb;
+begin
+  business:=private.require_availability_business(p_business_id,p_public);
+  select v.revision into revision from private.availability_configuration_versions v where v.business_id=p_business_id;
+  if revision is null then raise exception 'AVAILABILITY_CONFIGURATION_MISSING'; end if;
+  result:=jsonb_build_object(
+    'schema_version',2,'business_id',business.id,'scope',case when p_public then 'public' else 'internal' end,
+    'configuration_revision',revision,'availability_revision',business.booking_availability_revision,'generated_at',statement_timestamp(),
+    'business',jsonb_build_object('timezone',business.timezone,'max_booking_days_ahead',business.max_booking_days_ahead,
+      'min_booking_notice_minutes',business.min_booking_notice_minutes,'is_active',business.is_active,'public_booking_enabled',business.public_booking_enabled),
+    'services',coalesce((select jsonb_agg(to_jsonb(row) order by row.sort_order,row.name,row.id) from (
+      select s.id,s.business_id,s.name,s.description,s.duration_minutes,s.buffer_before_minutes,s.buffer_after_minutes,
+        s.price_label,s.is_public,s.is_active,s.sort_order from public.services s
+      where s.business_id=p_business_id and s.is_active and (not p_public or s.is_public)) row),'[]'::jsonb),
+    'professionals',coalesce((select jsonb_agg(to_jsonb(row) order by row.sort_order,row.name,row.id) from (
+      select p.id,p.name,p.specialty,p.avatar_url,p.is_public,p.is_active,p.sort_order from public.professionals p
+      where p.business_id=p_business_id and p.is_active and (not p_public or (p.is_public and length(trim(p.name))>0))) row),'[]'::jsonb),
+    'assignments',coalesce((select jsonb_agg(to_jsonb(row) order by row.service_id,row.professional_id) from (
+      select a.service_id,a.professional_id from public.professional_services a
+      join public.services s on s.business_id=a.business_id and s.id=a.service_id
+      join public.professionals p on p.business_id=a.business_id and p.id=a.professional_id
+      where a.business_id=p_business_id and s.is_active and p.is_active
+        and (not p_public or (s.is_public and p.is_public and length(trim(p.name))>0))) row),'[]'::jsonb),
+    'rules',coalesce((select jsonb_agg(to_jsonb(row) order by row.professional_id,row.weekday,row.start_time,row.id) from (
+      select r.id,r.professional_id,r.weekday,r.start_time,r.end_time,r.slot_interval_minutes,r.break_minutes,r.is_active,r.service_scope,
+        array(select rs.service_id from public.availability_rule_services rs where rs.business_id=r.business_id and rs.rule_id=r.id order by rs.service_id) as allowed_service_ids
+      from public.availability_rules r join public.professionals p on p.business_id=r.business_id and p.id=r.professional_id
+      where r.business_id=p_business_id and r.is_active and p.is_active
+        and (not p_public or (p.is_public and length(trim(p.name))>0))) row),'[]'::jsonb)
+  );
+  if octet_length(result::text)>5000000 then raise exception 'AVAILABILITY_RESPONSE_LIMIT'; end if;
+  return result;
 end $$;
 
 create function public.apply_patient_appointment_management(p_token text,p_legacy boolean,p_operation_id uuid,
- p_expected_revision text,p_action text,p_starts_at timestamptz default null,p_configuration_revision bigint default null,
+ p_expected_revision text,p_action text,p_starts_at timestamptz default null,p_availability_revision bigint default null,
  p_financial_terms jsonb default null) returns jsonb
 language plpgsql security definer set search_path=pg_catalog,pg_temp as $$
 declare access jsonb; locked_access jsonb; a public.appointments; before_a public.appointments;
@@ -80,7 +114,7 @@ declare access jsonb; locked_access jsonb; a public.appointments; before_a publi
 begin
  if p_legacy is null or p_operation_id is null or not coalesce(p_expected_revision ~ '^[0-9a-f]{64}$',false)
   or not coalesce(p_action in ('cancel','reschedule','confirm'),false) then raise exception 'APPOINTMENT_MANAGEMENT_CHANGED'; end if;
- if p_action<>'reschedule' and (p_starts_at is not null or p_configuration_revision is not null or p_financial_terms is not null) then
+ if p_action<>'reschedule' and (p_starts_at is not null or p_availability_revision is not null or p_financial_terms is not null) then
   raise exception 'APPOINTMENT_MANAGEMENT_CHANGED'; end if;
  if p_action='reschedule' and (p_starts_at is null or not isfinite(p_starts_at)) then raise exception 'APPOINTMENT_RESCHEDULE_TIME_INVALID'; end if;
  if p_financial_terms is not null and (jsonb_typeof(p_financial_terms)<>'object' or octet_length(p_financial_terms::text)>8192) then
@@ -112,7 +146,7 @@ begin
   raise exception 'APPOINTMENT_LINK_UNAVAILABLE'; end if;
  v_fingerprint:=encode(extensions.digest(jsonb_build_object('action',p_action,'appointment_id',a.id,'patient_id',a.patient_id,
   'generation',locked_access->'generation','expected_revision',p_expected_revision,'starts_at',extract(epoch from p_starts_at),
-  'configuration_revision',p_configuration_revision,'financial_terms',p_financial_terms)::text,'sha256'),'hex');
+  'availability_revision',p_availability_revision,'financial_terms',p_financial_terms)::text,'sha256'),'hex');
  select * into prior from private.appointment_management_operations where business_id=v_business and operation_id=p_operation_id;
  if found then
   if prior.appointment_id is distinct from a.id or prior.request_fingerprint is distinct from v_fingerprint
@@ -145,11 +179,11 @@ begin
   else
    if v_runtime is not true or b.is_active is not true or b.public_booking_enabled is not true
     or public.business_allows_operation(v_business) is not true then raise exception 'APPOINTMENT_RESCHEDULE_UNAVAILABLE'; end if;
-   if p_configuration_revision is null or p_configuration_revision is distinct from
-    (select revision from private.availability_configuration_versions where business_id=v_business) then raise exception 'APPOINTMENT_AVAILABILITY_CHANGED'; end if;
+   if p_availability_revision is null or p_availability_revision is distinct from
+    (select booking_availability_revision from public.businesses where id=v_business) then raise exception 'APPOINTMENT_AVAILABILITY_CHANGED'; end if;
    v_now:=clock_timestamp();
    if p_starts_at<v_now+make_interval(mins=>b.min_booking_notice_minutes) or p_starts_at<=v_now
-    or (p_starts_at at time zone b.timezone)::date>(v_now+make_interval(days=>b.max_booking_days_ahead) at time zone b.timezone)::date then
+    or (p_starts_at at time zone b.timezone)::date>((v_now+make_interval(mins=>b.max_booking_days_ahead*1440)) at time zone b.timezone)::date then
     raise exception 'APPOINTMENT_RESCHEDULE_TIME_INVALID'; end if;
    select * into s from public.services where business_id=v_business and id=a.service_id and is_active and is_public;
    if not found then raise exception 'APPOINTMENT_RESCHEDULE_UNAVAILABLE'; end if;
