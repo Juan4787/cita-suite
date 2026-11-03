@@ -2,7 +2,7 @@
 -- The backend has already checked the selected slot with the shared calculator;
 -- the command must hold its configuration version and enforce atomic persistence.
 begin;
-select extensions.plan(29);
+select extensions.plan(33);
 create temporary table command_fixture(label text primary key,id uuid not null,extra jsonb);
 create function pg_temp.cid(p_label text) returns uuid language sql as $$
  select id from command_fixture where label=p_label
@@ -358,5 +358,46 @@ do $$ declare before jsonb:=pg_temp.cstate('event_rollback'); begin
 end $$;
 select extensions.pass('29. Forced email-event failure rolls back the same appointment, financial history and released slot transaction');
 drop trigger e1_fail_email_event on private.appointment_email_events;
+
+select pg_temp.command_case('cancel_calendar');
+update command_fixture f set extra=extra||jsonb_build_object('calendar_sequence',a.calendar_sequence,'calendar_token',a.confirmation_token)
+ from public.appointments a where f.label='cancel_calendar' and a.id=f.id;
+select pg_temp.command_call((select extra->>'token' from command_fixture where label='cancel_calendar'),gen_random_uuid(),pg_temp.crevision('cancel_calendar'),'cancel',null,null,null);
+select extensions.ok((select a.calendar_sequence=(f.extra->>'calendar_sequence')::integer+1
+ and a.confirmation_token=f.extra->>'calendar_token' from public.appointments a join command_fixture f on f.id=a.id where f.label='cancel_calendar'),
+ '30. Cancellation advances the existing calendar sequence without rotating its calendar token/identity');
+
+-- Real controlled identity repair, first without an existing advance. An old
+-- booking event must remain tied to its original recipient generation.
+update public.deposit_policies set applies_to_manual=false where business_id=pg_temp.cid('business');
+select pg_temp.command_case('recipient_revision',true,'forfeit','pending');
+update public.deposit_policies set applies_to_manual=true where business_id=pg_temp.cid('business');
+do $$ declare patient uuid; begin
+ insert into public.patients(owner_id,business_id,full_name)
+ values(pg_temp.cid('owner'),pg_temp.cid('business'),'Synthetic replacement without advance') returning id into patient;
+ perform public.reassign_appointment_patient_safely(pg_temp.cid('business'),pg_temp.cid('recipient_revision'),patient,pg_temp.cid('owner'),
+  'Synthetic identity repair to verify recipient generation');
+end $$;
+select extensions.ok((select (to_jsonb(e)->>'management_generation')::bigint=1 from private.appointment_email_events e
+ where e.appointment_id=pg_temp.cid('recipient_revision') and e.purpose='booking_receipt')
+ and (select generation from public.appointment_management_states where appointment_id=pg_temp.cid('recipient_revision'))=2,
+ '31. The existing booking event keeps its original generation after a controlled recipient identity repair');
+select extensions.ok((select not terms_acknowledged and not require_deposit_on_reschedule and previous_deposit_disposition='credit'
+ and accepted_at is null and accepted_policy_revision is null and terms_snapshot='{}'::jsonb
+ from public.appointment_management_states where appointment_id=pg_temp.cid('recipient_revision')),
+ '32. A replacement patient does not inherit another patient financial acceptance');
+
+select pg_temp.command_case('recipient_pending',true,'forfeit','pending');
+do $$ declare patient uuid; begin
+ insert into public.patients(owner_id,business_id,full_name)
+ values(pg_temp.cid('owner'),pg_temp.cid('business'),'Synthetic replacement with old pending advance') returning id into patient;
+ perform public.reassign_appointment_patient_safely(pg_temp.cid('business'),pg_temp.cid('recipient_pending'),patient,pg_temp.cid('owner'),
+  'Synthetic identity repair to verify no unpaid debt is inherited');
+end $$;
+select extensions.ok(not exists(select 1 from public.appointment_deposits where appointment_id=pg_temp.cid('recipient_pending'))
+ and not exists(select 1 from public.appointment_deposit_requirements where appointment_id=pg_temp.cid('recipient_pending') and is_current)
+ and exists(select 1 from public.appointment_deposit_requirements r join public.appointments a on a.id=r.appointment_id
+  where r.appointment_id=pg_temp.cid('recipient_pending') and not r.is_current and r.status='pending' and r.allocation='none' and r.patient_id<>a.patient_id),
+ '33. Controlled replacement closes the previous unpaid obligation without transferring debt, inventing a waiver or deleting its history');
 select * from extensions.finish();
 rollback;
