@@ -51,6 +51,13 @@ describe('patient management command adapter', () => {
   expect((await applyPatientManagementCommand({ rpc } as never, access, move())).idempotentReplay).toBe(true);
   expect(rpc).toHaveBeenCalledTimes(1); expect(getAvailabilitySelection).not.toHaveBeenCalled();
  });
+ it('preserves uncertainty when an existing operation receipt cannot be decoded, without executing another command', async () => {
+  const rpc = vi.fn().mockResolvedValue({ data: { status: 'reserved' }, error: null });
+  vi.mocked(getAvailabilitySelection).mockClear();
+  await expect(applyPatientManagementCommand({ rpc } as never, access, move())).rejects.toThrow('PATIENT_MANAGEMENT_RESULT_UNCERTAIN');
+  expect(rpc).toHaveBeenCalledExactlyOnceWith('recover_patient_appointment_management', expect.objectContaining({ p_operation_id: move().operationId }));
+  expect(getAvailabilitySelection).not.toHaveBeenCalled();
+ });
  it('never replaces an old observed revision with a fresh read', async () => {
   const db = client();
   await expect(applyPatientManagementCommand(db as never, access, { ...move(), expectedRevision: 'e'.repeat(64) })).rejects.toThrow('APPOINTMENT_MANAGEMENT_CHANGED');
