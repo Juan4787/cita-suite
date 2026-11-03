@@ -37,7 +37,7 @@ Fuentes: [plan íntegro y ajustes](propuesta-senas-avisos-natalia.md#ejecucion-e
 
 **Fase:** E0 completo; E1 en implementación, con alcance de ejecución autorizado. **Implementación iniciada:** contrato puro y primera migración E1 escrita; todavía sin rutas ni envíos integrados, sin migración aplicada en producción. **Publicación de E:** no. **Pruebas integrales E:** no ejecutadas.
 
-**Siguiente acción:** solicitar/recuperar SQL de identidad/calendario con cuatro fallas reproducidas en `41615584129` y corrección inicial en migraciones E no aplicadas (E1.29). Contrato actual 35 grupos; anteriores 29 y doce carreras tienen cierre sólo en fuente v8 `894a674…`. Nueva suite, digest y tipos pendientes. Sin rutas/proveedor/publicación de E ni inicio de P1/P2/P3; continuar de forma autónoma.
+**Siguiente acción:** solicitar/recuperar roja de lectura mínima (16 grupos), todavía sin implementación (E1.31). Última suite SQL completa: `41616550006`, fuente `0ed587dfa772a46d1abf85c6e22f4eb9042424f6`, comando 35/35, 738 aserciones, doce carreras nuevas, digest/tipos cotejados (E1.30). Cuatro migraciones E sin aplicar/integrar; continuar E1–E6 y después P1/P2/P3, sin otro permiso.
 
 **Evidencia privada de esta ejecución:** `.verification/etapa-e-20261103/`. Ningún secreto, dirección de paciente, cuerpo de correo recibido o dato personal se incluye en Git ni en documentos públicos. Las rutas de evidencia no equivalen a resultados aprobados.
 
@@ -57,7 +57,7 @@ La regla de cada caso se lee en la especificación; esta tabla registra su acept
 | EM08 | Pendiente | Sin prueba funcional de E. |
 | EM09 | Pendiente | Sin prueba funcional de E. |
 | EM10 | Pendiente | Sin prueba funcional de E. |
-| EM11 | Pendiente | Sin prueba funcional de E. |
+| EM11 | Parcial CI | Reparación controlada no hereda aceptación/deuda y eventos conservan generación en 41616550006; faltan destinatarios/rutas/alta idempotente y prueba integral. |
 | EM12 | Pendiente | Sin prueba funcional de E. |
 | AC01 | Parcial CI | Contrato puro: 44 casos en fast 41578321181 y cuatro mutaciones locales; faltan integración y recorridos reales. Ver E1.1/E1.15. |
 | AC02 | Pendiente | Sin prueba funcional de E. |
@@ -386,3 +386,16 @@ La regla de cada caso se lee en la especificación; esta tabla registra su acept
 - Se modifican únicamente migraciones E **nunca aplicadas en producción** (.010/.030/.040); cambia su digest y se exige nueva suite/tipos. Las migraciones anteriores aplicadas siguen intactas. La evidencia v8 describe su fuente anterior, no estas correcciones. No se rompe una FK ni se borra historia para evitar una falla de fixture.
 - Contrato ampliado a **35** antes del primer verde: lectura económica de persona nueva con historia anterior y evento de cancelación nueva generación sin retaggear el comprobante anterior. El usuario final no ve estos identificadores técnicos. Falta comprobar la implementación y la integración de destinatarios/enlaces; no cerrar EM11 por estas pruebas SQL.
 - Próximo: SQL conjunto, doce carreras, digest/tipos. Después comprobar recuperación pública idempotente tras reasignar, lectura mínima de una fotografía, comandos de personal/ayuda que vence, incidentes y cola; continuar E2–E6. La baja por corrección de email es distinta de reasignar paciente: preservar calendarios legítimos y no extender por inferencia la rotación de token que ya hace la reasignación controlada.
+
+
+### E1.30 — identidad/calendario 35/35 y suite completa aprobados
+
+- **SQL aprobado** `41616550006`, fuente `0ed587dfa772a46d1abf85c6e22f4eb9042424f6`, main de código `1c6666a`. Recibo ok/sqlVerified, **738 aserciones pgTAP**, 16 scripts de concurrencia y doce carreras del comando con contador de deadlocks sin aumento. Se cotejó la secuencia exacta 1–35 del archivo; los cuatro fallos de la roja y las dos ampliaciones ahora pasan. No es cierre de destinatarios/ICS en UI ni de EM11 integral.
+- Archivo `sql-identidad-calendario-41616550006.zip`, colección `sql-identidad-calendario-evidence`, SHA-256 `5d9422e35861badaa36c487034928f7dfcc55b7546ffe23646a5be110f3c3c42`. Tipos públicos reproducibles e idénticos byte por byte al archivo local, SHA-256 `53fe51b08b18bc5b4c801277ef155671fff692b85f568d513afce35382d10ab0`; nuevo digest de migraciones `be4ef82c4404e6b1da3b7c03ffe802f3f806f13747aa21e19ce78787875f9163`, cotejado. No se reescriben tipos idénticos ni se atribuye el recibo a otra migración futura.
+- Continúa E1. Falta consumidor que descarte eventos de otra generación, gestión/revocación en todas las rutas, corrección de email, recuperación de alta después de reasignar, lectura mínima, personal/incidentes y cola. Ninguna migración E en producción y ningún envío nuevo.
+
+### E1.31 — contrato de lectura del paciente antes de implementarlo
+
+- `patient_appointment_management_view.sql`: 16 grupos escritos, **sin ejecutar todavía**. Exigen identidad/revisión/opciones/condiciones coherentes en una lectura, no notas/contacto privado/intake, abrir/previsualizar sin nueva capacidad o escritura, preferencias email independientes, excepciones mínimas con reserva apagada/archivo, pausas, servicio retirado/duración vigente, seña pendiente, cancelado/dinero a resolver, turno iniciado, revocación y ACL backend.
+- La primera función de prueba referencia la API ausente para demostrar su roja antes de escribirla. El DTO es explícito; no serializar la fila completa de appointments/patients. Capacidad/generación/datos deben usar una misma fotografía SQL. Revisar la estabilidad de `resolve_appointment_management_access`, que sólo lee, para reutilizar su autoridad sin copiarla ni emitir una nueva credencial en GET. La mutación conserva revalidación después de bloquear.
+- Al integrar, distinguir canal legado de capacidad nueva: ambos tokens son 64-hex y no se infiere autoridad de su apariencia. Calendario conserva su identificador limitado; un enlace legado revocado no obtiene otra capacidad ni vuelve a mutar por una ruta secundaria. Componentes/plantillas consumirán el contexto común, sin duplicar la página ni la regla económica. No hay UI nueva todavía.
