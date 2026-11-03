@@ -36,10 +36,15 @@ function command(args, input) {
     encoding: "utf8",
     maxBuffer: 16 * 1024 * 1024,
   });
-  if (result.error || result.status !== 0)
+  if (result.error || result.status !== 0) {
+    // A later SQL error must not hide earlier failed/passed pgTAP assertions.
+    // This runner only accepts its owned disposable container, never production.
+    if (args.includes('psql') && result.stdout)
+      process.stderr.write('SQL output before failure (bounded):\n' + result.stdout.slice(-32768) + '\n');
     throw new Error(
       result.error?.message ?? result.stderr.trim() ?? "Docker failed",
     );
+  }
   return result.stdout;
 }
 function sql(input) {
