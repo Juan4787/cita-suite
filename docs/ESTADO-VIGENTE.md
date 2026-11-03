@@ -33,6 +33,8 @@ A	apps/web/src/lib/scheduling/reschedule-terms.test.ts
 A	apps/web/src/lib/scheduling/reschedule-terms.ts
 M	apps/web/src/lib/server/scheduling/public/availability.test.ts
 M	apps/web/src/lib/server/scheduling/public/availability.ts
+A	apps/web/src/lib/server/scheduling/public/patient-management.test.ts
+A	apps/web/src/lib/server/scheduling/public/patient-management.ts
 M	packages/shared/src/database.types.ts
 A	scripts/check-repo-sync.mjs
 M	scripts/test-booking-foundation.mjs
@@ -43,6 +45,7 @@ A	supabase/migrations/20261103020000_appointment_management_capabilities.sql
 A	supabase/migrations/20261103030000_appointment_reschedule_financial_terms.sql
 A	supabase/migrations/20261103040000_patient_appointment_management_commands.sql
 A	supabase/migrations/20261103050000_patient_appointment_management_view.sql
+A	supabase/migrations/20261103060000_appointment_creation_replay_identity.sql
 M	supabase/templates/recovery.html
 A	supabase/tests/appointment_management_capabilities.sql
 A	supabase/tests/appointment_management_foundation.sql
@@ -51,6 +54,7 @@ A	supabase/tests/appointment_reschedule_financial_terms.sql
 A	supabase/tests/migrations/20261103010000_appointment_management_foundation.sql.after.sql
 A	supabase/tests/migrations/20261103010000_appointment_management_foundation.sql.before.sql
 A	supabase/tests/patient_appointment_management_commands.sql
+A	supabase/tests/patient_appointment_management_recovery.sql
 A	supabase/tests/patient_appointment_management_view.sql
 M	supabase/tests/run_deposit_expiry_concurrency.sh
 A	supabase/tests/run_patient_management_concurrency.sh
@@ -73,6 +77,9 @@ A	supabase/tests/run_patient_management_view_concurrency.sh
 | `availability.ts` y su prueba | Contrato y calculador compartido con revisiones de catálogo/reserva y duración de la misma lectura; contrato anterior de slots conservado, 19/19 locales junto con ventanas | No: todavía sin publicar |
 | `run_patient_management_concurrency.sh` | Doce carreras y cero deadlocks comprobados en CI `41614887283`, incluida corrección de heartbeat; sólo loopback descartable | No: sólo CI |
 | `reschedule-terms.ts` y su prueba | Validación y formato preciso de las condiciones SQL, 20/20 locales, sin consumidores todavía | No: desarrollo sin publicar |
+| Migración .060 y prueba de reasignación ampliada | Rechazar recuperación con identidad reasignada, inicial después de roja 41651423223, sin verificar | No: sólo CI descartable |
+| `patient-management.ts` y su prueba | Adaptador mínimo y disponibilidad fija, 24/24 locales; todavía sin rutas | No: desarrollo sin publicar |
+| `patient_appointment_management_recovery.sql` | Siete grupos previos al lookup de recibo, función ausente, roja pendiente | No: sólo CI |
 | `patient_appointment_management_view.sql` | Lectura mínima con migración `20261103050000`, 16 grupos y lectura coherente comprobados en CI 41650084150 | No: sólo CI descartable |
 | `run_patient_management_view_concurrency.sh` | Carrera de lectura con modificación simultánea entre autorización/presentación aprobada en CI 41650084150 | No: sólo CI descartable |
 | `supabase/templates/recovery.html` | Plantilla del correo de recuperación, modificada en otro trabajo | No se despliega con la app: se carga aparte en Supabase. **No está verificado** si la versión de Supabase coincide con este archivo |
