@@ -1,7 +1,7 @@
 -- E1: financial preview only. The later command contract must prove that these
 -- terms and the actual appointment/money/events commit together. No real money.
 begin;
-select extensions.plan(18);
+select extensions.plan(19);
 create temporary table financial_fixture(label text primary key,id uuid not null);
 create function pg_temp.fid(p_label text) returns uuid language sql as $$
  select id from financial_fixture where label=p_label
@@ -141,9 +141,17 @@ do $$ declare bad jsonb; valid jsonb; begin
  end loop;
 end $$;
 select extensions.pass('17. Ambiguous, noninteger, out-of-range or different-currency quotes are not a financial balance');
+do $$ declare t jsonb; begin
+ update private.deposit_automation set enabled=false;
+ t:=pg_temp.fin_terms('forfeit_new',(select starts_at from public.appointments where id=pg_temp.fid('forfeit_new')));
+ if t->>'kind' is distinct from 'unchanged' or t->>'unavailable_reason' is distinct from 'deposit_automation_paused' then
+  raise exception 'E1_INITIAL_FINANCIAL_READINESS_INCOHERENT'; end if;
+ update private.deposit_automation set enabled=true;
+end $$;
+select extensions.pass('18. Initial context and selected-slot preview share readiness, even when no move is being proposed');
 select extensions.ok(not has_function_privilege('anon','private.appointment_reschedule_financial_terms(uuid,uuid,timestamptz,timestamptz)','EXECUTE')
  and not has_function_privilege('authenticated','private.appointment_reschedule_financial_terms(uuid,uuid,timestamptz,timestamptz)','EXECUTE')
  and not has_function_privilege('service_role','private.appointment_quote_amount(jsonb)','EXECUTE'),
- '18. Private financial helpers are not alternate Data API entry points');
+ '19. Private financial helpers are not alternate Data API entry points');
 select * from extensions.finish();
 rollback;
