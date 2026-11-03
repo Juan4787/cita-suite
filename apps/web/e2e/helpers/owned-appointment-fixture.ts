@@ -32,9 +32,11 @@ export function ownedAppointmentFixture() {
 			const diagnostic = typeof result.stderr === 'string' ? result.stderr : '';
 			const state = /(?:^|\n)ERROR:\s+([A-Z0-9]{5}):/.exec(diagnostic)?.[1] ?? 'unknown';
 			const constraint = /CONSTRAINT NAME:\s+([a-z0-9_]{1,128})(?:\s|$)/.exec(diagnostic)?.[1] ?? 'none';
-			const reason = /(?:^|\n)ERROR:\s+[A-Z0-9]{5}:\s+((?:APPOINTMENT|DEPOSIT|BOOKING|PATIENT|PRICE|SCHEDULE)_[A-Z0-9_]{1,100})(?:\s|$)/.exec(diagnostic)?.[1] ?? 'none';
+			const reason = /(?:^|\n)ERROR:\s+[A-Z0-9]{5}:\s+([A-Z][A-Z0-9_]{1,100})(?:\s|$)/.exec(diagnostic)?.[1] ?? 'none';
 			const line = /(?:^|\n)LINE (\d{1,5}):/.exec(diagnostic)?.[1] ?? 'unknown';
-			throw new Error(`Owned deposit SQL failed (state=${state}, constraint=${constraint}, reason=${reason}, line=${line}); no credentials or row values are logged.`);
+			const routine = /(?:^|\n)CONTEXT:\s+PL\/pgSQL function ([a-z0-9_.]{1,128})(?:\(|\s)/.exec(diagnostic)?.[1] ?? 'unknown';
+			const phase = [...result.stdout.matchAll(/(?:^|\n)CITA_FIXTURE_PHASE ([a-z_]{1,80})(?:\r?\n|$)/g)].at(-1)?.[1] ?? 'unknown';
+			throw new Error(`Owned deposit SQL failed (state=${state}, constraint=${constraint}, reason=${reason}, line=${line}, routine=${routine}, phase=${phase}); no credentials or row values are logged.`);
 		}
 		return result.stdout.trim();
 	};
