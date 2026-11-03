@@ -37,7 +37,7 @@ Fuentes: [plan íntegro y ajustes](propuesta-senas-avisos-natalia.md#ejecucion-e
 
 **Fase:** E0 completo; E1 en implementación, con alcance de ejecución autorizado. **Implementación iniciada:** contrato puro y primera migración E1 escrita; todavía sin rutas ni envíos integrados, sin migración aplicada en producción. **Publicación de E:** no. **Pruebas integrales E:** no ejecutadas.
 
-**Siguiente acción:** recuperar SQL v4 que se solicitará con el escenario cancelación→cambio corregido. Última fuente ejecutada `db832ad5210e5a64c986a7b6eef69c37f7063870`, corrida `41609778146`: comando 29/29, suite global fallida en la tercera carrera por identidad de operación del fixture (E1.22). Hipótesis de heartbeat todavía sin reproducir. Cuatro migraciones E escritas, sin aplicar ni integrar; tipos oficiales de la cuarta todavía pendientes. Continuar carreras, personal/cola y E2–E6; P1/P2/P3 después. No pedir otro permiso.
+**Siguiente acción:** recuperar SQL v4 `41610641502`, fuente `d767f2154a45c56710eb8d6ca957068813180137`, rama `verify/etapa-e-comandos-v4-20261103`, solicitada con el escenario cancelación→cambio corregido. Última fuente ejecutada `db832ad5210e5a64c986a7b6eef69c37f7063870`, corrida `41609778146`: comando 29/29, suite global fallida en la tercera carrera por identidad de operación del fixture (E1.22). Hipótesis de heartbeat todavía sin reproducir. Cuatro migraciones E escritas, sin aplicar ni integrar; tipos oficiales de la cuarta todavía pendientes. Continuar carreras, personal/cola y E2–E6; P1/P2/P3 después. No pedir otro permiso.
 
 **Evidencia privada de esta ejecución:** `.verification/etapa-e-20261103/`. Ningún secreto, dirección de paciente, cuerpo de correo recibido o dato personal se incluye en Git ni en documentos públicos. Las rutas de evidencia no equivalen a resultados aprobados.
 
@@ -99,7 +99,7 @@ La regla de cada caso se lee en la especificación; esta tabla registra su acept
 | SN15 | Pendiente | Sin prueba funcional de E. |
 | SN16 | Parcial CI | Comando SQL 29/29 en 41609778146; alcance específico E1.22. Faltan carreras completas, consumidores y prueba integral. |
 | SN17 | Parcial CI | Cancelación conserva pago como unresolved en SQL 41600939474; falta comando público/UX/correo y comprobaciones integrales. |
-| SN18 | Parcial CI | Comando SQL 29/29 en 41609778146; alcance específico E1.22. Faltan carreras completas, consumidores y prueba integral. |
+| SN18 | Pendiente | Falta comprobar el comando y recorrido real del personal en E. La cancelación del paciente no acredita ese origen. |
 | SN19 | Parcial CI | Actualización real desde cinco estados anteriores, 8/8 en 41600939474; sin aplicación productiva ni UI de historia. |
 | RM01 | Pendiente | Sin prueba funcional de E. |
 | RM02 | Pendiente | Sin prueba funcional de E. |
@@ -333,3 +333,9 @@ La regla de cada caso se lee en la especificación; esta tabla registra su acept
 - Log `sql-comandos-v3-41609778146.log`, desde 3200 el contrato, desde 5424 las carreras nuevas. Falló `cancel_before_move`: la segunda llamada reutilizaba la misma identidad de operación para otra acción, por lo que respondió correctamente `APPOINTMENT_OPERATION_CONFLICT`; el escenario esperaba conflicto por revisión. Se le asigna una operación distinta, como exige ese escenario. No se afloja el recibo ni la comparación del comando.
 - La corrida no llegó a las otras carreras nuevas ni a la hipótesis de heartbeat de E1.21; sigue pendiente su reproducción. Próximo: SQL v4 con sólo ese escenario corregido y recuperar el resultado completo. Mantener la prueba del worker que debe poder saltear un turno ocupado.
 - Contrato puro `reschedule-terms.ts` para consumidores futuros: preserva importes decimales exactos y microsegundos, valida el DTO completo sin recotizar, distingue arancel desconocido y evita números JS al formatear créditos grandes. Roja estructural por módulo ausente (`contrato-economico-ui-roja.log`), **20/20 locales** después (`contrato-economico-ui-verde.log`), un trabajador/512 MiB. No es prueba de una pantalla ni de que el servidor ya lo transporte.
+
+
+### E1.23 — entrada documental del contrato parcial y corrida en curso
+
+- SQL v4 solicitado `41610641502`, fuente `d767f2154a45c56710eb8d6ca957068813180137`, código main `7e26e34`. Recuperar esa corrida antes de reemplazarla. Es posterior a la corrección del fixture; todavía no se atribuye éxito global ni prueba de la hipótesis de heartbeat.
+- Contratos funcionales/permisos generales distinguen el código E1 local de A/B/C en producción, y remiten a la evidencia parcial. Se corrige SN18 en la matriz: cancelar como paciente no prueba cancelar como personal; ese recorrido sigue pendiente. No se cambia el texto histórico aprobado ni se cierra una tarea de la cola posterior.

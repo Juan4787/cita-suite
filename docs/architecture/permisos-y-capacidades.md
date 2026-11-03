@@ -101,7 +101,7 @@ La migración `20261029010000_appointment_deposits.sql` y `private.deposit_actor
 
 Las rutas `senas` redirigen a profesional y lectura sola; configuración redirige también a recepción. Si una lectura falla, no se fabrica una lista vacía ni un estado saludable. Release exacto C9 **41082416537**: SQL B25/C15, diez carreras y deadlocks0; tipos0/0; navegador53fuente/53paquete y49compatibilidad B11. Lectura productiva:74relaciones sin exposición anónima; las pruebas HTTP de acciones usaron exclusivamente la dueña sintética propia, con lectura SQL y limpieza. Detalle por capa en el [cierre](../plans/cierre-senas-avisos-natalia.md) y el [registro](../plans/registro-senas-avisos-natalia.md); no atribuir una prueba de interfaz al catálogo íntegro de permisos.
 
-## E — permisos a implementar y comprobar (2 de noviembre)
+## E — permisos en desarrollo, sin aplicar en producción (3 de noviembre)
 
 El [plan 12.18](../plans/propuesta-senas-avisos-natalia.md#etapa-e-vigente) y su [especificación](../plans/etapa-e-correo-autogestion.md) añaden requisitos, no permisos ya aplicados:
 
@@ -110,3 +110,5 @@ El [plan 12.18](../plans/propuesta-senas-avisos-natalia.md#etapa-e-vigente) y su
 - El paciente gestiona un único turno mediante una capacidad validada, limitada y revocable; no puede elegir actor, consultorio, turno excluido, monto o excepción de personal.
 - Consultar/cancelar una cita vigente cuando la reserva online está apagada no habilita nuevas reservas. Una excepción para suspensión/archivo requiere comando específico y pruebas de aislamiento; no retirar guardias globales ni reactivar el consultorio.
 - Funciones nuevas sin exposición anónima directa por inercia: revisar grants, RLS, referencias compuestas y las suites de catálogo. Webhooks autenticados y relacionados con el envío/consultorio correctos.
+
+Estado parcial de E1: tablas de preferencias/historia con lectura mediante los conjuntos de turnos y sin escrituras directas; hashes y recibos privados; emitir/resolver capacidades y ejecutar acciones del paciente sólo con `service_role`; revocar gestión con dueño/admin/recepción autorizados. Cancelar con enlace válido es una excepción mínima del comando del paciente, incluida suspensión/archivo, sin habilitar reservas ni operación interna. Los 29 grupos SQL iniciales se comprobaron en CI `41609778146`, pero la corrida completa falló en carreras y las rutas aún no usan este contrato. No hay una ampliación de permisos productivos ni un cierre integral de E; [evidencia y continuación](../plans/ejecucion-etapa-e-20261103.md).
