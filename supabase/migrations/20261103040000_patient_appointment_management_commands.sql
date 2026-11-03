@@ -113,6 +113,46 @@ begin
   return result;
 end $$;
 
+-- Target-independent readiness shared by the initial patient view and command.
+-- It does not calculate slots, accept an excluded appointment or mutate money.
+-- Slot notice/horizon, the catalog version and a locked integration revision
+-- remain target-specific command preconditions.
+create function private.appointment_reschedule_scope(p_business_id uuid,p_appointment_id uuid,p_now timestamptz)
+returns jsonb language sql stable security definer set search_path=pg_catalog,pg_temp as $$
+ with scope as (
+  select a.id,a.service_id,s.duration_minutes,team.ids,coalesce(c.modality,'in_person') as modality,
+   c.integration_id,i.revision as integration_revision,coalesce(i.modality_windows,'[]'::jsonb) as modality_windows,
+   case
+    when a.status not in ('reserved','confirmed','reschedule_requested') or a.starts_at<=p_now then 'appointment_closed'
+    when runtime.reschedule_enabled is not true then 'operations_paused'
+    when b.is_active is not true or b.public_booking_enabled is not true or public.business_allows_operation(b.id) is not true then 'booking_unavailable'
+    when s.id is null or s.is_active is not true or s.is_public is not true then 'service_unavailable'
+    when coalesce(cardinality(team.ids),0) not between 1 and 16 or team.available is not true then 'professional_unavailable'
+    when patient.blocked or patient.archived_at is not null then 'patient_unavailable'
+    when c.appointment_id is not null and (i.id is null or i.is_active is not true or not (c.modality=any(i.allowed_modalities))
+     or (cardinality(i.allowed_service_ids)>0 and not (a.service_id=any(i.allowed_service_ids)))
+     or (cardinality(i.allowed_professional_ids)>0 and not (team.ids<@i.allowed_professional_ids))) then 'modality_unavailable'
+   end as reason
+  from public.appointments a join public.businesses b on b.id=a.business_id
+  join public.patients patient on (patient.business_id,patient.id)=(a.business_id,a.patient_id)
+  left join public.services s on (s.business_id,s.id)=(a.business_id,a.service_id)
+  left join public.appointment_booking_contexts c on (c.business_id,c.appointment_id)=(a.business_id,a.id)
+  left join public.booking_integrations i on (i.business_id,i.id)=(c.business_id,c.integration_id)
+  cross join private.appointment_management_runtime runtime
+  cross join lateral (
+   select array_agg(ap.professional_id order by ap.professional_id) as ids,
+    bool_and(p.id is not null and p.is_active and p.is_public and nullif(btrim(p.name),'') is not null
+     and exists(select 1 from public.professional_services ps where (ps.business_id,ps.service_id,ps.professional_id)=(a.business_id,a.service_id,ap.professional_id))) as available
+   from public.appointment_professionals ap left join public.professionals p on (p.business_id,p.id)=(ap.business_id,ap.professional_id)
+   where ap.business_id=a.business_id and ap.appointment_id=a.id
+  ) team
+  where a.business_id=p_business_id and a.id=p_appointment_id and p_now is not null and isfinite(p_now)
+ )
+ select jsonb_build_object('can_select',reason is null,'reason',reason,'service_id',service_id,
+  'duration_minutes',duration_minutes,'professional_ids',coalesce(to_jsonb(ids),'[]'::jsonb),'modality',modality,
+  'integration_id',integration_id,'integration_revision',integration_revision,'modality_windows',modality_windows) from scope
+$$;
+
 create function public.apply_patient_appointment_management(p_token text,p_legacy boolean,p_operation_id uuid,
  p_expected_revision text,p_action text,p_starts_at timestamptz default null,p_availability_revision bigint default null,
  p_financial_terms jsonb default null,p_integration_revision bigint default null) returns jsonb
@@ -121,8 +161,8 @@ declare access jsonb; locked_access jsonb; a public.appointments; before_a publi
  b public.businesses; s public.services; context public.appointment_booking_contexts; integration public.booking_integrations;
  d public.appointment_deposits; r public.appointment_deposit_requirements; basis public.appointment_deposit_requirements;
  prior private.appointment_management_operations; v_business uuid; v_appointment uuid; v_now timestamptz;
- v_fingerprint text; v_result jsonb; v_terms jsonb; v_requirement uuid; v_revision bigint; v_teams uuid[]; v_locked_teams uuid[];
- v_professional uuid; v_ends_at timestamptz; v_status text; v_changed boolean:=true; v_runtime boolean; v_kind text;
+ v_fingerprint text; v_result jsonb; v_terms jsonb; v_scope jsonb; v_requirement uuid; v_revision bigint; v_teams uuid[]; v_locked_teams uuid[];
+ v_professional uuid; v_ends_at timestamptz; v_status text; v_changed boolean:=true; v_kind text;
  v_projection_revision bigint; v_snapshot jsonb; v_has_projection boolean; v_has_current boolean; v_previous_disposition text;
 begin
  if p_legacy is null or p_operation_id is null or not coalesce(p_expected_revision ~ '^[0-9a-f]{64}$',false)
@@ -143,7 +183,7 @@ begin
   perform pg_advisory_xact_lock_shared(hashtextextended('cita-suite:deposit-automation-configuration',0));
   perform 1 from public.deposit_policies where business_id=v_business for share;
   perform 1 from public.appointment_email_policies where business_id=v_business for share;
-  select reschedule_enabled into v_runtime from private.appointment_management_runtime where singleton for share;
+  perform 1 from private.appointment_management_runtime where singleton for share;
   select array_agg(professional_id order by professional_id) into v_teams from public.appointment_professionals
    where business_id=v_business and appointment_id=v_appointment;
   -- Match the deterministic locks of joint booking BEFORE taking the parent.
@@ -192,8 +232,6 @@ begin
   -- observed semantic revision still apply, including for a technical pause.
   if p_starts_at=a.starts_at then v_changed:=false;
   else
-   if v_runtime is not true or b.is_active is not true or b.public_booking_enabled is not true
-    or public.business_allows_operation(v_business) is not true then raise exception 'APPOINTMENT_RESCHEDULE_UNAVAILABLE'; end if;
    if p_availability_revision is null or p_availability_revision is distinct from
     (select booking_availability_revision from public.businesses where id=v_business) then raise exception 'APPOINTMENT_AVAILABILITY_CHANGED'; end if;
    v_now:=clock_timestamp();
@@ -203,11 +241,7 @@ begin
    select * into s from public.services where business_id=v_business and id=a.service_id and is_active and is_public;
    if not found then raise exception 'APPOINTMENT_RESCHEDULE_UNAVAILABLE'; end if;
    select array_agg(professional_id order by professional_id) into v_locked_teams from public.appointment_professionals where business_id=v_business and appointment_id=a.id;
-   if coalesce(cardinality(v_teams),0) not between 1 and 16 or v_teams is distinct from v_locked_teams or exists(
-    select 1 from unnest(v_teams) pid where not exists(select 1 from public.professionals p join public.professional_services ps
-     on ps.business_id=p.business_id and ps.professional_id=p.id where p.business_id=v_business and p.id=pid and p.is_active and p.is_public
-      and nullif(btrim(p.name),'') is not null and ps.service_id=a.service_id))
-    or exists(select 1 from public.patients where business_id=v_business and id=a.patient_id and (blocked or archived_at is not null)) then
+   if v_teams is distinct from v_locked_teams then
     raise exception 'APPOINTMENT_RESCHEDULE_UNAVAILABLE'; end if;
    select * into context from public.appointment_booking_contexts where business_id=v_business and appointment_id=a.id;
    if found then
@@ -217,13 +251,13 @@ begin
     begin
      select * into integration from public.booking_integrations where business_id=v_business and id=context.integration_id for share nowait;
     exception when lock_not_available then raise exception 'APPOINTMENT_AVAILABILITY_CHANGED'; end;
-    if integration.id is null or not integration.is_active or not (context.modality=any(integration.allowed_modalities))
-     or (cardinality(integration.allowed_service_ids)>0 and not (a.service_id=any(integration.allowed_service_ids)))
-     or (cardinality(integration.allowed_professional_ids)>0 and not (v_teams<@integration.allowed_professional_ids)) then
+    if integration.id is null then
      raise exception 'APPOINTMENT_RESCHEDULE_UNAVAILABLE'; end if;
     if p_integration_revision is distinct from integration.revision then raise exception 'APPOINTMENT_AVAILABILITY_CHANGED'; end if;
    elsif p_integration_revision is not null then raise exception 'APPOINTMENT_AVAILABILITY_CHANGED';
    end if;
+   v_scope:=private.appointment_reschedule_scope(v_business,a.id,v_now);
+   if (v_scope->>'can_select')::boolean is not true then raise exception 'APPOINTMENT_RESCHEDULE_UNAVAILABLE'; end if;
    v_ends_at:=p_starts_at+make_interval(mins=>s.duration_minutes);
    v_terms:=private.appointment_reschedule_financial_terms(v_business,a.id,p_starts_at,v_now);
    if v_terms->>'unavailable_reason' is not null or v_terms->>'kind'='unavailable' then raise exception 'APPOINTMENT_RESCHEDULE_UNAVAILABLE'; end if;
@@ -309,7 +343,7 @@ begin
  return v_result;
 end $$;
 
-revoke all on function private.record_appointment_email_event(),private.lock_deposit_automation_configuration(),
+revoke all on function private.record_appointment_email_event(),private.lock_deposit_automation_configuration(),private.appointment_reschedule_scope(uuid,uuid,timestamptz),
  public.apply_patient_appointment_management(text,boolean,uuid,text,text,timestamptz,bigint,jsonb,bigint) from public,anon,authenticated,service_role;
 grant execute on function public.apply_patient_appointment_management(text,boolean,uuid,text,text,timestamptz,bigint,jsonb,bigint) to service_role;
 notify pgrst,'reload schema';
