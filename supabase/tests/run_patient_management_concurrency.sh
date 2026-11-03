@@ -130,7 +130,7 @@ end \$\$;
 SQL
 }
 race() {
- local name=$1 first=$2 second=$3 expected_error=${4:-}
+ local name=$1 first=$2 second=$3 expected_error=${4:-} after_wait=${5:-}
  echo "Patient management race: $name" >&2
  "${psql_command[@]}" >"$task_directory/holder.log" 2>&1 <<SQL &
 set statement_timeout='12s';
@@ -138,6 +138,7 @@ begin;
 $first
 \echo PATIENT_HOLDER_READY
 $(hold_until_waiter)
+$after_wait
 commit;
 SQL
  holder_pid=$!
@@ -231,6 +232,17 @@ wait "$holder_pid"; holder_pid=''
 echo 'Patient management inverse expiry: holder returned; assert state.' >&2
 "${psql_command[@]}" -c "select patient_management_race.assert_state('move_expiry','reserved','pending',true,1);"
 echo 'PASS: expiry skips the appointment held by a completed uncommitted patient move.'
+
+# The competing configuration commits only AFTER the command is observed
+# waiting on its actual row lock and its commercial expiry has passed.
+# This is a real overlap, not a sleep used to guess which command ran first.
+"${psql_command[@]}" -c "select patient_management_race.prepare('access_clock');"
+race access_expires_while_waiting \
+ "update public.business_subscriptions set is_permanent=false,paid_until=clock_timestamp()+interval '1 second',grace_until=null where business_id='$business_id';" \
+ "select patient_management_race.act('access_clock');" \
+ APPOINTMENT_RESCHEDULE_UNAVAILABLE \
+ "select pg_sleep(greatest(extract(epoch from ((select paid_until from public.business_subscriptions where business_id='$business_id')-clock_timestamp())),0)+0.025);"
+"${psql_command[@]}" -c "select patient_management_race.assert_state('access_clock','reserved','pending',false,0); update public.business_subscriptions set is_permanent=true,paid_until=null where business_id='$business_id';"
 deadlocks_after=$("${psql_command[@]}" -c 'select deadlocks from pg_stat_database where datname=current_database();')
 [[ "$deadlocks_before" == "$deadlocks_after" ]]
-echo 'PASS: twelve controlled patient-management races; no PostgreSQL deadlock.'
+echo 'PASS: thirteen controlled patient-management races; no PostgreSQL deadlock.'

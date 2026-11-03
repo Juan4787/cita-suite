@@ -2,6 +2,26 @@
 -- financial rule is activated here. The current deposit remains one-to-one.
 begin;
 
+-- One commercial rule, with an explicit decision clock. Existing callers keep
+-- their transaction-start contract; management calls pass the post-wait clock.
+-- STABLE keeps subscription/legacy fallback in the caller's read snapshot.
+create function private.appointment_business_allows_operation_at(p_business_id uuid,p_now timestamptz)
+returns boolean language sql stable security definer set search_path=pg_catalog,pg_temp as $$
+ select case
+  when p_now is null or not isfinite(p_now) then false
+  when exists(select 1 from public.business_subscriptions bs where bs.business_id=p_business_id) then coalesce((
+   select bs.archived_at is null and bs.commercial_access_enabled=true and
+    (bs.is_permanent=true or (bs.paid_until is not null and p_now<=bs.paid_until)
+     or (bs.grace_until is not null and p_now<=bs.grace_until))
+   from public.business_subscriptions bs where bs.business_id=p_business_id),false)
+  else coalesce((select b.created_at<timestamptz '2026-05-28 05:21:36+00' from public.businesses b where b.id=p_business_id),false)
+ end
+$$;
+create or replace function public.business_allows_operation(target_business_id uuid)
+returns boolean language sql security definer set search_path=pg_catalog,pg_temp as $$
+ select private.appointment_business_allows_operation_at(target_business_id,transaction_timestamp())
+$$;
+
 create table public.appointment_email_policies (
  business_id uuid primary key references public.businesses(id) on delete cascade,
  email_enabled boolean not null default true,
@@ -291,6 +311,7 @@ language sql stable security definer set search_path=pg_catalog,pg_temp as $$
 $$;
 
 revoke all on function private.initialize_appointment_email_policy(),private.reject_deposit_event_rewrite(),
+ private.appointment_business_allows_operation_at(uuid,timestamptz),
  private.synchronize_deposit_requirement(),private.track_appointment_management_state(),private.appointment_semantic_revision(uuid,uuid)
  from public,anon,authenticated,service_role;
 

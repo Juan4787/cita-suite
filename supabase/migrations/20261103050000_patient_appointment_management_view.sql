@@ -51,7 +51,7 @@ begin
  select * into c from public.appointment_booking_contexts where business_id=p_business_id and appointment_id=p_appointment_id;
  select full_name into v_patient_name from public.patients where business_id=p_business_id and id=a.patient_id;
  v_active_future:=a.status in ('reserved','confirmed','reschedule_requested') and a.starts_at>p_now;
- v_operable:=b.is_active and coalesce(public.business_allows_operation(b.id),false);
+ v_operable:=b.is_active and coalesce(private.appointment_business_allows_operation_at(b.id,p_now),false);
  v_booking:=v_operable and b.public_booking_enabled;
  v_scope:=private.appointment_reschedule_scope(p_business_id,p_appointment_id,p_now);
  if v_active_future then v_terms:=private.appointment_reschedule_financial_terms(p_business_id,p_appointment_id,coalesce(p_starts_at,a.starts_at),p_now); end if;
