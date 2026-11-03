@@ -2,7 +2,7 @@
 -- The backend has already checked the selected slot with the shared calculator;
 -- the command must hold its configuration version and enforce atomic persistence.
 begin;
-select extensions.plan(35);
+select extensions.plan(37);
 create temporary table command_fixture(label text primary key,id uuid not null,extra jsonb);
 create function pg_temp.cid(p_label text) returns uuid language sql as $$
  select id from command_fixture where label=p_label
@@ -411,5 +411,18 @@ select extensions.ok((select (to_jsonb(e)->>'management_generation')::bigint=2 f
  and (select (to_jsonb(e)->>'management_generation')::bigint=1 from private.appointment_email_events e
  where e.appointment_id=pg_temp.cid('recipient_pending') and e.purpose='booking_receipt'),
  '35. A new authorized action uses the replacement generation without retagging the previous booking event');
+
+-- Transaction-start time is not authority after a wait. This deliberately
+-- expires a real subscription while the transaction remains open. A separate
+-- parent-lock race will also cover expiry while the command is blocked.
+select pg_temp.command_case('clock_expiry',false,'credit','pending');
+update public.business_subscriptions set is_permanent=false,paid_until=clock_timestamp()+interval '100 milliseconds',
+ grace_until=null where business_id=pg_temp.cid('business');
+insert into command_fixture values('clock_expiry_before',gen_random_uuid(),pg_temp.cstate('clock_expiry'));
+select pg_sleep(0.15);
+select extensions.throws_ok($q$select pg_temp.move('clock_expiry')$q$,'P0001','APPOINTMENT_RESCHEDULE_UNAVAILABLE',
+ '36. Expired commercial access cannot authorize a new move using the transaction-start clock');
+select extensions.is(pg_temp.cstate('clock_expiry'),(select extra from command_fixture where label='clock_expiry_before'),
+ '37. Rejected expired access preserves appointment, money, events, release and audit together');
 select * from extensions.finish();
 rollback;

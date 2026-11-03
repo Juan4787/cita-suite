@@ -1136,7 +1136,7 @@ describe('seña del turno', () => {
 		);
 		expect(screen.queryByRole('link', { name: /al consultorio por WhatsApp/ })).toBeNull();
 		expect(screen.queryByRole('button', { name: 'Confirmo que voy' })).toBeNull();
-		expect(screen.getByText('Tu turno se confirma cuando el consultorio recibe la seña.')).toBeInTheDocument();
+		expect(screen.getByText('Tu turno se confirma cuando el consultorio registra la seña.')).toBeInTheDocument();
 	});
 
 	it('en una computadora los dos caminos abren WhatsApp Web', () => {
