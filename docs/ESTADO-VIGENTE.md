@@ -67,7 +67,7 @@ A	supabase/tests/run_patient_management_concurrency.sh
 | Migración `20261103030000` y `supabase/tests/appointment_reschedule_financial_terms.sql` | Resumen económico de reprogramación sólo lectura, 19/19 y suite SQL aprobados en CI `41605022654`; sin consumidores | No: sólo CI descartable, sin aplicar ni conectar a rutas |
 | Migración `20261103040000` y `patient_appointment_management_commands.sql` | Comandos del paciente/eventos atómicos, 29 grupos aprobados en CI `41609778146`; corrida global fallida en carreras, integración pendiente | No: sólo CI descartable, interruptores apagados al instalar |
 | `availability.ts` y su prueba | Contrato y calculador compartido con revisiones de catálogo/reserva y duración de la misma lectura; contrato anterior de slots conservado, 19/19 locales junto con ventanas | No: todavía sin publicar |
-| `run_patient_management_concurrency.sh` | Diez carreras controladas del comando, todavía sin ejecutar; sólo loopback descartable | No: sólo CI |
+| `run_patient_management_concurrency.sh` | Doce carreras del comando; nueve comprobadas y defecto de heartbeat reproducido, corrección todavía por verificar; sólo loopback descartable | No: sólo CI |
 | `reschedule-terms.ts` y su prueba | Validación y formato preciso de las condiciones SQL, 20/20 locales, sin consumidores todavía | No: desarrollo sin publicar |
 | `supabase/templates/recovery.html` | Plantilla del correo de recuperación, modificada en otro trabajo | No se despliega con la app: se carga aparte en Supabase. **No está verificado** si la versión de Supabase coincide con este archivo |
 
