@@ -1,0 +1,293 @@
+-- E1: actual patient commands, executed only against the owned disposable DB.
+-- The backend has already checked the selected slot with the shared calculator;
+-- the command must hold its configuration version and enforce atomic persistence.
+begin;
+select extensions.plan(24);
+create temporary table command_fixture(label text primary key,id uuid not null,extra jsonb);
+create function pg_temp.cid(p_label text) returns uuid language sql as $$
+ select id from command_fixture where label=p_label
+$$;
+-- This SQL body must fail to compile before implementation, proving the absent
+-- command rather than reporting an unrelated seed/permission error as its red.
+create function pg_temp.command_call(p_token text,p_operation uuid,p_revision text,p_action text,
+ p_target timestamptz,p_configuration bigint,p_terms jsonb,p_legacy boolean default false)
+returns jsonb language sql as $$
+ select public.apply_patient_appointment_management(p_token,p_legacy,p_operation,p_revision,p_action,p_target,p_configuration,p_terms)
+$$;
+create function pg_temp.crevision(p_label text) returns text language sql as $$
+ select private.appointment_semantic_revision(pg_temp.cid('business'),pg_temp.cid(p_label))
+$$;
+create function pg_temp.configuration() returns bigint language sql as $$
+ select revision from private.availability_configuration_versions where business_id=pg_temp.cid('business')
+$$;
+create function pg_temp.ctarget(p_label text) returns timestamptz language sql as $$
+ select starts_at+interval '6 hours' from public.appointments where id=pg_temp.cid(p_label)
+$$;
+create function pg_temp.cterms(p_label text,p_target timestamptz default null) returns jsonb language sql as $$
+ select private.appointment_reschedule_financial_terms(pg_temp.cid('business'),a.id,coalesce(p_target,pg_temp.ctarget(p_label)),clock_timestamp())
+ from public.appointments a where a.id=pg_temp.cid(p_label)
+$$;
+create function pg_temp.cstate(p_label text) returns jsonb language sql as $$
+ select jsonb_build_object('appointment',to_jsonb(a),'management',(select to_jsonb(m) from public.appointment_management_states m where m.appointment_id=a.id),
+ 'projection',(select to_jsonb(d) from public.appointment_deposits d where d.appointment_id=a.id),
+ 'requirements',(select jsonb_agg(to_jsonb(r) order by ordinal) from public.appointment_deposit_requirements r where r.appointment_id=a.id),
+ 'money_events',(select jsonb_agg(to_jsonb(e) order by ordinal) from public.appointment_deposit_events e where e.appointment_id=a.id),
+ 'audit',(select count(*) from public.audit_logs where entity_id=a.id),
+ 'released',(select count(*) from public.appointment_slot_releases where appointment_id=a.id),
+ 'email_events',(select count(*) from private.appointment_email_events where appointment_id=a.id))
+ from public.appointments a where a.id=pg_temp.cid(p_label)
+$$;
+do $$ declare b uuid:=gen_random_uuid(); u uuid:=gen_random_uuid(); p uuid:=gen_random_uuid(); s uuid:=gen_random_uuid(); begin
+ insert into auth.users(id,email) values(u,'command-'||u||'@example.test');
+ insert into public.businesses(id,name,slug,industry,timezone,public_booking_enabled,max_booking_days_ahead)
+ values(b,'Patient command E1',b::text,'other','America/Argentina/Cordoba',true,365);
+ update public.business_subscriptions set commercial_access_enabled=true,is_permanent=true,subscription_status='active',
+  paid_until=null,grace_until=null,restricted_until=null,archived_at=null where business_id=b;
+ insert into public.business_users(business_id,user_id,role,status,accepted_at) values(b,u,'owner','active',now());
+ insert into public.professionals(id,business_id,name,is_public) values(p,b,'Command professional',true);
+ insert into public.services(id,business_id,name,duration_minutes,is_public) values(s,b,'Command service',60,true);
+ insert into public.professional_services(business_id,professional_id,service_id) values(b,p,s);
+ insert into command_fixture(label,id) values('business',b),('owner',u),('professional',p),('service',s);
+ update private.deposit_automation set enabled=true;
+ update private.appointment_management_runtime set reschedule_enabled=true,email_producer_enabled=true;
+ insert into public.deposit_policies(business_id,enabled,auto_cancel_enabled,amount_mode,fixed_amount,transfer_details)
+ values(b,true,true,'fixed',40000,'Synthetic command fixture');
+ perform set_config('request.jwt.claim.sub',u::text,true);
+end $$;
+create function pg_temp.command_case(p_label text,p_require boolean default true,p_disposition text default 'forfeit',p_status text default 'paid')
+returns void language plpgsql as $$
+declare a uuid; patient uuid; starts timestamptz; token text; begin
+ update public.appointment_email_policies set require_deposit_on_reschedule=p_require,previous_deposit_disposition=p_disposition where business_id=pg_temp.cid('business');
+ starts:=date_trunc('hour',now())+make_interval(days=>20+(select count(*)::integer from command_fixture));
+ insert into public.patients(owner_id,business_id,full_name) values(pg_temp.cid('owner'),pg_temp.cid('business'),'Command synthetic '||p_label) returning id into patient;
+ insert into public.appointments(business_id,patient_id,professional_id,service_id,starts_at,ends_at,blocking_starts_at,blocking_ends_at,
+  status,source,service_name_snapshot,professional_name_snapshot,duration_minutes_snapshot)
+ values(pg_temp.cid('business'),patient,pg_temp.cid('professional'),pg_temp.cid('service'),starts,starts+interval '1 hour',starts,starts+interval '1 hour',
+  'reserved','manual','Command service','Command professional',60) returning id into a;
+ update public.appointment_management_states set terms_acknowledged=true,require_deposit_on_reschedule=p_require,
+  previous_deposit_disposition=p_disposition,accepted_at=now(),accepted_policy_revision=1 where appointment_id=a;
+ if p_status<>'pending' then
+  perform public.set_appointment_deposit(pg_temp.cid('business'),a,p_status,(select revision from public.appointment_deposits where appointment_id=a),null);
+ end if;
+ token:=public.issue_appointment_management_capability(pg_temp.cid('business'),a,1);
+ insert into command_fixture values(p_label,a,jsonb_build_object('token',token));
+end $$;
+create function pg_temp.move(p_label text,p_operation uuid default gen_random_uuid()) returns jsonb language sql as $$
+ select pg_temp.command_call(extra->>'token',p_operation,pg_temp.crevision(p_label),'reschedule',pg_temp.ctarget(p_label),pg_temp.configuration(),pg_temp.cterms(p_label))
+ from command_fixture where label=p_label
+$$;
+
+select pg_temp.command_case('default');
+do $$ declare before_start timestamptz:=pg_temp.ctarget('default'); r jsonb; begin
+ r:=pg_temp.move('default');
+ if (r->>'changed')::boolean is distinct from true or (select starts_at from public.appointments where id=pg_temp.cid('default')) is distinct from before_start
+  or (select status from public.appointments where id=pg_temp.cid('default')) is distinct from 'reserved'
+  or (select status from public.appointment_deposits where appointment_id=pg_temp.cid('default')) is distinct from 'pending'
+  or (select count(*) from public.appointment_deposit_requirements where appointment_id=pg_temp.cid('default') and status='paid' and allocation='forfeited' and not is_current)<>1
+  or (select count(*) from public.appointment_deposit_events where appointment_id=pg_temp.cid('default') and event_type='payment_forfeited')<>1
+ then raise exception 'E1_DEFAULT_MOVE_STATE_OR_MONEY'; end if;
+end $$;
+select extensions.pass('1. Real patient move preserves identity, forfeits only the previous informed payment and creates one pending advance');
+
+select pg_temp.command_case('credit',true,'credit');
+select pg_temp.move('credit');
+select extensions.ok((select sum(amount) from public.appointment_deposit_requirements where appointment_id=pg_temp.cid('credit') and status='paid' and allocation='applied')=40000
+ and (select amount from public.appointment_deposits where appointment_id=pg_temp.cid('credit'))=40000,
+ '2. Credited previous payment and new unpaid obligation remain distinct');
+select pg_temp.command_case('credit_none',false,'credit');
+select pg_temp.move('credit_none');
+select extensions.ok(not exists(select 1 from public.appointment_deposits where appointment_id=pg_temp.cid('credit_none'))
+ and (select sum(amount) from public.appointment_deposit_requirements where appointment_id=pg_temp.cid('credit_none') and status='paid' and allocation='applied')=40000
+ and (select status from public.appointments where id=pg_temp.cid('credit_none'))='confirmed',
+ '3. No new advance: remove only the current projection, retaining real credit/history and a valid prior confirmation');
+select pg_temp.command_case('forfeit_none',false,'forfeit');
+select pg_temp.move('forfeit_none');
+select extensions.ok(not exists(select 1 from public.appointment_deposits where appointment_id=pg_temp.cid('forfeit_none'))
+ and (select sum(amount) from public.appointment_deposit_requirements where appointment_id=pg_temp.cid('forfeit_none') and status='paid' and allocation='forfeited')=40000,
+ '4. Forfeit without a new obligation does not fabricate a waiver or another payment');
+
+select pg_temp.command_case('pending',true,'forfeit','pending');
+do $$ declare requirement uuid; begin
+ select id into requirement from public.appointment_deposit_requirements where appointment_id=pg_temp.cid('pending') and is_current;
+ perform pg_temp.move('pending');
+ if (select count(*) from public.appointment_deposit_requirements where appointment_id=pg_temp.cid('pending'))<>1
+  or not exists(select 1 from public.appointment_deposit_requirements where id=requirement and is_current and status='pending' and allocation='none')
+ then raise exception 'E1_DUPLICATED_UNPAID_OBLIGATION'; end if;
+end $$;
+select extensions.pass('5. Moving an unpaid appointment retains the same single obligation');
+
+select pg_temp.command_case('noop');
+do $$ declare before jsonb:=pg_temp.cstate('noop'); r jsonb; begin
+ r:=pg_temp.command_call((select extra->>'token' from command_fixture where label='noop'),gen_random_uuid(),pg_temp.crevision('noop'),'reschedule',
+  (select starts_at from public.appointments where id=pg_temp.cid('noop')),pg_temp.configuration(),null);
+ if (r->>'changed')::boolean is distinct from false or pg_temp.cstate('noop') is distinct from before then raise exception 'E1_NOOP_WROTE_STATE'; end if;
+end $$;
+select extensions.pass('6. Same start is a true no-op: no revision, money, deadline, audit, release or email event change');
+
+select pg_temp.command_case('replay');
+do $$ declare op uuid:=gen_random_uuid(); rev text:=pg_temp.crevision('replay'); target timestamptz:=pg_temp.ctarget('replay');
+ cfg bigint:=pg_temp.configuration(); terms jsonb:=pg_temp.cterms('replay'); token text; before jsonb; r jsonb; begin
+ select extra->>'token' into token from command_fixture where label='replay';
+ perform pg_temp.command_call(token,op,rev,'reschedule',target,cfg,terms); before:=pg_temp.cstate('replay');
+ r:=pg_temp.command_call(token,op,rev,'reschedule',target,cfg,terms);
+ if (r->>'idempotent_replay')::boolean is distinct from true or pg_temp.cstate('replay') is distinct from before then raise exception 'E1_REPLAY_DUPLICATED_EFFECT'; end if;
+ insert into command_fixture values('replay_operation',op,jsonb_build_object('revision',rev,'target',target,'configuration',cfg,'terms',terms));
+end $$;
+select extensions.pass('7. Lost response: exact retry recovers the committed operation with no duplicate effects');
+do $$ declare prior command_fixture; token text; before jsonb:=pg_temp.cstate('replay'); begin
+ select * into prior from command_fixture where label='replay_operation'; select extra->>'token' into token from command_fixture where label='replay';
+ begin
+  perform pg_temp.command_call(token,prior.id,prior.extra->>'revision','cancel',null,null,null);
+  raise exception 'E1_CHANGED_REPLAY_ACCEPTED';
+ exception when others then if sqlerrm<>'APPOINTMENT_OPERATION_CONFLICT' then raise; end if; end;
+ if pg_temp.cstate('replay') is distinct from before then raise exception 'E1_CHANGED_REPLAY_WROTE'; end if;
+end $$;
+select extensions.pass('8. Reusing an operation identity with different input fails without side effects');
+
+select pg_temp.command_case('stale');
+do $$ declare rev text:=pg_temp.crevision('stale'); before jsonb; begin
+ perform pg_temp.move('stale'); before:=pg_temp.cstate('stale');
+ begin perform pg_temp.command_call((select extra->>'token' from command_fixture where label='stale'),gen_random_uuid(),rev,'cancel',null,null,null);
+  raise exception 'E1_STALE_CANCEL_ACCEPTED'; exception when others then if sqlerrm<>'APPOINTMENT_MANAGEMENT_CHANGED' then raise; end if; end;
+ if pg_temp.cstate('stale') is distinct from before then raise exception 'E1_STALE_CANCEL_WROTE'; end if;
+end $$;
+select extensions.pass('9. A cancellation based on a stale time/revision cannot overwrite a move');
+
+select pg_temp.command_case('tamper');
+do $$ declare before jsonb:=pg_temp.cstate('tamper'); begin
+ begin perform pg_temp.command_call((select extra->>'token' from command_fixture where label='tamper'),gen_random_uuid(),pg_temp.crevision('tamper'),'reschedule',
+  pg_temp.ctarget('tamper'),pg_temp.configuration(),pg_temp.cterms('tamper')||'{"forfeit_amount":"0"}');
+  raise exception 'E1_FALSE_TERMS_ACCEPTED'; exception when others then if sqlerrm<>'APPOINTMENT_FINANCIAL_TERMS_CHANGED' then raise; end if; end;
+ if pg_temp.cstate('tamper') is distinct from before then raise exception 'E1_FALSE_TERMS_WROTE'; end if;
+end $$;
+select extensions.pass('10. Manipulated financial summary fails before changing appointment or money');
+do $$ declare before jsonb:=pg_temp.cstate('tamper'); begin
+ begin perform pg_temp.command_call((select extra->>'token' from command_fixture where label='tamper'),gen_random_uuid(),pg_temp.crevision('tamper'),'reschedule',
+  pg_temp.ctarget('tamper'),pg_temp.configuration()-1,pg_temp.cterms('tamper'));
+  raise exception 'E1_STALE_CONFIGURATION_ACCEPTED'; exception when others then if sqlerrm<>'APPOINTMENT_AVAILABILITY_CHANGED' then raise; end if; end;
+ if pg_temp.cstate('tamper') is distinct from before then raise exception 'E1_STALE_CONFIGURATION_WROTE'; end if;
+end $$;
+select extensions.pass('11. A stale calculator configuration cannot be committed');
+
+select pg_temp.command_case('cancel');
+do $$ declare op uuid:=gen_random_uuid(); rev text:=pg_temp.crevision('cancel'); token text; before jsonb; begin
+ select extra->>'token' into token from command_fixture where label='cancel';
+ perform pg_temp.command_call(token,op,rev,'cancel',null,null,null); before:=pg_temp.cstate('cancel');
+ perform pg_temp.command_call(token,op,rev,'cancel',null,null,null);
+ if pg_temp.cstate('cancel') is distinct from before or (select status from public.appointments where id=pg_temp.cid('cancel'))<>'cancelled'
+  or not exists(select 1 from public.appointment_deposit_requirements where appointment_id=pg_temp.cid('cancel') and status='paid' and allocation='unresolved')
+  or (select count(*) from private.appointment_email_events where appointment_id=pg_temp.cid('cancel') and purpose='cancellation_receipt')<>1
+ then raise exception 'E1_CANCELLATION_CONTEXT_OR_MONEY'; end if;
+end $$;
+select extensions.pass('12. Cancellation and retry preserve money as unresolved and produce exactly one cancellation event');
+do $$ begin
+ begin perform pg_temp.move('cancel'); raise exception 'E1_CANCELLED_RESURRECTED';
+ exception when others then if sqlerrm<>'APPOINTMENT_CANNOT_RESCHEDULE' then raise; end if; end;
+end $$;
+select extensions.pass('13. A cancelled appointment cannot be rescheduled or resurrected');
+
+select pg_temp.command_case('public_off');
+update public.businesses set public_booking_enabled=false where id=pg_temp.cid('business');
+do $$ begin
+ begin perform pg_temp.move('public_off'); raise exception 'E1_DISABLED_PUBLIC_RESCHEDULE';
+ exception when others then if sqlerrm<>'APPOINTMENT_RESCHEDULE_UNAVAILABLE' then raise; end if; end;
+ perform pg_temp.command_call((select extra->>'token' from command_fixture where label='public_off'),gen_random_uuid(),pg_temp.crevision('public_off'),'cancel',null,null,null);
+end $$;
+select extensions.is((select status from public.appointments where id=pg_temp.cid('public_off')),'cancelled','14. Public booking off blocks new slots but retains cancellation of a valid existing appointment');
+update public.businesses set public_booking_enabled=true where id=pg_temp.cid('business');
+
+select pg_temp.command_case('suspended');
+update public.business_subscriptions set commercial_access_enabled=false,archived_at=now() where business_id=pg_temp.cid('business');
+do $$ begin
+ begin perform pg_temp.move('suspended'); raise exception 'E1_SUSPENDED_PUBLIC_RESCHEDULE';
+ exception when others then if sqlerrm<>'APPOINTMENT_RESCHEDULE_UNAVAILABLE' then raise; end if; end;
+ perform pg_temp.command_call((select extra->>'token' from command_fixture where label='suspended'),gen_random_uuid(),pg_temp.crevision('suspended'),'cancel',null,null,null);
+end $$;
+select extensions.is((select status from public.appointments where id=pg_temp.cid('suspended')),'cancelled','15. Archived/suspended clinic grants only the narrow existing-appointment cancellation exception');
+update public.business_subscriptions set commercial_access_enabled=true,archived_at=null where business_id=pg_temp.cid('business');
+
+select pg_temp.command_case('rollback');
+create function pg_temp.reject_command_audit() returns trigger language plpgsql as $$
+begin if new.entity_id=pg_temp.cid('rollback') and new.action='appointment.rescheduled' then raise exception 'E1_FORCED_COMMAND_AUDIT_FAILURE'; end if; return new; end $$;
+create trigger e1_fail_command_audit before insert on public.audit_logs for each row execute function pg_temp.reject_command_audit();
+do $$ declare before jsonb:=pg_temp.cstate('rollback'); begin
+ begin perform pg_temp.move('rollback'); raise exception 'E1_FAILED_AUDIT_COMMITTED';
+ exception when others then if sqlerrm<>'E1_FORCED_COMMAND_AUDIT_FAILURE' then raise; end if; end;
+ if pg_temp.cstate('rollback') is distinct from before then raise exception 'E1_PARTIAL_MOVE_AFTER_FAILURE'; end if;
+end $$;
+select extensions.pass('16. Forced audit failure rolls back time, current advance, historical money, release and email events together');
+drop trigger e1_fail_command_audit on public.audit_logs;
+
+select pg_temp.command_case('revoked');
+do $$ declare prior command_fixture; token text; begin
+ perform public.revoke_appointment_management_access(pg_temp.cid('business'),pg_temp.cid('revoked'),gen_random_uuid(),pg_temp.crevision('revoked'));
+ begin perform pg_temp.move('revoked'); raise exception 'E1_REVOKED_CAPABILITY_ACCEPTED';
+ exception when others then if sqlerrm<>'APPOINTMENT_LINK_UNAVAILABLE' then raise; end if; end;
+ select confirmation_token into token from public.appointments where id=pg_temp.cid('revoked');
+ begin perform pg_temp.command_call(token,gen_random_uuid(),pg_temp.crevision('revoked'),'cancel',null,null,null,true); raise exception 'E1_REVOKED_LEGACY_ACCEPTED';
+ exception when others then if sqlerrm<>'APPOINTMENT_LINK_UNAVAILABLE' then raise; end if; end;
+ select * into prior from command_fixture where label='replay_operation';
+ perform public.revoke_appointment_management_access(pg_temp.cid('business'),pg_temp.cid('replay'),gen_random_uuid(),pg_temp.crevision('replay'));
+ select extra->>'token' into token from command_fixture where label='replay';
+ begin perform pg_temp.command_call(token,prior.id,prior.extra->>'revision','reschedule',(prior.extra->>'target')::timestamptz,
+  (prior.extra->>'configuration')::bigint,prior.extra->'terms'); raise exception 'E1_REVOKED_REPLAY_ACCEPTED';
+ exception when others then if sqlerrm<>'APPOINTMENT_LINK_UNAVAILABLE' then raise; end if; end;
+end $$;
+select extensions.pass('17. Revocation covers new and legacy capabilities and precedes receipt replay');
+
+select pg_temp.command_case('confirm_pending',true,'forfeit','pending');
+do $$ begin
+ begin perform pg_temp.command_call((select extra->>'token' from command_fixture where label='confirm_pending'),gen_random_uuid(),pg_temp.crevision('confirm_pending'),'confirm',null,null,null);
+  raise exception 'E1_PENDING_CONFIRMED'; exception when others then if sqlerrm<>'APPOINTMENT_DEPOSIT_PENDING' then raise; end if; end;
+end $$;
+select extensions.pass('18. Attendance confirmation never bypasses an unpaid deposit');
+select pg_temp.command_case('expired',true,'forfeit','pending');
+update public.appointments set starts_at=now()-interval '2 hours',ends_at=now()-interval '1 hour' where id=pg_temp.cid('expired');
+do $$ begin
+ begin perform pg_temp.command_call((select extra->>'token' from command_fixture where label='expired'),gen_random_uuid(),pg_temp.crevision('expired'),'cancel',null,null,null);
+  raise exception 'E1_PAST_CANCELLED'; exception when others then if sqlerrm<>'APPOINTMENT_CANNOT_CANCEL' then raise; end if; end;
+end $$;
+select extensions.pass('19. Already-started appointments cannot acquire a new patient agenda mutation');
+
+select pg_temp.command_case('paused');
+update private.appointment_management_runtime set reschedule_enabled=false;
+do $$ begin
+ begin perform pg_temp.move('paused'); raise exception 'E1_PAUSED_MOVE_COMMITTED';
+ exception when others then if sqlerrm<>'APPOINTMENT_RESCHEDULE_UNAVAILABLE' then raise; end if; end;
+ perform pg_temp.command_call((select extra->>'token' from command_fixture where label='paused'),gen_random_uuid(),pg_temp.crevision('paused'),'cancel',null,null,null);
+end $$;
+select extensions.is((select status from public.appointments where id=pg_temp.cid('paused')),'cancelled','20. A technical reschedule pause does not disable legitimate cancellation');
+update private.appointment_management_runtime set reschedule_enabled=true;
+
+select pg_temp.command_case('financial_pause');
+update private.deposit_automation set enabled=false;
+do $$ declare before jsonb:=pg_temp.cstate('financial_pause'); begin
+ begin perform pg_temp.move('financial_pause'); raise exception 'E1_FINANCIAL_PAUSE_LOST_PAYMENT';
+ exception when others then if sqlerrm<>'APPOINTMENT_RESCHEDULE_UNAVAILABLE' then raise; end if; end;
+ if pg_temp.cstate('financial_pause') is distinct from before then raise exception 'E1_FINANCIAL_PAUSE_WROTE'; end if;
+end $$;
+select extensions.pass('21. Pausing financial automation cannot forfeit or waive money through a move');
+update private.deposit_automation set enabled=true;
+
+select pg_temp.command_case('many');
+do $$ declare rev bigint; begin
+ perform pg_temp.move('many');
+ select revision into rev from public.appointment_deposits where appointment_id=pg_temp.cid('many');
+ perform public.set_appointment_deposit(pg_temp.cid('business'),pg_temp.cid('many'),'paid',rev,null);
+ perform pg_temp.move('many');
+ if (select count(*) from public.appointment_deposit_requirements where appointment_id=pg_temp.cid('many') and status='paid' and allocation='forfeited')<>2
+  or (select count(*) from public.appointment_deposit_events where appointment_id=pg_temp.cid('many') and event_type='payment_forfeited')<>2
+  or (select count(*) from public.appointment_deposit_requirements where appointment_id=pg_temp.cid('many') and is_current and status='pending')<>1
+ then raise exception 'E1_REPEATED_MOVE_MONEY_HISTORY'; end if;
+end $$;
+select extensions.pass('22. A second paid voluntary move consumes its own current advance exactly once');
+select extensions.ok((select count(*) from private.appointment_email_events where appointment_id=pg_temp.cid('many') and purpose='reschedule_receipt')=2
+ and (select schedule_revision from public.appointment_management_states where appointment_id=pg_temp.cid('many'))=3,
+ '23. Schedule versions track moves independently of payment/status changes');
+select extensions.ok(has_function_privilege('service_role','public.apply_patient_appointment_management(text,boolean,uuid,text,text,timestamptz,bigint,jsonb)','EXECUTE')
+ and not has_function_privilege('anon','public.apply_patient_appointment_management(text,boolean,uuid,text,text,timestamptz,bigint,jsonb)','EXECUTE')
+ and not has_function_privilege('authenticated','public.apply_patient_appointment_management(text,boolean,uuid,text,text,timestamptz,bigint,jsonb)','EXECUTE')
+ and not has_table_privilege('service_role','private.appointment_email_events','INSERT'),
+ '24. Only the validated backend invokes patient commands; no direct event write or arbitrary patient actor');
+select * from extensions.finish();
+rollback;
