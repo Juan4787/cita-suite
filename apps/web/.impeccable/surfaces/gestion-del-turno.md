@@ -13,4 +13,4 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
 
 ## Estado
 
-Contrato previo al código. Pendientes tipado, pruebas de estados/navegador, cinco anchos, ambos temas y revisión final. No hay raster nuevo ni afirmación de prueba visual/productiva.
+Pantalla y servidor compartidos escritos. Fast y primer navegador de dos casos aprobados con límites en el registro de E; la revisión de capturas detectó selección de día no acreditada. El selector retira horarios/resumen anteriores al editar la fecha (roja/verde dirigida 8/8), con nueva comprobación de día y capturas del selector pendientes. Revisión final de los cinco anchos, ambos temas y estados aún abierta. No hay raster nuevo ni prueba productiva.
