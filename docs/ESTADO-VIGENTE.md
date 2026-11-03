@@ -42,9 +42,9 @@ M	supabase/templates/recovery.html
 A	supabase/tests/appointment_management_capabilities.sql
 A	supabase/tests/appointment_management_foundation.sql
 A	supabase/tests/appointment_reschedule_financial_terms.sql
-A	supabase/tests/patient_appointment_management_commands.sql
 A	supabase/tests/migrations/20261103010000_appointment_management_foundation.sql.after.sql
 A	supabase/tests/migrations/20261103010000_appointment_management_foundation.sql.before.sql
+A	supabase/tests/patient_appointment_management_commands.sql
 M	supabase/tests/run_deposit_expiry_concurrency.sh
 ```
 
