@@ -37,7 +37,7 @@ Fuentes: [plan íntegro y ajustes](propuesta-senas-avisos-natalia.md#ejecucion-e
 
 **Fase:** E0 completo; E1 en implementación, con alcance de ejecución autorizado. **Implementación iniciada:** contrato puro y primera migración E1 escrita; todavía sin rutas ni envíos integrados, sin migración aplicada en producción. **Publicación de E:** no. **Pruebas integrales E:** no ejecutadas.
 
-**Siguiente acción:** verificar por CI nivel sql ambas migraciones `20261103010000`/`20261103020000`, sus 22+20 comprobaciones y los ocho casos de actualización. Ya se constataron las rojas estructurales; fundamentos v1–v3 detectaron errores del fixture, corregidos en E1.5/E1.6/E1.8. Recuperar resultado/tipos de una nueva snapshot combinada; no atribuir un verde previo a ese código. Después seguir con comandos atómicos de agenda/dinero, cola y E2–E6 según dependencias. Q01/Q02 están resueltas; no esperar otra instrucción de inicio.
+**Siguiente acción:** recuperar roja económica `41601472826`, fuente `785961791a4dcd1b44cb932103387291c2cdc83b`, rama `verify/etapa-e-economia-roja-20261103`. Esa fuente incorpora el nuevo contrato financiero sin helper; no confundirla con fundamentos v4 **aprobada** `41600939474`, fuente `a06715572239118146e4e95bc5a416b7a5ebcb9b` (E1.15), cuyos tipos se recuperaron/cotejaron. Después implementar resumen y comandos atómicos de agenda/dinero, cola y E2–E6. Q01/Q02 resueltas; P1/P2/P3 posteriores, no cambiar de tarea ni esperar otro permiso.
 
 **Evidencia privada de esta ejecución:** `.verification/etapa-e-20261103/`. Ningún secreto, dirección de paciente, cuerpo de correo recibido o dato personal se incluye en Git ni en documentos públicos. Las rutas de evidencia no equivalen a resultados aprobados.
 
@@ -59,15 +59,15 @@ La regla de cada caso se lee en la especificación; esta tabla registra su acept
 | EM10 | Pendiente | Sin prueba funcional de E. |
 | EM11 | Pendiente | Sin prueba funcional de E. |
 | EM12 | Pendiente | Sin prueba funcional de E. |
-| AC01 | Parcial local | Contrato de contexto: 44 casos y cuatro mutaciones; faltan integración, SQL y recorridos reales. Ver E1.1. |
+| AC01 | Parcial CI | Contrato puro: 44 casos en fast 41578321181 y cuatro mutaciones locales; faltan integración y recorridos reales. Ver E1.1/E1.15. |
 | AC02 | Pendiente | Sin prueba funcional de E. |
 | AC03 | Pendiente | Sin prueba funcional de E. |
 | AC04 | Pendiente | Sin prueba funcional de E. |
-| AC05 | Parcial local | Contrato de contexto: 44 casos y cuatro mutaciones; faltan integración, SQL y recorridos reales. Ver E1.1. |
-| AC06 | Parcial local | Contrato de contexto: 44 casos y cuatro mutaciones; faltan integración, SQL y recorridos reales. Ver E1.1. |
+| AC05 | Parcial CI | Contrato puro: 44 casos en fast 41578321181 y cuatro mutaciones locales; faltan integración y recorridos reales. Ver E1.1/E1.15. |
+| AC06 | Parcial CI | Contrato puro: 44 casos en fast 41578321181 y cuatro mutaciones locales; faltan integración y recorridos reales. Ver E1.1/E1.15. |
 | AC07 | Pendiente | Sin prueba funcional de E. |
 | AC08 | Pendiente | Sin prueba funcional de E. |
-| AC09 | Parcial local | Contrato de contexto: 44 casos y cuatro mutaciones; faltan integración, SQL y recorridos reales. Ver E1.1. |
+| AC09 | Parcial CI | Contrato puro y capacidades SQL 20/20, 41600939474; rutas legadas y corrección de email todavía sin integrar/verificar. E1.15. |
 | AC10 | Pendiente | Sin prueba funcional de E. |
 | RP01 | Pendiente | Sin prueba funcional de E. |
 | RP02 | Pendiente | Sin prueba funcional de E. |
@@ -98,20 +98,20 @@ La regla de cada caso se lee en la especificación; esta tabla registra su acept
 | SN14 | Pendiente | Sin prueba funcional de E. |
 | SN15 | Pendiente | Sin prueba funcional de E. |
 | SN16 | Pendiente | Sin prueba funcional de E. |
-| SN17 | Pendiente | Sin prueba funcional de E. |
+| SN17 | Parcial CI | Cancelación conserva pago como unresolved en SQL 41600939474; falta comando público/UX/correo y comprobaciones integrales. |
 | SN18 | Pendiente | Sin prueba funcional de E. |
-| SN19 | Pendiente | Sin prueba funcional de E. |
+| SN19 | Parcial CI | Actualización real desde cinco estados anteriores, 8/8 en 41600939474; sin aplicación productiva ni UI de historia. |
 | RM01 | Pendiente | Sin prueba funcional de E. |
 | RM02 | Pendiente | Sin prueba funcional de E. |
 | RM03 | Pendiente | Sin prueba funcional de E. |
 | RM04 | Pendiente | Sin prueba funcional de E. |
 | RM05 | Pendiente | Sin prueba funcional de E. |
-| RM06 | Parcial local | Contrato de contexto: 44 casos y cuatro mutaciones; faltan integración, SQL y recorridos reales. Ver E1.1. |
-| RM07 | Parcial local | Contrato de contexto: 44 casos y cuatro mutaciones; faltan integración, SQL y recorridos reales. Ver E1.1. |
+| RM06 | Parcial CI | Contrato puro: 44 casos en fast 41578321181 y cuatro mutaciones locales; faltan integración y recorridos reales. Ver E1.1/E1.15. |
+| RM07 | Parcial CI | Contrato puro: 44 casos en fast 41578321181 y cuatro mutaciones locales; faltan integración y recorridos reales. Ver E1.1/E1.15. |
 | RM08 | Pendiente | Sin prueba funcional de E. |
-| RM09 | Parcial local | Contrato de contexto: 44 casos y cuatro mutaciones; faltan integración, SQL y recorridos reales. Ver E1.1. |
+| RM09 | Parcial CI | Contrato puro: 44 casos en fast 41578321181 y cuatro mutaciones locales; faltan integración y recorridos reales. Ver E1.1/E1.15. |
 | RM10 | Pendiente | Sin prueba funcional de E. |
-| RM11 | Parcial local | Contrato de contexto: 44 casos y cuatro mutaciones; faltan integración, SQL y recorridos reales. Ver E1.1. |
+| RM11 | Parcial CI | Contrato puro: 44 casos en fast 41578321181 y cuatro mutaciones locales; faltan integración y recorridos reales. Ver E1.1/E1.15. |
 | RM12 | Pendiente | Sin prueba funcional de E. |
 | RM13 | Pendiente | Sin prueba funcional de E. |
 | RM14 | Pendiente | Sin prueba funcional de E. |
@@ -139,7 +139,7 @@ La regla de cada caso se lee en la especificación; esta tabla registra su acept
 | UI08 | Pendiente | Sin prueba funcional de E. |
 | OP01 | Pendiente | Sin prueba funcional de E. |
 | OP02 | Pendiente | Sin prueba funcional de E. |
-| OP03 | Parcial local | Contrato de contexto: 44 casos y cuatro mutaciones; faltan integración, SQL y recorridos reales. Ver E1.1. |
+| OP03 | Parcial CI | Contrato puro: 44 casos en fast 41578321181 y cuatro mutaciones locales; faltan integración y recorridos reales. Ver E1.1/E1.15. |
 | OP04 | Pendiente | Sin prueba funcional de E. |
 | OP05 | Pendiente | Sin prueba funcional de E. |
 | OP06 | Pendiente | Sin prueba funcional de E. |
@@ -265,3 +265,12 @@ La regla de cada caso se lee en la especificación; esta tabla registra su acept
 - Se usan snapshots de precio producidos por el disparador existente; una escritura UPDATE de price_quote_snapshot sería sobrescrita por esa guardia y daría un fixture falso. El crédito anterior extra es un dato sintético separado, no una operación real ni una prueba de que el comando ya existe.
 - **Pausa general no es condonación:** para turnos con consecuencias económicas, un interruptor técnico apagado debe devolver reprogramación no disponible y conservar el original; no aprovechar la pausa para regalar una nueva seña, forzar un crédito ni aplicar una pérdida. Una política relajada por el consultorio es otro caso, explícito. El comando y UX deberán probarlo; todavía es contrato pendiente.
 - Primero recuperar fundamentos v4, fuente `a06715572239118146e4e95bc5a416b7a5ebcb9b`, rama `verify/etapa-e-base-gestion-v4-20261103`; esa fuente no incluye este contrato financiero. Después demostrar roja del helper económico ausente y seguir su implementación/los comandos. No cerrar E1 con el resumen readonly ni iniciar P1/P2/P3.
+
+### E1.15 — fundamentos SQL completos aprobados y tipos oficiales recuperados
+
+- **SQL aprobado:** corrida `41600939474`, fuente exacta `a06715572239118146e4e95bc5a416b7a5ebcb9b` (main de código `d64e5fb`). Se leyó recibo `type-generation.json`: `ok=true`, `sqlVerified=true`, tipo `sql-and-types-generation-only`. Archivo de fundamentos 22/22, capacidades 20/20 y actualización 8/8; archivo de log completo con **684 aserciones pgTAP y 15 scripts de carreras**, sin not ok/Bail out/ERROR. Esto comprueba esos fundamentos y regresiones, no los comandos de reprogramación nuevos ni E completa.
+- Archivo privado `sql-base-gestion-v4-41600939474.zip`; colección `sql-base-gestion-v4-evidence`, cuatro recibos, SHA-256 `055175c45737633fc4aac8df4f048f3be08c578ce3f05fa7a33ec985a36dc546`. Se conservan las corridas fallidas anteriores con sus causas; no se transforman en éxitos.
+- Tipos públicos importados desde la doble generación oficial de CI, sin escribirlos a mano. SHA-256 `068fa889132f0a3830842d6bc9e592049dab038fa055e6c56b97540bafd673bf`; digest de migraciones `70524866fe0ff56c5dcd8990f56ec37b97db6c3e9e4f79f2759bb80b4ead4547`, comparado con todas las migraciones locales antes de escribir `database.types.ts`. Diff: 243 líneas añadidas, sin borrados. Una migración posterior requiere su propio recibo, aunque el esquema público no cambie.
+- Roja económica solicitada `41601472826`, fuente `785961791a4dcd1b44cb932103387291c2cdc83b` (main `81a901b`), rama `verify/etapa-e-economia-roja-20261103`. Recuperar su conclusión/error antes de implementar el helper. Fuente anterior a la importación de tipos, con las mismas dos migraciones E1; su SQL no exige comparar el archivo TS antiguo.
+- **Riesgos a comprobar al integrar (sin tratarlos como defectos reproducidos):** emisión de capacidades no puede renovarse desde un token legado revocado; revisión del alta pública idempotente después de una reasignación (EM11/EM12), para que el cliente anterior no recupere una identidad o token nuevos; nuevas altas de push/Calendar desde enlaces legados revocados frente a vínculos legítimos existentes (AC09/UI08). Leer los retornos y endpoints reales antes de decidir sus cambios; no copiar una suposición de formato o permisos.
+- Sin rutas/plantillas/colas nuevas conectadas, sin SQL de E aplicado, sin correo nuevo/proveedor/buzón ni publicación. Las filas de la matriz siguen parciales/pendientes; continuar E1–E6 y luego la cola posterior separada.

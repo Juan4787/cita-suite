@@ -27,6 +27,7 @@ El chequeo compara esta lista con `git diff --name-status <produccion_revision> 
 ```codigo-distinto-de-produccion
 A	apps/web/src/lib/scheduling/patient-action-context.test.ts
 A	apps/web/src/lib/scheduling/patient-action-context.ts
+M	packages/shared/src/database.types.ts
 A	scripts/check-repo-sync.mjs
 M	scripts/test-booking-foundation.mjs
 A	scripts/verify-production-auth-ux.mjs
@@ -49,9 +50,10 @@ M	supabase/tests/run_deposit_expiry_concurrency.sh
 | `scripts/test-booking-foundation.mjs` | Conservar las aserciones previas cuando una prueba SQL posterior falla, con salida acotada | No: sólo la base descartable de CI |
 | `scripts/zoho-cpaas.py` | Administración local de Zoho por OAuth, con credenciales fuera de Git | No: no se despliega ni configura el correo de la app |
 | `scripts/verify-production-auth-ux.mjs` | Lectura de la pantalla de ingreso en producción, de otro trabajo (flujo manual `production-auth-ux.yml`) | No: no se despliega |
-| Migración `20261103010000`, contrato SQL y fixtures de actualización E1 | Preferencias, revisión semántica e historia de señas; roja previa demostrada y primera implementación por comprobar | No: no se aplicó en producción; sólo CI descartable |
+| Migración `20261103010000`, contrato SQL y fixtures de actualización E1 | Preferencias, revisión semántica e historia de señas; comprobadas en CI SQL `41600939474`, sin integración funcional completa | No: no se aplicó en producción; sólo CI descartable |
 | `supabase/tests/run_deposit_expiry_concurrency.sh` | Limpieza ordenada de sus turnos sintéticos antes del consultorio, compatible con la historia de dinero | No: sólo la base descartable de CI |
-| Migración `20261103020000` y `supabase/tests/appointment_management_capabilities.sql` | Enlaces revocables y recibo idempotente; roja demostrada y primera implementación todavía sin comprobar | No: no se aplicó ni se integró a rutas; sólo CI descartable |
+| Migración `20261103020000` y `supabase/tests/appointment_management_capabilities.sql` | Enlaces revocables y recibo idempotente; comprobados en CI SQL `41600939474` | No: no se aplicó ni se integró a rutas; sólo CI descartable |
+| `packages/shared/src/database.types.ts` | Tipos oficiales, dos generaciones iguales en CI y digest de las migraciones locales cotejado antes de importar | No: todavía sin publicar |
 | `supabase/tests/appointment_reschedule_financial_terms.sql` | Contrato económico previo a implementar el resumen de reprogramación, todavía sin ejecutar | No: sólo CI descartable |
 | `supabase/templates/recovery.html` | Plantilla del correo de recuperación, modificada en otro trabajo | No se despliega con la app: se carga aparte en Supabase. **No está verificado** si la versión de Supabase coincide con este archivo |
 
