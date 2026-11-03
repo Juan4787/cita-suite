@@ -2,7 +2,7 @@
 
 **Para qué existe:** Juan pidió el 31 de octubre de 2026 que no se pierda nada de lo que queda pendiente (plan de señas y avisos, sección 12.15). Esta es la lista única. Cada punto remite a su documento de origen, que conserva el detalle. Al cerrar un punto, se lo marca como hecho acá con la fecha y la evidencia, y se actualiza su documento de origen.
 
-**Última revisión:** 3 de noviembre de 2026, autorización íntegra de E (plan 12.20), preparación y regla de continuidad. Las otras entradas conservan sus fechas y evidencias; E todavía no tiene implementación ni pruebas funcionales aprobadas.
+**Última revisión:** 3 de noviembre de 2026, autorización íntegra de E (plan 12.20), preparación y regla de continuidad. Las otras entradas conservan sus fechas y evidencias. E1 tiene fundamentos en implementación/verificación, sin aceptación integral ni publicación; tareas posteriores autorizadas y separadas en plan 12.23.
 
 ## 1. Lo que sigue para la entrega a Natalia
 
@@ -29,7 +29,7 @@ Fuente: `docs/clientes/natalia-frutos/informacion-20261029.md`, secciones 4 y 5,
 
    La seña sigue apagada: interruptor general apagado y ninguna política cargada.
 6. **Token:** confirmar que IAPOS y las de orden impresa, salvo OSPAC, no lo requieren (pregunta 4). Hoy hay una ayuda fija bajo la pregunta de obra social; mostrarla sólo al elegir esas obras sociales necesita una función nueva (sección 4, punto 2).
-7. **Equipo:** el correo y el rol de Aye, y los tipos de teléfono de Natalia y de Aye, que necesita la etapa D. Si Aye se agrega como profesional, la app crea las prestaciones genéricas «Consulta» y «Otro servicio» de 30 minutos: hay que ocultarlas o borrarlas para no romper la grilla de 60.
+7. **Equipo:** el correo y el rol de Aye. Los tipos de teléfono ya no son requisito de D: el aviso al celular fue reemplazado por avisos internos (plan 12.23). Si Aye se agrega como profesional, la app crea las prestaciones genéricas «Consulta» y «Otro servicio» de 30 minutos: hay que ocultarlas o borrarlas para no romper la grilla de 60.
 8. **Web:**
    - fotos, presentación y datos de contacto (pregunta 7);
    - revisar con Natalia que la web presenta cuatro tipos de consulta (entre ellas fitoterapia y medicina del estrés), mientras el turnero ofrece las dos que ella pidió;
@@ -39,16 +39,16 @@ Fuente: `docs/clientes/natalia-frutos/informacion-20261029.md`, secciones 4 y 5,
 
 ## 3. Etapas D y E: alcance actual
 
-1. **D, aviso al celular del consultorio: sigue en pausa.** Necesita los tipos de teléfono (punto 2.7) y una decisión propia de retomarla. Iniciar E no habilita D.
+1. **D celular reemplazada, sin implementar:** avisos internos generales de horarios liberados, con patrón similar a Seguimientos. Es P3 de las [tareas posteriores a E](tareas-posteriores-a-e-20261103.md), después de cerrar E, P1 cancelación desde recepción y P2 estilos completos claro/oscuro. No retomar push al personal ni pedir tipos de teléfono para esta D. Las tres tareas están autorizadas, separadas y todavía no iniciadas.
 
 <a id="etapa-e-pendientes"></a>
 
-2. **E, correo y autogestión: ejecución completa autorizada, preparación en curso; Zoho y Gmail conectados.** [Registro activo y continuidad](ejecucion-etapa-e-20261103.md). Q01/Q02 resueltas; E1 en preparación; ningún comportamiento nuevo de E publicado.
+2. **E, correo y autogestión: ejecución completa autorizada, E1 en implementación/verificación; Zoho y Gmail conectados.** [Registro activo y continuidad](ejecucion-etapa-e-20261103.md). Q01/Q02 resueltas; E1 en implementación/verificación; ningún comportamiento nuevo de E publicado.
    - Fuente: [plan 12.18](propuesta-senas-avisos-natalia.md#etapa-e-vigente) y [especificación completa](etapa-e-correo-autogestion.md). La revisión de código/documentación está hecha; ningún comportamiento nuevo de E está publicado.
    - **Ya hecho por Juan:** registro en Zoho y prueba de dos envíos. Informó KYC pendiente y 100 correos gratuitos diarios; pagará al completarlo. No falta crear cuenta Resend ni volver a crear Zoho.
    - **Al iniciar:** comprobar dominio/remitente/región, credenciales fuera de chat/git, cuota/saldo/vencimiento reales, configuración del emisor, webhooks y buzones autorizados. Sus dos mensajes no prueban integración ni recepción/acciones desde Cita Suite.
    - **Trabajo técnico pendiente:** email requerido configurable y aviso de recepción; reprogramación autónoma transaccional con revisión; historia y nueva exigencia de seña; gestión revocable; cola, plantillas del consultorio, avisos 72/24 y los casos de aceptación.
-   - **Prueba de cierre pendiente:** integración real con Zoho, recepción en los buzones acordados, botones desde el correo, consistencia de agenda/dinero/calendario y controles de consumo/recuperación. Los casos del plan son requisitos sin ejecutar.
+   - **Prueba de cierre pendiente:** integración real con Zoho, recepción en los buzones acordados, botones desde el correo, consistencia de agenda/dinero/calendario y controles de consumo/recuperación. La aceptación de cada caso se registra por capa; ninguno tiene cierre integral todavía.
    - **Economía:** aceptado gasto controlado de correo con un consultorio. KYC/compras de créditos a cargo de Juan, sin recarga automática ni cambios de infraestructura/Auth.
    - **Continúa pendiente de la clienta:** condiciones de devolución al cancelar y datos de la seña del punto 2.5. La pérdida acordada al reprogramar no define esas devoluciones.
    - **Conexión local terminada el 3 de noviembre:** Juan pidió acceso por terminal y conservarlo al reiniciar ([12.19](propuesta-senas-avisos-natalia.md#zoho-terminal-vigente)). OAuth, consultas y renovación comprobados; herramienta versionada y credenciales privadas persistentes. [Guía y comandos](../architecture/zoho-cpaas-terminal.md). No necesita una terminal abierta.

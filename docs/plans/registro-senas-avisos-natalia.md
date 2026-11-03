@@ -1,6 +1,6 @@
 # Registro de la campaña de señas y avisos (consultorio de Natalia Frutos)
 
-**Estado de E, 3 de noviembre:** ejecución íntegra autorizada en [12.20](propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada), incluidas pruebas/publicación productivas. [Registro activo y regla de continuidad](ejecucion-etapa-e-20261103.md): Q01/Q02 resueltas en 12.21/12.22; contrato contextual E1 probado localmente, sin integración todavía. La [especificación](etapa-e-correo-autogestion.md) conserva sus 97 casos sin cierre funcional todavía. Las pausas D/E, Resend y esperas de una instrucción que siguen abajo son historia fechada; D sí permanece en pausa.
+**Estado de E, 3 de noviembre:** ejecución íntegra autorizada en [12.20](propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada), incluidas pruebas/publicación productivas. [Registro activo y regla de continuidad](ejecucion-etapa-e-20261103.md): Q01/Q02 resueltas en 12.21/12.22; contrato contextual E1 probado localmente, sin integración todavía. La [especificación](etapa-e-correo-autogestion.md) conserva sus 97 casos sin cierre funcional todavía. Las pausas D/E, Resend y esperas de una instrucción que siguen abajo son historia fechada; D celular fue reemplazada por la futura P3 interna posterior a E/P1/P2 (12.23).
 
 **Fuente de verdad:** el [plan aprobado](propuesta-senas-avisos-natalia.md), incluida su sección 12, que contiene la aprobación literal y los ajustes posteriores.
 

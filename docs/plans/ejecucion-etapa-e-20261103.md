@@ -2,6 +2,8 @@
 
 **Punto vigente — 3 de noviembre de 2026:** ejecución completa autorizada por Juan, incluida publicación y pruebas productivas; decisiones iniciales Q01/Q02 resueltas y ejecución E1 en preparación de contratos/pruebas. No hay implementación funcional publicada. Producción sigue en V12b; revisión exacta en el [estado vigente](../ESTADO-VIGENTE.md).
 
+**Cola posterior, sin cambiar de tarea:** Juan encargó P1 cancelación desde recepción, P2 estilos completos claro/oscuro y P3 reemplazo de D por avisos internos similares a Seguimientos, sólo después de terminar/publicar/auditar E y en ese orden. [Seguimiento separado](tareas-posteriores-a-e-20261103.md), plan 12.23. La antigua D del celular queda sustituida; no es un push pendiente de retomar. E sigue activa.
+
 Fuentes: [plan íntegro y ajustes](propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada), [especificación única y 97 casos](etapa-e-correo-autogestion.md), [registro histórico](registro-senas-avisos-natalia.md), [traspaso](traspaso-senas-avisos-natalia.md#etapa-e-punto) y [pendientes generales](pendientes-vigentes.md#etapa-e-pendientes). Este archivo concentra el seguimiento de E; no copia sus reglas funcionales para evitar dos especificaciones divergentes.
 
 ## Regla obligatoria de continuidad
@@ -28,7 +30,7 @@ Fuentes: [plan íntegro y ajustes](propuesta-senas-avisos-natalia.md#ejecucion-e
 - Plan completo y especificación revisados antes de escribir cambios funcionales. Se consultan registro/traspaso históricos como evidencia y fuente de riesgos; sus versiones y pausas anteriores no gobiernan este encargo posterior.
 - Zoho OAuth local persistente operativo; lectura autenticada del agente nuevamente correcta. Clave de envío/webhook/integración de la app todavía pendientes. [Operación y custodia](../architecture/zoho-cpaas-terminal.md).
 - Gmail conectado y consulta del perfil comprobada; búsqueda y lectura de un mensaje ya verificadas en la conversación. Buzón propio para las pruebas acordadas: cuenta dedicada de Cita Suite. No es un envío de prueba nuevo ni una integración terminal de Gmail; se utiliza su conector autorizado.
-- A/B/C conservan su cierre. D y los datos comerciales faltantes de Natalia conservan sus pendientes. No activar seña/cancelación automática de Natalia ni alterar su acceso por esta etapa.
+- A/B/C conservan su cierre. Los datos comerciales faltantes de Natalia conservan sus pendientes. La antigua D celular quedó reemplazada por la futura P3 interna, posterior a E/P1/P2. No activar seña/cancelación automática de Natalia ni alterar su acceso por esta etapa.
 - Skills leídas: Supabase Postgres para SQL/transacciones/RLS/colas; Impeccable para las superficies nuevas conservando el diseño existente. Antes de editar UI se leerá su referencia de calidad y la superficie aplicable. No se iniciaron compilaciones, contenedores ni navegador locales.
 
 ## Checkpoint y siguiente acción

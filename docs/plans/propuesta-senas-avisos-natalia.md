@@ -1,6 +1,6 @@
 # Propuesta: señas, avisos por WhatsApp y horarios liberados para el consultorio de Natalia Frutos
 
-**Estado:** **aprobada íntegramente por Juan el 29 de octubre de 2026**, con la revisión 2. Es la fuente de verdad de la campaña. **Actualización vigente del 3 de noviembre:** E conserva su definición revisada en [12.18](#etapa-e-vigente) y su [especificación](etapa-e-correo-autogestion.md). Juan pidió conectar Zoho por terminal y conservar el acceso tras reinicios: [12.19](#zoho-terminal-vigente), conexión local comprobada. **E quedó autorizada íntegramente para implementación, auditoría, pruebas y publicación el 3 de noviembre, en [12.20](#ejecucion-e-autorizada).** Decisiones iniciales resueltas en 12.21/12.22 y E1 en preparación; [registro de ejecución](ejecucion-etapa-e-20261103.md). D sigue en pausa. Las pausas y Resend anteriores son historia en lo que estos ajustes reemplazan.
+**Estado:** **aprobada íntegramente por Juan el 29 de octubre de 2026**, con la revisión 2. Es la fuente de verdad de la campaña. **Actualización vigente del 3 de noviembre:** E conserva su definición revisada en [12.18](#etapa-e-vigente) y su [especificación](etapa-e-correo-autogestion.md). Juan pidió conectar Zoho por terminal y conservar el acceso tras reinicios: [12.19](#zoho-terminal-vigente), conexión local comprobada. **E quedó autorizada íntegramente para implementación, auditoría, pruebas y publicación el 3 de noviembre, en [12.20](#ejecucion-e-autorizada).** Decisiones iniciales resueltas en 12.21/12.22 y E1 en preparación; [registro de ejecución](ejecucion-etapa-e-20261103.md). D celular fue reemplazada por la futura P3 interna posterior a E/P1/P2 (12.23). Las pausas y Resend anteriores son historia en lo que estos ajustes reemplazan.
 - La aprobación literal y los ajustes posteriores están en la sección 12, que sólo crece hacia el final.
 - El texto aprobado está guardado tal cual en `.verification/senas-avisos-20261029/plan-aprobado-20261029.md`, con SHA-256 `24abe324…4d3c43`.
 - Después de la aprobación cambiaron sólo esta línea de estado y la sección 12; el registro deja la comprobación.
@@ -1288,3 +1288,21 @@ Correcciones literales posteriores de Juan:
 **Aplicación inequívoca:** un comprobante de turno vigente puede mostrar CANCELAR y REPROGRAMAR, según las preferencias y permisos efectivos. **Un comprobante de cancelación no muestra ninguno de los dos.** Sólo puede ofrecer reservar un turno nuevo si hay reserva pública disponible, además de contacto pertinente. No reprograma ni resucita el cancelado. Turnos iniciados/pasados tampoco muestran esas acciones; los enlaces antiguos resuelven el estado actual. La preferencia de mostrar un botón no autoriza una acción que el contexto impide.
 
 Esta es una reafirmación de AC05/AC06/OP03 y de la decisión contextual original, no un cambio para quitar botones de todos los comprobantes. Verificar correos, comprobantes, páginas de gestión, alternativas cruzadas, estado de pago y acciones finales en conjunto, incluidos cambios de estado concurrentes. Textos e información deben coincidir con el resultado persistente, sin anunciar pagos, confirmaciones, envíos o disponibilidad no demostrados.
+
+<a id="tareas-posteriores-a-e"></a>
+
+### 12.23 Tareas después de E y reemplazo de D (3 de noviembre)
+
+Pedido literal de Juan durante la implementación de E:
+
+> Segui y una vez que termines, hayas publicado auditado y asegurado que no haya quedado ningun error, inconsistencia, ni problema de UX ni contradicciones en la documentacion ni de ningun otro tipo, avanza con extremo rigor y verificacion con estas 3 tareas:
+> 1. Habilitar opcion de cancelar turno desde recepcion
+> 2. Estilar todo, que no quede nada nativo del navegador, asegurate de hacerlo en ambos modos, claro y oscuro.
+> 3. Remplazar la fase D, de la notificacion al celular en caso de que se liberen turnos, y que sea simplemente una notificacion interna general dentro de la app, con una logica similar a la que tiene "seguimientos". Actualizarlo en la documentacion, que no quede nada contradictorio.
+> Pero no mezcles las tareas porque son diferentes. Te las dejo para que las cumplas cuando termines la anterior
+
+**Aplicación:** continuar E hasta terminar, publicar y auditar con sus criterios y evidencia. Después ejecutar por separado y en ese orden P1, P2 y P3; no cambiar ahora de tarea ni incorporar sus implementaciones a E. Se mantienen la autonomía y autorización de publicación/pruebas ya otorgadas, sin nuevas compras, mensajes a terceros por inferencia ni relajación de permisos. El seguimiento separado está en [tareas posteriores a E](tareas-posteriores-a-e-20261103.md).
+
+**D reemplazada:** el aviso al celular del consultorio de 4.13 y su alcance D de la sección 6 quedan sustituidos por avisos internos generales de horarios liberados en la app, con lógica similar a Seguimientos. No se implementan push al personal ni requisitos de instalación/tipo de teléfono por esa D. Se iniciará como P3 después de E/P1/P2; no supone que la notificación interna nueva esté hecha. No cambia C ni los push/calendarios existentes del paciente, ni el correo de E. Las menciones anteriores a D en pausa conservan su sentido histórico; no son una tarea futura de push a retomar.
+
+**Verificación y documentación:** cada tarea conserva alcance, evidencia y cierre propios; actualizar fuentes activas/pendientes y mantener fechado el texto histórico. Revisar el estado real tras E antes de añadir algo que ya pudiera existir, especialmente cancelación/roles y avisos de C.
