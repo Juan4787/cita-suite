@@ -7,12 +7,21 @@ create temporary table command_fixture(label text primary key,id uuid not null,e
 create function pg_temp.cid(p_label text) returns uuid language sql as $$
  select id from command_fixture where label=p_label
 $$;
--- This SQL body must fail to compile before implementation, proving the absent
--- command rather than reporting an unrelated seed/permission error as its red.
+-- Initially compiled as SQL, proving the absent command in the recorded red.
+-- Execute with no patient-supplied internal identity, as service-role RPCs do.
 create function pg_temp.command_call(p_token text,p_operation uuid,p_revision text,p_action text,
  p_target timestamptz,p_configuration bigint,p_terms jsonb,p_legacy boolean default false)
-returns jsonb language sql as $$
- select public.apply_patient_appointment_management(p_token,p_legacy,p_operation,p_revision,p_action,p_target,p_configuration,p_terms)
+returns jsonb language plpgsql as $$
+declare result jsonb; previous_sub text:=current_setting('request.jwt.claim.sub',true); begin
+ perform set_config('request.jwt.claim.sub','',true);
+ begin
+  result:=public.apply_patient_appointment_management(p_token,p_legacy,p_operation,p_revision,p_action,p_target,p_configuration,p_terms);
+ exception when others then
+  perform set_config('request.jwt.claim.sub',coalesce(previous_sub,''),true); raise;
+ end;
+ perform set_config('request.jwt.claim.sub',coalesce(previous_sub,''),true);
+ return result;
+end
 $$;
 create function pg_temp.crevision(p_label text) returns text language sql as $$
  select private.appointment_semantic_revision(pg_temp.cid('business'),pg_temp.cid(p_label))

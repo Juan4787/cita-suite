@@ -29,32 +29,49 @@ export type AvailabilityInput = {
 };
 
 
-export const getAvailabilitySlots = async (client: CitaSupabaseClient, input: AvailabilityInput): Promise<AvailabilitySlot[]> => {
+export type AvailabilitySelection = {
+ slots: AvailabilitySlot[];
+ configurationRevision: number | null;
+ durationMinutes: number | null;
+};
+
+/** Keep the version of the exact catalog used by the shared calculator. A
+ * management command submits it after the server validates its selected slot;
+ * looking it up again would authorize a calculation made with older rules.
+ */
+export const getAvailabilitySelection = async (client: CitaSupabaseClient, input: AvailabilityInput): Promise<AvailabilitySelection> => {
  if (!isAvailabilityDate(input.fromDate) || !isAvailabilityDate(input.toDate) || input.fromDate > input.toDate)
   throw new InvalidDataContractError('availability.range');
  const publicOnly = input.publicOnly ?? false;
- if (publicOnly && (!input.business.is_active || !input.business.public_booking_enabled)) return [];
+ if (publicOnly && (!input.business.is_active || !input.business.public_booking_enabled))
+  return { slots: [], configurationRevision: null, durationMinutes: null };
  const catalog = await loadAvailabilityCatalog(client, input.business.id, input.readScope ?? (publicOnly ? 'public' : 'internal'));
  const service = catalog.services.find(row => row.id === input.serviceId && (!publicOnly || row.is_public));
- if (!service) return [];
+ const selection = (slots: AvailabilitySlot[]): AvailabilitySelection => ({ slots,
+  configurationRevision: catalog.configuration_revision, durationMinutes: service?.duration_minutes ?? null });
+ if (!service) return selection([]);
  const requiredProfessionalIds = [...new Set((input.professionalIds ?? []).map(id => id.trim().toLowerCase()).filter(Boolean))];
  const professionalId = input.professionalId?.trim().toLowerCase();
  const assigned = new Set(catalog.assignments.filter(row => row.service_id === service.id).map(row => row.professional_id));
  const professionals = catalog.professionals.filter(row => assigned.has(row.id) &&
   (!publicOnly || (row.is_public && hasVisibleProfessionalName(row))) &&
   (requiredProfessionalIds.length ? requiredProfessionalIds.includes(row.id) : !professionalId || row.id === professionalId));
- if (!professionals.length || (requiredProfessionalIds.length && professionals.length !== requiredProfessionalIds.length)) return [];
+ if (!professionals.length || (requiredProfessionalIds.length && professionals.length !== requiredProfessionalIds.length)) return selection([]);
  const now = new Date();
  const dates = clampRangeToBusinessRules(catalog.business, input.fromDate, input.toDate, now);
- if (!dates.length) return [];
+ if (!dates.length) return selection([]);
  const rows = await loadAvailabilityWindowRows(client, catalog, {
   serviceId: service.id, professionalIds: professionals.map(row => row.id), fromDate: dates[0], toDate: dates[dates.length - 1]
  });
- return calculateAvailabilitySlots({
+ return selection(calculateAvailabilitySlots({
   business: catalog.business, service, professionals, rules: catalog.rules,
   exceptions: rows.exceptions, blocks: rows.blocks.filter(row => row.appointment_id !== input.excludeAppointmentId),
   fromDate: dates[0], toDate: dates[dates.length - 1], publicOnly, requiredProfessionalIds,
   modality: input.modality, modalityWindows: input.modalityWindows, ignoreBreak: input.ignoreBreak,
   maxSlots: input.maxSlots, maxSlotsPerDate: input.maxSlotsPerDate, now
- });
+ }));
 };
+
+/** Existing callers retain their array contract and the same queries. */
+export const getAvailabilitySlots = async (client: CitaSupabaseClient, input: AvailabilityInput): Promise<AvailabilitySlot[]> =>
+ (await getAvailabilitySelection(client, input)).slots;
