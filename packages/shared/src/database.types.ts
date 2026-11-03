@@ -748,6 +748,7 @@ export type Database = {
           legacy_management_allowed: boolean
           previous_deposit_disposition: string
           require_deposit_on_reschedule: boolean
+          schedule_revision: number
           terms_acknowledged: boolean
           terms_snapshot: Json
         }
@@ -761,6 +762,7 @@ export type Database = {
           legacy_management_allowed?: boolean
           previous_deposit_disposition?: string
           require_deposit_on_reschedule?: boolean
+          schedule_revision?: number
           terms_acknowledged?: boolean
           terms_snapshot?: Json
         }
@@ -774,6 +776,7 @@ export type Database = {
           legacy_management_allowed?: boolean
           previous_deposit_disposition?: string
           require_deposit_on_reschedule?: boolean
+          schedule_revision?: number
           terms_acknowledged?: boolean
           terms_snapshot?: Json
         }
@@ -4214,6 +4217,20 @@ export type Database = {
           local_date: string
           status: string
         }[]
+      }
+      apply_patient_appointment_management: {
+        Args: {
+          p_action: string
+          p_availability_revision?: number
+          p_expected_revision: string
+          p_financial_terms?: Json
+          p_integration_revision?: number
+          p_legacy: boolean
+          p_operation_id: string
+          p_starts_at?: string
+          p_token: string
+        }
+        Returns: Json
       }
       assert_email_available_for_business: {
         Args: { target_business_id: string; target_email: string }

@@ -37,7 +37,7 @@ Fuentes: [plan íntegro y ajustes](propuesta-senas-avisos-natalia.md#ejecucion-e
 
 **Fase:** E0 completo; E1 en implementación, con alcance de ejecución autorizado. **Implementación iniciada:** contrato puro y primera migración E1 escrita; todavía sin rutas ni envíos integrados, sin migración aplicada en producción. **Publicación de E:** no. **Pruebas integrales E:** no ejecutadas.
 
-**Siguiente acción:** solicitar/recuperar SQL v8 de la corrección del bloqueo de heartbeat, con doce carreras (E1.27). V7 `41614171946` sí reprodujo timeout al actualizar deposit_automation, sin perder el diagnóstico; el script limpió su fixture. Comando SQL 29/29 previo, prueba global y tipos de la cuarta migración todavía pendientes. Después completar generación del evento/contacto, lectura mínima, personal/cola y E2–E6; P1/P2/P3 sólo después de E completa/publicada/auditada.
+**Siguiente acción:** solicitar/recuperar roja de identidad/calendario con contrato ampliado a 33 grupos. La suite anterior completa de 29 grupos y doce carreras está aprobada en `41614887283`, fuente `894a674fff4b01e10c95650b09f5c65de4b55540`; tipos oficiales importados y digest cotejado (E1.28). El nuevo contrato no está implementado ni probado. Cuatro migraciones E sin aplicar/integrar; completar E1–E6 y después P1/P2/P3, sin otro permiso.
 
 **Evidencia privada de esta ejecución:** `.verification/etapa-e-20261103/`. Ningún secreto, dirección de paciente, cuerpo de correo recibido o dato personal se incluye en Git ni en documentos públicos. Las rutas de evidencia no equivalen a resultados aprobados.
 
@@ -69,15 +69,15 @@ La regla de cada caso se lee en la especificación; esta tabla registra su acept
 | AC08 | Pendiente | Sin prueba funcional de E. |
 | AC09 | Parcial CI | Contrato puro y capacidades SQL 20/20, 41600939474; rutas legadas y corrección de email todavía sin integrar/verificar. E1.15. |
 | AC10 | Pendiente | Sin prueba funcional de E. |
-| RP01 | Pendiente | Sin prueba funcional de E. |
-| RP02 | Pendiente | Sin prueba funcional de E. |
+| RP01 | Parcial CI | SQL del comando y carreras en 41614887283 (E1.28); faltan integración, UX y restantes condiciones del caso. |
+| RP02 | Parcial CI | SQL del comando y carreras en 41614887283 (E1.28); faltan integración, UX y restantes condiciones del caso. |
 | RP03 | Parcial CI | Comando SQL 29/29 en 41609778146; alcance específico E1.22. Faltan carreras completas, consumidores y prueba integral. |
 | RP04 | Pendiente | Sin prueba funcional de E. |
 | RP05 | Pendiente | Sin prueba funcional de E. |
 | RP06 | Pendiente | Sin prueba funcional de E. |
 | RP07 | Pendiente | Sin prueba funcional de E. |
 | RP08 | Pendiente | Sin prueba funcional de E. |
-| RP09 | Pendiente | Sin prueba funcional de E. |
+| RP09 | Parcial CI | SQL del comando y carreras en 41614887283 (E1.28); faltan integración, UX y restantes condiciones del caso. |
 | RP10 | Pendiente | Sin prueba funcional de E. |
 | RP11 | Pendiente | Sin prueba funcional de E. |
 | RP12 | Parcial CI | Comando SQL 29/29 en 41609778146; alcance específico E1.22. Faltan carreras completas, consumidores y prueba integral. |
@@ -94,7 +94,7 @@ La regla de cada caso se lee en la especificación; esta tabla registra su acept
 | SN10 | Pendiente | Sin prueba funcional de E. |
 | SN11 | Parcial CI | Comando SQL 29/29 en 41609778146; alcance específico E1.22. Faltan carreras completas, consumidores y prueba integral. |
 | SN12 | Pendiente | Sin prueba funcional de E. |
-| SN13 | Pendiente | Sin prueba funcional de E. |
+| SN13 | Parcial CI | SQL del comando y carreras en 41614887283 (E1.28); faltan integración, UX y restantes condiciones del caso. |
 | SN14 | Pendiente | Sin prueba funcional de E. |
 | SN15 | Pendiente | Sin prueba funcional de E. |
 | SN16 | Parcial CI | Comando SQL 29/29 en 41609778146; alcance específico E1.22. Faltan carreras completas, consumidores y prueba integral. |
@@ -137,7 +137,7 @@ La regla de cada caso se lee en la especificación; esta tabla registra su acept
 | UI06 | Pendiente | Sin prueba funcional de E. |
 | UI07 | Pendiente | Sin prueba funcional de E. |
 | UI08 | Pendiente | Sin prueba funcional de E. |
-| OP01 | Pendiente | Sin prueba funcional de E. |
+| OP01 | Parcial CI | Fallas provocadas de auditoría/evento revierten SQL en 41614887283; falta recuperación de cola/proveedor y UX. |
 | OP02 | Pendiente | Sin prueba funcional de E. |
 | OP03 | Parcial CI | Contrato puro: 44 casos en fast 41578321181 y cuatro mutaciones locales; faltan integración y recorridos reales. Ver E1.1/E1.15. |
 | OP04 | Pendiente | Sin prueba funcional de E. |
@@ -368,3 +368,11 @@ La regla de cada caso se lee en la especificación; esta tabla registra su acept
 - Causa: el comando tomaba FOR SHARE sobre la fila que contiene tanto enabled como timestamps del worker. El UPDATE de heartbeat quedaba bloqueado antes de llegar al SELECT de candidatos con SKIP LOCKED. Corrección: bloqueo asesor transaccional compartido para el comando y exclusivo **sólo** al cambiar enabled mediante disparador. Los cambios de heartbeat no participan de esa llave. No se deja sin sincronizar la pausa operativa ni se cambia la regla de vencimiento. Función privada sin permisos API.
 - Se añaden dos carreras para comprobar pausa→cambio y cambio→pausa, además de repetir la inversa que detectó el defecto. El script tendrá **doce** escenarios y exige no incrementar deadlocks. Son pruebas nuevas pendientes, no resultados de v7.
 - Se contrastaron semántica/alcance transaccional y modos compartido/exclusivo con [bloqueos de PostgreSQL 17](https://www.postgresql.org/docs/17/explicit-locking.html#ADVISORY-LOCKS) y [funciones oficiales](https://www.postgresql.org/docs/17/functions-admin.html#FUNCTIONS-ADVISORY-LOCKS). La documentación no prueba nuestra implementación: recuperar SQL v8 conjunto, tipo generado con nuevo digest y doce carreras reales antes de cerrar esta corrección.
+
+
+### E1.28 — suite completa del comando y corrección de heartbeat aprobadas
+
+- **SQL aprobado** `41614887283`, fuente `894a674fff4b01e10c95650b09f5c65de4b55540`, código main `863e759`. Se cotejaron recibo `type-generation.json` (`ok=true`, `sqlVerified=true`, `kind=sql-and-types-generation-only`), 732 aserciones pgTAP, los 16 encabezados de scripts de concurrencia, 29/29 del comando y las **doce** carreras nuevas con contador de deadlocks sin aumento. La carrera de heartbeat que fallaba ahora termina, y las dos carreras de pausa confirman que no se eliminó su sincronización para obtener verde. No acredita la app/proveedor/buzón ni el contrato posterior de 33 grupos.
+- Archivo privado `sql-comandos-v8-41614887283.zip`, colección `sql-comandos-v8-evidence`, SHA-256 `c81fa900c2dd15477830ef09d6f44edb00b3635667071a03986786cb1b4db037`. Tipos oficiales, dos generaciones iguales, SHA-256 `53fe51b08b18bc5b4c801277ef155671fff692b85f568d513afce35382d10ab0`, digest de todas las migraciones `d0ce8de7a2fb227f50e579f6837cf929ab00478badd618bff3dcabfd7a0a7aae` cotejado antes de importarlos. Diff de tipos: 17 líneas añadidas, sin borrados (schedule_revision y comando de nueve parámetros).
+- Contrato posterior ampliado **a 33 grupos**, antes de implementar esos hallazgos de auditoría: SEQUENCE al cancelar conservando token, generación original del evento al reasignar, no heredar aceptación económica y no trasladar la obligación impaga a otra persona. Se usa la reasignación controlada real y aserciones que fallan también ante un campo ausente, sin cortar por falta de columna antes de comprobar los otros casos. Falta roja concreta; no atribuirlos al verde de 29.
+- Próximo: corrida roja de esos cuatro casos, corregir por evidencia y verificar de nuevo. Luego lectura mínima/operación del personal/incidentes/cola y E2–E6; no cerrar E1 ni iniciar P1/P2/P3 con este fundamento aprobado. Sin migraciones E en producción y sin correo nuevo.
