@@ -13,16 +13,20 @@ service_id='e3100000-0000-4000-8000-000000000004'
 slug='e2e-patient-management-race'
 task_directory=$(mktemp -d)
 holder_pid=''
-psql_owned() { PGOPTIONS='-c lock_timeout=7000 -c statement_timeout=12000' psql "$database_url" -X -v ON_ERROR_STOP=1 -qAt "$@"; }
-previous_deposit=$(psql_owned -c 'select enabled from private.deposit_automation where singleton;')
-previous_runtime=$(psql_owned -c "select reschedule_enabled||'|'||email_producer_enabled from private.appointment_management_runtime where singleton;")
+# Direct client processes keep background $! equal to the actual client PID.
+# A function wrapper inherits ERR inside redirected descriptors and can attempt
+# to append a diagnostic log to itself; preserve the original caller's stderr.
+export PGOPTIONS='-c lock_timeout=7000 -c statement_timeout=12000'
+psql_command=(psql "$database_url" -X -v ON_ERROR_STOP=1 -qAt)
+previous_deposit=$("${psql_command[@]}" -c 'select enabled from private.deposit_automation where singleton;')
+previous_runtime=$("${psql_command[@]}" -c "select reschedule_enabled||'|'||email_producer_enabled from private.appointment_management_runtime where singleton;")
 [[ "$previous_deposit" =~ ^[tf]$ && "$previous_runtime" =~ ^(true|false)\|(true|false)$ ]]
 cleanup() {
  local status=$?
  trap - EXIT
  echo "Patient management cleanup begins, status $status." >&2
  if [[ -n "$holder_pid" ]]; then kill "$holder_pid" 2>/dev/null || true; wait "$holder_pid" 2>/dev/null || true; fi
- if ! psql_owned <<SQL
+ if ! "${psql_command[@]}" <<SQL
 update private.deposit_automation set enabled='$previous_deposit'::boolean;
 update private.appointment_management_runtime set reschedule_enabled='${previous_runtime%|*}'::boolean,email_producer_enabled='${previous_runtime#*|}'::boolean;
 drop schema if exists patient_management_race cascade;
@@ -42,7 +46,7 @@ on_error() {
  for log in "$task_directory"/*.log; do [[ ! -f "$log" ]] || cat "$log" >&2; done
 }
 trap 'on_error $LINENO' ERR
-psql_owned <<SQL
+"${psql_command[@]}" <<SQL
 create schema patient_management_race;
 create table patient_management_race.requests(label text primary key,appointment_id uuid,token text,operation_id uuid,
  revision text,target timestamptz,availability_revision bigint,terms jsonb,deposit_revision bigint);
@@ -61,7 +65,7 @@ insert into public.deposit_policies(business_id,enabled,auto_cancel_enabled,amou
 update private.deposit_automation set enabled=true;
 update private.appointment_management_runtime set reschedule_enabled=true,email_producer_enabled=true;
 SQL
-psql_owned <<'SQL'
+"${psql_command[@]}" <<'SQL'
 create function patient_management_race.prepare(p_label text,p_due boolean default false,p_target timestamptz default null) returns void language plpgsql as $$
 declare a uuid; patient uuid; starts timestamptz; b uuid:='e3100000-0000-4000-8000-000000000001'; begin
  starts:=date_trunc('hour',now())+make_interval(days=>20+(select count(*)::integer from patient_management_race.requests));
@@ -103,7 +107,7 @@ declare r patient_management_race.requests; a public.appointments; begin
  then raise exception 'PATIENT_RACE_PARTIAL_STATE_%',p_label; end if;
 end $$;
 SQL
-deadlocks_before=$(psql_owned -c 'select deadlocks from pg_stat_database where datname=current_database();')
+deadlocks_before=$("${psql_command[@]}" -c 'select deadlocks from pg_stat_database where datname=current_database();')
 wait_marker() {
  for attempt in {1..240}; do
   if rg_marker=$(sed -n '/^PATIENT_HOLDER_READY$/p' "$task_directory/holder.log"); [[ -n "$rg_marker" ]]; then return; fi
@@ -128,7 +132,7 @@ SQL
 race() {
  local name=$1 first=$2 second=$3 expected_error=${4:-}
  echo "Patient management race: $name" >&2
- psql_owned >"$task_directory/holder.log" 2>&1 <<SQL &
+ "${psql_command[@]}" >"$task_directory/holder.log" 2>&1 <<SQL &
 set statement_timeout='12s';
 begin;
 $first
@@ -139,7 +143,7 @@ SQL
  holder_pid=$!
  wait_marker
  local status=0
- PGAPPNAME=patient-management-other psql_owned >"$task_directory/other.log" 2>&1 <<SQL || status=$?
+ PGAPPNAME=patient-management-other "${psql_command[@]}" >"$task_directory/other.log" 2>&1 <<SQL || status=$?
 set statement_timeout='12s';
 $second
 SQL
@@ -151,46 +155,46 @@ SQL
  echo "PASS: $name (overlap verified by PostgreSQL lock wait)."
 }
 
-psql_owned -c "select patient_management_race.prepare('duplicate');"
+"${psql_command[@]}" -c "select patient_management_race.prepare('duplicate');"
 race duplicate "select patient_management_race.act('duplicate');" "select patient_management_race.act('duplicate');"
-psql_owned -c "select patient_management_race.assert_state('duplicate','reserved','pending',true,1);"
+"${psql_command[@]}" -c "select patient_management_race.assert_state('duplicate','reserved','pending',true,1);"
 
-psql_owned -c "select patient_management_race.prepare('move_cancel');"
+"${psql_command[@]}" -c "select patient_management_race.prepare('move_cancel');"
 race move_before_cancel "select patient_management_race.act('move_cancel');" "select patient_management_race.act('move_cancel','cancel',true);" APPOINTMENT_MANAGEMENT_CHANGED
-psql_owned -c "select patient_management_race.assert_state('move_cancel','reserved','pending',true,1);"
-psql_owned -c "select patient_management_race.prepare('cancel_move');"
+"${psql_command[@]}" -c "select patient_management_race.assert_state('move_cancel','reserved','pending',true,1);"
+"${psql_command[@]}" -c "select patient_management_race.prepare('cancel_move');"
 race cancel_before_move "select patient_management_race.act('cancel_move','cancel');" "select patient_management_race.act('cancel_move','reschedule',true);" APPOINTMENT_MANAGEMENT_CHANGED
-psql_owned -c "select patient_management_race.assert_state('cancel_move','cancelled','pending',false,0);"
+"${psql_command[@]}" -c "select patient_management_race.assert_state('cancel_move','cancelled','pending',false,0);"
 
-psql_owned -c "select patient_management_race.prepare('pay_move');"
+"${psql_command[@]}" -c "select patient_management_race.prepare('pay_move');"
 race pay_before_move "select patient_management_race.pay('pay_move');" "select patient_management_race.act('pay_move');" APPOINTMENT_MANAGEMENT_CHANGED
-psql_owned -c "select patient_management_race.assert_state('pay_move','confirmed','paid',false,0);"
-psql_owned -c "select patient_management_race.prepare('move_pay');"
+"${psql_command[@]}" -c "select patient_management_race.assert_state('pay_move','confirmed','paid',false,0);"
+"${psql_command[@]}" -c "select patient_management_race.prepare('move_pay');"
 race move_before_stale_pay "select patient_management_race.act('move_pay');" "select patient_management_race.pay('move_pay');" DEPOSIT_CHANGED
-psql_owned -c "select patient_management_race.assert_state('move_pay','reserved','pending',true,1);"
+"${psql_command[@]}" -c "select patient_management_race.assert_state('move_pay','reserved','pending',true,1);"
 
-psql_owned -c "select patient_management_race.prepare('expiry_move',true);"
+"${psql_command[@]}" -c "select patient_management_race.prepare('expiry_move',true);"
 race expiry_before_move "select private.expire_unpaid_deposits(clock_timestamp(),100);" "select patient_management_race.act('expiry_move');" APPOINTMENT_MANAGEMENT_CHANGED
-psql_owned -c "select patient_management_race.assert_state('expiry_move','cancelled','expired',false,0);"
+"${psql_command[@]}" -c "select patient_management_race.assert_state('expiry_move','cancelled','expired',false,0);"
 
-psql_owned -c "select patient_management_race.prepare('config_move');"
+"${psql_command[@]}" -c "select patient_management_race.prepare('config_move');"
 race configuration_before_move "update public.services set duration_minutes=90 where id='$service_id';" "select patient_management_race.act('config_move');" APPOINTMENT_AVAILABILITY_CHANGED
-psql_owned -c "select patient_management_race.assert_state('config_move','reserved','pending',false,0);"
-psql_owned -c "update public.services set duration_minutes=60 where id='$service_id'; select patient_management_race.prepare('move_config');"
+"${psql_command[@]}" -c "select patient_management_race.assert_state('config_move','reserved','pending',false,0);"
+"${psql_command[@]}" -c "update public.services set duration_minutes=60 where id='$service_id'; select patient_management_race.prepare('move_config');"
 race move_before_configuration "select patient_management_race.act('move_config');" "update public.services set duration_minutes=90 where id='$service_id';"
-psql_owned -c "select patient_management_race.assert_state('move_config','reserved','pending',true,1); update public.services set duration_minutes=60 where id='$service_id';"
+"${psql_command[@]}" -c "select patient_management_race.assert_state('move_config','reserved','pending',true,1); update public.services set duration_minutes=60 where id='$service_id';"
 
-psql_owned -c "select patient_management_race.prepare('slot_a',false,date_trunc('hour',now())+interval '120 days'); select patient_management_race.prepare('slot_b',false,date_trunc('hour',now())+interval '120 days');"
+"${psql_command[@]}" -c "select patient_management_race.prepare('slot_a',false,date_trunc('hour',now())+interval '120 days'); select patient_management_race.prepare('slot_b',false,date_trunc('hour',now())+interval '120 days');"
 race overlapping_target "select patient_management_race.act('slot_a');" "select patient_management_race.act('slot_b');" 'exclusion constraint'
-psql_owned -c "select patient_management_race.assert_state('slot_a','reserved','pending',true,1); select patient_management_race.assert_state('slot_b','reserved','pending',false,0);"
+"${psql_command[@]}" -c "select patient_management_race.assert_state('slot_a','reserved','pending',true,1); select patient_management_race.assert_state('slot_b','reserved','pending',false,0);"
 
 # Inverse expiry order: the worker must SKIP the held appointment instead of
 # waiting. A separate signal after the worker exits proves overlap without a
 # timing-only sleep or a permanently open third connection.
 echo 'Patient management inverse expiry: prepare.' >&2
-psql_owned -c "select patient_management_race.prepare('move_expiry',true);"
+"${psql_command[@]}" -c "select patient_management_race.prepare('move_expiry',true);"
 echo 'Patient management inverse expiry: start holder.' >&2
-psql_owned >"$task_directory/holder.log" 2>&1 <<'SQL' &
+"${psql_command[@]}" >"$task_directory/holder.log" 2>&1 <<'SQL' &
 set statement_timeout='12s';
 begin;
 select patient_management_race.act('move_expiry');
@@ -208,18 +212,18 @@ holder_pid=$!
 echo 'Patient management inverse expiry: await holder marker.' >&2
 wait_marker
 echo 'Patient management inverse expiry: worker begins while holder is open.' >&2
-psql_owned >"$task_directory/other.log" 2>&1 <<'SQL'
+"${psql_command[@]}" >"$task_directory/other.log" 2>&1 <<'SQL'
 set statement_timeout='1s';
 select private.expire_unpaid_deposits(clock_timestamp(),100);
 SQL
 echo 'Patient management inverse expiry: worker returned.' >&2
 kill -0 "$holder_pid"
-psql_owned -c "insert into patient_management_race.signals values('expiry_finished');"
+"${psql_command[@]}" -c "insert into patient_management_race.signals values('expiry_finished');"
 echo 'Patient management inverse expiry: signal committed; await holder.' >&2
 wait "$holder_pid"; holder_pid=''
 echo 'Patient management inverse expiry: holder returned; assert state.' >&2
-psql_owned -c "select patient_management_race.assert_state('move_expiry','reserved','pending',true,1);"
+"${psql_command[@]}" -c "select patient_management_race.assert_state('move_expiry','reserved','pending',true,1);"
 echo 'PASS: expiry skips the appointment held by a completed uncommitted patient move.'
-deadlocks_after=$(psql_owned -c 'select deadlocks from pg_stat_database where datname=current_database();')
+deadlocks_after=$("${psql_command[@]}" -c 'select deadlocks from pg_stat_database where datname=current_database();')
 [[ "$deadlocks_before" == "$deadlocks_after" ]]
 echo 'PASS: ten controlled patient-management races; no PostgreSQL deadlock.'
