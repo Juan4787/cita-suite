@@ -30,8 +30,11 @@ A	apps/web/src/lib/scheduling/patient-action-context.ts
 A	scripts/check-repo-sync.mjs
 A	scripts/verify-production-auth-ux.mjs
 A	scripts/zoho-cpaas.py
+A	supabase/migrations/20261103010000_appointment_management_foundation.sql
 M	supabase/templates/recovery.html
 A	supabase/tests/appointment_management_foundation.sql
+A	supabase/tests/migrations/20261103010000_appointment_management_foundation.sql.after.sql
+A	supabase/tests/migrations/20261103010000_appointment_management_foundation.sql.before.sql
 ```
 
 | Archivo | Qué es | ¿Afecta a producción? |
@@ -40,7 +43,7 @@ A	supabase/tests/appointment_management_foundation.sql
 | `scripts/check-repo-sync.mjs` | Este chequeo | No: es una herramienta local |
 | `scripts/zoho-cpaas.py` | Administración local de Zoho por OAuth, con credenciales fuera de Git | No: no se despliega ni configura el correo de la app |
 | `scripts/verify-production-auth-ux.mjs` | Lectura de la pantalla de ingreso en producción, de otro trabajo (flujo manual `production-auth-ux.yml`) | No: no se despliega |
-| `supabase/tests/appointment_management_foundation.sql` | Contrato SQL E1 previo a implementación: se espera rojo por esquema ausente; no se ejecuta contra producción | No: sólo CI descartable |
+| Migración `20261103010000`, contrato SQL y fixtures de actualización E1 | Preferencias, revisión semántica e historia de señas; roja previa demostrada y primera implementación por comprobar | No: no se aplicó en producción; sólo CI descartable |
 | `supabase/templates/recovery.html` | Plantilla del correo de recuperación, modificada en otro trabajo | No se despliega con la app: se carga aparte en Supabase. **No está verificado** si la versión de Supabase coincide con este archivo |
 
 ## Historia

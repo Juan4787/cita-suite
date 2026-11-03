@@ -228,9 +228,9 @@ Decisión posterior [12.21/12.22](propuesta-senas-avisos-natalia.md#etapa-e-deci
 - **Correos ya aceptados y calendarios externos** tienen límites reales de recuperación. La base puede ser atómica; no hay una transacción común con Zoho, Gmail y Google. No prometer retractación ni recepción exacta a una hora.
 - **Cancelación y devolución:** la política del consultorio sobre devolución sigue pendiente. E registra hechos y no mueve dinero. La nueva regla de pérdida sólo cubre la reprogramación voluntaria informada.
 
-## 6. Orden de ejecución de E (autorizado en 12.20; decisiones iniciales en preparación)
+## 6. Orden de ejecución de E (autorizado en 12.20; decisiones iniciales resueltas)
 
-1. **E0 — definición terminada; preparación de ejecución en curso:** revisión documental, conexiones locales verificadas, autorización 12.20, decisiones iniciales Q01/Q02 y registro de continuidad. Las conexiones administrativas no acreditan integración de la app ni pruebas funcionales.
+1. **E0 — definición y preparación terminadas:** revisión documental, conexiones locales verificadas, autorización 12.20, decisiones iniciales Q01/Q02 y registro de continuidad. Las conexiones administrativas no acreditan integración de la app ni pruebas funcionales.
 2. **E1 — contratos y transacciones:** pruebas que fallen primero para revisión semántica, identidad de operación, historial de señas, destino de importes y cola de eventos; migraciones aditivas, permisos, exposición API y tipos. Conservar la proyección uno a uno y las garantías de A/B/C.
 3. **E2 — autogestión:** disponibilidad compartida, pantallas de confirmación, movimiento autónomo, tratamiento de pedidos antiguos, revocación de gestión y actualización de calendario. Probar cada carrera en ambos órdenes.
 4. **E3 — configuración y email obligatorio:** política por consultorio, aviso de recepción para ficha nueva/existente, preferencias/destinatarios y condiciones antes de reservar/cambiar. Plantillas con identidad del consultorio y las cuatro combinaciones de botones.
