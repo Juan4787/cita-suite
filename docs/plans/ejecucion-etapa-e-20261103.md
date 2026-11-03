@@ -37,7 +37,7 @@ Fuentes: [plan íntegro y ajustes](propuesta-senas-avisos-natalia.md#ejecucion-e
 
 **Fase:** E0 completo; E1 y primera integración E2 en implementación. Siete migraciones comprobadas en SQL descartable; adaptadores y pantalla compartida escritos, sin publicar ni aplicar SQL en producción. Personal/roles/contacto/cola pendientes. **Publicación de E:** no. **Pruebas integrales E:** no ejecutadas.
 
-**Siguiente acción:** recuperar tercer fast de E2. El segundo `41657519804` aprobó tipado y falló por reglas de paleta sin consumidor después de retirar formulario; panel corregido y paleta 11/11 local. Faltan arquitectura/unidades generales, regresión completa de pantalla, rutas/navegador/paquete. SQL íntegro `41653421061`, siete migraciones sin cambios desde su prueba. Continuar E1 personal/identidad/roles/cola y E3–E6; después P1/P2/P3.
+**Siguiente acción:** reproducir la nueva prueba de vencimiento comercial del comando (grupos 36–37 escritos, sin ejecutar), luego corregir por evidencia y completar fast de E2. Tercer fast `41658244414` aprobó tipado/arquitectura/1772 unidades servidor y falló una regresión de texto de seña; corregida con verde dirigido. Suite SQL íntegra anterior `41653421061`, siete migraciones; no atribuirle los dos grupos nuevos. Falta E1 personal/identidad/roles/cola, pruebas de navegador/paquete y E3–E6; después P1/P2/P3.
 
 **Evidencia privada de esta ejecución:** `.verification/etapa-e-20261103/`. Ningún secreto, dirección de paciente, cuerpo de correo recibido o dato personal se incluye en Git ni en documentos públicos. Las rutas de evidencia no equivalen a resultados aprobados.
 
@@ -471,3 +471,16 @@ La regla de cada caso se lee en la especificación; esta tabla registra su acept
 - Fast **41657519804**, fuente `0c14a931db601d11c2e515f2e098689ba6cb33a2`, main `50264ff`: tipado web **0 errores/0 warnings**, tipos de navegador/Natalia/scheduler aprobados. Falla posterior de guardia Node `Natalia booking markers and their rules match one to one`: tres reglas de error sin consumidor al retirar el formulario antiguo. No llegó a arquitectura/unidades generales. Log `fast-autogestion-v2-41657519804.log:1333–1367`.
 - El panel usa ahora esos marcadores en su aviso de error (y los de éxito en su resultado positivo), para que siga la paleta propia del consultorio en claro/oscuro. No se amplía la excepción ni se debilita el verificador. Guardia completa de paleta **11/11 local**, `paleta-autogestion-verde.log`. No es prueba visual; falta nuevo fast y navegador.
 - Se comprobó por catálogo de herramientas que no hay capacidad de Browser/Playwright del host expuesta; cuando corresponda navegador se usará el arnés Playwright existente en CI, sin navegador local ni suplantar una sesión del usuario.
+
+
+### E2.4 — regresión de explicación de seña y delegación de rutas
+
+- Fast **41658244414**, fuente `9b01ac0fbd26b257b4d0ed74035961082d78c6fa`, main `c77600e`: tipado/arquitectura/guardias aprobados, **1772 unidades de servidor**. Cliente: **272 pasan/1 falla**, por explicación de confirmación de seña retirada al extraer acciones. Log `fast-autogestion-v3-41658244414.log:2116…`; no es un cierre fast aprobado.
+- Se restituye la explicación en el propio bloque de seña y se precisa «cuando el consultorio **registra** la seña»: la transferencia por sí sola no acredita un pago en la app. El test conserva esa exigencia con la palabra ajustada, sin eliminar la aserción. Verde local dirigido **1/1**, con otros 50 no ejecutados en esa selección, `confirmacion-sena-registrada-verde.log`. Próxima suite general debe cubrirlos todos.
+- Delegación de servidor agregada **7/7 local**, `delegacion-rutas-autogestion.log`: ambos canales explícitos, lectura revocada sin fallback al token de calendario, no-store/referrer/noindex, rechazo que conserva resumen, éxito local aunque falle Google, formulario legado retirado sin mutar y cupo de intentos. Son mocks de delegación, no prueba HTTP/SQL ni revocación integral tras corregir email.
+- Hallazgo documental previo: `areas-y-fronteras.md` aún decía modo oscuro único, incompatible con V12b y DESIGN.md. Se corrige su resumen vigente a claro predeterminado/oscuro, sin anticipar P2 ni una auditoría visual de E.
+
+### E1.38 — contrato de reloj de autorización, previo a reproducción
+
+- Revisión del comando/lector: invocan business_allows_operation, cuyo now() es del comienzo de transacción. La ayuda de deposit_actor y la revocación también requieren auditar vencimiento después de esperar; no se afirma corrección de estos bordes por las carreras anteriores.
+- Se amplía el contrato del comando a **37 grupos**: 35 previamente aprobados y dos nuevos. Suscripción real vence mientras la transacción sigue abierta (espera acotada 150 ms); mover debe rechazar sin afectar turno/dinero/eventos. Pruebas escritas, **sin ejecutar**; no se añadió aún helper ni corrección. Reproducir antes de cambiar autorización y completar también carreras con espera real de bloqueo/ayuda.

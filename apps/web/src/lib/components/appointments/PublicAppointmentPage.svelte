@@ -1413,6 +1413,7 @@
 {#snippet depositCard(current: PublicAppointmentView, deposit: NonNullable<PublicAppointmentView['deposit']>)}
 	<section class="ux-card">
 		<h2 class="ux-section-title">Seña del turno</h2>
+		<p class="mt-2 text-fg-65 bk-muted">Tu turno se confirma cuando el consultorio registra la seña.</p>
 		<p class="mt-2 text-fg-80 bk-muted">
 			Para confirmar tu turno, transferí la seña de <strong class="text-fg bk-text">{formatDepositAmount(deposit.amount)}</strong>
 			antes del {formatInTimeZone(deposit.due_at, current.business.timezone).full}.

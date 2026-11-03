@@ -44,6 +44,7 @@ M	apps/web/src/lib/server/scheduling/public/availability.test.ts
 M	apps/web/src/lib/server/scheduling/public/availability.ts
 A	apps/web/src/lib/server/scheduling/public/patient-management-flow.test.ts
 A	apps/web/src/lib/server/scheduling/public/patient-management-flow.ts
+A	apps/web/src/lib/server/scheduling/public/patient-management-page.test.ts
 A	apps/web/src/lib/server/scheduling/public/patient-management-page.ts
 A	apps/web/src/lib/server/scheduling/public/patient-management.test.ts
 A	apps/web/src/lib/server/scheduling/public/patient-management.ts
@@ -93,7 +94,7 @@ A	supabase/tests/run_patient_management_view_concurrency.sh
 | Migración `20261103020000` y `supabase/tests/appointment_management_capabilities.sql` | Enlaces revocables y recibo idempotente; comprobados en CI SQL `41600939474` | No: no se aplicó ni se integró a rutas; sólo CI descartable |
 | `packages/shared/src/database.types.ts` | Tipos oficiales, dos generaciones iguales en CI y digest de las migraciones locales cotejado antes de importar | No: todavía sin publicar |
 | Migración `20261103030000` y `supabase/tests/appointment_reschedule_financial_terms.sql` | Resumen económico de reprogramación sólo lectura, suite aprobada; consumido por comando/lectura y adaptador/UI iniciales, sin publicar | No: sólo CI descartable, sin aplicar ni conectar a rutas |
-| Migración `20261103040000` y `patient_appointment_management_commands.sql` | Comandos del paciente/eventos atómicos, Comando ampliado 35/35 y doce carreras aprobados en CI `41616550006`; regla compartida/huella/recuperación y conjunto de siete migraciones verificados en CI 41653421061 | No: sólo CI descartable, interruptores apagados al instalar |
+| Migración `20261103040000` y `patient_appointment_management_commands.sql` | Comandos del paciente/eventos atómicos, Comando ampliado 35/35 y doce carreras aprobados en CI `41616550006`; contrato nuevo 37 grupos pendiente de ejecutar; regla compartida/huella/recuperación y conjunto de siete migraciones verificados en CI 41653421061 | No: sólo CI descartable, interruptores apagados al instalar |
 | `availability.ts` y su prueba | Contrato y calculador compartido con revisiones de catálogo/reserva y duración de la misma lectura; contrato anterior de slots conservado, 19/19 locales junto con ventanas | No: todavía sin publicar |
 | `run_patient_management_concurrency.sh` | Doce carreras y cero deadlocks comprobados en CI `41614887283`, incluida corrección de heartbeat; sólo loopback descartable | No: sólo CI |
 | `reschedule-terms.ts` y su prueba | Validación/formato preciso de condiciones SQL, 20/20 locales; consumido por adaptador y panel iniciales, sin publicar | No: desarrollo sin publicar |
@@ -102,7 +103,7 @@ A	supabase/tests/run_patient_management_view_concurrency.sh
 | `patient_appointment_management_recovery.sql` | Siete grupos del lookup de recibo .070, suite completa aprobada 41653421061 | No: sólo CI |
 | `patient_appointment_management_view.sql` | Lectura mínima con migración `20261103050000`, 16 grupos y lectura coherente comprobados en CI 41650084150 | No: sólo CI descartable |
 | `run_patient_management_view_concurrency.sh` | Carrera de lectura con modificación simultánea entre autorización/presentación aprobada en CI 41650084150 | No: sólo CI descartable |
-| Rutas `/turno`/`gestion`, hooks, componentes y flujos nuevos | Primera integración E2 con pantalla compartida, mutación antigua retirada; 84/84 dirigidos y panel 7/7, segundo fast aprobó tipado y falló en marcadores de paleta (corregidos, nueva corrida pendiente); paquete/navegador pendientes | No: todavía sin publicar |
+| Rutas `/turno`/`gestion`, hooks, componentes y flujos nuevos | Primera integración E2 con pantalla compartida, mutación antigua retirada; 84/84 dirigidos y panel 7/7, tercer fast aprobó tipado/arquitectura/1772 unidades servidor y falló una regresión de texto (corregida, suite nueva pendiente); paquete/navegador pendientes | No: todavía sin publicar |
 | `apps/web/DESIGN.md` y superficie de gestión | Dirección de extensión/contexto, revisión visual pendiente | No: documentación de desarrollo |
 | `supabase/templates/recovery.html` | Plantilla del correo de recuperación, modificada en otro trabajo | No se despliega con la app: se carga aparte en Supabase. **No está verificado** si la versión de Supabase coincide con este archivo |
 
