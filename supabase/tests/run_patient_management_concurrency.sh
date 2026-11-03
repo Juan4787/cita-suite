@@ -157,7 +157,7 @@ psql_owned -c "select patient_management_race.prepare('move_cancel');"
 race move_before_cancel "select patient_management_race.act('move_cancel');" "select patient_management_race.act('move_cancel','cancel',true);" APPOINTMENT_MANAGEMENT_CHANGED
 psql_owned -c "select patient_management_race.assert_state('move_cancel','reserved','pending',true,1);"
 psql_owned -c "select patient_management_race.prepare('cancel_move');"
-race cancel_before_move "select patient_management_race.act('cancel_move','cancel');" "select patient_management_race.act('cancel_move');" APPOINTMENT_MANAGEMENT_CHANGED
+race cancel_before_move "select patient_management_race.act('cancel_move','cancel');" "select patient_management_race.act('cancel_move','reschedule',true);" APPOINTMENT_MANAGEMENT_CHANGED
 psql_owned -c "select patient_management_race.assert_state('cancel_move','cancelled','pending',false,0);"
 
 psql_owned -c "select patient_management_race.prepare('pay_move');"
