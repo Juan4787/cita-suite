@@ -29,9 +29,10 @@ create table private.appointment_email_events (
  business_id uuid not null,
  appointment_id uuid not null,
  schedule_revision bigint not null check(schedule_revision>0),
+ management_generation bigint not null check(management_generation>0),
  purpose text not null check(purpose in ('booking_receipt','reschedule_receipt','cancellation_receipt')),
  occurred_at timestamptz not null default clock_timestamp(),
- unique(business_id,appointment_id,schedule_revision,purpose),
+ unique(business_id,appointment_id,schedule_revision,management_generation,purpose),
  foreign key(business_id,appointment_id) references public.appointments(business_id,id) on delete cascade
 );
 create index appointment_email_events_pending on private.appointment_email_events(occurred_at,id);
@@ -43,7 +44,7 @@ revoke all on private.appointment_email_events from public,anon,authenticated,se
 -- by the outer booking RPC and must be loaded from committed state at dispatch.
 create function private.record_appointment_email_event() returns trigger
 language plpgsql security definer set search_path=pg_catalog,pg_temp as $$
-declare v_revision bigint; v_purpose text; v_enabled boolean;
+declare v_revision bigint; v_generation bigint; v_purpose text; v_enabled boolean;
 begin
  if tg_op='UPDATE' and (new.starts_at,new.ends_at,new.service_id,new.professional_id)
   is distinct from (old.starts_at,old.ends_at,old.service_id,old.professional_id) then
@@ -61,8 +62,9 @@ begin
   and (new.starts_at,new.ends_at) is distinct from (old.starts_at,old.ends_at) then v_purpose:='reschedule_receipt';
  end if;
  if v_purpose is not null then
-  insert into private.appointment_email_events(business_id,appointment_id,schedule_revision,purpose)
-  values(new.business_id,new.id,v_revision,v_purpose);
+  select generation into v_generation from public.appointment_management_states where business_id=new.business_id and appointment_id=new.id;
+  insert into private.appointment_email_events(business_id,appointment_id,schedule_revision,management_generation,purpose)
+  values(new.business_id,new.id,v_revision,v_generation,v_purpose);
  end if;
  return null;
 end $$;
@@ -173,7 +175,9 @@ begin
   -- appointment even if booking/commercial access was disabled. No other access.
   if a.status not in ('reserved','confirmed','reschedule_requested') or a.starts_at<=v_now then raise exception 'APPOINTMENT_CANNOT_CANCEL'; end if;
   update public.appointments set status='cancelled',cancelled_at=v_now,cancelled_by_user_id=null,
-   cancelled_reason='Cancelado por el paciente',updated_by_user_id=null,updated_at=v_now where business_id=v_business and id=a.id returning * into a;
+   cancelled_reason='Cancelado por el paciente',calendar_sequence=a.calendar_sequence+1,
+   calendar_update_required_at=case when a.calendar_action_count>0 then v_now end,
+   updated_by_user_id=null,updated_at=v_now where business_id=v_business and id=a.id returning * into a;
  elsif p_action='confirm' then
   if a.starts_at<=v_now or a.status<>'reserved' then raise exception 'APPOINTMENT_CANNOT_CONFIRM'; end if;
   if exists(select 1 from public.appointment_deposits where business_id=v_business and appointment_id=a.id and status='pending') then
@@ -228,7 +232,7 @@ begin
    v_has_projection:=found;
    select * into r from public.appointment_deposit_requirements where business_id=v_business and appointment_id=a.id and is_current for update;
    v_has_current:=found;
-   select * into basis from public.appointment_deposit_requirements where business_id=v_business and appointment_id=a.id order by ordinal desc limit 1;
+   select * into basis from public.appointment_deposit_requirements where business_id=v_business and appointment_id=a.id and patient_id=a.patient_id order by ordinal desc limit 1;
    if v_has_current then basis:=r; end if;
    v_kind:=v_terms->>'kind';
    if v_kind<>'reuse_pending' and v_has_current then

@@ -2,7 +2,7 @@
 -- The backend has already checked the selected slot with the shared calculator;
 -- the command must hold its configuration version and enforce atomic persistence.
 begin;
-select extensions.plan(33);
+select extensions.plan(35);
 create temporary table command_fixture(label text primary key,id uuid not null,extra jsonb);
 create function pg_temp.cid(p_label text) returns uuid language sql as $$
  select id from command_fixture where label=p_label
@@ -399,5 +399,17 @@ select extensions.ok(not exists(select 1 from public.appointment_deposits where 
  and exists(select 1 from public.appointment_deposit_requirements r join public.appointments a on a.id=r.appointment_id
   where r.appointment_id=pg_temp.cid('recipient_pending') and not r.is_current and r.status='pending' and r.allocation='none' and r.patient_id<>a.patient_id),
  '33. Controlled replacement closes the previous unpaid obligation without transferring debt, inventing a waiver or deleting its history');
+update private.deposit_automation set enabled=false;
+select extensions.is((select jsonb_build_array(t->'kind',t->'unavailable_reason',t->'base_amount') from
+ (select pg_temp.cterms('recipient_pending') t) q),'["none",null,null]'::jsonb,
+ '34. Old identity history is neither a new fee basis nor a financial pause imposed on the replacement patient');
+update private.deposit_automation set enabled=true;
+select pg_temp.command_call(public.issue_appointment_management_capability(pg_temp.cid('business'),pg_temp.cid('recipient_pending'),2),
+ gen_random_uuid(),pg_temp.crevision('recipient_pending'),'cancel',null,null,null);
+select extensions.ok((select (to_jsonb(e)->>'management_generation')::bigint=2 from private.appointment_email_events e
+ where e.appointment_id=pg_temp.cid('recipient_pending') and e.purpose='cancellation_receipt')
+ and (select (to_jsonb(e)->>'management_generation')::bigint=1 from private.appointment_email_events e
+ where e.appointment_id=pg_temp.cid('recipient_pending') and e.purpose='booking_receipt'),
+ '35. A new authorized action uses the replacement generation without retagging the previous booking event');
 select * from extensions.finish();
 rollback;
