@@ -32,7 +32,8 @@ class EvidenceTests(unittest.TestCase):
 
     def test_round_trip_redacts_credentials_and_preserves_failed_status(self):
         (self.root / ".verification").mkdir()
-        payload = {"ok": False, "token": "eyJabc.def.ghi", "link": "/turno/" + "a" * 64}
+        payload = {"ok": False, "token": "eyJabc.def.ghi", "link": "/turno/" + "a" * 64,
+                   "management_link": "/gestion/" + "b" * 64 + "?accion=reprogramar"}
         (self.root / ".verification/failed.json").write_text(json.dumps(payload))
         jpeg = b"\xff\xd8\xff\xe0synthetic-binary-screenshot\xff\xd9"
         (self.root / ".verification/synthetic.jpg").write_bytes(jpeg)
@@ -44,6 +45,7 @@ class EvidenceTests(unittest.TestCase):
         self.assertIs(recovered["ok"], False)
         self.assertEqual(recovered["token"], "[redacted-jwt]")
         self.assertEqual(recovered["link"], "/turno/[redacted]")
+        self.assertEqual(recovered["management_link"], "/gestion/[redacted]?accion=reprogramar")
         self.assertEqual((self.root / "result/.verification/synthetic.jpg").read_bytes(), jpeg)
         self.assertNotEqual(self.collect(packed).returncode, 0, "must not overwrite prior evidence")
         corrupted = packed.replace("CITA_EVIDENCE_CHUNK ", "CITA_EVIDENCE_CHUNK A", 1)

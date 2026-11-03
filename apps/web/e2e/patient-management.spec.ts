@@ -26,6 +26,9 @@ for (const brand of ['cita-suite', 'natalia'] as const) {
   const businessId = randomUUID(), professionalId = randomUUID(), serviceId = randomUUID(), patientId = randomUUID();
   const appointmentId = randomUUID(), noJsAppointmentId = randomUUID(), integrationId = randomUUID();
   const integrationKey = randomUUID().replaceAll('-', '');
+  const app = new URL(process.env.E2E_BASE_URL!);
+  if (app.protocol !== 'http:' || app.hostname !== '127.0.0.1') throw new Error('Management browser audit requires its owned loopback app');
+  const appOrigin = app.origin;
   const owner = await must(f.admin.from('business_users').select('user_id').eq('business_id', f.businessId).eq('role', 'owner').single());
   const previous: unknown = JSON.parse(f.sql(`select jsonb_build_object('deposit',(select enabled from private.deposit_automation where singleton),
    'reschedule',(select reschedule_enabled from private.appointment_management_runtime where singleton),
@@ -65,8 +68,8 @@ for (const brand of ['cita-suite', 'natalia'] as const) {
      perform set_config('request.jwt.claim.sub','${owner.user_id}',true);
      perform public.set_appointment_deposit('${businessId}','${appointmentId}','paid',1,null);
     end $$;
-    insert into public.booking_integrations(id,business_id,public_key,name,is_active,theme,allowed_service_ids,allowed_professional_ids)
-     values('${integrationId}','${businessId}','${integrationKey}','Synthetic management',true,'${brand}',array['${serviceId}']::uuid[],array['${professionalId}']::uuid[]);
+    insert into public.booking_integrations(id,business_id,public_key,name,is_active,theme,allowed_origins,allowed_service_ids,allowed_professional_ids)
+     values('${integrationId}','${businessId}','${integrationKey}','Synthetic management',true,'${brand}',array['${appOrigin}'],array['${serviceId}']::uuid[],array['${professionalId}']::uuid[]);
     insert into public.appointment_booking_contexts(appointment_id,business_id,integration_id,integration_revision,contract_version,
      theme_snapshot,entry_point,modality,context_fingerprint)
      values('${appointmentId}','${businessId}','${integrationId}',1,1,'${brand}','embedded','in_person',repeat('a',64));
@@ -86,7 +89,6 @@ for (const brand of ['cita-suite', 'natalia'] as const) {
    expect(preview.status()).toBe(200); expect(preview.headers()['cache-control']).toContain('no-store');
    expect(preview.headers()['x-robots-tag']).toContain('noindex'); expect(state()).toBe(beforeOpen);
    // Unrelated expired practice cookies must not send a patient to login.
-   const appOrigin = new URL(process.env.E2E_BASE_URL!).origin;
    await context.addCookies([
     { name: 'sb-module', value: 'odonto', url: appOrigin }, { name: 'sb-access-token', value: 'expired', url: appOrigin },
     { name: 'sb-refresh-token', value: 'irrelevant', url: appOrigin }

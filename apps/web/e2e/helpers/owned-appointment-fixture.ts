@@ -21,12 +21,21 @@ export function ownedAppointmentFixture() {
 	const container = runtime.container;
 	const sql = (source: string, variables: Record<string, string> = {}) => {
 		const result = spawnSync('docker', ['exec', '-i', container, 'psql', '-X', '-U', 'supabase_admin', '-d', 'postgres',
-			'-v', 'ON_ERROR_STOP=1', '-qAt', '-v', `business=${businessId}`,
+			'-v', 'ON_ERROR_STOP=1', '-v', 'VERBOSITY=verbose', '-qAt', '-v', `business=${businessId}`,
 			...Object.entries(variables).flatMap(([name, value]) => ['-v', `${name}=${value}`])], {
 			input: "set statement_timeout='10s';\n" + source,
 			encoding: 'utf8', timeout: 20_000
 		});
-		if (result.error || result.status !== 0) throw new Error('Owned deposit SQL failed; no credentials or row values are logged.');
+		if (result.error || result.status !== 0) {
+			// Retain only bounded diagnostic metadata, never SQL text, row values,
+			// connection arguments or a raw provider/error message in public CI.
+			const diagnostic = typeof result.stderr === 'string' ? result.stderr : '';
+			const state = /(?:^|\n)ERROR:\s+([A-Z0-9]{5}):/.exec(diagnostic)?.[1] ?? 'unknown';
+			const constraint = /CONSTRAINT NAME:\s+([a-z0-9_]{1,128})(?:\s|$)/.exec(diagnostic)?.[1] ?? 'none';
+			const reason = /(?:^|\n)ERROR:\s+[A-Z0-9]{5}:\s+((?:APPOINTMENT|DEPOSIT|BOOKING|PATIENT|PRICE|SCHEDULE)_[A-Z0-9_]{1,100})(?:\s|$)/.exec(diagnostic)?.[1] ?? 'none';
+			const line = /(?:^|\n)LINE (\d{1,5}):/.exec(diagnostic)?.[1] ?? 'unknown';
+			throw new Error(`Owned deposit SQL failed (state=${state}, constraint=${constraint}, reason=${reason}, line=${line}); no credentials or row values are logged.`);
+		}
 		return result.stdout.trim();
 	};
 	return { admin: createFixtureClient(api, key), businessId, integrationKey: runtime.key, email, password, sql };
