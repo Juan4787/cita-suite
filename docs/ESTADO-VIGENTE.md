@@ -57,7 +57,7 @@ A	supabase/tests/run_patient_management_concurrency.sh
 |---|---|---|
 | `apps/web/src/lib/scheduling/patient-action-context.ts` y su prueba | Contrato E1 de acciones/contexto para turno vigente y cancelación, todavía sin consumidores | No: desarrollo sin publicar |
 | `scripts/check-repo-sync.mjs` | Este chequeo | No: es una herramienta local |
-| `scripts/test-booking-foundation.mjs` | Conservar las aserciones previas cuando una prueba SQL posterior falla, con salida acotada | No: sólo la base descartable de CI |
+| `scripts/test-booking-foundation.mjs` | Conservar diagnósticos SQL/carreras con salida acotada y limitar cada script de carreras a 120 s | No: sólo la base descartable de CI |
 | `scripts/zoho-cpaas.py` | Administración local de Zoho por OAuth, con credenciales fuera de Git | No: no se despliega ni configura el correo de la app |
 | `scripts/verify-production-auth-ux.mjs` | Lectura de la pantalla de ingreso en producción, de otro trabajo (flujo manual `production-auth-ux.yml`) | No: no se despliega |
 | Migración `20261103010000`, contrato SQL y fixtures de actualización E1 | Preferencias, revisión semántica e historia de señas; comprobadas en CI SQL `41600939474`, sin integración funcional completa | No: no se aplicó en producción; sólo CI descartable |

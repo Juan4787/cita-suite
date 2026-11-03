@@ -29,18 +29,23 @@ if (
   throw new Error(
     "Only --keep, --real-storage and --prepare-only are supported; remote database targets are forbidden.",
   );
-function command(args, input) {
+function command(args, input, timeout) {
   const result = spawnSync("docker", args, {
     cwd: root,
     input,
     encoding: "utf8",
     maxBuffer: 16 * 1024 * 1024,
+    timeout,
   });
   if (result.error || result.status !== 0) {
     // A later SQL error must not hide earlier failed/passed pgTAP assertions.
     // This runner only accepts its owned disposable container, never production.
     if (args.includes('psql') && result.stdout)
       process.stderr.write('SQL output before failure (bounded):\n' + result.stdout.slice(-32768) + '\n');
+    if (args.includes('bash') && result.stdout)
+      process.stderr.write('Concurrency output before failure (bounded):\n' + result.stdout.slice(-32768) + '\n');
+    if (result.error && result.stderr)
+      process.stderr.write('Process diagnostic before failure (bounded):\n' + result.stderr.slice(-32768) + '\n');
     throw new Error(
       result.error?.message ?? result.stderr.trim() ?? "Docker failed",
     );
@@ -331,7 +336,7 @@ try {
       'exec', '-i', '-e',
       'SUPABASE_TEST_DB_URL=postgresql://supabase_admin:cita-disposable-test-only@127.0.0.1:5432/postgres',
       container, 'bash', '-s'
-    ], readFileSync(root + 'supabase/tests/' + file, 'utf8'));
+    ], readFileSync(root + 'supabase/tests/' + file, 'utf8'), 120_000);
     console.log(file + '\n' + output.trim());
   }
   }
