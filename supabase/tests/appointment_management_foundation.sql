@@ -172,6 +172,7 @@ do $$ begin
   raise exception 'E1_PARTIAL_PAYMENT_ON_FAILURE'; end if;
 end $$;
 select extensions.pass('14. Falla al registrar historia revierte pago, estado y obligación');
+drop trigger e1_provoked_history_failure on public.appointment_deposit_events;
 
 do $$ declare table_name text; begin
  foreach table_name in array array['appointment_email_policies','appointment_management_states','appointment_deposit_requirements','appointment_deposit_events'] loop
