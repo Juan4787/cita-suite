@@ -32,6 +32,7 @@ A	scripts/verify-production-auth-ux.mjs
 A	scripts/zoho-cpaas.py
 A	supabase/migrations/20261103010000_appointment_management_foundation.sql
 M	supabase/templates/recovery.html
+A	supabase/tests/appointment_management_capabilities.sql
 A	supabase/tests/appointment_management_foundation.sql
 A	supabase/tests/migrations/20261103010000_appointment_management_foundation.sql.after.sql
 A	supabase/tests/migrations/20261103010000_appointment_management_foundation.sql.before.sql
@@ -44,6 +45,7 @@ A	supabase/tests/migrations/20261103010000_appointment_management_foundation.sql
 | `scripts/zoho-cpaas.py` | Administración local de Zoho por OAuth, con credenciales fuera de Git | No: no se despliega ni configura el correo de la app |
 | `scripts/verify-production-auth-ux.mjs` | Lectura de la pantalla de ingreso en producción, de otro trabajo (flujo manual `production-auth-ux.yml`) | No: no se despliega |
 | Migración `20261103010000`, contrato SQL y fixtures de actualización E1 | Preferencias, revisión semántica e historia de señas; roja previa demostrada y primera implementación por comprobar | No: no se aplicó en producción; sólo CI descartable |
+| `supabase/tests/appointment_management_capabilities.sql` | Contrato previo de enlaces revocables e idempotencia; implementación ausente y roja aún no ejecutada | No: sólo CI descartable |
 | `supabase/templates/recovery.html` | Plantilla del correo de recuperación, modificada en otro trabajo | No se despliega con la app: se carga aparte en Supabase. **No está verificado** si la versión de Supabase coincide con este archivo |
 
 ## Historia
