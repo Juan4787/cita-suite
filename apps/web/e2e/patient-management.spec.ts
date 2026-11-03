@@ -145,6 +145,7 @@ for (const brand of ['cita-suite', 'natalia'] as const) {
    const submitted = await form.evaluate(node => Object.fromEntries([...new FormData(node as HTMLFormElement)].map(([key, value]) => [key, String(value)])));
    await page.getByRole('button', { name: 'Confirmar reprogramación' }).click();
    await expect(page.getByText('La reprogramación quedó registrada.', { exact: true })).toBeVisible();
+   await expect(page.getByText('La reprogramación quedó registrada.', { exact: true })).toBeInViewport();
    const moved = await must(f.admin.from('appointments').select('status,starts_at,calendar_sequence').eq('id', appointmentId).single());
    expect(moved.status).toBe('reserved'); expect(new Date(moved.starts_at).toISOString()).toBe(new Date(submitted.starts_at).toISOString());
    expect(moved.calendar_sequence).toBe(original.calendar_sequence + 1);

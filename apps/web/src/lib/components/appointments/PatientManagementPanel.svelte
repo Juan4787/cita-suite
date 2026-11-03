@@ -11,6 +11,8 @@
  const dateChanged = $derived(draftDate !== null && draftDate !== context.date);
  let transportFeedback = $state<PatientManagementFeedback | null>(null);
  const outcome = $derived(transportFeedback ?? feedback);
+ let responseElement = $state<HTMLParagraphElement | null>(null);
+ $effect(() => { if (outcome?.message) responseElement?.focus(); });
  const progressive: SubmitFunction = ({ action, formData, cancel }) => {
   if (busy) { cancel(); return; }
   busy = true;
@@ -47,7 +49,7 @@
 
 <section class="ux-card mt-5" aria-label="Gestión de tu turno" aria-busy={busy}>
  {#if outcome?.message}
-  <p role={outcome.success ? 'status' : 'alert'} class={outcome.success ? 'ux-alert ux-alert-success bk-success-text bk-success-fill bk-success-line mb-4' : 'ux-alert bk-error-text bk-error-fill bk-error-line mb-4'}>{outcome.message}</p>
+  <p bind:this={responseElement} tabindex="-1" role={outcome.success ? 'status' : 'alert'} class={outcome.success ? 'ux-alert ux-alert-success bk-success-text bk-success-fill bk-success-line mb-4' : 'ux-alert bk-error-text bk-error-fill bk-error-line mb-4'}>{outcome.message}</p>
  {/if}
 
  {#if outcome?.submitted && !outcome.success}

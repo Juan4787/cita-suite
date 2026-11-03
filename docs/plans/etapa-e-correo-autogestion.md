@@ -54,7 +54,7 @@ Revisión estática sobre main **45ad4dad3259386b445d3306ca66bb16bf51f285**, sin
 | C12 | [Calendario](../../apps/web/src/lib/server/integrations/public/calendar-content.ts#L66) | Ya hay UID estable y secuencia; conservarlos. El estado CONFIRMED del archivo ICS no debe usarse como prueba de seña pagada o de asistencia confirmada en la aplicación. |
 | C13 | [Cotización y duración](../../apps/web/src/lib/server/scheduling/public/appointments.ts#L570), [tipos de seña](../../supabase/migrations/20261029010000_appointment_deposits.sql#L44) | Hoy se usa duración vigente del servicio al mover, y la cotización se conserva. No prometer duración congelada ni un saldo financiero completo que el producto no lleva. Mostrar duración/condiciones vigentes antes del cambio; usar importes de señas registrados y cotización válida con límites explícitos. |
 
-Las pruebas existentes de disponibilidad, señas, calendario, identidad y permisos son precedentes y regresiones a conservar. **No acreditan E**, que todavía no está implementada. No se clasifican riesgos leídos como defectos reproducidos mediante una corrida que no se ejecutó.
+Las pruebas existentes de disponibilidad, señas, calendario, identidad y permisos son precedentes y regresiones a conservar. **Por sí solas no acreditan E**: el estado actual de implementación y pruebas parciales está en el registro activo. No se clasifican riesgos leídos como defectos reproducidos mediante una corrida que no se ejecutó.
 
 ## 3. Reglas transaccionales y de compatibilidad
 
@@ -70,7 +70,7 @@ Las pruebas existentes de disponibilidad, señas, calendario, identidad y permis
 
 ## 4. Matriz completa de casos y aceptación
 
-Cada identificador exige una prueba o comprobación registrada durante la implementación. **Todos están pendientes de ejecución para E**. C01–C13 son el contraste de código aplicable; las decisiones del usuario están en la sección 1.
+Cada identificador exige una prueba o comprobación registrada durante la implementación. **La aceptación integral sigue pendiente**; el registro activo distingue pruebas parciales, corridas y trabajo todavía sin ejecutar para cada caso. C01–C13 son el contraste de código aplicable; las decisiones del usuario están en la sección 1.
 
 ### 4.1 Email, recepción e identidad — C01, C02
 

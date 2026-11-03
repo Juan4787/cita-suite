@@ -35,9 +35,9 @@ Fuentes: [plan íntegro y ajustes](propuesta-senas-avisos-natalia.md#ejecucion-e
 
 ## Checkpoint y siguiente acción
 
-**Fase:** E0 completo; E1 y primera integración E2 en implementación. Siete migraciones comprobadas en SQL descartable; adaptadores y pantalla compartida escritos, sin publicar ni aplicar SQL en producción. Personal/roles/contacto/cola pendientes. **Publicación de E:** no. **Pruebas integrales E:** no ejecutadas.
+**Fase:** E0 completo; E1 y primera integración E2 en implementación. Ocho migraciones comprobadas en SQL descartable; adaptadores y pantalla compartida escritos, sin publicar ni aplicar SQL en producción. Personal/roles/contacto/cola pendientes. **Publicación de E:** no. **Pruebas integrales E:** no ejecutadas.
 
-**Siguiente acción:** comprobar .080 con revalidación posterior y seis carreras de personal tras roja 41703639993; recuperar tipos oficiales/digest de ocho migraciones si pasa. Navegador de fecha 41702920488 aprobado, pero después se corrigió prioridad de pregunta/resultado; ejecutar fast y navegador de esa superficie antes de cerrarla. E1 personal/contacto/vías auxiliares/cola y E3–E6 abiertos, después P1/P2/P3. Producción V12b intacta, ningún envío nuevo.
+**Siguiente acción:** ejecutar fast general y navegador de prioridad/foco actuales. SQL de ocho migraciones aprobado 41705610343, tipos/digest cotejados; no repetirlo sin cambio SQL. Después continuar E1 personal/ayuda en alta/contacto/vías auxiliares/cola y E3–E6. Revisar reserva de cupo para cancelar frente al límite técnico de lecturas/reprogramaciones (RP11), aún sin prueba; no cerrar por los verdes parciales. Producción V12b intacta, ningún envío nuevo. Después P1/P2/P3.
 
 **Evidencia privada de esta ejecución:** `.verification/etapa-e-20261103/`. Ningún secreto, dirección de paciente, cuerpo de correo recibido o dato personal se incluye en Git ni en documentos públicos. Las rutas de evidencia no equivalen a resultados aprobados.
 
@@ -138,7 +138,7 @@ La regla de cada caso se lee en la especificación; esta tabla registra su acept
 | UI07 | Pendiente | Sin prueba funcional de E. |
 | UI08 | Pendiente | Sin prueba funcional de E. |
 | OP01 | Parcial CI | Fallas provocadas de auditoría/evento revierten SQL en 41614887283; falta recuperación de cola/proveedor y UX. |
-| OP02 | Parcial CI | Ayuda vencida reproducida 41702914905; helper corrigió 10 grupos en 41703639993 pero carrera posterior roja. .080 ampliada escrita, seis escenarios y personal aún pendientes. E1.42–E1.43. |
+| OP02 | Parcial CI | Diez grupos y seis esperas de ayuda aprobados 41705610343; falta agenda atómica del personal, alta con Ayuda y configuración/roles nuevos. E1.44. |
 | OP03 | Parcial CI | Contrato puro: 44 casos en fast 41578321181 y cuatro mutaciones locales; faltan integración y recorridos reales. Ver E1.1/E1.15. |
 | OP04 | Pendiente | Sin prueba funcional de E. |
 | OP05 | Pendiente | Sin prueba funcional de E. |
@@ -574,3 +574,17 @@ La regla de cada caso se lee en la especificación; esta tabla registra su acept
 
 - Además de comandos atómicos del personal y seña tardía, revisar alta manual con Ayuda: el wrapper de alta conserva una comprobación de membresía directa proveniente de 20261017000000, distinta de la concesión independiente que usa deposit_actor. Hallazgo estático, no defecto nuevo de E ni reproducción realizada. Contrastar el contrato real y probar antes de decidir la corrección; no declararlo resuelto por el reloj de .080.
 - Investigación preparatoria de Zoho: páginas oficiales de envío/webhook consultadas de nuevo. Sigue pendiente integración, sin clave/envío nuevo. [API de envío](https://www.zoho.com/cpaas/help/api/email-sending.html), [firma y formato de webhook](https://www.zoho.com/cpaas/help/webhooks.html#securing-webhooks); no suponer deduplicación por client_reference ni formato JSON bruto de callback sin cotejar el contrato.
+
+
+### E1.44 — ocho migraciones, ayuda y seis esperas aprobadas
+
+- **Suite SQL completa 41705610343**, fuente exacta `b9597205fdd341e79411f8e81045262271b74e45`, main de código `ce24e08` (SQL en `ebbb006`): **773 pgTAP y 18 scripts de carreras** aprobados. Incluye 10 grupos de ayuda, trece carreras del paciente, lectura coherente y seis esperas de personal: revocar, pagar, abrir pedido, editar/apagar política y ocultar aviso. SQL observó bloqueo real antes del vencimiento; todos los turnos propios/política/dinero/recibos/avisos quedan intactos, sin aumento de deadlocks. Fuente conserva reglas/firmas/roles, no una activación productiva.
+- Recibo `sqlVerified=true`, `ok=true`; ZIP privado `sql-ayuda-espera-verde-41705610343.zip`, colección `sql-ayuda-espera-verde-evidence`, SHA-256 **96d1f5b1b1db768f52b96b1695acd320be6b81e78190914a8ff37720f17cddfa**. Log :6004–6035 para las seis esperas.
+- Generación oficial doble reproducible cotejada **antes** de importar: digest actual de todas las migraciones **e5df2ec1b6e4abe77b806d72e76dddfd8ed0b466288f3db9a373ca928e0398f0**; tipos **c85bc7e3a826d0499c6c883c4505f4c3a6bd5a122154322998f14cfebcf2b1df**, bytes idénticos al archivo actual, sin reescritura innecesaria. Esquema descartable, sin SQL nuevo en producción.
+- No cierra OP02 completo: comandos de agenda del personal, contacto/correos, configuración/roles nuevos y auditoría del alta con Ayuda siguen pendientes. No confundir el arreglo comprobado de estas cinco RPC con todos los flujos de personal.
+
+### E2.12 — foco del resultado y reconciliación documental
+
+- Lectura de la versión instalada de SvelteKit: applyAction resetea el foco al body con preventScroll; colocar el resultado primero no garantiza que quede visible tras enviar desde un resumen largo. Roja dirigida `foco-resultado-roja.log`: 1 falla/7 omitidos, alerta de resultado incierto sin foco. El panel enfoca sólo el mensaje resultante de una acción, con tabindex -1 y roles status/alert; no enfoca la confirmación destructiva al entrar. Verde dirigido **11/11**, 51 omitidos, `foco-resultado-verde.log`.
+- Navegador ampliado exige resultado guardado en viewport, además de la pregunta antes de alinear capturas. Prueba real de foco/desplazamiento y fast completos pendientes; la unidad no los sustituye.
+- Contratos, permisos, matriz y especificación actualizados: se retiraron frases activas «aún sin ejecutar»/«todavía no implementada» que negaban las pruebas parciales ya realizadas. Se conserva aceptación integral pendiente y límites de cada fuente. El cuerpo histórico aprobado del plan no se altera. No se activó E ni se inició P1/P2/P3.
