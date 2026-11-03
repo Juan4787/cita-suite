@@ -327,12 +327,11 @@ begin
      request_from=excluded.request_from,due_at=excluded.due_at,auto_cancel=excluded.auto_cancel,revision=excluded.revision,
      waived_reason=null,note=null,recorded_by=null,recorded_at=null,reminder_opened_at=null,reminder_opened_by=null,expired_at=null,updated_at=v_now;
    elsif v_kind='reuse_pending' then
-    -- The legacy trigger recalculates using transaction-start time. Correct only
-    -- a differing result with the post-lock clock already disclosed/revalidated.
-    update public.appointment_deposits set request_from=(v_terms->>'request_from')::timestamptz,due_at=(v_terms->>'due_at')::timestamptz,
-     auto_cancel=(v_terms->>'auto_cancel')::boolean,revision=revision+1,updated_at=v_now
-    where business_id=v_business and appointment_id=a.id and (request_from,due_at,auto_cancel) is distinct from
-     ((v_terms->>'request_from')::timestamptz,(v_terms->>'due_at')::timestamptz,(v_terms->>'auto_cancel')::boolean);
+    -- The shared trigger owns dates and the actual minimum payment window.
+    -- Apply only an additional relaxation disclosed in this operation; never
+    -- re-enable cancellation that the later trigger has already made unsafe.
+    update public.appointment_deposits set auto_cancel=false,revision=revision+1,updated_at=v_now
+    where business_id=v_business and appointment_id=a.id and auto_cancel and (v_terms->>'auto_cancel')::boolean is not true;
    end if;
   end if;
  end if;

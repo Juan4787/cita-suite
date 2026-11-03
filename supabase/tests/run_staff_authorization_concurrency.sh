@@ -75,6 +75,13 @@ declare r staff_authorization_race.requests; b uuid:='e3200000-0000-4000-8000-00
  elsif p_action='pay' then perform public.set_appointment_deposit(b,r.appointment_id,'paid',1,null);
  elsif p_action='remind' then perform public.open_appointment_deposit_reminder(b,r.appointment_id,false);
  elsif p_action='hide' then perform public.hide_appointment_slot_release(b,r.release_id);
+ elsif p_action in ('agenda_cancel','agenda_reschedule') then
+  -- The real backend delegates the verified actor; it has no patient/staff JWT.
+  perform set_config('request.jwt.claim.sub','',true);
+  perform public.apply_staff_appointment_management(b,'e3200000-0000-4000-8000-000000000003',r.appointment_id,r.operation_id,r.revision,
+   case when p_action='agenda_cancel' then 'cancel' else 'reschedule' end,
+   case when p_action='agenda_reschedule' then (select starts_at+interval '6 hours' from public.appointments where id=r.appointment_id) end,
+   false,case when p_action='agenda_reschedule' then (select booking_availability_revision from public.businesses where id=b) end);
  elsif p_action in ('policy','policy_off') then
   settings:=jsonb_build_object('enabled',p_action='policy','auto_cancel_enabled',false,'amount_mode','fixed','fixed_amount',50000,'percentage',null,
    'request_days',7,'deadline_hours',48,'min_payment_hours',24,'transfer_details','Changed synthetic transfer','applies_to_manual',true,'excluded_service_ids','[]'::jsonb);
@@ -98,7 +105,7 @@ declare r staff_authorization_race.requests; begin
 end $$;
 SQL
 staff_deadlocks=$("${staff_psql[@]}" -c 'select deadlocks from pg_stat_database where datname=current_database();')
-for staff_action in revoke pay remind policy policy_off hide; do
+for staff_action in revoke pay remind policy policy_off hide agenda_cancel agenda_reschedule; do
  "${staff_psql[@]}" -c "select staff_authorization_race.prepare('$staff_action');"
  staff_lock="select id from public.appointments where id=(select appointment_id from staff_authorization_race.requests where label='$staff_action') for no key update;"
  [[ "$staff_action" != policy ]] || staff_lock="select business_id from public.deposit_policies where business_id='$staff_business' for no key update;"
@@ -133,6 +140,7 @@ SQL
  wait "$staff_holder"; staff_holder=''
  staff_error=DEPOSIT_FORBIDDEN
  [[ "$staff_action" != revoke ]] || staff_error=APPOINTMENT_MANAGEMENT_FORBIDDEN
+ [[ "$staff_action" != agenda_cancel && "$staff_action" != agenda_reschedule ]] || staff_error=APPOINTMENT_MANAGEMENT_FORBIDDEN
  [[ "$staff_action" != policy && "$staff_action" != policy_off ]] || staff_error=DEPOSIT_POLICY_FORBIDDEN
  [[ "$staff_action" != hide ]] || staff_error=SLOT_RELEASE_FORBIDDEN
  if [[ "$staff_result" == 0 ]] || ! grep -Fq "$staff_error" "$staff_directory/actor.log"; then

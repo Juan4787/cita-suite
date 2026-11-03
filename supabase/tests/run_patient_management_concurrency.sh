@@ -97,6 +97,14 @@ declare r patient_management_race.requests; begin
  perform public.set_appointment_deposit('e3100000-0000-4000-8000-000000000001',r.appointment_id,'paid',r.deposit_revision,null);
  perform set_config('request.jwt.claim.sub','',true);
 end $$;
+create function patient_management_race.staff_act(p_label text,p_action text default 'reschedule',p_new_operation boolean default false,
+ p_replay_only boolean default false) returns jsonb language plpgsql as $$
+declare r patient_management_race.requests; begin
+ select * into strict r from patient_management_race.requests where label=p_label;
+ return public.apply_staff_appointment_management('e3100000-0000-4000-8000-000000000001','e3100000-0000-4000-8000-000000000002',
+  r.appointment_id,case when p_new_operation then gen_random_uuid() else r.operation_id end,r.revision,p_action,
+  case when p_action='reschedule' then r.target end,false,case when p_action='reschedule' then r.availability_revision end,null,p_replay_only);
+end $$;
 create function patient_management_race.assert_state(p_label text,p_status text,p_deposit text,p_moved boolean,p_moves integer) returns void language plpgsql as $$
 declare r patient_management_race.requests; a public.appointments; begin
  select * into strict r from patient_management_race.requests where label=p_label;
@@ -243,6 +251,37 @@ race access_expires_while_waiting \
  APPOINTMENT_RESCHEDULE_UNAVAILABLE \
  "select pg_sleep(greatest(extract(epoch from ((select paid_until from public.business_subscriptions where business_id='$business_id')-clock_timestamp())),0)+0.025);"
 "${psql_command[@]}" -c "select patient_management_race.assert_state('access_clock','reserved','pending',false,0); update public.business_subscriptions set is_permanent=true,paid_until=null where business_id='$business_id';"
+
+# The same controlled fixture/locks now exercise the distinct operator command.
+# A committed receipt is recovered before mutable preflight; a different request
+# must keep its observed revision even if both moves would retain Reserved.
+"${psql_command[@]}" -c "select patient_management_race.prepare('staff_duplicate');"
+race staff_receipt_after_inflight_move "select patient_management_race.staff_act('staff_duplicate');" "select patient_management_race.staff_act('staff_duplicate','reschedule',false,true);"
+"${psql_command[@]}" -c "select patient_management_race.assert_state('staff_duplicate','reserved','pending',true,1); do \$\$ begin if (select count(*) from private.appointment_management_operations where appointment_id=(select appointment_id from patient_management_race.requests where label='staff_duplicate'))<>1 then raise exception 'STAFF_DUPLICATE_RECEIPT'; end if; end \$\$;"
+
+"${psql_command[@]}" -c "select patient_management_race.prepare('staff_stale');"
+race staff_move_before_other_staff_move "select patient_management_race.staff_act('staff_stale');" "select patient_management_race.staff_act('staff_stale','reschedule',true);" APPOINTMENT_MANAGEMENT_CHANGED
+"${psql_command[@]}" -c "select patient_management_race.assert_state('staff_stale','reserved','pending',true,1);"
+
+"${psql_command[@]}" -c "select patient_management_race.prepare('pay_staff');"
+race payment_before_staff_move "select patient_management_race.pay('pay_staff');" "select patient_management_race.staff_act('pay_staff');" APPOINTMENT_MANAGEMENT_CHANGED
+"${psql_command[@]}" -c "select patient_management_race.assert_state('pay_staff','confirmed','paid',false,0);"
+"${psql_command[@]}" -c "select patient_management_race.prepare('staff_pay');"
+race staff_move_before_stale_payment "select patient_management_race.staff_act('staff_pay');" "select patient_management_race.pay('staff_pay');" DEPOSIT_CHANGED
+"${psql_command[@]}" -c "select patient_management_race.assert_state('staff_pay','reserved','pending',true,1);"
+
+"${psql_command[@]}" -c "select patient_management_race.prepare('staff_patient');"
+race staff_move_before_patient_cancel "select patient_management_race.staff_act('staff_patient');" "select patient_management_race.act('staff_patient','cancel',true);" APPOINTMENT_MANAGEMENT_CHANGED
+"${psql_command[@]}" -c "select patient_management_race.assert_state('staff_patient','reserved','pending',true,1);"
+"${psql_command[@]}" -c "select patient_management_race.prepare('patient_staff');"
+race patient_cancel_before_staff_move "select patient_management_race.act('patient_staff','cancel');" "select patient_management_race.staff_act('patient_staff','reschedule',true);" APPOINTMENT_MANAGEMENT_CHANGED
+"${psql_command[@]}" -c "select patient_management_race.assert_state('patient_staff','cancelled','pending',false,0);"
+
+"${psql_command[@]}" -c "select patient_management_race.prepare('config_staff');"
+race configuration_before_staff_move "update public.services set duration_minutes=90 where id='$service_id';" "select patient_management_race.staff_act('config_staff');" APPOINTMENT_AVAILABILITY_CHANGED
+"${psql_command[@]}" -c "select patient_management_race.assert_state('config_staff','reserved','pending',false,0); update public.services set duration_minutes=60 where id='$service_id'; select patient_management_race.prepare('staff_config');"
+race staff_move_before_configuration "select patient_management_race.staff_act('staff_config');" "update public.services set duration_minutes=90 where id='$service_id';"
+"${psql_command[@]}" -c "select patient_management_race.assert_state('staff_config','reserved','pending',true,1); update public.services set duration_minutes=60 where id='$service_id';"
 deadlocks_after=$("${psql_command[@]}" -c 'select deadlocks from pg_stat_database where datname=current_database();')
 [[ "$deadlocks_before" == "$deadlocks_after" ]]
-echo 'PASS: thirteen controlled patient-management races; no PostgreSQL deadlock.'
+echo 'PASS: thirteen patient and eight staff/cross-origin controlled races; no PostgreSQL deadlock.'
