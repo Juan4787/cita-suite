@@ -27,6 +27,7 @@ El chequeo compara esta lista con `git diff --name-status <produccion_revision> 
 ```codigo-distinto-de-produccion
 A	apps/web/.impeccable/surfaces/gestion-del-turno.md
 M	apps/web/DESIGN.md
+M	apps/web/e2e/helpers/owned-appointment-fixture.ts
 A	apps/web/e2e/patient-management.spec.ts
 M	apps/web/src/hooks.server.test.ts
 M	apps/web/src/hooks.server.ts
@@ -58,7 +59,9 @@ M	apps/web/src/routes/turno/[token]/+page.svelte
 M	apps/web/src/routes/turno/[token]/page.client.test.ts
 M	packages/shared/src/database.types.ts
 A	scripts/check-repo-sync.mjs
+M	scripts/package-verification-evidence.py
 M	scripts/test-booking-foundation.mjs
+M	scripts/test-verification-evidence.py
 A	scripts/verify-production-auth-ux.mjs
 A	scripts/zoho-cpaas.py
 A	supabase/migrations/20261103010000_appointment_management_foundation.sql
@@ -87,6 +90,7 @@ A	supabase/tests/run_patient_management_view_concurrency.sh
 |---|---|---|
 | `apps/web/src/lib/scheduling/patient-action-context.ts` y su prueba | Contrato E1 de acciones/contexto para turno vigente y cancelación, todavía sin consumidores | No: desarrollo sin publicar |
 | `scripts/check-repo-sync.mjs` | Este chequeo | No: es una herramienta local |
+| Fixture `owned-appointment-fixture.ts` y empaquetador/prueba de evidencia | Diagnóstico SQL limitado a metadatos y ocultación de enlaces de capacidad; round-trip dirigido comprobado, CI general posterior pendiente | No: sólo CI |
 | `scripts/test-booking-foundation.mjs` | Conservar diagnósticos SQL/carreras con salida acotada y limitar cada script de carreras a 120 s | No: sólo la base descartable de CI |
 | `scripts/zoho-cpaas.py` | Administración local de Zoho por OAuth, con credenciales fuera de Git | No: no se despliega ni configura el correo de la app |
 | `scripts/verify-production-auth-ux.mjs` | Lectura de la pantalla de ingreso en producción, de otro trabajo (flujo manual `production-auth-ux.yml`) | No: no se despliega |
@@ -104,9 +108,9 @@ A	supabase/tests/run_patient_management_view_concurrency.sh
 | `patient_appointment_management_recovery.sql` | Siete grupos del lookup de recibo .070, suite completa aprobada 41653421061 | No: sólo CI |
 | `patient_appointment_management_view.sql` | Lectura mínima con migración `20261103050000`, 16 grupos/lectura coherente y reloj comercial explícito comprobados en 41660810130 | No: sólo CI descartable |
 | `run_patient_management_view_concurrency.sh` | Carrera de lectura con modificación simultánea entre autorización/presentación aprobada en CI 41650084150 | No: sólo CI descartable |
-| Rutas `/turno`/`gestion`, hooks, componentes y flujos nuevos | Primera integración E2 con pantalla compartida, mutación antigua retirada; 84/84 dirigidos y panel 7/7, tercer fast aprobó tipado/arquitectura/1772 unidades servidor y falló una regresión de texto (corregida, suite nueva pendiente); paquete/navegador pendientes | No: todavía sin publicar |
+| Rutas `/turno`/`gestion`, hooks, componentes y flujos nuevos | Primera integración E2 con pantalla compartida, mutación antigua retirada; 84/84 dirigidos y panel 7/7, fast completo 41662272192 aprobado (1779 servidor/273 cliente); primer navegador falló en preparación SQL del fixture, corrección de prueba escrita; paquete/navegador pendientes | No: todavía sin publicar |
 | `apps/web/DESIGN.md` y superficie de gestión | Dirección de extensión/contexto, revisión visual pendiente | No: documentación de desarrollo |
-| `patient-management.spec.ts` | Dos recorridos integrales/matriz con SQL real aislado, escritos sin ejecutar ni tipar aún | No: sólo CI |
+| `patient-management.spec.ts` | Dos recorridos integrales/matriz tipados; primera corrida falló en preparación SQL, corrección de fixture pendiente de nueva ejecución | No: sólo CI |
 | `supabase/templates/recovery.html` | Plantilla del correo de recuperación, modificada en otro trabajo | No se despliega con la app: se carga aparte en Supabase. **No está verificado** si la versión de Supabase coincide con este archivo |
 
 ## Historia

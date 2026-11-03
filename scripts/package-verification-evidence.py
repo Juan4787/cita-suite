@@ -23,7 +23,7 @@ with tarfile.open(fileobj=archive, mode="w:gz") as bundle:
             if path.suffix not in {".png", ".jpg", ".jpeg"}:
                 text = data.decode("utf-8")
                 text = re.sub(r"eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+", "[redacted-jwt]", text)
-                text = re.sub(r"/turno/[a-f0-9]{32,128}", "/turno/[redacted]", text)
+                text = re.sub(r"/(turno|gestion)/[a-f0-9]{32,128}", r"/\1/[redacted]", text)
                 text = re.sub(r"([?&]token=)[^\s\"'<>]+", r"\1[redacted]", text)
                 data = text.encode()
             entries.append({"path": str(path.relative_to(root)), "bytes": len(data)})
