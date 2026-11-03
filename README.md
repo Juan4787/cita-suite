@@ -8,7 +8,7 @@ Repositorio principal: [Juan4787/cita-suite](https://github.com/Juan4787/cita-su
 
 **Qué historia y qué cambios están vigentes:** [estado vigente](docs/ESTADO-VIGENTE.md), el registro único; lo comprueba `node scripts/check-repo-sync.mjs`.
 
-**Etapa E, definición revisada el 2 de noviembre:** [correo con Zoho, reprogramación autónoma y señas](docs/plans/etapa-e-correo-autogestion.md), incorporada al [plan 12.18](docs/plans/propuesta-senas-avisos-natalia.md#etapa-e-vigente). Cuenta Zoho ya creada por Juan, dos envíos probados por él, KYC pendiente y cupo inicial informado de 100/día. La documentación está preparada; configuración e implementación esperan su próxima instrucción. D sigue en pausa. Esto no es una entrega publicada.
+**Etapa E, definición revisada el 2 de noviembre:** [correo con Zoho, reprogramación autónoma y señas](docs/plans/etapa-e-correo-autogestion.md), incorporada al [plan 12.18](docs/plans/propuesta-senas-avisos-natalia.md#etapa-e-vigente). Cuenta Zoho ya creada por Juan, dos envíos probados por él, KYC pendiente y cupo inicial informado de 100/día. El 3 de noviembre Juan pidió conectar Zoho por terminal y conservar el acceso tras reinicios: [conexión OAuth local y renovación comprobadas](docs/architecture/zoho-cpaas-terminal.md). Herramienta versionada y credenciales privadas persistentes; la integración de la app y las funciones de E siguen pendientes de inicio. D sigue en pausa. Esto no es una entrega publicada.
 
 **Vigente desde el 2 de noviembre a las 15:33 UTC:** V12b `771fac5950c532b1123f11d4dde93eef9b42ceba`, versión `277d332d-1794-4367-8ef0-567ced159f1b`, Worker `app`.
 - Es V12 con el fondo general del modo claro apenas más cálido (`#f6f5f3`), a pedido de Juan.

@@ -1,6 +1,6 @@
 # Propuesta: señas, avisos por WhatsApp y horarios liberados para el consultorio de Natalia Frutos
 
-**Estado:** **aprobada íntegramente por Juan el 29 de octubre de 2026**, con la revisión 2. Es la fuente de verdad de la campaña. **Actualización vigente del 2 de noviembre:** E tiene definición revisada de correo con Zoho, reprogramación autónoma y nuevas señas en [12.18](#etapa-e-vigente) y su [especificación](etapa-e-correo-autogestion.md); implementación/configuración esperan la próxima instrucción de Juan. D sigue en pausa. Las pausas y Resend de las secciones anteriores son historia en lo que 12.18 reemplaza.
+**Estado:** **aprobada íntegramente por Juan el 29 de octubre de 2026**, con la revisión 2. Es la fuente de verdad de la campaña. **Actualización vigente del 3 de noviembre:** E conserva su definición revisada en [12.18](#etapa-e-vigente) y su [especificación](etapa-e-correo-autogestion.md). Juan pidió conectar Zoho por terminal y conservar el acceso tras reinicios: [12.19](#zoho-terminal-vigente), conexión local comprobada. La integración de la app y las funciones de E siguen pendientes de inicio; D sigue en pausa. Las pausas y Resend anteriores son historia en lo que estos ajustes reemplazan.
 - La aprobación literal y los ajustes posteriores están en la sección 12, que sólo crece hacia el final.
 - El texto aprobado está guardado tal cual en `.verification/senas-avisos-20261029/plan-aprobado-20261029.md`, con SHA-256 `24abe324…4d3c43`.
 - Después de la aprobación cambiaron sólo esta línea de estado y la sección 12; el registro deja la comprobación.
@@ -1222,3 +1222,19 @@ Pedido final de esta revisión, literal:
 **Qué reemplaza:** sección 0.9 y pausa D/E de 0/6; restricción económica de 1.2 sólo para correo; promesas 6/11 de 2; proveedores de 3/4.14/7/8/9/10; reprogramación voluntaria de 4.2–4.5 y recorrido de 4.9; pruebas, compatibilidad y automatización de 5/6, ampliadas por E. Sustituye el orden D→E de 12.12 y pausa de E de 12.13–12.16. No modifica 4.13/D, autorización productiva general, datos faltantes de Natalia, acceso/identidad de su cuenta, resultados históricos ni plazos generales de seña/baja automática.
 
 **Continuidad:** [especificación](etapa-e-correo-autogestion.md), [registro de revisión](registro-senas-avisos-natalia.md#etapa-e-revision), [punto de continuación](traspaso-senas-avisos-natalia.md#etapa-e-punto) y [pendientes vigentes](pendientes-vigentes.md#etapa-e-pendientes).
+
+<a id="zoho-terminal-vigente"></a>
+
+### 12.19 Conectar Zoho por terminal y conservar el acceso (3 de noviembre)
+
+Instrucciones literales de Juan, posteriores a la revisión:
+
+> conectemos zoho para que puedas controlarlo desde la terminal
+
+> Guarda todo, que no se pierda el acceso al reiniciar la pc
+
+**Aplicación:** autoriza preparar/conectar el acceso administrativo local de Zoho CPaaS y guardarlo de forma persistente. Reemplaza la espera de 12.18.10 sólo en ese alcance. No se inicia por inferencia la implementación completa de E, D, envíos a nuevos destinatarios, compras ni cambios de DNS/SMTP de Auth/configuración de Natalia.
+
+**Resultado:** Self Client OAuth, credenciales recibidas en ventana local sin pasar por chat/Git, refresh token guardado fuera del repositorio. Se comprobaron agentes, dominios, registros de email y renovación real con lectura posterior. La herramienta sin secretos queda versionada; los tokens y respuestas completas permanecen privados. No requiere un proceso permanente para sobrevivir a un reinicio. Guía de custodia, comandos, evidencia, límites y revocación en [Zoho por terminal](../architecture/zoho-cpaas-terminal.md).
+
+Esto acredita acceso a las APIs consultadas y renovación OAuth, no entrega de nuevos mensajes, integración de Cita Suite, botones, webhooks, KYC o facturación. La definición y aceptación funcionales de 12.18 permanecen íntegras.

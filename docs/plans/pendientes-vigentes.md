@@ -43,7 +43,7 @@ Fuente: `docs/clientes/natalia-frutos/informacion-20261029.md`, secciones 4 y 5,
 
 <a id="etapa-e-pendientes"></a>
 
-2. **E, correo y autogestión: definición revisada; implementación/configuración por iniciar cuando Juan lo indique.**
+2. **E, correo y autogestión: definición revisada y conexión administrativa local de Zoho comprobada; integración de la app e implementación funcional pendientes de inicio.**
    - Fuente: [plan 12.18](propuesta-senas-avisos-natalia.md#etapa-e-vigente) y [especificación completa](etapa-e-correo-autogestion.md). La revisión de código/documentación está hecha; ningún comportamiento nuevo de E está publicado.
    - **Ya hecho por Juan:** registro en Zoho y prueba de dos envíos. Informó KYC pendiente y 100 correos gratuitos diarios; pagará al completarlo. No falta crear cuenta Resend ni volver a crear Zoho.
    - **Al iniciar:** comprobar dominio/remitente/región, credenciales fuera de chat/git, cuota/saldo/vencimiento reales, configuración del emisor, webhooks y buzones autorizados. Sus dos mensajes no prueban integración ni recepción/acciones desde Cita Suite.
@@ -51,7 +51,8 @@ Fuente: `docs/clientes/natalia-frutos/informacion-20261029.md`, secciones 4 y 5,
    - **Prueba de cierre pendiente:** integración real con Zoho, recepción en los buzones acordados, botones desde el correo, consistencia de agenda/dinero/calendario y controles de consumo/recuperación. Los casos del plan son requisitos sin ejecutar.
    - **Economía:** aceptado gasto controlado de correo con un consultorio. KYC/compras de créditos a cargo de Juan, sin recarga automática ni cambios de infraestructura/Auth.
    - **Continúa pendiente de la clienta:** condiciones de devolución al cancelar y datos de la seña del punto 2.5. La pérdida acordada al reprogramar no define esas devoluciones.
-   - **Ahora:** avisar a Juan y esperar su instrucción de inicio. No reabrir la pregunta de proveedor ni de alta de cuenta.
+   - **Conexión local terminada el 3 de noviembre:** Juan pidió acceso por terminal y conservarlo al reiniciar ([12.19](propuesta-senas-avisos-natalia.md#zoho-terminal-vigente)). OAuth, consultas y renovación comprobados; herramienta versionada y credenciales privadas persistentes. [Guía y comandos](../architecture/zoho-cpaas-terminal.md). No necesita una terminal abierta.
+   - **Ahora:** esperar su instrucción para implementar E e integrar el correo de la app; no volver a pedir cuenta/cliente/credenciales si el acceso guardado funciona.
 
 ## 4. Lanzamiento y operación general
 
@@ -199,4 +200,4 @@ Fuente: `docs/clientes/natalia-frutos/informacion-20261029.md`, secciones 4 y 5,
 
 ## 7. Trabajo en curso
 
-La revisión documental de E quedó terminada y su ejecución espera la próxima instrucción de Juan (sección 3). El modo claro sigue publicado; la insignia del botón de cuenta conserva su pendiente de la sección 4.
+La revisión documental de E y la conexión administrativa local de Zoho quedaron terminadas; credenciales/renovación persistentes guardadas. La implementación funcional y la integración de la app esperan la instrucción de inicio de Juan (sección 3). El modo claro sigue publicado; la insignia del botón de cuenta conserva su pendiente de la sección 4.

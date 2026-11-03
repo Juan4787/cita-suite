@@ -1,6 +1,6 @@
 # Etapa E: correo del consultorio, reprogramación autónoma y señas
 
-**Definición conversada el 2 de noviembre de 2026; revisión documental cerrada el 3 de noviembre:** definición revisada contra el código y documentación preparada; **implementación, configuración de la integración y pruebas de E todavía no iniciadas**. Juan dará la instrucción de empezar después de recibir este trabajo. D permanece en pausa. Producción sigue en V12b; consultar siempre el [estado vigente](../ESTADO-VIGENTE.md).
+**Definición conversada el 2 de noviembre de 2026; revisión documental cerrada el 3:** el 3 Juan pidió conectar Zoho por terminal y guardar el acceso tras reinicios ([12.19](propuesta-senas-avisos-natalia.md#zoho-terminal-vigente)). Conexión administrativa OAuth local y renovación comprobadas; [guía de operación](../architecture/zoho-cpaas-terminal.md). **La integración de la app, implementación y pruebas funcionales de E todavía no se iniciaron.** D permanece en pausa. Producción sigue en V12b; consultar siempre el [estado vigente](../ESTADO-VIGENTE.md).
 
 Esta es la especificación vigente de E, incorporada por la sección 12.18 del [plan aprobado](propuesta-senas-avisos-natalia.md#etapa-e-vigente). Sustituye en este alcance la antigua sección 4.14, su proveedor Resend, la pausa conjunta D/E y las reglas anteriores sobre reprogramación iniciada por el paciente. El texto aprobado anterior se conserva como historia. [Registro](registro-senas-avisos-natalia.md#etapa-e-revision) y [traspaso](traspaso-senas-avisos-natalia.md#etapa-e-punto).
 
@@ -28,6 +28,8 @@ Si no hay nueva obligación pendiente, conservar una confirmación previa válid
 El 2 de noviembre Juan confirmó: cuenta creada, **dos envíos de email probados por él**, KYC pendiente, disponibilidad de **100 correos gratuitos diarios** y decisión de pagar cuando se complete la verificación. No volver a pedir que cree una cuenta.
 
 Es evidencia aportada por el usuario, no una prueba ejecutada por el agente ni una prueba integral Cita Suite → Zoho → buzón → botón → base. No se conocen por esa declaración el dominio/remitente utilizado, la región, el saldo y vencimiento exactos, las credenciales API ni la recepción y recorridos de esos dos mensajes. Se comprueban al configurar, sin pedir secretos por chat.
+
+Comprobación posterior del 3 de noviembre: [conexión administrativa local real](../architecture/zoho-cpaas-terminal.md), con credenciales privadas persistentes, un agente activo, un dominio habilitado/verificado para salida y dos registros consultados. Se verificó renovación OAuth; la recepción en buzón, KYC, saldo y vencimiento siguen sin comprobarse. No se desplegó la integración de la app.
 
 Dimensionamiento aportado: 500 pacientes por mes y tres emails por paciente, **1.500 mensajes mensuales de base**; para capacidad de la aplicación se cuenta cada turno/mensaje, porque un paciente puede tener varios turnos. Cambios, cancelaciones y pedidos de seña se agregan. No se afirma que ese cálculo, por sí solo, pruebe insuficiencia de otro proveedor. La decisión vigente es Zoho y costo previsible.
 
@@ -247,4 +249,4 @@ Las pruebas pesadas son secuenciales y se reutiliza evidencia aplicable. No reno
 
 ## 9. Punto de continuación
 
-Esperar la instrucción de Juan para iniciar E1–E4. Ya existe cuenta Zoho; KYC y pago posteriores son de Juan. Al retomar: comprobar sincronización, leer plan 12.18, este documento, registro, traspaso y pendientes. La configuración de la integración y los nuevos comportamientos **no están desplegados ni comprobados de punta a punta**.
+Conexión administrativa local de Zoho completada por instrucción posterior de Juan, con persistencia y renovación comprobadas: [guía](../architecture/zoho-cpaas-terminal.md). Esperar la instrucción de inicio para las funciones de E1–E4 y la integración de la app. KYC y pago posteriores son de Juan. Al retomar: comprobar sincronización, leer plan 12.18, este documento, registro, traspaso y pendientes. La configuración de la integración y los nuevos comportamientos **no están desplegados ni comprobados de punta a punta**.

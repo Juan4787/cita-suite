@@ -1,0 +1,55 @@
+# Zoho CPaaS desde la terminal
+
+**3 de noviembre de 2026: conexión OAuth local comprobada.** Pedido de Juan: «conectemos zoho para que puedas controlarlo desde la terminal». Alcance en [plan 12.19](../plans/propuesta-senas-avisos-natalia.md#zoho-terminal-vigente). Las funciones de la etapa E siguen pendientes; esta conexión no las implementa ni despliega.
+
+## Acceso preparado
+
+Self Client en Zoho API Console, sobre la misma cuenta de CPaaS, región `.com`. Las credenciales se ingresaron mediante una ventana local con campos ocultos, sin pasar por el chat, los argumentos de procesos ni Git. El código de autorización se intercambió por access token y refresh token. Se comprobó además una renovación real y una consulta con el acceso renovado.
+
+Permisos solicitados, con los nombres que conserva el índice oficial de CPaaS:
+
+```text
+Zeptomail.MailAgents.ALL,Zeptomail.Domains.ALL,Zeptomail.MailTemplates.ALL,Zeptomail.Suppressions.ALL,Zeptomail.email.READ
+```
+
+OAuth permite usar las APIs de administración de agentes, dominios, plantillas y supresiones, y consultar registros de correo. No habilita facturación, KYC ni otros productos de Zoho. La clave de envío de un agente es otra credencial: todavía no se generó ni desplegó una desde esta conexión. Los permisos no autorizan por sí mismos operaciones destructivas ni envíos a nuevos destinatarios.
+
+## Custodia y comandos
+
+Los secretos y respuestas quedan en esta computadora, fuera del repositorio:
+
+- Herramienta sin secretos versionada: [`scripts/zoho-cpaas.py`](../../scripts/zoho-cpaas.py). La carpeta privada conserva una copia inicial y una guía local; la fuente para continuar es la del repositorio.
+- Credenciales: `~/.config/cita-suite/private/zoho-cpaas.json`, archivo 600 dentro de directorio 700.
+- Respuestas y recibos privados: `~/.local/share/cita-suite/zoho/`; incluyen `conexion-verificada.json`, `mailagents-latest.json`, `domains-latest.json` y `email-latest.json`.
+
+La herramienta utiliza sólo la biblioteca estándar de Python, no instala un servicio persistente y renueva el acceso al vencer. Su código está guardado en Git; los tokens se guardan mediante archivo privado y reemplazo atómico, sincronizando archivo/directorio a disco. Se comprobó acceso desde un proceso nuevo, sin reiniciar la computadora. No hace falta mantener una terminal abierta para conservar la conexión tras un reinicio. No se copió ningún token a Workers, Supabase ni GitHub. Las respuestas completas contienen direcciones e identificadores: no publicarlas ni imprimir el archivo de credenciales.
+
+```bash
+python3 scripts/zoho-cpaas.py status
+python3 scripts/zoho-cpaas.py agents
+python3 scripts/zoho-cpaas.py domains
+python3 scripts/zoho-cpaas.py logs
+```
+
+`status` sólo comprueba presencia local; las otras consultas comprueban acceso remoto. Los comandos de consulta hacen GET, guardan la respuesta privada y muestran únicamente cantidades. Para otras operaciones de administración se usará la API correspondiente dentro del alcance solicitado, sin asumir que todas las opciones del panel tienen API pública.
+
+Si se pierde o revoca el acceso, `connect --dc com` vuelve a abrir la captura local de un código nuevo de Self Client; no suministrar secretos por argumentos ni chat. Para una terminal operada directamente por Juan existe `--terminal`, con entrada oculta. Usar siempre la región real; no seguir redirecciones con credenciales.
+
+## Evidencia y límites
+
+- Consultas autenticadas reales: un agente (`agent_1`, activo), un dominio con salida verificada/habilitada y dos registros de email. El listado devuelve esos correos como `processed`; la captura aportada por Juan muestra dos entregados. Ninguna de esas evidencias prueba lectura o recepción en bandeja de entrada.
+- Renovación OAuth real y consulta de agentes posterior: correctas.
+- Verificación local: permisos de archivos/directorios, rechazo de credenciales no privadas, renovación conservando refresh token, destino fijo, bloqueo de redirecciones, salida sin secretos y lectura de listas válidas/vacías/inválidas. Estas comprobaciones locales no son pruebas de correo real.
+- Ajuste por respuesta real: los registros vienen en `data.logs`, no en la lista directa usada por agentes/dominios. Se corrigió el lector y se repitió esa consulta real con éxito; un formato inesperado sigue fallando sin declarar un resultado verificado.
+- No hubo nuevos envíos, cambios de dominio/DNS, claves de envío, webhooks, SMTP de Auth, configuración de Natalia, despliegues ni cambios de base. No se ejercitaron escrituras administrativas. KYC, compra/saldo/vencimiento y la integración completa de E conservan sus pendientes.
+
+Para revocar, retirar el acceso del Self Client en Zoho Accounts/API Console. Borrar sólo el archivo local no revoca el refresh token en Zoho. No eliminar clientes ni regenerar claves ajenas por rutina.
+
+## Fuentes oficiales consultadas
+
+- [Grupos de API y autenticación](https://www.zoho.com/cpaas/help/api/api-home.html).
+- [Endpoints y permisos OAuth de CPaaS](https://www.zoho.com/cpaas/help/api/api-index.html).
+- [Self Client: código, tokens y renovación](https://www.zoho.com/developer/oauth/self-client/authorization-code-flow.html).
+- [Regiones de CPaaS](https://www.zoho.com/cpaas/help/api/multiple-data-centers.html).
+
+Continuación funcional en la [especificación de E](../plans/etapa-e-correo-autogestion.md), su [registro](../plans/registro-senas-avisos-natalia.md#zoho-terminal-registro) y su [traspaso](../plans/traspaso-senas-avisos-natalia.md#etapa-e-punto).

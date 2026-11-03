@@ -1135,3 +1135,21 @@ Recibo local de lectura/validación: .verification/etapa-e-plan-20261102/revisio
 ### Punto exacto para continuar
 
 Tras informar la revisión, esperar instrucción de inicio. Al reanudar: sincronización, plan 12.18, especificación, este registro, traspaso y lista única de pendientes. Comenzar E1–E4 en su orden de dependencias y preparar Zoho existente dentro de la cuota permitida, sin esperar KYC por rutina y sin comprar por Juan. Mantener las autorizaciones productivas anteriores y todos los límites de contexto, datos reales y RAM.
+
+<a id="zoho-terminal-registro"></a>
+
+## Conexión administrativa local y persistencia de Zoho — 3 de noviembre de 2026
+
+Pedidos literales y precedencia en [plan 12.19](propuesta-senas-avisos-natalia.md#zoho-terminal-vigente). El alcance siguiente de la revisión documental queda sustituido sólo para conectar/guardar el acceso por terminal; la integración y las funciones de E conservan su pendiente de inicio.
+
+- Sincronización inicial aprobada: main/GitHub 3af57f5, producción V12b 771fac5, sin cambios sin commitear.
+- Se verificaron documentación oficial de CPaaS, Self Client, endpoints, permisos y región. OAuth administra recursos; la clave del agente para enviar es distinta. No se pidió crear otra cuenta.
+- Juan creó el Self Client e ingresó Client ID/secret/código en ventana local con campos ocultos. Se intercambió el código por tokens mediante HTTPS, sin secretos en chat, argumentos o Git. Cuenta `.com`.
+- Consultas reales correctas: un agente activo, un dominio con salida verificada/habilitada, dos registros de correo. Los registros figuran `processed` en el listado; la captura de Juan muestra dos entregados. No se afirma recepción en bandeja ni se enviaron nuevos mensajes.
+- La primera lectura de logs rechazó el formato anidado `data.logs`; se corrigió la suposición de lista directa, se comprobaron formatos válidos/vacíos/inválidos localmente y se repitió la consulta real con éxito. No se convirtió el error inicial en una comprobación aprobada.
+- Renovación OAuth real correcta y lectura de agentes con el acceso renovado. Se comprobó guardado privado, rechazo de permisos abiertos, destino fijo, ausencia de redirecciones y salida sin secretos. Datos simulados sólo para las comprobaciones locales, separados de la evidencia remota.
+- Herramienta sin secretos versionada `scripts/zoho-cpaas.py`. Credenciales persistentes en `~/.config/cita-suite/private/zoho-cpaas.json` (600/directorio 700), access/refresh token y vencimiento; escritura sincronizada a disco. Recibos privados en `~/.local/share/cita-suite/zoho/`, incluido `conexion-verificada.json`. No se depende de una terminal o daemon en ejecución.
+- No se reinició la computadora como prueba: persistencia comprobada mediante lectura y consulta desde un proceso nuevo. Al vencer el acceso, la herramienta lo renueva con el refresh token; una revocación externa requiere reconectar. [Guía completa](../architecture/zoho-cpaas-terminal.md).
+- No cambian app/base, producción, DNS, SMTP de Auth, configuración de Natalia ni webhooks. Sin clave nueva de envío, compras, comprobación de KYC/facturación o escrituras administrativas. D no se inicia.
+
+**Continuación:** utilizar el acceso guardado sin recrearlo ni pedir secretos. Consultas desde raíz: `python3 scripts/zoho-cpaas.py status`, luego `python3 scripts/zoho-cpaas.py agents`; renovación automática al vencer. Integración, envío real autorizado y aceptación funcional de E siguen pendientes. El cierre de Git/sincronización se comprueba antes del informe.

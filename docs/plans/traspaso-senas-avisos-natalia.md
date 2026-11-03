@@ -4,11 +4,11 @@
 
 <a id="etapa-e-punto"></a>
 
-## Etapa E — definición documental lista, 2 de noviembre de 2026
+## Etapa E — definición lista y Zoho conectado por terminal, 3 de noviembre de 2026
 
-**Revisión cerrada el 3 de noviembre (hora argentina); definición conversada el 2.** Configuración/implementación todavía sin iniciar.
+**Revisión cerrada el 3 de noviembre (hora argentina); definición conversada el 2.** Después Juan pidió conectar Zoho por terminal y guardar todo para no perder acceso al reiniciar: [12.19](propuesta-senas-avisos-natalia.md#zoho-terminal-vigente). Conexión OAuth local, consultas y renovación reales comprobadas. Herramienta versionada y credenciales persistentes privadas; [guía de operación](../architecture/zoho-cpaas-terminal.md).
 
-**Siguiente:** avisar a Juan y esperar su instrucción para configurar e implementar. Este paso sólo revisó código y documentación. No hay integración E, nueva migración, envío, secreto ni publicación realizados por el agente.
+**Al retomar:** `python3 scripts/zoho-cpaas.py status` y `python3 scripts/zoho-cpaas.py agents`. No necesita terminal abierta; renueva al vencer usando el refresh token guardado. No imprimir el archivo de credenciales ni volver a pedirlas si funcionan. **Siguiente funcional:** esperar la instrucción de Juan para implementar E e integrar el correo de la app. No hubo nuevas migraciones, envíos ni publicación.
 
 - Leer el [plan 12.18](propuesta-senas-avisos-natalia.md#etapa-e-vigente), la [especificación de E](etapa-e-correo-autogestion.md), el [registro de revisión](registro-senas-avisos-natalia.md#etapa-e-revision) y los [pendientes](pendientes-vigentes.md#etapa-e-pendientes).
 - **Cuenta Zoho ya existe:** Juan probó dos envíos, informó KYC pendiente y 100 emails gratuitos por día. Pagará al verificarse. No volver a preguntar por Resend ni exigir KYC para preparar las pruebas permitidas al iniciar; no asumir dominio, credenciales o recepción integral por ese informe.
@@ -16,7 +16,7 @@
 - **Cuidado al implementar:** conservar disponibilidad compartida y exclusión del propio turno; revisión semántica y transacción para horario/dinero/eventos; historia separada con proyección uno a uno; credencial revocable sin fugas de token legado; saldo limitado a información real y presupuesto de cron medido. La lectura no acredita pruebas de E.
 - **D sigue en pausa.** Los datos comerciales faltantes de Natalia y su configuración real no se inventan ni se activan por esta revisión.
 - **Producción:** V12b, sin cambios. Historial y recuperación actuales en [estado vigente](../ESTADO-VIGENTE.md) y [publicación/reversión](../architecture/publicacion-y-reversion.md), no en las versiones históricas de abajo.
-- La autorización productiva general persiste; la espera actual corresponde al pedido expreso de Juan de terminar la documentación y darle el resultado antes de empezar, no a otro permiso requerido por el agente.
+- La autorización productiva general persiste. El pedido posterior de conexión local está cumplido; la implementación funcional de E sigue pendiente de la instrucción de inicio. No solicitar otro permiso para reutilizar el acceso local ya encargado y guardado.
 
 ## Historia — ayuda con duraciones desde el 1 de noviembre (V11, plan 12.17)
 
@@ -253,7 +253,7 @@ Las reglas de HEAD/índice y las pausas siguientes no se aplican como instruccio
 
 ## Pendientes históricos de otros al 30 de octubre
 
-No usar esta lista histórica para volver a pedir cuenta/proveedor. La lista actual es pendientes vigentes, sección 3; Zoho ya existe y E espera instrucción para empezar.
+No usar esta lista histórica para volver a pedir cuenta/proveedor. La lista actual es pendientes vigentes, sección 3; Zoho ya tiene conexión administrativa local; la implementación funcional de E espera instrucción para empezar.
 
 - **De Natalia:** las preguntas de la sección 5 de su información (documento privado `docs/clientes/natalia-frutos/informacion-20261029.md`, sólo en la computadora de trabajo).
 - **De Juan:**
