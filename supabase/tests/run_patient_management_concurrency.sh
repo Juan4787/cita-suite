@@ -13,7 +13,7 @@ service_id='e3100000-0000-4000-8000-000000000004'
 slug='e2e-patient-management-race'
 task_directory=$(mktemp -d)
 holder_pid=''
-psql_owned() { psql "$database_url" -X -v ON_ERROR_STOP=1 -qAt "$@"; }
+psql_owned() { PGOPTIONS='-c lock_timeout=7000 -c statement_timeout=12000' psql "$database_url" -X -v ON_ERROR_STOP=1 -qAt "$@"; }
 previous_deposit=$(psql_owned -c 'select enabled from private.deposit_automation where singleton;')
 previous_runtime=$(psql_owned -c "select reschedule_enabled||'|'||email_producer_enabled from private.appointment_management_runtime where singleton;")
 [[ "$previous_deposit" =~ ^[tf]$ && "$previous_runtime" =~ ^(true|false)\|(true|false)$ ]]
