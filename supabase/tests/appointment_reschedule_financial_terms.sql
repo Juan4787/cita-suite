@@ -61,36 +61,36 @@ begin
 end $$;
 
 select pg_temp.fin_case('forfeit_new',true,'forfeit');
-select extensions.is(pg_temp.fin_core('forfeit_new'),'["new_requirement",40000,40000,0,null]'::jsonb,
+select extensions.is(pg_temp.fin_core('forfeit_new'),'["new_requirement","40000","40000","0",null]'::jsonb,
  '1. Informed default: only the current applicable payment is forfeited and a new deposit is required');
 select pg_temp.fin_case('credit_new',true,'credit');
-select extensions.is(pg_temp.fin_core('credit_new'),'["new_requirement",40000,0,40000,null]'::jsonb,
+select extensions.is(pg_temp.fin_core('credit_new'),'["new_requirement","40000","0","40000",null]'::jsonb,
  '2. New deposit plus previous money at credit remain distinct');
 select pg_temp.fin_case('credit_no_new',false,'credit');
-select extensions.is(pg_temp.fin_core('credit_no_new'),'["none",null,0,40000,null]'::jsonb,
+select extensions.is(pg_temp.fin_core('credit_no_new'),'["none",null,"0","40000",null]'::jsonb,
  '3. No new requirement does not manufacture another payment');
 select pg_temp.fin_case('forfeit_no_new',false,'forfeit');
-select extensions.is(pg_temp.fin_core('forfeit_no_new'),'["none",null,40000,0,null]'::jsonb,
+select extensions.is(pg_temp.fin_core('forfeit_no_new'),'["none",null,"40000","0",null]'::jsonb,
  '4. Forfeit without another advance is not represented as payment of the full consultation');
 select pg_temp.fin_case('unpaid',true,'forfeit','pending');
-select extensions.is(pg_temp.fin_core('unpaid'),'["reuse_pending",40000,0,0,null]'::jsonb,
+select extensions.is(pg_temp.fin_core('unpaid'),'["reuse_pending","40000","0","0",null]'::jsonb,
  '5. An unpaid move reuses one obligation, with no fictitious forfeited money');
 select pg_temp.fin_case('waived',true,'credit','waived');
-select extensions.is(pg_temp.fin_core('waived'),'["new_requirement",40000,0,0,null]'::jsonb,
+select extensions.is(pg_temp.fin_core('waived'),'["new_requirement","40000","0","0",null]'::jsonb,
  '6. A one-off waiver is not cash and does not waive a later informed obligation');
 select pg_temp.fin_case('legacy',true,'forfeit','paid',null,false);
-select extensions.is(pg_temp.fin_core('legacy'),'["none",null,0,40000,null]'::jsonb,
+select extensions.is(pg_temp.fin_core('legacy'),'["none",null,"0","40000",null]'::jsonb,
  '7. No informed original terms: no retroactive forfeit or new charge');
 select pg_temp.fin_case('capped',true,'credit','paid',50000);
-select extensions.is(pg_temp.fin_core('capped'),'["new_requirement",10000,0,40000,50000]'::jsonb,
+select extensions.is(pg_temp.fin_core('capped'),'["new_requirement","10000","0","40000","50000"]'::jsonb,
  '8. Known quote limits the new advance to the positive amount after applicable recorded deposits');
 select extensions.is((pg_temp.fin_terms('capped')->>'base_amount')::bigint,40000::bigint,
  '9. A reduced advance does not replace the original base for future reschedules');
 select pg_temp.fin_case('covered',true,'credit','paid',40000);
-select extensions.is(pg_temp.fin_core('covered'),'["none",null,0,40000,40000]'::jsonb,
+select extensions.is(pg_temp.fin_core('covered'),'["none",null,"0","40000","40000"]'::jsonb,
  '10. No positive quote remainder means no additional advance, not a fictitious payment');
 select pg_temp.fin_case('unknown',true,'credit','paid',null);
-select extensions.is(pg_temp.fin_core('unknown'),'["new_requirement",40000,0,40000,null]'::jsonb,
+select extensions.is(pg_temp.fin_core('unknown'),'["new_requirement","40000","0","40000",null]'::jsonb,
  '11. An absent quote stays unknown; a fixed deposit is not capped against zero');
 
 -- Seed a demonstrable earlier credited payment separately from the current one.
@@ -100,7 +100,7 @@ select business_id,appointment_id,patient_id,false,'paid',40000,40000,'applied',
 from public.appointment_deposit_requirements where appointment_id=pg_temp.fid('forfeit_new') and is_current;
 update public.appointment_email_policies set require_deposit_on_reschedule=true,previous_deposit_disposition='forfeit'
  where business_id=pg_temp.fid('business');
-select extensions.is(pg_temp.fin_core('forfeit_new'),'["new_requirement",40000,40000,40000,null]'::jsonb,
+select extensions.is(pg_temp.fin_core('forfeit_new'),'["new_requirement","40000","40000","40000",null]'::jsonb,
  '12. Disposition does not consume an earlier historical credit again');
 
 do $$ declare t jsonb; begin
@@ -124,12 +124,12 @@ end $$;
 select extensions.pass('14. Selecting the same interval cannot preview a penalty or write money/events');
 
 update private.deposit_automation set enabled=false;
-select extensions.is(pg_temp.fin_core('forfeit_new'),'["unavailable",null,0,80000,null]'::jsonb,
+select extensions.is(pg_temp.fin_core('forfeit_new'),'["unavailable",null,"0","80000",null]'::jsonb,
  '15. An operator pause preserves the original financial state; it does not silently waive or forfeit money');
 update private.deposit_automation set enabled=true;
 update public.appointment_email_policies set require_deposit_on_reschedule=false,previous_deposit_disposition='credit'
  where business_id=pg_temp.fid('business');
-select extensions.is(pg_temp.fin_core('forfeit_new'),'["none",null,0,80000,null]'::jsonb,
+select extensions.is(pg_temp.fin_core('forfeit_new'),'["none",null,"0","80000",null]'::jsonb,
  '16. Current relaxed financial preferences do not keep a withdrawn penalty');
 
 do $$ declare bad jsonb; valid jsonb; begin

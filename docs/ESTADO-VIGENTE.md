@@ -34,6 +34,7 @@ A	scripts/verify-production-auth-ux.mjs
 A	scripts/zoho-cpaas.py
 A	supabase/migrations/20261103010000_appointment_management_foundation.sql
 A	supabase/migrations/20261103020000_appointment_management_capabilities.sql
+A	supabase/migrations/20261103030000_appointment_reschedule_financial_terms.sql
 M	supabase/templates/recovery.html
 A	supabase/tests/appointment_management_capabilities.sql
 A	supabase/tests/appointment_management_foundation.sql
@@ -54,7 +55,7 @@ M	supabase/tests/run_deposit_expiry_concurrency.sh
 | `supabase/tests/run_deposit_expiry_concurrency.sh` | Limpieza ordenada de sus turnos sintéticos antes del consultorio, compatible con la historia de dinero | No: sólo la base descartable de CI |
 | Migración `20261103020000` y `supabase/tests/appointment_management_capabilities.sql` | Enlaces revocables y recibo idempotente; comprobados en CI SQL `41600939474` | No: no se aplicó ni se integró a rutas; sólo CI descartable |
 | `packages/shared/src/database.types.ts` | Tipos oficiales, dos generaciones iguales en CI y digest de las migraciones locales cotejado antes de importar | No: todavía sin publicar |
-| `supabase/tests/appointment_reschedule_financial_terms.sql` | Contrato económico previo a implementar el resumen de reprogramación, todavía sin ejecutar | No: sólo CI descartable |
+| Migración `20261103030000` y `supabase/tests/appointment_reschedule_financial_terms.sql` | Resumen económico de reprogramación sólo lectura; roja estructural comprobada, primera implementación todavía sin verificar | No: sólo CI descartable, sin aplicar ni conectar a rutas |
 | `supabase/templates/recovery.html` | Plantilla del correo de recuperación, modificada en otro trabajo | No se despliega con la app: se carga aparte en Supabase. **No está verificado** si la versión de Supabase coincide con este archivo |
 
 ## Historia
