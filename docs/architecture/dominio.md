@@ -257,3 +257,11 @@ De la campaña:
 - 08:18: limpieza de la landing para Vercel (`ab3a2e0`).
 
 Detalle de cada paso en el [registro](../plans/registro-refactorizacion-cita-suite.md).
+
+## Correo de pacientes — decisión posterior del 2 de noviembre, pendiente de configurar
+
+[Plan 12.18 y especificación de E](../plans/etapa-e-correo-autogestion.md): proveedor elegido **Zoho CPaaS**, sustituyendo la alternativa histórica Resend. Juan ya creó la cuenta y probó dos envíos; KYC pendiente y cupo inicial informado de 100 diarios. Todavía no se verificaron en esta tarea el dominio/remitente usado, región, DNS, clave API ni la integración con la app. No tomar esos dos envíos como prueba de registros o de recepción integral.
+
+Al iniciar E, comprobar los registros exactos que indique la cuenta real y su compatibilidad con SPF/DKIM/DMARC existentes, retorno de rebotes, MX y cualquier recepción legítima. Las sugerencias anteriores de SPF de no envío y DMARC restrictivo no se aplican a ciegas al incorporar correo. No tocar CNAME de app/landing, cliente de Calendar ni SMTP de Auth. El nombre visible del consultorio no autoriza enviar desde un dominio ajeno sin verificarlo. Sin dominio propio del consultorio, acordar el dominio técnico; marca visual, dirección real y enlaces son conceptos diferentes.
+
+No se aplicó ningún registro DNS en esta revisión. Cuenta Zoho no falta; dominio/remitente efectivos y datos completos del emisor siguen por comprobar/configurar después de la instrucción de inicio.

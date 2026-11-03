@@ -2,7 +2,7 @@
 
 **Este es el registro único de qué historia y qué cambios están vigentes.** Se actualiza en el mismo paso de trabajo que cambia cualquiera de estos datos, nunca después. Eso incluye publicar, cambiar de rama, integrar, o dejar código distinto de producción. `node scripts/check-repo-sync.mjs`, desde la raíz, lo compara con Git, con GitHub y con la revisión que sirve producción, y falla ante cualquier diferencia.
 
-Última actualización: 2 de noviembre de 2026, 17:20 UTC.
+Última actualización: 3 de noviembre de 2026, cierre de la revisión documental de E conversada el 2 de noviembre. Producción y código servido sin cambios.
 
 ## Datos verificables
 
@@ -15,6 +15,10 @@ produccion_repositorio: github-secundaria:Juan4787/cita-suite-verificacion.git
 
 - **Producción** sirve V12b en `https://app.cita-suite.com.ar` y en `app.cita-suite.workers.dev`: el modo claro con el fondo `#f6f5f3`.
 - **La revisión publicada es antecesora de `main`.** Todo lo que corre en producción está en la historia de `main`.
+
+## Actualización documental de E — 2 de noviembre
+
+Se revisó E contra el código de main 45ad4dad3259386b445d3306ca66bb16bf51f285 y se incorporó al [plan 12.18](plans/propuesta-senas-avisos-natalia.md#etapa-e-vigente) su [especificación](plans/etapa-e-correo-autogestion.md), con Zoho y autogestión. Sólo documentación: no cambia el código distinto de producción listado abajo, la revisión servida ni su recuperación. Configuración, implementación y pruebas de E esperan la próxima instrucción de Juan. D permanece en pausa.
 
 ## Código que difiere de producción
 

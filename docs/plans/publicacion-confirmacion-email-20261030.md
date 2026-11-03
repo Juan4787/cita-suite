@@ -1,5 +1,7 @@
 # Publicación: confirmación de correo
 
+**Alcance:** procedimiento de la entrega histórica de Auth. No implementa correo a pacientes ni impone una pausa actual a E; para ese frente rigen [plan 12.18](propuesta-senas-avisos-natalia.md#etapa-e-vigente) y la [especificación](etapa-e-correo-autogestion.md), todavía sin iniciar configuración/implementación. Las autorizaciones generales y la recuperación productiva actuales se toman de AGENTS y del estado vigente.
+
 ## Método vigente tras la corrección del usuario
 
 El usuario mantiene el máximo rigor de auditoría y exige cubrir inconsistencias. Confirmó que actualmente no hay pacientes reales y rechazó la sobreingeniería para conservar turnos ficticios. La autorización de escrituras y pruebas en producción sigue vigente. Este procedimiento reemplaza la secuencia anterior que exigía staging, renovación de backup por antigüedad y ensayos de reversión como pasos automáticos.

@@ -1,5 +1,7 @@
 # Registro de la campaña de señas y avisos (consultorio de Natalia Frutos)
 
+**Estado de E, 2 de noviembre:** revisión documental contra código terminada; [especificación vigente](etapa-e-correo-autogestion.md) y [registro de esta revisión](#etapa-e-revision). Configuración/implementación esperan la próxima instrucción de Juan. Las pausas D/E, Resend y tareas antiguas que siguen abajo son historia fechada; D sí permanece en pausa.
+
 **Fuente de verdad:** el [plan aprobado](propuesta-senas-avisos-natalia.md), incluida su sección 12, que contiene la aprobación literal y los ajustes posteriores.
 
 **Qué registra este documento:**
@@ -1089,3 +1091,47 @@ Las capturas de la prueba de navegador (`ci-41368132842/evidencia/…`) muestran
   - `ACCESOS-GOOGLE-CITA-SUITE/` (raíz, las dos subcarpetas de Calendar y `datos-de-acceso.json`);
   - `docs/architecture/accesos-google.md`, `acceso-google-calendar.md`, `dominio.md` y `auditoria-final.md`;
   - pendientes.
+
+<a id="etapa-e-revision"></a>
+
+## Revisión documental de E — 2 de noviembre de 2026
+
+**Cierre de esta revisión: 3 de noviembre de 2026 (hora argentina).** La conversación y el inicio del contraste fueron el 2; se conserva esa fecha en el ajuste 12.18. La validación final y los documentos de continuación distinguen ambas fechas.
+
+### Pedido, alcance y estado informado
+
+El pedido literal y las decisiones de la conversación se incorporaron a [plan 12.18](propuesta-senas-avisos-natalia.md#etapa-e-vigente). Juan pidió primero contrastar todos los casos con el código y dejar la documentación coherente; después dará la instrucción de empezar. Este paso no configura proveedor/secretos/DNS, no cambia la app/base ni envía o publica nada.
+
+**Zoho, fuente Juan:** cuenta creada, dos envíos probados por él, KYC pendiente y 100 correos gratuitos diarios; pagará al verificarse. No falta crear cuenta. No se conocen por ese informe el dominio, región, credenciales, saldo/vencimiento exactos ni recepción/recorridos de los mensajes. No se atribuyen al agente ni a la integración todavía inexistente.
+
+**Economía:** se acepta correo de costo controlado también con un consultorio. Base aportada 500 pacientes por mes × 3 mensajes = 1.500 mensajes mensuales, más eventos adicionales. No exigir gratuidad indefinida, no afirmar que la cuenta de prueba sirve para siempre ni que ese cálculo demuestra insuficiencia de otro proveedor. Juan compra después del KYC; sin auto-recarga o contrataciones del agente. Supabase/Workers conservan sus decisiones separadas.
+
+### Contraste, correcciones y resultado documental
+
+- Fuente leída: main **45ad4dad3259386b445d3306ca66bb16bf51f285**, sincronizada con origin/main; producción V12b **771fac5950c532b1123f11d4dde93eef9b42ceba**, versión **277d332d-1794-4367-8ef0-567ced159f1b**. Comprobación inicial con check-repo-sync aprobada.
+- Se aplicó la skill supabase-postgres-best-practices para revisar orden de bloqueos, transacciones breves y colas. Sólo lectura de SQL; no se escribió ni ejecutó migración.
+- Se creó [especificación única de E](etapa-e-correo-autogestion.md), con decisiones, evidencia C01–C13, matriz de aceptación y secuencia E0–E6. D no se reanuda. Los casos se marcan pendientes de ejecutar, no aprobados.
+- **Reutilización confirmada por lectura:** disponibilidad excluye el propio turno y contempla equipo/modalidad; calendario tiene UID estable y secuencia; la relación de seña vigente es uno a uno.
+- **Trabajo necesario:** movimiento público autónomo en vez de pedido; revisión semántica, porque status no detecta dos cambios de hora; transacción de horario/dinero/auditoría/eventos, frente a la auditoría actual separada; historia de obligaciones/pagos sin romper la proyección actual.
+- **Correcciones a la propuesta:** no rotar indiscriminadamente el token compartido con push/Calendar; revisar rutas legadas/ICS al revocar gestión. No prometer duración congelada: hoy se usa la vigente. No llamar saldo financiero total a la diferencia entre cotización y señas registradas. No activar auto_cancel de una obligación ya protegida sólo por moverla.
+- Se retiró la deduplicación por cercanía genérica de 30 minutos y se exigió equivalencia de contenido/propósito/revisión/destinatario y resultado conocido. La recuperación tardía de recordatorios de 30 minutos permanece como parámetro técnico inicial propuesto, sujeto a verificación; no es aprobación literal ni hecho del código.
+- La nueva política de pérdidas no define devoluciones al cancelar. No se inventan condiciones de Natalia ni historia de pagos en migración.
+- Los permisos de consulta/cancelación con reserva apagada o suspensión deben ser mínimos y específicos; no se retiran globalmente guardias comerciales. Zoho no aporta una transacción común con la base ni prueba de entrega única por usar una referencia propia.
+- Se revisaron las fuentes oficiales de Zoho enlazadas en la especificación: cuota/revisión, vigencia, API, webhooks y condiciones. Es contraste documental del proveedor; no se ingresó a la cuenta ni se enviaron pruebas.
+- El plan anterior se conserva: sólo se amplió su línea de estado y se agregó 12.18, con precedencia explícita sobre los apartados superados. No se reescribieron resultados ni decisiones antiguas como si hubieran sido los actuales.
+
+### Consistencia de documentos
+
+Se alinearon AGENTS, README, índice documental, pendientes, traspasos, estado vigente, contratos funcionales, permisos, matriz de regresiones, tareas automáticas, consumo, dominio, publicación/reversión y notas de los cierres históricos A/B/C. Las guías históricas de Auth no se usan para volver a pausar E; su alcance queda fechado. Se corrigió además la descripción vieja del README que aún decía mantener HEAD histórico: main y GitHub siguen siendo la referencia actual.
+
+La fuente normativa nueva es una sola, enlazada desde los otros documentos. «Definición lista» no significa «implementado», «cuenta Zoho probada» no significa «integración comprobada», y «D en pausa» no significa «E descartada».
+
+### Verificación de esta entrega documental
+
+Recibo local de lectura/validación: .verification/etapa-e-plan-20261102/revision-documental.json. Conserva base, archivos documentales, casos y resultados de enlaces/fragmentos, integridad del plan anterior y ausencia de cambios de código. El SHA del commit documental se obtiene de Git; la versión de producción no se actualiza por editar estos archivos.
+
+**Validación documental:** 97 casos identificados, enlaces y fragmentos locales comprobados, plan anterior preservado salvo su línea de estado y nuevo ajuste; sin cambios de código/migraciones/configuración. Comprobador privado reproducible: .verification/etapa-e-plan-20261102/validar-documentacion.py; recibo final en la ruta anterior. El control de integridad del plan de refactorización también pasó. Cierre en Git y sincronización se comprueban con check-repo-sync antes del informe. No se ejecutaron suites de aplicación ni se presentó su ausencia como aprobación de E.
+
+### Punto exacto para continuar
+
+Tras informar la revisión, esperar instrucción de inicio. Al reanudar: sincronización, plan 12.18, especificación, este registro, traspaso y lista única de pendientes. Comenzar E1–E4 en su orden de dependencias y preparar Zoho existente dentro de la cuota permitida, sin esperar KYC por rutina y sin comprar por Juan. Mantener las autorizaciones productivas anteriores y todos los límites de contexto, datos reales y RAM.

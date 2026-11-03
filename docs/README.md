@@ -1,6 +1,6 @@
 # Documentación de Cita Suite
 
-**Todo lo que queda pendiente está en una sola lista:** [pendientes vigentes](plans/pendientes-vigentes.md). Natalia ya tiene su cuenta real y su consultorio; la decisión sobre el consultorio preparado duplicado, la configuración de su turnero, las etapas D y E y Resend están ahí.
+**Todo lo que queda pendiente está en una sola lista:** [pendientes vigentes](plans/pendientes-vigentes.md). Natalia ya tiene su cuenta real y su consultorio. Sus datos todavía faltantes y D siguen en la lista. E tiene [definición vigente con Zoho](plans/etapa-e-correo-autogestion.md), revisada contra código y pendiente de la instrucción de inicio; sustituye la elección histórica de Resend.
 
 ## Estado operativo y criterio actuales — 2 de noviembre
 
@@ -12,7 +12,7 @@
 
 Antes, V11f `72d59ab00db67a8502ca560c762c61e6cfac1923` (2 de noviembre a las 02:12 UTC). Antes aún, V10b `68f31741f6ff7f2253c036800b1369f1eda16510`, versión `1d2b4acd-7dd8-4cb7-81e3-a205bafe9f8d` desde el 1 de noviembre a las 10:15 UTC (plan de señas y avisos, 12.16): V9 más la vista de consultorios archivados, el rubro «medicina», preguntas de hasta 40 opciones y la web de Natalia reservando en su consultorio real. Antes de volver a V9 hay que dejar los datos legibles para V9 ([publicación y reversión](architecture/publicacion-y-reversion.md)). V9 `a3c707f368736da90d2adf5850d291460f657af0` (31 de octubre) es V8 más el registro de las fallas al comprobar el enlace. La confirmación de correo está publicada y comprobada: [traspaso de cierre](plans/traspaso-confirmacion-email-20261030.md), [registro y evidencias](plans/registro-confirmacion-email-20261030.md), [guía funcional](architecture/confirmacion-de-correo.md) y [publicación](plans/publicacion-confirmacion-email-20261030.md). Fuente V8 `408ca04d9e6750e4657dc087264644665a63fb37`, versión `a1844665-447e-40bb-b9e5-ce7c03ed29d7`. Las revisiones anteriores de otros traspasos son históricas y no indican una publicación pendiente.
 
-La configuración de Natalia y D/E siguen en pausa por las decisiones posteriores del usuario. Sus 12 meses de acceso se conservan. El criterio inicial de [AGENTS.md](../AGENTS.md) prevalece sobre procedimientos antiguos: máximo rigor, controles proporcionados y producción autorizada; no duplicar entornos ni renovar copias por antigüedad como rutina para una UI sin migraciones. La ausencia de pacientes reales no vuelve descartables cuentas, secretos, permisos, configuración comercial o infraestructura.
+Los datos comerciales faltantes de Natalia y D conservan sus pendientes. E se rige por [12.18](plans/propuesta-senas-avisos-natalia.md#etapa-e-vigente): revisión documental terminada, configuración/implementación aún sin iniciar. El acceso de Natalia no se modifica. El criterio inicial de [AGENTS.md](../AGENTS.md) prevalece sobre procedimientos antiguos: máximo rigor, controles proporcionados y producción autorizada; no duplicar entornos ni renovar copias por antigüedad como rutina para una UI sin migraciones. La ausencia de pacientes reales no vuelve descartables cuentas, secretos, permisos, configuración comercial o infraestructura.
 
 La fuente de verdad de esta campaña es el [plan aprobado íntegro](plans/refactorizacion-cita-suite.md), incluidas sus ampliaciones y decisiones posteriores. El [registro](plans/registro-refactorizacion-cita-suite.md) identifica cambios, fallas, corridas, revisiones y evidencias. El [traspaso](plans/traspaso-refactorizacion-cita-suite.md) fija el siguiente trabajo pendiente. Una conclusión histórica no certifica el estado actual.
 
@@ -22,6 +22,7 @@ Para el consultorio de Natalia Frutos, la primera clienta, rigen estos documento
 - el [plan aprobado](plans/propuesta-senas-avisos-natalia.md), cuya sección 12 tiene la aprobación literal y los ajustes posteriores;
 - el [registro](plans/registro-senas-avisos-natalia.md);
 - el [traspaso](plans/traspaso-senas-avisos-natalia.md);
+- la [especificación de E](plans/etapa-e-correo-autogestion.md), con decisiones de la conversación, contraste C01–C13 y matriz de aceptación todavía sin ejecutar;
 - la información que mandó la clienta (documento privado `docs/clientes/natalia-frutos/informacion-20261029.md`, sólo en la computadora de trabajo).
 
 ## Contratos y operación vigentes

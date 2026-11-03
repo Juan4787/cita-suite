@@ -119,3 +119,11 @@ Restricción de cuenta: Workers Free admite cinco Cron Triggers **por cuenta**. 
 El arreglo de interfaz de avisos inactivos se publicó y se ensayó con recuperación compatible. Durante el ensayo se retiraron los cron, se confirmó0 en ambos entornos y se respetaron15 minutos de propagación más20 segundos. Después se restauraron los cinco de producción; staging quedó sincron. No hubo cambios de código de tareas, DB ni secretos. Recibo `inactive-push-production-recovery-20261024.json`; no repetir la operación.
 
 La actualización Calendar porcron, el borrado externo y los tres avisos reales del Samsung tienen recibos conservados. Sus fixtures propios ya se retiraron, preservando el vínculo histórico. El mantenimiento comercial manual09:27 fue200,4pendientes sincronizados/0créditos/0errores,14llamadas; no equivale a un recibo de cron ni a crédito de un pago aprobado. La medición de capacidad2 falló latencia; no se certificaWorkersFree por respuestas200 ni por colas vacías.
+
+## E — extensión de correo planificada, sin instalar (2 de noviembre)
+
+El ejecutor actual no integra Zoho. [E](../plans/etapa-e-correo-autogestion.md) exige cola de eventos guardados con el cambio de agenda/dinero, reclamación duradera, revalidación de destinatario/estado y control de resultado incierto. Extender el programador existente sin asumir un sexto cron gratuito ni presupuesto adicional. Debe medirse el costo de base/proveedor y reservarse progreso para push y calendario; el cupo de Zoho no sustituye los límites del Worker.
+
+72/24 h son los objetivos de recordatorio por email, procesados en la siguiente ejecución admitida; no una promesa de recepción exacta en el buzón. No modificar los plazos existentes de push/ICS. La ventana técnica propuesta de recuperación es 30 minutos; un comprobante cercano sólo reemplaza un recordatorio si satisface su contenido/propósito, revisión y destinatario, con resultado conocido. No deduplicar por cercanía temporal sola.
+
+Los avisos de saldo/cuota/vencimiento/fallo deben verse en operación aunque el proveedor no pueda enviar. No activar tareas, comprar créditos ni enviar durante esta actualización documental; próximos pasos en el traspaso de E.

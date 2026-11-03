@@ -2,7 +2,23 @@
 
 > **Nota del 2 de noviembre de 2026:** las instrucciones de este documento de preservar el `HEAD` `80268e2` y el índice `55cd8f79…` quedaron superadas. Esa regla dejó divergir la copia local de GitHub y de producción. Ahora la rama de trabajo es `main`, que contiene la historia completa. El estado vigente está en [el registro único](../ESTADO-VIGENTE.md) y se comprueba con `node scripts/check-repo-sync.mjs`.
 
-## Trabajo en curso — 1 de noviembre, desde las 21:20 UTC: ayuda con duraciones (V11, plan 12.17)
+<a id="etapa-e-punto"></a>
+
+## Etapa E — definición documental lista, 2 de noviembre de 2026
+
+**Revisión cerrada el 3 de noviembre (hora argentina); definición conversada el 2.** Configuración/implementación todavía sin iniciar.
+
+**Siguiente:** avisar a Juan y esperar su instrucción para configurar e implementar. Este paso sólo revisó código y documentación. No hay integración E, nueva migración, envío, secreto ni publicación realizados por el agente.
+
+- Leer el [plan 12.18](propuesta-senas-avisos-natalia.md#etapa-e-vigente), la [especificación de E](etapa-e-correo-autogestion.md), el [registro de revisión](registro-senas-avisos-natalia.md#etapa-e-revision) y los [pendientes](pendientes-vigentes.md#etapa-e-pendientes).
+- **Cuenta Zoho ya existe:** Juan probó dos envíos, informó KYC pendiente y 100 emails gratuitos por día. Pagará al verificarse. No volver a preguntar por Resend ni exigir KYC para preparar las pruebas permitidas al iniciar; no asumir dominio, credenciales o recepción integral por ese informe.
+- **Definición:** email requerido/desactivable, excepción con aviso para recepción, comprobantes y avisos 72/24 con botones opcionales y marca del consultorio, reprogramación autónoma, nueva seña y destino anterior configurables. Casos y correcciones sólo en la especificación, para evitar copias divergentes.
+- **Cuidado al implementar:** conservar disponibilidad compartida y exclusión del propio turno; revisión semántica y transacción para horario/dinero/eventos; historia separada con proyección uno a uno; credencial revocable sin fugas de token legado; saldo limitado a información real y presupuesto de cron medido. La lectura no acredita pruebas de E.
+- **D sigue en pausa.** Los datos comerciales faltantes de Natalia y su configuración real no se inventan ni se activan por esta revisión.
+- **Producción:** V12b, sin cambios. Historial y recuperación actuales en [estado vigente](../ESTADO-VIGENTE.md) y [publicación/reversión](../architecture/publicacion-y-reversion.md), no en las versiones históricas de abajo.
+- La autorización productiva general persiste; la espera actual corresponde al pedido expreso de Juan de terminar la documentación y darle el resultado antes de empezar, no a otro permiso requerido por el agente.
+
+## Historia — ayuda con duraciones desde el 1 de noviembre (V11, plan 12.17)
 
 Pedido y definición aprobada, literales: sección 12.17 del plan. Registro: sección «Ayuda con duraciones, V11» de `registro-senas-avisos-natalia.md`. Evidencia: `.verification/ayuda-duraciones-20261101/` (carpeta 700, recibos 600, nunca se sobrescriben).
 
@@ -65,6 +81,8 @@ Fases aprobadas, en este orden:
 **Punto exacto (22:01 UTC):** fases 1, 3 y 4 terminadas. **Fase 2 sin cambios en producción y a la espera de Juan:** la base prohíbe borrar el consultorio preparado (`access_grants is append-only`, `ensayo-borrado.json`); el archivado está preparado y ensayado (`unificar-archivando.mjs ensayo`, 15 de 15 controles, deshecho; relectura `despues-de-ensayos.json` idéntica a la inicial). Con la aprobación: desde la raíz, `node .verification/natalia-unificacion-20261031/unificar-archivando.mjs aplicar` y después `node .verification/natalia-unificacion-20261031/inspeccionar.mjs inspeccion-final`. V9 `a3c707f368736da90d2adf5850d291460f657af0` publicada (versión `2ef53723-0a46-4879-bf6e-4af5ed5320c9`), puntero de fuente en V9 y recuperación inmediata a V8 documentada. Todo lo pendiente: `docs/plans/pendientes-vigentes.md`.
 
 ## Continuidad vigente — 31 de octubre
+
+**Checkpoint histórico:** las pausas y tareas de este apartado no son la continuación actual. Para E rigen 12.18 y el punto del 2 de noviembre al comienzo; producción y recuperación se consultan en el estado vigente.
 
 Desde el 1 de noviembre a las 10:15 UTC producción sirve V10b `68f31741f6ff7f2253c036800b1369f1eda16510`, versión `1d2b4acd-7dd8-4cb7-81e3-a205bafe9f8d` (12.16; ver «Trabajo en curso — 1 de noviembre»). Del 31 de octubre a esa hora sirvió V9 `a3c707f368736da90d2adf5850d291460f657af0`, versión `2ef53723-0a46-4879-bf6e-4af5ed5320c9`. Antes, la entrega de confirmación de correo quedó **publicada y comprobada**, V8 `408ca04d9e6750e4657dc087264644665a63fb37`, versión productiva `a1844665-447e-40bb-b9e5-ce7c03ed29d7`. Consultar [el traspaso de cierre](traspaso-confirmacion-email-20261030.md): es la referencia de versión, recuperación compatible, evidencia y límites. No volver a publicar esta corrección ni usar como actuales las revisiones y próximos pasos de los apartados fechados inferiores.
 
@@ -213,7 +231,11 @@ Las pruebas se corrieron de a un archivo, en secuencia; la cantidad es la del ú
   2. recuperar la evidencia con `python3 -I scripts/collect-verification-evidence.py <zip> <carpeta nueva>`;
   3. verificar el SHA y el resumen de migraciones, y recién entonces escribir `source` en `packages/shared/src/database.types.ts` (procedimiento completo en el registro, corridas v8 a v10).
 
-## Reglas vigentes
+<a id="reglas-vigentes"></a>
+
+## Reglas históricas del 30 de octubre
+
+Las reglas de HEAD/índice y las pausas siguientes no se aplican como instrucciones actuales: prevalecen AGENTS, el estado vigente y el punto de continuación del 2 de noviembre.
 
 - **Repositorio local:**
   - no tocar el HEAD (`80268e2`) ni el índice (`55cd8f79…`);
@@ -227,7 +249,11 @@ Las pruebas se corrieron de a un archivo, en secuencia; la cantidad es la del ú
   - el consultorio real de Juan nunca se usa para pruebas.
 - **Ajustes al plan:** cada ajuste va como subsección nueva de la sección 12, con su motivo y las secciones que reemplaza.
 
-## Pendientes de otros
+<a id="pendientes-de-otros"></a>
+
+## Pendientes históricos de otros al 30 de octubre
+
+No usar esta lista histórica para volver a pedir cuenta/proveedor. La lista actual es pendientes vigentes, sección 3; Zoho ya existe y E espera instrucción para empezar.
 
 - **De Natalia:** las preguntas de la sección 5 de su información (documento privado `docs/clientes/natalia-frutos/informacion-20261029.md`, sólo en la computadora de trabajo).
 - **De Juan:**

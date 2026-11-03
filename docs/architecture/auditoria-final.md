@@ -6,7 +6,7 @@
 
 Las actualizaciones inferiores describen el estado de sus fechas, no el estado productivo actual. En particular, sus versiones anteriores y «SMTP sin configurar» quedaron superados por entregas posteriores: [publicación vigente](publicacion-y-reversion.md), [correo de recuperación comprobado](correo-de-recuperacion.md) y [confirmación de correo](confirmacion-de-correo.md). No transformar esos antecedentes en tareas nuevas sin contrastarlos con las guías específicas.
 
-Para el método actual prevalece el criterio contextual de [AGENTS.md](../../AGENTS.md). La configuración de Natalia y D/E siguen en pausa. Las mediciones históricas fallidas conservan su resultado y su aceptación limitada; no se repiten por esta actualización documental.
+Para el método actual prevalece el criterio contextual de [AGENTS.md](../../AGENTS.md). Los datos pendientes de Natalia y D conservan su estado; E tiene [definición revisada con Zoho](../plans/etapa-e-correo-autogestion.md) y espera la instrucción de implementación. No está publicada. Las mediciones históricas fallidas conservan su resultado y su aceptación limitada; no se repiten por esta actualización documental.
 
 **Antecedente del 27 de octubre, 15:00 UTC — campaña abierta en esa fecha.** Estado registrado entonces:
 

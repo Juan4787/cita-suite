@@ -100,3 +100,13 @@ La migración `20261029010000_appointment_deposits.sql` y `private.deposit_actor
 | Operar el interruptor general y ejecutar la baja | Operador y pg_cron | Funciones privadas sin `EXECUTE` para roles API; global y política apagados al instalar |
 
 Las rutas `senas` redirigen a profesional y lectura sola; configuración redirige también a recepción. Si una lectura falla, no se fabrica una lista vacía ni un estado saludable. Release exacto C9 **41082416537**: SQL B25/C15, diez carreras y deadlocks0; tipos0/0; navegador53fuente/53paquete y49compatibilidad B11. Lectura productiva:74relaciones sin exposición anónima; las pruebas HTTP de acciones usaron exclusivamente la dueña sintética propia, con lectura SQL y limpieza. Detalle por capa en el [cierre](../plans/cierre-senas-avisos-natalia.md) y el [registro](../plans/registro-senas-avisos-natalia.md); no atribuir una prueba de interfaz al catálogo íntegro de permisos.
+
+## E — permisos a implementar y comprobar (2 de noviembre)
+
+El [plan 12.18](../plans/propuesta-senas-avisos-natalia.md#etapa-e-vigente) y su [especificación](../plans/etapa-e-correo-autogestion.md) añaden requisitos, no permisos ya aplicados:
+
+- Dueña/administración configuran obligación de email, botones, identidad de correo y políticas de reprogramación con la capacidad comercial/contexto correspondiente. Las credenciales del proveedor no se exponen al navegador ni al consultorio como un secreto global compartido.
+- Recepción continúa sin email sólo tras aviso; puede completar el contacto de su paciente y registrar/exceptuar señas según las capacidades actuales, siempre revalidadas. No inventar permisos para profesional o lectura sola.
+- El paciente gestiona un único turno mediante una capacidad validada, limitada y revocable; no puede elegir actor, consultorio, turno excluido, monto o excepción de personal.
+- Consultar/cancelar una cita vigente cuando la reserva online está apagada no habilita nuevas reservas. Una excepción para suspensión/archivo requiere comando específico y pruebas de aislamiento; no retirar guardias globales ni reactivar el consultorio.
+- Funciones nuevas sin exposición anónima directa por inercia: revisar grants, RLS, referencias compuestas y las suites de catálogo. Webhooks autenticados y relacionados con el envío/consultorio correctos.

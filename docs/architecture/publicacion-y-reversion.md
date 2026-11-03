@@ -107,7 +107,7 @@ La confirmación de correo **quedó publicada y verificada**, fuente V8 `408ca04
 
 Con V8 publicada, la recuperación compatible era `c195b1e388f3acc947464363514ae99f94c413da`, paquete `41136024072`: conserva `/confirmar-correo`. Desde V9 la recuperación vigente es la del apartado anterior. **C9/B11 y los IDs anteriores no son una recuperación válida**, porque pueden romper enlaces de confirmación ya emitidos. Los apartados fechados inferiores conservan la historia de cada entrega; no ejecutarlos como pendientes actuales.
 
-Rige el criterio contextual inicial de [AGENTS.md](../../AGENTS.md): rigor y auditorías profundas; pruebas directas en producción autorizadas; staging, copias y ensayos de reversión cuando aporten protección o evidencia concreta. Para esta UI/Auth sin migraciones no son puertas automáticas un backup menor a seis horas, detener el scheduler, preservar hashes de pacientes ficticios ni repetir el circuito completo. Las reglas incompatibles de procedimientos históricos quedan sustituidas. No retomar Natalia/D/E ni alterar sus 12 meses de acceso.
+Rige el criterio contextual inicial de [AGENTS.md](../../AGENTS.md): rigor y auditorías profundas; pruebas directas en producción autorizadas; staging, copias y ensayos de reversión cuando aporten protección o evidencia concreta. Para esta UI/Auth sin migraciones no son puertas automáticas un backup menor a seis horas, detener el scheduler, preservar hashes de pacientes ficticios ni repetir el circuito completo. Las reglas incompatibles de procedimientos históricos quedan sustituidas. Esta entrega histórica de UI/Auth no habilitó Natalia/D/E ni cambió su acceso. El alcance posterior de E está en [plan 12.18](../plans/propuesta-senas-avisos-natalia.md#etapa-e-vigente): definición revisada, sin implementación ni publicación todavía.
 
 ## Entrega anterior — señas y horarios liberados, 30 de octubre
 
@@ -297,3 +297,9 @@ La expansión/reconciliación/contracción, las versiones antiguas, sus comandos
 ## Identidad aplicada: alcance y comprobación
 
 El principal se promovió a37f625b y se renombró a `Juan4787/cita-suite` manteniendoID1115936156, historia, otras ramas, tags, issues/PR y políticas. Origin apunta a `github-secundaria:Juan4787/cita-suite.git`; ambas direccionesGit se comprobaron. Plugin sinpermiso deescritura enprincipal: Git nativo usó expectativaexacta deHEAD y padre directo comprobado, con dry-run adversario rechazado; no se reescribió historia. App, programador y Natalia conservaron sus deploymentIDs después de la transición, sin builds reconectados. Directorio físicoCitaSuite con enlace anterior compatible. Los recibos de identidad identifican elSHA ejecutado; actualizaciones documentales posteriores conservan exactamente las fuentes verificadas.
+
+## E — publicación futura, aún sin ejecutar (2 de noviembre)
+
+La [especificación de E](../plans/etapa-e-correo-autogestion.md) requiere migraciones aditivas, proyección actual de seña compatible y controles para productores/consumidores de correo. Los procedimientos anteriores no prueban recuperación con historia de varias señas o eventos de E. Al implementarse, comprobar específicamente ese estado y documentar qué automatización se detiene antes de volver; no elegir una recuperación antigua sólo por haber sido válida para A/B/C.
+
+En este paso no hubo cambios de aplicación/base, secretos, DNS, envíos ni publicación. La versión productiva sigue siendo la del estado vigente y Juan dará después la instrucción para empezar.

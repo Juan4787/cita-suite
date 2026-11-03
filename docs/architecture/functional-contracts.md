@@ -72,7 +72,7 @@ Estos consumidores y su descomposición son parte de la matriz de cierre de etap
 
 ## Señas: contratos de la campaña del 29 de octubre de 2026
 
-Fuente: [plan aprobado de señas y avisos](../plans/propuesta-senas-avisos-natalia.md), incluidas sus correcciones y autorización posterior. Estado y evidencia: su [registro](../plans/registro-senas-avisos-natalia.md). A/B/C están publicadas y verificadas desde el 30 de octubre; evidencia por requisito en el [cierre](../plans/cierre-senas-avisos-natalia.md). La configuración de Natalia y D/E siguen en pausa.
+Fuente: [plan aprobado de señas y avisos](../plans/propuesta-senas-avisos-natalia.md), incluidas sus correcciones y autorización posterior. Estado y evidencia: su [registro](../plans/registro-senas-avisos-natalia.md). A/B/C están publicadas y verificadas desde el 30 de octubre; evidencia por requisito en el [cierre](../plans/cierre-senas-avisos-natalia.md). Los datos pendientes de Natalia y D conservan su estado; E tiene [definición revisada con Zoho](../plans/etapa-e-correo-autogestion.md) y espera la instrucción de implementación. No está publicada.
 
 - `lib/scheduling/deposits.ts` contiene la proyección validada, secciones y textos; no calcula fechas ni montos de negocio. SQL es la única autoridad de esas reglas.
 - `scheduling/public/deposits.ts` llama a `set_appointment_deposit`, `open_appointment_deposit_reminder`, `save_deposit_policy` y las lecturas. Una respuesta desconocida o incompleta falla explícitamente. Las condiciones por día exigen exactamente una respuesta por horario, sin duplicados, montos fraccionarios ni vencimientos inválidos. Si la carga no puede calcularlas, el resumen dice que se comprobarán al terminar y no bloquea la reserva (ajustes 3 y 4 del plan).
@@ -94,3 +94,9 @@ Fuente: [plan aprobado de señas y avisos](../plans/propuesta-senas-avisos-natal
 - Ocultar cambia únicamente el aviso, con permiso vigente de dueño/admin/recepción y auditoría atómica/idempotente. No cambia turnos ni disponibilidad. No reviven duplicados anteriores al ocultar el último hecho. Si la lectura falla, la agenda informa que no pudo comprobarla.
 - «Dar este horario» precarga día local, profesional, prestación y hora. Una prestación retirada exige elegir otra vigente; una hora ya ocupada vuelve a las opciones actuales. Los filtros de agenda se conservan al cambiar rango, página u ocultar; un resultado de ocultar no abre crear turno. Demo no escribe ni ofrece reasignación real.
 - Pruebas: `appointment_slot_releases.sql`, `slot-releases.test.ts`, `SlotReleaseAlerts.client.test.ts`, `ManualAppointmentWizard.client.test.ts` y `appointment-slot-releases.spec.ts`. La existencia del spec no acredita su ejecución: evidencia y pendientes en el registro de la campaña. Release, staging y producción siguen separados de la prueba descartable.
+
+## E — contrato planificado, todavía no implementado (2 de noviembre)
+
+Fuente única: [especificación de E](../plans/etapa-e-correo-autogestion.md), incorporada por [plan 12.18](../plans/propuesta-senas-avisos-natalia.md#etapa-e-vigente). Los contratos de A/B/C anteriores describen lo publicado; la nueva exigencia y el destino de señas al reprogramar por iniciativa del paciente no están activos.
+
+E exige movimiento autónomo con revisión semántica y una transacción que incluya dinero/historia/eventos, email obligatorio configurable con excepción de recepción, comprobantes y recordatorios 72/24, botones y marca del consultorio, gestión revocable y entrega mediante Zoho. La proyección de seña uno a uno y los contratos de calendario/push se conservan. Ninguna lectura estática ni prueba previa de A/B/C certifica estas garantías nuevas; cada caso de la matriz de E requiere evidencia.

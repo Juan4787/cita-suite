@@ -1,6 +1,6 @@
 # Propuesta: señas, avisos por WhatsApp y horarios liberados para el consultorio de Natalia Frutos
 
-**Estado:** **aprobada íntegramente por Juan el 29 de octubre de 2026**, con la revisión 2. Es la fuente de verdad de la campaña.
+**Estado:** **aprobada íntegramente por Juan el 29 de octubre de 2026**, con la revisión 2. Es la fuente de verdad de la campaña. **Actualización vigente del 2 de noviembre:** E tiene definición revisada de correo con Zoho, reprogramación autónoma y nuevas señas en [12.18](#etapa-e-vigente) y su [especificación](etapa-e-correo-autogestion.md); implementación/configuración esperan la próxima instrucción de Juan. D sigue en pausa. Las pausas y Resend de las secciones anteriores son historia en lo que 12.18 reemplaza.
 - La aprobación literal y los ajustes posteriores están en la sección 12, que sólo crece hacia el final.
 - El texto aprobado está guardado tal cual en `.verification/senas-avisos-20261029/plan-aprobado-20261029.md`, con SHA-256 `24abe324…4d3c43`.
 - Después de la aprobación cambiaron sólo esta línea de estado y la sección 12; el registro deja la comprobación.
@@ -1181,3 +1181,44 @@ El agente propuso reglas, textos y tres decisiones. Juan citó las tres decision
 9. **Textos sin alarmismo.** No se dice que Cita Suite «tendrá acceso a todos tus pacientes e historiales clínicos». Las opciones se describen por su uso: algo en el momento, algo durante el día, o la configuración inicial con prestaciones, horarios, preguntas, la web y las pruebas.
 
 **Registro y evidencia:** `docs/plans/registro-senas-avisos-natalia.md` (sección «Ayuda con duraciones, V11») y `.verification/ayuda-duraciones-20261101/`.
+
+<a id="etapa-e-vigente"></a>
+
+### 12.18 Etapa E: correo con Zoho, autogestión y nuevas señas (2 de noviembre)
+
+**Estado y alcance del pedido actual:** revisar la propuesta contra el código, corregir sus resoluciones y actualizar documentación. Juan dará después la instrucción de empezar. No configurar secretos/DNS/proveedor, implementar, enviar mensajes ni publicar durante esta revisión. Esto no revoca autorizaciones productivas anteriores para el trabajo que corresponda al reanudarse; D no se reanuda.
+
+**Fuente operativa de E:** [Etapa E: correo del consultorio, reprogramación autónoma y señas](etapa-e-correo-autogestion.md). Contiene las decisiones, contraste C01–C13, matriz identificada de casos, correcciones, orden de ejecución, fuentes de Zoho y condiciones de cierre. La matriz describe pruebas requeridas, no corridas aprobadas.
+
+#### Decisiones conversadas y extractos literales de Juan, en orden
+
+1. **Inicio de la definición:** «Vamos a ejecutar la fase E que son las notificaciones por email»; pidió email obligatorio por defecto, desactivable, botones opcionales CANCELAR/REPROGRAMAR y pantallas de confirmación con alternativas cruzadas. Cerró: «antes de empezar nada, lee el plan, evalua esta propuesta y decime si estas de acuerdo, si agregarias o quitarias algo o si hay algoq ue no estoy teniendo en cuenta».
+2. **Recepción:** «para los pacientes registrados por recepcion podria salirles un aviso que diga algo asi "si no se registra el email no se le enviaran recordatorios por ese medio"». Se precisó «Continuar sin email» / «Agregar email», comprobando la ficha existente.
+3. **Autogestión:** rechazó que reprogramar termine en coordinación con recepción: «si reprogramar implica coordinar con recepcion implica volver al mismo problema de coordinacion idas y vueltas que cita suite pretende resolver». Se acordó elegir otro horario y conservar el anterior hasta completar el cambio.
+4. **Nueva seña:** «por defecto si la reserva exige seña para poder reprogramar, deberia pedir otra seña con opcion de quitarse». Se explicó guardar el nuevo horario como reservado con la nueva obligación pendiente; la transferencia sigue registrándose por el consultorio, sin cobro integrado.
+5. **Mensajes y tiempos:** tras coincidir con el recorrido y la explicación de comprobantes/pedidos/recordatorios, precisó: «los recordatorios por email serian 72hs antes y 24hs antes. Ademas los comprobantes tambien tendrian los mismos botones que lleven a cita suite para cancelar o reprogramar».
+6. **Identidad:** «es importante no hacer referencia al nombre cita suite ni poner el logo de cita suite en el email, la prioridad estetica es el consultorio».
+7. **Destino del pago anterior:** «por defecto que se pierda pero que le de la opcion al consultorio de sumarla».
+8. **Proveedor:** «hay un cambio pasamos de resend a https://cpaas.zoho.com/ decime que opinas». Tras la evaluación pidió: «excelente y dame una propuesta para todos los edge case porque hay bastantes».
+9. **Economía:** «no iba a poder mantenerlo grauito indefinidament con un consultorio promedio con 500 pacientes por mes y 3 emails por paciente». El contexto es 1.500 mensajes mensuales de base más cambios/pedidos/cancelaciones. Se dimensiona por turnos y mensajes, sin exigir gratuidad indefinida ni usar ese cálculo como prueba de insuficiencia de otro proveedor.
+
+Pedido final de esta revisión, literal:
+
+> Bueno, verifica contra el codigo si la resolucion a todos esos edge case es la correcta y la mejor posible y si es asi modifica toda la documentacion del plan en esa seccion revisnaod que no quede documentacion contradictoria. tambien deja registrado, todos los cambios que hablamos y te aviso que ya me registre en ZOHO y probe el envio de 2 emails, la verificacion KYC esta pendiente pero ya tengo 100 emails gratis por dia, cuando tenga la verificacion pago. pero ya podemos empezar a configurarlo y probar. Cuando hagas todo eso avisame y te doy la instruccion para empezar
+
+#### Aplicación y precedencia
+
+1. **Proveedor y economía:** Zoho sustituye Resend. Cuenta creada y dos envíos probados por Juan; KYC pendiente y 100 emails gratis/día según su informe. Pagará después de la verificación. Se admite costo controlado de correo con un consultorio; exceptúa sólo ese gasto de la restricción económica histórica. No autoriza compras por el agente, recargas automáticas, otros canales, cambio de infraestructura ni tocar SMTP de Auth.
+2. **Email del paciente:** obligatorio por defecto en alta pública directa e integrada, desactivable por consultorio. Recepción puede continuar sin email con aviso y alternativa para agregarlo, comprobando la ficha real en servidor. No imponerlo retroactivamente a operaciones ajenas ni confundirlo con la confirmación de la cuenta de acceso.
+3. **Avisos:** comprobantes de reserva/cambio/cancelación, pedido de seña pertinente y recordatorios 72/24 h en esta entrega. Botones configurables donde tengan sentido; turno cancelado ofrece nueva reserva si está disponible, sin resucitarlo. Push 24/2 y alarmas existentes conservan sus reglas.
+4. **Identidad y enlaces:** prioridad estética del consultorio, sin marca de Cita Suite en contenido; enlaces al dominio oficial. Dominio de envío y contacto reales verificados. Confirmación explícita; abrir enlaces o cambiar de alternativa no modifica nada.
+5. **Reprogramación:** selección autónoma, manteniendo el turno anterior hasta éxito. Mismo turno, prestación/profesionales/modalidad; duración vigente y condiciones mostradas/revalidadas. Los pedidos manuales previos se conservan, pero no son el resultado del nuevo botón.
+6. **Señas:** nueva obligación por cambio voluntario del paciente por defecto, desactivable; pago anterior perdido por defecto, con opción de sumarlo a cuenta. Dinero e historia separados de la exigencia actual; cuatro combinaciones explicadas en la especificación. Cambios del consultorio, fallos y operaciones sin cambio no penalizan por defecto. Una impaga no genera dos deudas. La reserva queda pendiente de la seña que corresponda.
+7. **Transparencia:** reglas económicas informadas/fotografiadas; sin pérdidas retroactivas, pagos borrados, acreditaciones inventadas o supuestos de saldo completo. La devolución al cancelar sigue pendiente de la política del consultorio.
+8. **Contraste y correcciones:** revisión semántica y transacción completa, historia compatible uno a uno, gestión revocable sin romper calendarios, disponibilidad compartida y presupuesto medido. Se retira supresión genérica por cercanía de 30 minutos; recuperación de recordatorios de 30 minutos queda como parámetro técnico inicial propuesto, no aprobación literal.
+9. **Secuencia:** E puede avanzar antes de D. A/B/C conservan su cierre; no volver a publicar/reensayar por rutina. Verificar E por sus garantías y con controles proporcionados al criterio inicial de AGENTS.
+10. **Pausa actual de ejecución:** terminar documentación, avisar y esperar la instrucción de Juan para comenzar integración/configuración/código. Su informe de Zoho no acredita aún conexión con Cita Suite ni sustituye una prueba integral de recepción y uso de enlaces.
+
+**Qué reemplaza:** sección 0.9 y pausa D/E de 0/6; restricción económica de 1.2 sólo para correo; promesas 6/11 de 2; proveedores de 3/4.14/7/8/9/10; reprogramación voluntaria de 4.2–4.5 y recorrido de 4.9; pruebas, compatibilidad y automatización de 5/6, ampliadas por E. Sustituye el orden D→E de 12.12 y pausa de E de 12.13–12.16. No modifica 4.13/D, autorización productiva general, datos faltantes de Natalia, acceso/identidad de su cuenta, resultados históricos ni plazos generales de seña/baja automática.
+
+**Continuidad:** [especificación](etapa-e-correo-autogestion.md), [registro de revisión](registro-senas-avisos-natalia.md#etapa-e-revision), [punto de continuación](traspaso-senas-avisos-natalia.md#etapa-e-punto) y [pendientes vigentes](pendientes-vigentes.md#etapa-e-pendientes).

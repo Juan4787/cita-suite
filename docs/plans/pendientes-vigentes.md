@@ -2,7 +2,7 @@
 
 **Para qué existe:** Juan pidió el 31 de octubre de 2026 que no se pierda nada de lo que queda pendiente (plan de señas y avisos, sección 12.15). Esta es la lista única. Cada punto remite a su documento de origen, que conserva el detalle. Al cerrar un punto, se lo marca como hecho acá con la fecha y la evidencia, y se actualiza su documento de origen.
 
-**Última revisión:** 1 de noviembre de 2026, 10:40 UTC, al cerrar el trabajo del plan 12.16 (detalle en el registro de señas y avisos, sección «1 de noviembre»).
+**Última revisión:** 3 de noviembre de 2026, cierre documental de la definición de E conversada el 2 de noviembre y registrada en plan 12.18. Las otras entradas conservan sus fechas y evidencias; esta revisión no acredita ejecución de E.
 
 ## 1. Lo que sigue para la entrega a Natalia
 
@@ -37,13 +37,21 @@ Fuente: `docs/clientes/natalia-frutos/informacion-20261029.md`, secciones 4 y 5,
 9. **Anticipación de las reservas:** hoy rigen los valores por omisión (hasta 60 días, sin reservas para el mismo día y sin anticipación mínima). Hay que confirmarlos con ella.
 10. **Su dominio propio:** cuando lo compre, se carga en `PRODUCTION_NATALIA_SITE_URL` (`scripts/lib/production-deploy.mjs`), se agrega como origen de su integración y como dominio en Vercel, se redirige la dirección provisoria y se publica. Desde ahí la web se indexa, con dirección canónica en cada página y mapa del sitio. Hasta entonces, cada página pide no ser indexada (decisión propia 12 del registro).
 
-## 3. Etapas en pausa del plan de señas y avisos (Juan, 12.16: «las dejamos para más adelante»)
+## 3. Etapas D y E: alcance actual
 
-1. **Etapa D, aviso al celular del consultorio** (plan, sección 4.13). Necesita los tipos de teléfono (punto 2.7) y la decisión de retomarla.
-2. **Etapa E, correo electrónico a pacientes** (plan, sección 4.14, promesas 6 y 11):
-   - necesita una cuenta propia de **Resend** u otro proveedor, la verificación de su dominio y una prueba de recepción real;
-   - no se usa el Gmail de recuperación para envíos masivos;
-   - no se contrata nada sin decisión de Juan.
+1. **D, aviso al celular del consultorio: sigue en pausa.** Necesita los tipos de teléfono (punto 2.7) y una decisión propia de retomarla. Iniciar E no habilita D.
+
+<a id="etapa-e-pendientes"></a>
+
+2. **E, correo y autogestión: definición revisada; implementación/configuración por iniciar cuando Juan lo indique.**
+   - Fuente: [plan 12.18](propuesta-senas-avisos-natalia.md#etapa-e-vigente) y [especificación completa](etapa-e-correo-autogestion.md). La revisión de código/documentación está hecha; ningún comportamiento nuevo de E está publicado.
+   - **Ya hecho por Juan:** registro en Zoho y prueba de dos envíos. Informó KYC pendiente y 100 correos gratuitos diarios; pagará al completarlo. No falta crear cuenta Resend ni volver a crear Zoho.
+   - **Al iniciar:** comprobar dominio/remitente/región, credenciales fuera de chat/git, cuota/saldo/vencimiento reales, configuración del emisor, webhooks y buzones autorizados. Sus dos mensajes no prueban integración ni recepción/acciones desde Cita Suite.
+   - **Trabajo técnico pendiente:** email requerido configurable y aviso de recepción; reprogramación autónoma transaccional con revisión; historia y nueva exigencia de seña; gestión revocable; cola, plantillas del consultorio, avisos 72/24 y los casos de aceptación.
+   - **Prueba de cierre pendiente:** integración real con Zoho, recepción en los buzones acordados, botones desde el correo, consistencia de agenda/dinero/calendario y controles de consumo/recuperación. Los casos del plan son requisitos sin ejecutar.
+   - **Economía:** aceptado gasto controlado de correo con un consultorio. KYC/compras de créditos a cargo de Juan, sin recarga automática ni cambios de infraestructura/Auth.
+   - **Continúa pendiente de la clienta:** condiciones de devolución al cancelar y datos de la seña del punto 2.5. La pérdida acordada al reprogramar no define esas devoluciones.
+   - **Ahora:** avisar a Juan y esperar su instrucción de inicio. No reabrir la pregunta de proveedor ni de alta de cuenta.
 
 ## 4. Lanzamiento y operación general
 
@@ -191,4 +199,4 @@ Fuente: `docs/clientes/natalia-frutos/informacion-20261029.md`, secciones 4 y 5,
 
 ## 7. Trabajo en curso
 
-Ninguno. El modo claro quedó publicado el 2 de noviembre (sección 6). Lo que dejó pendiente está en la sección 4: la insignia del botón de cuenta, que es anterior a esa campaña.
+La revisión documental de E quedó terminada y su ejecución espera la próxima instrucción de Juan (sección 3). El modo claro sigue publicado; la insignia del botón de cuenta conserva su pendiente de la sección 4.

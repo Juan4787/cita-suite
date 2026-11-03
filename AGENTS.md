@@ -42,7 +42,7 @@ Las reglas de procedimiento históricas de esta sección se interpretan según e
 
 ## Campaña de señas y avisos del consultorio de Natalia (29 de octubre)
 
-Las exigencias históricas de entornos, copias y ensayos de esta sección están subordinadas a la corrección contextual vigente del comienzo. La pausa de Natalia/D/E y la protección de cuentas/configuración reales se mantienen.
+Las exigencias históricas de entornos, copias y ensayos de esta sección están subordinadas a la corrección contextual vigente del comienzo. Las pausas de Natalia/D/E que aparecen en los apartados fechados siguientes son históricas: el alcance actual de E está en la sección «Etapa E — definición documental del 2 de noviembre» al final de este archivo. D y los datos comerciales faltantes de Natalia siguen pendientes; las cuentas/configuración reales conservan su protección.
 
 - **Fuente de verdad:** `docs/plans/propuesta-senas-avisos-natalia.md`, aprobado íntegramente por el usuario el 29 de octubre.
   - Su sección 12 contiene la aprobación literal y los ajustes posteriores, y sólo crece hacia el final.
@@ -144,3 +144,13 @@ Las exigencias históricas de entornos, copias y ensayos de esta sección están
 - **Rama de trabajo:** `main`. Las candidatas se arman sobre `main`. Al publicar, la revisión publicada entra a `main` y se sube a GitHub en el mismo paso.
 - **No se congela una rama como protección.** El 2 de noviembre eso dejó tres historias divergentes (`origin/main`, la rama local y la línea de producción), que se unieron en `main` sin perder commits. El detalle está en el registro.
 - **Nunca se publica en el repositorio** lo que `.gitignore` marca como privado: datos de clientes, volcados de base, evidencia nueva y archivos `.env`.
+
+## Etapa E — definición documental del 2 de noviembre
+
+- Fuente vigente: plan de señas y avisos, sección [12.18](docs/plans/propuesta-senas-avisos-natalia.md#etapa-e-vigente), y [especificación de E](docs/plans/etapa-e-correo-autogestion.md). Sustituyen Resend, la pausa conjunta D/E y la reprogramación sólo como pedido en este alcance. D sigue en pausa.
+- Este pedido autoriza revisar código y actualizar documentación. Al terminar, avisar y **esperar la próxima instrucción de Juan para implementar/configurar/probar**. No adelantar código, migraciones, secretos, DNS, envíos o publicación.
+- Cambios acordados: email público requerido por defecto, desactivable; recepción puede seguir sin email tras aviso; comprobantes y recordatorios 72/24 h con botones configurables y marca del consultorio; reprogramación autónoma; nueva seña por defecto y pérdida del importe anterior, con opciones de desactivar la nueva obligación y de conservar el anterior a cuenta. Reglas completas y casos identificados en la especificación, sin duplicarlas aquí.
+- Zoho: Juan ya se registró y probó dos envíos; KYC pendiente y 100 emails gratuitos/día, según informó. Pagará al verificarse. No pedirle crear otra cuenta ni tratar KYC como impedimento para preparar las pruebas permitidas. No confundir esos envíos con integración E ni recepción/recorrido integral comprobados por el agente.
+- Excepción económica expresa para correo: se admite costo operativo controlado aun con un consultorio, sin exigir gratuidad indefinida. No autoriza compras por el agente, auto-recargas, otros canales ni cambiar Supabase/Workers o SMTP de Auth.
+- Los ajustes encontrados leyendo código se registran como requisitos pendientes, no como pruebas ejecutadas. Conservar historial de dinero, proyección de seña compatible, revisión semántica y revocación de gestión sin romper calendario/push. No copiar la lógica de reservas a la web de Natalia.
+- Registro/traspaso de esta campaña y pendientes vigentes conservan el punto exacto. La revisión es documental; producción sigue en V12b y su versión se toma del estado vigente.

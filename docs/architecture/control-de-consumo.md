@@ -1,8 +1,16 @@
 # Control de consumo
 
-**Restricción económica vigente — 25 de octubre:** el usuario vendió la app con pago único y no asumirá servicios pagos recurrentes para un consultorio. Comprará el dominio; recién desde el segundo consultorio podrá evaluarse pagar infraestructura. No se autorizan contrataciones, migraciones ni cambios de plan por alcanzar esa cantidad.
+**Restricción económica de infraestructura — 25 de octubre:** el usuario vendió la app con pago único y no asumirá servicios pagos recurrentes de infraestructura para un consultorio. El correo tiene la excepción posterior del 2 de noviembre indicada abajo. Comprará el dominio; recién desde el segundo consultorio podrá evaluarse pagar infraestructura. No se autorizan contrataciones, migraciones ni cambios de plan por alcanzar esa cantidad.
 
 **Decisión posterior del 25 de octubre:** el lanzamiento es para un consultorio sobre los planes gratuitos, y desde el segundo consultorio el usuario pagará Supabase Pro. El pedido literal y su aplicación están al final del [plan](../plans/refactorizacion-cita-suite.md). La contratación la hace el usuario, con el tope de gasto activado; el agente no contrata, no migra y no cambia planes. Workers sigue en Free: Workers Paid no forma parte de esta decisión.
+
+## Excepción posterior para correo — 2 de noviembre
+
+**La restricción histórica anterior no exige correo gratuito indefinido.** Juan eligió Zoho CPaaS y confirmó que pagará créditos después del KYC, aun con un consultorio. Cuenta creada, dos envíos probados por él y 100 correos gratuitos diarios informados; no son comprobación de la integración de Cita Suite. Ver [plan 12.18](../plans/propuesta-senas-avisos-natalia.md#etapa-e-vigente) y [especificación](../plans/etapa-e-correo-autogestion.md).
+
+Base aportada: 500 pacientes/mes × 3 mensajes = 1.500 mensajes/mes, más cambios, cancelaciones y pedidos. Dimensionar por turnos/destinatarios reales y picos, no sólo promedio ni pacientes únicos. Cupos iniciales, saldo, reinicio diario y vencimiento efectivos se leen en la cuenta al configurar. Créditos temporales no son disponibilidad indefinida; tampoco se afirma que 1.500 mensajes prueben insuficiencia de otro proveedor.
+
+Costos y alertas controlados, compras de Juan y sin auto-recarga. Esta excepción sólo cubre correo: no habilita Supabase Pro/Workers Paid para el primero, IP dedicada, WhatsApp/SMS/Voice ni compras del agente. Los límites del programador actual y el aislamiento por consultorio siguen siendo requisitos; preparación/configuración espera la próxima instrucción.
 
 ## Decisión económica del usuario y aplicación
 
@@ -10,7 +18,7 @@ Contexto aportado por el usuario: «me compraron la app con pago unico, no puedo
 
 Decisión posterior literal: «la conclusion es clara, si voy a comprar el dominio pero no voy a meterme en gastos recurrentes ahora para 1 consultorio. lo minimo que puedo extenderme es pagar recien en el segundo».
 
-- **Primer consultorio:** priorizar soluciones sin nuevos cargos recurrentes. No proponer Supabase Pro, Workers Paid ni otro alojamiento pago como gasto inmediato o requisito que el usuario deba aceptar. Si la infraestructura gratuita no demuestra los requisitos, documentar el impedimento y las alternativas compatibles; no ocultarlo ni contratar para superarlo.
+- **Primer consultorio:** priorizar soluciones sin nuevos cargos recurrentes de infraestructura; el correo tiene la excepción posterior indicada arriba. No proponer Supabase Pro, Workers Paid ni otro alojamiento pago como gasto inmediato o requisito que el usuario deba aceptar. Si la infraestructura gratuita no demuestra los requisitos, documentar el impedimento y las alternativas compatibles; no ocultarlo ni contratar para superarlo.
 - **Dominio:** el usuario compró `cita-suite.com.ar` el 27 de octubre (NIC Argentina, hasta el 26-oct-2027). Es un pago anual del usuario, no del agente. La compra no configura el correo ni verifica Google ([dominio](dominio.md)).
 - **Landing en Vercel Hobby (27 de octubre):** el usuario decidió dejarla ahí («la dejamos en vercel si no molesta»). Riesgo documentado: la política de Vercel limita Hobby a uso no comercial, y el plan Pro tiene costo mensual. La alternativa sin costo, Cloudflare Workers con archivos estáticos, quedó preparada y sin dominio. No se contrató nada.
 - **Segundo consultorio:** primer momento admisible para evaluar un servicio pago, con decisión explícita, financiación definida y control de gasto compatible. No se presupone que una segunda venta de pago único financie facturas indefinidamente.
@@ -52,7 +60,7 @@ Las protecciones del código siguen valiendo con cualquier proveedor. Con infrae
 
 ## Al contratar infraestructura paga
 
-Para un consultorio no se asumen servicios pagos recurrentes. **Desde el segundo consultorio el usuario pagará Supabase Pro** (decisión del 25 de octubre); esa decisión **no autoriza al agente a contratar nada**. Cuando el usuario contrate:
+Para un consultorio no se asumen servicios pagos recurrentes de infraestructura; el correo se rige por la excepción del 2 de noviembre. **Desde el segundo consultorio el usuario pagará Supabase Pro** (decisión del 25 de octubre); esa decisión **no autoriza al agente a contratar nada**. Cuando el usuario contrate:
 
 - Sólo servicios de precio fijo o con tope duro de gasto. Supabase Pro se usa con el tope de gasto activado: al llegar a la cuota restringe en vez de cobrar el excedente. Antes de contratar hay que verificar qué partidas cubre ese tope; por ejemplo, un cómputo mayor que el incluido se cobra aparte.
 - Antes de incorporar el segundo consultorio, con Pro activo, se demuestran los criterios del plan con dos consultorios en ese destino.
