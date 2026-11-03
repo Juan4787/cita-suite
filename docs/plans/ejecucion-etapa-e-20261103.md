@@ -37,7 +37,7 @@ Fuentes: [plan íntegro y ajustes](propuesta-senas-avisos-natalia.md#ejecucion-e
 
 **Fase:** E0 completo; E1 y primera integración E2 en implementación. Siete migraciones comprobadas en SQL descartable; adaptadores y pantalla compartida escritos, sin publicar ni aplicar SQL en producción. Personal/roles/contacto/cola pendientes. **Publicación de E:** no. **Pruebas integrales E:** no ejecutadas.
 
-**Siguiente acción:** recuperar SQL de corrección de reloj y trece carreras (E1.39), cotejar digest/tipos; completar fast E2 después, sin pruebas pesadas en paralelo. Último SQL íntegro `41653421061` corresponde a la fuente anterior, no al helper nuevo. Roja comercial `41659705885` comprobada. E1 personal/ayuda/identidad/cola y E3–E6, así como navegador/paquete, siguen pendientes; después P1/P2/P3.
+**Siguiente acción:** fast corregido de E2, incluyendo tipos del nuevo spec de navegador; si aprueba, diagnóstico browser `isolated patient management` con el arnés existente, secuencial. Último SQL íntegro `41660810130`, siete migraciones, 763 pgTAP/17 scripts/trece carreras. Navegador escrito pero sin ejecutar; no confundirlo con prueba real. E1 personal/ayuda/identidad/cola y E3–E6 siguen pendientes; después P1/P2/P3.
 
 **Evidencia privada de esta ejecución:** `.verification/etapa-e-20261103/`. Ningún secreto, dirección de paciente, cuerpo de correo recibido o dato personal se incluye en Git ni en documentos públicos. Las rutas de evidencia no equivalen a resultados aprobados.
 
@@ -492,3 +492,17 @@ La regla de cada caso se lee en la especificación; esta tabla registra su acept
 - Fundamento: business_allows_operation usaba now() del comienzo de la transacción; esperar no avanzaba esa autoridad. En .010 no aplicada se extrae la misma regla comercial a helper privado STABLE con reloj explícito; función pública anterior delega con transaction_timestamp y conserva su contrato/firma/grants. Sin dos copias del criterio comercial ni cambio de plazos/flags. .040 y .050 usan el reloj de decisión después del bloqueo o de su lectura coherente, respectivamente. No modifica la excepción mínima para cancelar.
 - Carrera agregada a `run_patient_management_concurrency.sh`: suscripción bloqueada mientras el comando espera (pg_blocking_pids real); se deja pasar su vencimiento antes de commit y se exige rechazo sin movimiento. Las doce anteriores siguen; nueva cantidad trece. Bash syntax comprobada; carrera nueva todavía sin ejecutar. No atribuirle la roja anterior ni un verde de doce carreras.
 - Nueva suite SQL/digest/tipos pendientes para .010/.040/.050 modificadas (ninguna E aplicada en producción). Ayuda que vence y operaciones del personal todavía requieren su propia revalidación/carreras; esta corrección no cierra OP02.
+
+
+### E1.40 — reloj comercial y trece carreras aprobados
+
+- **Suite SQL completa 41660810130**, fuente `8b97c231c94200e6a30eb6094001740176eb43d0`, main de código `4b431a7`: **763 pgTAP, 17 scripts y trece carreras del comando**. Los nuevos grupos 36–37 y espera real `access_expires_while_waiting` aprobados; contador de deadlocks sin aumento. Se conserva el resto de lectura/recuperación/proyección/identidad y la regla comercial previa para sus consumidores anteriores.
+- Recibo ok/sqlVerified, evidencia privada `sql-reloj-41660810130.zip`, colección `sql-reloj-evidence`, SHA-256 `c77ec6feb01223c80224e7a0ad1613dc6969289154fb0ea3e6274b9150f75ac1`. Tipos oficiales doble generación iguales al archivo actual, SHA-256 `c85bc7e3a826d0499c6c883c4505f4c3a6bd5a122154322998f14cfebcf2b1df`; digest actual de migraciones `0d66787f8ca3ae40fb5f88680c070d61866e8ec41028a33bbffddc80173d040c`, cotejado. No reescribir tipos sin cambios ni atribuir prueba a una migración futura.
+- No se aplicó/publicó E ni hubo correo nuevo. Ayuda/roles de personal y cola siguen pendientes; esta prueba comercial no los cierra.
+
+### E2.5 — navegador integral y matriz escritos, todavía sin ejecutar
+
+- Skill frontend-testing-debugging aplicada; catálogo de herramientas sin Browser host operativo. Se usa el arnés Playwright existente de CI, no navegador/compilación local. Flujo previsto: `/gestion/<cap>` → alternativas sin escritura → elegir horario y revisar condiciones → mover → repetir la solicitud original → cancelar → revocar → comprobar legado/UID; cancelación nativa sin JavaScript en otro turno.
+- `patient-management.spec.ts`, dos casos etiquetados `@candidate-behavior`, usa consultorios/datos sintéticos propios, negocio/servicio/profesional/integración independientes y restauración de flags globales. Cita Suite y Natalia, modos claro/oscuro, anchos 320/390/768/1280/1600, capturas del primer viewport y tarea, layout/errores/console. Ningún envío a Zoho/Google ni resultado productivo se deduce de esa cobertura.
+- Se comparan horario/estado, proyección de nueva seña, pérdida anterior, secuencia/UID, recibos/duplicación, enlaces revocados y datos antes/después de GET. Cookie interna vencida se agrega deliberadamente. El formulario sin JS debe confirmar cancelación con SQL real y conservar la capacidad separada.
+- **Estado:** spec sólo escrito, sin tipado ni ejecución todavía. La matriz visual se revisará al recuperar capturas y las fallas del spec/arnés se resolverán por evidencia; no es un cierre de UI ni E.
