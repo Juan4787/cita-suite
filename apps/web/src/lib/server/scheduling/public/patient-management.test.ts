@@ -56,6 +56,13 @@ describe('patient management command adapter', () => {
   await expect(applyPatientManagementCommand(db as never, access, { ...move(), expectedRevision: 'e'.repeat(64) })).rejects.toThrow('APPOINTMENT_MANAGEMENT_CHANGED');
   expect(db.rpc.mock.calls.some(call => call[0] === 'apply_patient_appointment_management')).toBe(false);
  });
+ it('rejects a sub-millisecond forged slot instead of truncating it into an available instant', async () => {
+  const db = client();
+  vi.mocked(getAvailabilitySelection).mockResolvedValue({ slots: [{ date: '2026-12-02', time: '09:00', starts_at: move().startsAt,
+   ends_at: result().ends_at, professional_id: id(3), professional_name: 'Profesional' }], configurationRevision: 4, availabilityRevision: 9, durationMinutes: 45 });
+  await expect(applyPatientManagementCommand(db as never, access, { ...move(), startsAt: '2026-12-02T12:00:00.000001Z' })).rejects.toThrow('APPOINTMENT_SLOT_UNAVAILABLE');
+  expect(db.rpc.mock.calls.some(call => call[0] === 'apply_patient_appointment_management')).toBe(false);
+ });
  it('rejects a changed availability version and an unavailable chosen slot without mutation', async () => {
   for (const revision of [8, 9]) {
    const db = client(); vi.mocked(getAvailabilitySelection).mockResolvedValue({ slots: [], configurationRevision: 4, availabilityRevision: revision, durationMinutes: 45 });

@@ -18,23 +18,41 @@ produccion_repositorio: github-secundaria:Juan4787/cita-suite-verificacion.git
 
 ## Actualización documental de E — 2 de noviembre
 
-Se revisó E contra el código de main 45ad4dad3259386b445d3306ca66bb16bf51f285 y se incorporó al [plan 12.18](plans/propuesta-senas-avisos-natalia.md#etapa-e-vigente) su [especificación](plans/etapa-e-correo-autogestion.md), con Zoho y autogestión. Sólo documentación: no cambia el código distinto de producción listado abajo, la revisión servida ni su recuperación. El 3 de noviembre Juan indicó conectar Zoho desde la terminal y guardar el acceso para reinicios: [plan 12.19](plans/propuesta-senas-avisos-natalia.md#zoho-terminal-vigente) y [guía de operación](architecture/zoho-cpaas-terminal.md). OAuth local, consultas y renovación comprobados; herramienta guardada en Git y credenciales privadas persistentes fuera del repositorio. Juan autorizó después implementar/auditar/probar/publicar E íntegra: [plan 12.20](plans/propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada). El [registro activo](plans/ejecucion-etapa-e-20261103.md) contiene continuidad y los 97 casos; decisiones iniciales resueltas (subdominio por consultorio, correo activo por defecto y acciones contextuales), contrato de contexto E1 implementado y probado localmente, todavía sin integrar a rutas/envíos y sin otra espera de autorización. La D celular quedó reemplazada por avisos internos, a ejecutar después de E/P1/P2; [cola separada](plans/tareas-posteriores-a-e-20261103.md).
+Se revisó E contra el código de main 45ad4dad3259386b445d3306ca66bb16bf51f285 y se incorporó al [plan 12.18](plans/propuesta-senas-avisos-natalia.md#etapa-e-vigente) su [especificación](plans/etapa-e-correo-autogestion.md), con Zoho y autogestión. Sólo documentación: no cambia el código distinto de producción listado abajo, la revisión servida ni su recuperación. El 3 de noviembre Juan indicó conectar Zoho desde la terminal y guardar el acceso para reinicios: [plan 12.19](plans/propuesta-senas-avisos-natalia.md#zoho-terminal-vigente) y [guía de operación](architecture/zoho-cpaas-terminal.md). OAuth local, consultas y renovación comprobados; herramienta guardada en Git y credenciales privadas persistentes fuera del repositorio. Juan autorizó después implementar/auditar/probar/publicar E íntegra: [plan 12.20](plans/propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada). El [registro activo](plans/ejecucion-etapa-e-20261103.md) contiene continuidad y los 97 casos; decisiones iniciales resueltas (subdominio por consultorio, correo activo por defecto y acciones contextuales), contrato de contexto E1 implementado y probado localmente, con primera integración de rutas de autogestión sin CI general todavía, sin envíos ni otra espera de autorización. La D celular quedó reemplazada por avisos internos, a ejecutar después de E/P1/P2; [cola separada](plans/tareas-posteriores-a-e-20261103.md).
 
 ## Código que difiere de producción
 
 El chequeo compara esta lista con `git diff --name-status <produccion_revision> HEAD` sobre el código (`apps`, `packages`, `scripts`, `supabase` y los archivos de configuración de la raíz, sin `apps/web/output`). Tiene que coincidir exactamente.
 
 ```codigo-distinto-de-produccion
+A	apps/web/.impeccable/surfaces/gestion-del-turno.md
+M	apps/web/DESIGN.md
+M	apps/web/src/hooks.server.test.ts
+M	apps/web/src/hooks.server.ts
 M	apps/web/src/lib/availability/contracts.test.ts
 M	apps/web/src/lib/availability/contracts.ts
+A	apps/web/src/lib/components/appointments/PatientManagementPanel.client.test.ts
+A	apps/web/src/lib/components/appointments/PatientManagementPanel.svelte
+A	apps/web/src/lib/components/appointments/PublicAppointmentPage.svelte
 A	apps/web/src/lib/scheduling/patient-action-context.test.ts
 A	apps/web/src/lib/scheduling/patient-action-context.ts
+A	apps/web/src/lib/scheduling/patient-management-page.ts
 A	apps/web/src/lib/scheduling/reschedule-terms.test.ts
 A	apps/web/src/lib/scheduling/reschedule-terms.ts
 M	apps/web/src/lib/server/scheduling/public/availability.test.ts
 M	apps/web/src/lib/server/scheduling/public/availability.ts
+A	apps/web/src/lib/server/scheduling/public/patient-management-flow.test.ts
+A	apps/web/src/lib/server/scheduling/public/patient-management-flow.ts
+A	apps/web/src/lib/server/scheduling/public/patient-management-page.ts
 A	apps/web/src/lib/server/scheduling/public/patient-management.test.ts
 A	apps/web/src/lib/server/scheduling/public/patient-management.ts
+M	apps/web/src/lib/server/scheduling/public/public-appointments.test.ts
+M	apps/web/src/lib/server/scheduling/public/public-appointments.ts
+A	apps/web/src/routes/gestion/[token]/+page.server.ts
+A	apps/web/src/routes/gestion/[token]/+page.svelte
+M	apps/web/src/routes/turno/[token]/+page.server.ts
+M	apps/web/src/routes/turno/[token]/+page.svelte
+M	apps/web/src/routes/turno/[token]/page.client.test.ts
 M	packages/shared/src/database.types.ts
 A	scripts/check-repo-sync.mjs
 M	scripts/test-booking-foundation.mjs
@@ -73,16 +91,18 @@ A	supabase/tests/run_patient_management_view_concurrency.sh
 | `supabase/tests/run_deposit_expiry_concurrency.sh` | Limpieza ordenada de sus turnos sintéticos antes del consultorio, compatible con la historia de dinero | No: sólo la base descartable de CI |
 | Migración `20261103020000` y `supabase/tests/appointment_management_capabilities.sql` | Enlaces revocables y recibo idempotente; comprobados en CI SQL `41600939474` | No: no se aplicó ni se integró a rutas; sólo CI descartable |
 | `packages/shared/src/database.types.ts` | Tipos oficiales, dos generaciones iguales en CI y digest de las migraciones locales cotejado antes de importar | No: todavía sin publicar |
-| Migración `20261103030000` y `supabase/tests/appointment_reschedule_financial_terms.sql` | Resumen económico de reprogramación sólo lectura, 19/19 y suite SQL aprobados en CI `41605022654`; sin consumidores | No: sólo CI descartable, sin aplicar ni conectar a rutas |
-| Migración `20261103040000` y `patient_appointment_management_commands.sql` | Comandos del paciente/eventos atómicos, Comando ampliado 35/35 y doce carreras aprobados en CI `41616550006`; regla compartida y conjunto de cinco migraciones verificados en CI 41650084150; extracción de huella para lookup .070 pendiente de nueva suite | No: sólo CI descartable, interruptores apagados al instalar |
+| Migración `20261103030000` y `supabase/tests/appointment_reschedule_financial_terms.sql` | Resumen económico de reprogramación sólo lectura, suite aprobada; consumido por comando/lectura y adaptador/UI iniciales, sin publicar | No: sólo CI descartable, sin aplicar ni conectar a rutas |
+| Migración `20261103040000` y `patient_appointment_management_commands.sql` | Comandos del paciente/eventos atómicos, Comando ampliado 35/35 y doce carreras aprobados en CI `41616550006`; regla compartida/huella/recuperación y conjunto de siete migraciones verificados en CI 41653421061 | No: sólo CI descartable, interruptores apagados al instalar |
 | `availability.ts` y su prueba | Contrato y calculador compartido con revisiones de catálogo/reserva y duración de la misma lectura; contrato anterior de slots conservado, 19/19 locales junto con ventanas | No: todavía sin publicar |
 | `run_patient_management_concurrency.sh` | Doce carreras y cero deadlocks comprobados en CI `41614887283`, incluida corrección de heartbeat; sólo loopback descartable | No: sólo CI |
-| `reschedule-terms.ts` y su prueba | Validación y formato preciso de las condiciones SQL, 20/20 locales, sin consumidores todavía | No: desarrollo sin publicar |
-| Migración .060 y prueba de reasignación ampliada | Rechazar recuperación con identidad reasignada, prueba ampliada aprobada en 41652233660; falta suite nueva completa | No: sólo CI descartable |
-| `patient-management.ts` y su prueba | Adaptador mínimo, disponibilidad y comando, 30/30 locales; todavía sin rutas/tipado remoto | No: desarrollo sin publicar |
-| `patient_appointment_management_recovery.sql` | Siete grupos del lookup de recibo .070, roja estructural comprobada, implementación pendiente de CI | No: sólo CI |
+| `reschedule-terms.ts` y su prueba | Validación/formato preciso de condiciones SQL, 20/20 locales; consumido por adaptador y panel iniciales, sin publicar | No: desarrollo sin publicar |
+| Migración .060 y prueba de reasignación ampliada | Rechazar recuperación con identidad reasignada, suite completa aprobada 41653421061 | No: sólo CI descartable |
+| `patient-management.ts` y su prueba | Adaptador mínimo, disponibilidad y comando, 31/31 locales; rutas iniciales escritas, CI general pendiente | No: desarrollo sin publicar |
+| `patient_appointment_management_recovery.sql` | Siete grupos del lookup de recibo .070, suite completa aprobada 41653421061 | No: sólo CI |
 | `patient_appointment_management_view.sql` | Lectura mínima con migración `20261103050000`, 16 grupos y lectura coherente comprobados en CI 41650084150 | No: sólo CI descartable |
 | `run_patient_management_view_concurrency.sh` | Carrera de lectura con modificación simultánea entre autorización/presentación aprobada en CI 41650084150 | No: sólo CI descartable |
+| Rutas `/turno`/`gestion`, hooks, componentes y flujos nuevos | Primera integración E2 con pantalla compartida, mutación antigua retirada; 84/84 dirigidos y panel 6/6, CI general/paquete/navegador pendientes | No: todavía sin publicar |
+| `apps/web/DESIGN.md` y superficie de gestión | Dirección de extensión/contexto, revisión visual pendiente | No: documentación de desarrollo |
 | `supabase/templates/recovery.html` | Plantilla del correo de recuperación, modificada en otro trabajo | No se despliega con la app: se carga aparte en Supabase. **No está verificado** si la versión de Supabase coincide con este archivo |
 
 ## Historia

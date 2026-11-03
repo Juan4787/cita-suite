@@ -1,0 +1,109 @@
+<script lang="ts">
+ import { enhance } from '$app/forms';
+ import type { SubmitFunction } from '@sveltejs/kit';
+ import { formatDateTime, formatDuration } from '$lib/utils/format';
+ import { formatDepositMoney } from '$lib/scheduling/reschedule-terms';
+ import type { PatientManagementPanelData, PatientManagementFeedback } from '$lib/scheduling/patient-management-page';
+ let { context, feedback }: { context: PatientManagementPanelData; feedback?: PatientManagementFeedback | null } = $props();
+ let busy = $state(false);
+ const progressive: SubmitFunction = () => {
+  busy = true;
+  return async ({ update }) => { try { await update({ reset: false }); } finally { busy = false; } };
+ };
+ const mode = $derived(feedback?.success ? 'overview' : context.mode);
+ const terms = $derived(context.financialTerms);
+ const fields = $derived({ operation_id: context.operationId, expected_revision: context.revision });
+ const cancelUrl = $derived(`${context.url}?accion=cancelar`);
+ const rescheduleUrl = $derived(`${context.url}?accion=reprogramar`);
+ const slotUrl = (startsAt: string) => `${rescheduleUrl}&fecha=${encodeURIComponent(context.date)}&horario=${encodeURIComponent(startsAt)}`;
+ const positive = (value: string) => BigInt(value) > 0n;
+</script>
+
+{#snippet hiddenFields(values: Record<string, string>)}
+ {#each Object.entries(values) as [name, value] (name)}<input type="hidden" {name} {value} />{/each}
+{/snippet}
+
+<section class="ux-card mt-5" aria-label="Gestión de tu turno" aria-busy={busy}>
+ {#if feedback?.message}
+  <p role={feedback.success ? 'status' : 'alert'} class={feedback.success ? 'ux-alert ux-alert-success mb-4' : 'ux-alert mb-4'}>{feedback.message}</p>
+ {/if}
+
+ {#if feedback?.submitted && !feedback.success}
+  <a class="ux-btn-secondary" href={context.url}>Revisar el turno</a>
+  {#if feedback.retrySameOperation && feedback.action}
+   <form method="POST" action={`?/${feedback.action}`} class="mt-4" use:enhance={progressive}>
+    {@render hiddenFields(feedback.submitted)}
+    <button class="ux-btn-primary w-full" disabled={busy}>{busy ? 'Comprobando…' : 'Volver a comprobar la misma acción'}</button>
+   </form>
+  {/if}
+ {:else if mode === 'cancel' && context.canCancel}
+  <h2 class="ux-section-title">¿Querés cancelar este turno?</h2>
+  <p class="mt-3 font-bold text-fg bk-text">{formatDateTime(context.startsAt, context.timezone)}</p>
+  <p class="mt-3 text-fg-65 bk-muted">Se liberará ese horario.</p>
+  {#if positive(context.financialSummary.appliedAmount) || positive(context.financialSummary.unresolvedAmount)}<p class="mt-3 text-fg-65 bk-muted">El consultorio resolverá con vos el dinero registrado. La cancelación no hace una devolución automática.</p>{/if}
+  <form method="POST" action="?/cancel" class="mt-5" use:enhance={progressive}>
+   {@render hiddenFields(fields)}
+   <input type="hidden" name="confirm_cancel" value="true" />
+   <button class="ux-btn-danger w-full" disabled={busy}>{busy ? 'Cancelando…' : 'Sí, cancelar turno'}</button>
+  </form>
+  <a class="ux-btn-secondary mt-3 w-full" href={context.url}>Conservar mi turno</a>
+  {#if context.canReschedule}<p class="mt-4 text-center text-sm"><a class="ux-link" href={rescheduleUrl}>Prefiero reprogramar</a></p>{/if}
+ {:else if mode === 'reschedule' && context.canReschedule}
+  <h2 class="ux-section-title">¿Querés reprogramar este turno?</h2>
+  <p class="mt-3 text-fg-65 bk-muted">Hasta confirmar, conservás tu turno del {formatDateTime(context.startsAt, context.timezone)}.</p>
+  <form method="GET" action={context.url} class="mt-5 flex flex-wrap items-end gap-3">
+   <input type="hidden" name="accion" value="reprogramar" />
+   <label class="min-w-0 flex-1"><span class="ux-label">Día para el nuevo turno</span><input class="ux-input w-full" type="date" name="fecha" value={context.date} required /></label>
+   <button class="ux-btn-secondary">Ver horarios</button>
+  </form>
+  {#if context.unavailableMessage}<p class="ux-alert mt-4" role="status">{context.unavailableMessage}</p>{/if}
+  {#if context.slots.length}
+   <div class="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2" aria-label="Horarios disponibles">
+    {#each context.slots as slot (slot.starts_at)}
+     <a class={context.selectedStart === slot.starts_at ? 'ux-btn-primary' : 'ux-btn-secondary'} href={slotUrl(slot.starts_at)} aria-current={context.selectedStart === slot.starts_at ? 'true' : undefined}>
+      {formatDateTime(slot.starts_at, context.timezone)}
+     </a>
+    {/each}
+   </div>
+  {:else if !context.unavailableMessage}<p class="ux-empty mt-4">No hay horarios disponibles ese día. Elegí otra fecha; tu turno actual se conserva.</p>{/if}
+  {#if context.selectedStart && terms && context.availabilityRevision !== null}
+   <div class="mt-6 border-t border-line pt-5 bk-line">
+    <h3 class="ux-section-title">Revisá el cambio antes de confirmar</h3>
+    <p class="mt-3 font-bold text-fg bk-text">Nuevo turno: {formatDateTime(context.selectedStart, context.timezone)}</p>
+    {#if context.durationMinutes !== null}<p class="mt-2 text-fg-65 bk-muted">Duración vigente: {formatDuration(context.durationMinutes)}.</p>{/if}
+    {#if positive(terms.forfeit_amount)}<p class="mt-3 text-fg bk-text">La seña anterior de {formatDepositMoney(terms.forfeit_amount)} dejará de aplicarse al precio de esta consulta al confirmar el cambio. El pago queda registrado.</p>{/if}
+    {#if positive(terms.credit_amount)}<p class="mt-3 text-fg bk-text">Anticipos registrados que seguirán a cuenta: {formatDepositMoney(terms.credit_amount)}.</p>{/if}
+    {#if terms.required && terms.amount}
+     <p class="mt-3 font-bold text-fg bk-text">{terms.kind === 'reuse_pending' ? 'La seña pendiente se conserva' : 'Nueva seña pendiente'}: {formatDepositMoney(terms.amount)}.</p>
+     {#if terms.kind === 'reuse_pending'}<p class="mt-2 text-fg-65 bk-muted">No se suma otra deuda a la seña que todavía no pagaste.</p>{/if}
+     {#if terms.last_minute}<p class="mt-2 text-fg-65 bk-muted">El consultorio resolverá el plazo de pago. Este plazo no provocará una cancelación automática.</p>
+     {:else if terms.due_at}<p class="mt-2 text-fg-65 bk-muted">Plazo para transferir: {formatDateTime(terms.due_at, context.timezone)}.{terms.auto_cancel ? ' Si no se registra la seña, el turno se cancelará automáticamente.' : ''}</p>{/if}
+     <p class="mt-2 text-fg-65 bk-muted">El nuevo horario quedará reservado y pendiente de que el consultorio registre esa seña.</p>
+    {:else}<p class="mt-3 text-fg-65 bk-muted">Este cambio no genera una nueva seña.</p>{/if}
+    {#if terms.quote_amount === null}<p class="mt-3 text-sm text-fg-65 bk-muted">No hay un arancel registrado para calcular cuánto resta de la consulta. Podés consultarlo con el consultorio.</p>
+    {:else if terms.quote_remainder !== null}<p class="mt-3 text-sm text-fg-65 bk-muted">Arancel registrado menos anticipos aplicables: {formatDepositMoney(terms.quote_remainder)}. Este cálculo sólo incluye los anticipos registrados en este turno.</p>{/if}
+    <form method="POST" action="?/reschedule" class="mt-5" use:enhance={progressive}>
+     {@render hiddenFields(fields)}
+     <input type="hidden" name="starts_at" value={context.selectedStart} />
+     <input type="hidden" name="availability_revision" value={context.availabilityRevision} />
+     <input type="hidden" name="integration_revision" value={context.integrationRevision ?? ''} />
+     <input type="hidden" name="financial_terms" value={JSON.stringify(terms)} />
+     <button class="ux-btn-primary w-full" disabled={busy}>{busy ? 'Guardando el cambio…' : 'Confirmar reprogramación'}</button>
+    </form>
+   </div>
+  {/if}
+  <a class="ux-btn-secondary mt-4 w-full" href={context.url}>Conservar mi turno</a>
+  {#if context.canCancel}<p class="mt-4 text-center text-sm"><a class="ux-link" href={cancelUrl}>Prefiero cancelar sin reprogramar</a></p>{/if}
+ {:else}
+  <h2 class="ux-section-title">Gestionar mi turno</h2>
+  <div class="mt-4 flex flex-wrap gap-3">
+   {#if context.canConfirm}<form method="POST" action="?/confirm" use:enhance={progressive}>{@render hiddenFields(fields)}<button class="ux-btn-primary" disabled={busy}>{busy ? 'Confirmando…' : 'Confirmo que voy'}</button></form>{/if}
+   {#if context.canReschedule}<a class="ux-btn-secondary" href={rescheduleUrl}>Reprogramar turno</a>{/if}
+   {#if context.canCancel}<a class="ux-btn-secondary" href={cancelUrl}>Cancelar turno</a>{/if}
+  </div>
+  {#if !context.canConfirm && !context.canCancel && !context.canReschedule}<p class="mt-3 text-fg-65 bk-muted">Este turno no admite cambios online. Si necesitás ayuda, contactá al consultorio.</p>
+  {:else if context.unavailableMessage}<p class="mt-3 text-fg-65 bk-muted">{context.unavailableMessage}</p>{/if}
+ {/if}
+ {#if positive(context.financialSummary.unresolvedAmount)}<p class="mt-5 text-fg-65 bk-muted">Hay {formatDepositMoney(context.financialSummary.unresolvedAmount)} de dinero registrado por resolver con el consultorio. Esto no confirma una devolución ni reactiva el turno.</p>{/if}
+ {#if positive(context.financialSummary.forfeitedAmount)}<p class="mt-4 text-sm text-fg-65 bk-muted">Señas anteriores que dejaron de aplicarse por cambios ya registrados: {formatDepositMoney(context.financialSummary.forfeitedAmount)}.</p>{/if}
+</section>

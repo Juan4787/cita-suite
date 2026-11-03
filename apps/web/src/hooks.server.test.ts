@@ -115,7 +115,7 @@ describe('hooks auth validation', () => {
 
 	it('keeps public tokens and internal authentication independent of stale user cookies', async () => {
 		mocks.createSupabaseServerClient.mockRejectedValue(new Error('invalid old user session'));
-		for (const path of ['/reservar/clinic', '/embed/v1/integration', '/turno/token/push', '/api/public/contacto/integration', '/internal/jobs/send-push-reminders', '/api/mercadopago/webhook', '/oauth/google-calendar/callback']) {
+		for (const path of ['/reservar/clinic', '/embed/v1/integration', '/turno/token/push', '/gestion/personal-token', '/api/public/contacto/integration', '/internal/jobs/send-push-reminders', '/api/mercadopago/webhook', '/oauth/google-calendar/callback']) {
 			const event = makeEvent();
 			event.url = new URL('https://app.test' + path);
 			const resolve = vi.fn(async () => new Response('independent authorization'));
