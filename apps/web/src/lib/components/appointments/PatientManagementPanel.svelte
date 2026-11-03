@@ -6,6 +6,9 @@
  import type { PatientManagementPanelData, PatientManagementFeedback } from '$lib/scheduling/patient-management-page';
  let { context, feedback }: { context: PatientManagementPanelData; feedback?: PatientManagementFeedback | null } = $props();
  let busy = $state(false);
+ let draftDate = $state<string | null>(null);
+ $effect(() => { context.date; context.mode; draftDate = null; });
+ const dateChanged = $derived(draftDate !== null && draftDate !== context.date);
  let transportFeedback = $state<PatientManagementFeedback | null>(null);
  const outcome = $derived(transportFeedback ?? feedback);
  const progressive: SubmitFunction = ({ action, formData, cancel }) => {
@@ -70,11 +73,14 @@
  {:else if mode === 'reschedule' && context.canReschedule}
   <h2 class="ux-section-title">¿Querés reprogramar este turno?</h2>
   <p class="mt-3 text-fg-65 bk-muted">Hasta confirmar, conservás tu turno del {formatDateTime(context.startsAt, context.timezone)}.</p>
-  <form method="GET" action={context.url} class="mt-5 flex flex-wrap items-end gap-3">
+  <form method="GET" action={context.url} class="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
    <input type="hidden" name="accion" value="reprogramar" />
-   <label class="min-w-0 flex-1"><span class="ux-label">Día para el nuevo turno</span><input class="ux-input w-full" type="date" name="fecha" value={context.date} required /></label>
+   <label class="min-w-0"><span class="ux-label">Día para el nuevo turno</span><input class="ux-input w-full" type="date" name="fecha" value={draftDate ?? context.date} oninput={event => draftDate = event.currentTarget.value} required /></label>
    <button class="ux-btn-secondary">Ver horarios</button>
   </form>
+  {#if dateChanged}
+   <p class="mt-4 text-fg-65 bk-muted" role="status">Consultá los horarios de la fecha elegida.</p>
+  {:else}
   {#if context.unavailableMessage}<p class="ux-alert mt-4" role="status">{context.unavailableMessage}</p>{/if}
   {#if context.slots.length}
    <div class="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2" aria-label="Horarios disponibles">
@@ -110,6 +116,7 @@
      <button class="ux-btn-primary w-full" disabled={busy}>{busy ? 'Guardando el cambio…' : 'Confirmar reprogramación'}</button>
     </form>
    </div>
+  {/if}
   {/if}
   <a class="ux-btn-secondary mt-4 w-full" href={context.url}>Conservar mi turno</a>
   {#if context.canCancel}<p class="mt-4 text-center text-sm"><a class="ux-link" href={cancelUrl}>Prefiero cancelar sin reprogramar</a></p>{/if}

@@ -1,5 +1,5 @@
 /** @vitest-environment jsdom */
-import { cleanup, render, screen } from '@testing-library/svelte';
+import { cleanup, fireEvent, render, screen } from '@testing-library/svelte';
 import '@testing-library/jest-dom/vitest';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import Panel from './PatientManagementPanel.svelte';
@@ -46,6 +46,23 @@ describe('contextual patient management panel', () => {
   expect(screen.getByRole('heading', { name: '¿Querés reprogramar este turno?' })).toBeVisible();
   expect(screen.getByRole('link', { name: 'Prefiero cancelar sin reprogramar' })).toBeVisible();
   expect(screen.queryByRole('button', { name: 'Confirmar reprogramación' })).not.toBeInTheDocument();
+ });
+ it('removes the old date slots and accepted summary while a different date has not been consulted', async () => {
+  renderPanel({ context: context({ mode: 'reschedule', selectedStart: '2026-12-02T12:00:00Z',
+   slots: [{ starts_at: '2026-12-02T12:00:00Z', ends_at: '2026-12-02T12:45:00Z' }],
+   financialTerms: { kind: 'none', unavailable_reason: null, required: false, amount: null, base_amount: null, currency: 'ARS',
+    previous_applicable_payment_amount: '0', previous_payment_disposition: 'none', forfeit_amount: '0', credit_amount: '0',
+    quote_amount: null, quote_remainder: null, request_from: null, due_at: null, auto_cancel: false, last_minute: false,
+    terms_informed: false, current_deposit_status: null, current_deposit_amount: null, current_payment_allocation: null,
+    request_days: null, deadline_hours: null, min_payment_hours: null }
+  }) });
+  expect(screen.getByRole('button', { name: 'Confirmar reprogramación' })).toBeVisible();
+  expect(screen.getByLabelText('Horarios disponibles')).toBeVisible();
+  await fireEvent.input(screen.getByLabelText('Día para el nuevo turno'), { target: { value: '2026-12-03' } });
+  expect(screen.queryByLabelText('Horarios disponibles')).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: 'Confirmar reprogramación' })).not.toBeInTheDocument();
+  expect(screen.getByRole('status')).toHaveTextContent('Consultá los horarios de la fecha elegida.');
+  expect(screen.getByRole('link', { name: 'Conservar mi turno' })).toBeVisible();
  });
  it('does not offer a hidden/denied alternative and keeps the no-change exit', () => {
   renderPanel({ context: context({ mode: 'cancel', canReschedule: false }) });
