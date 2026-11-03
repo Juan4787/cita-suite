@@ -92,5 +92,6 @@ describe('contextual patient management panel', () => {
   expect(container.querySelector('input[name="operation_id"]')).toHaveValue('original-operation');
   expect(container.querySelector('input[name="expected_revision"]')).toHaveValue('observed-revision');
   expect(screen.getByRole('alert')).not.toHaveTextContent(/network unavailable|no se guardó/i);
+  expect(screen.getByRole('alert')).toHaveFocus();
  });
 });
