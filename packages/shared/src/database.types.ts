@@ -289,6 +289,128 @@ export type Database = {
           },
         ]
       }
+      appointment_deposit_events: {
+        Row: {
+          actor_id: string | null
+          amount: number
+          appointment_id: string
+          business_id: string
+          created_at: string
+          event_type: string
+          id: string
+          metadata: Json
+          ordinal: number
+          requirement_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          amount?: number
+          appointment_id: string
+          business_id: string
+          created_at?: string
+          event_type: string
+          id?: string
+          metadata?: Json
+          ordinal?: never
+          requirement_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          amount?: number
+          appointment_id?: string
+          business_id?: string
+          created_at?: string
+          event_type?: string
+          id?: string
+          metadata?: Json
+          ordinal?: never
+          requirement_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointment_deposit_events_business_id_appointment_id_requ_fkey"
+            columns: ["business_id", "appointment_id", "requirement_id"]
+            isOneToOne: false
+            referencedRelation: "appointment_deposit_requirements"
+            referencedColumns: ["business_id", "appointment_id", "id"]
+          },
+        ]
+      }
+      appointment_deposit_requirements: {
+        Row: {
+          allocation: string
+          amount: number
+          appointment_id: string
+          base_amount: number
+          business_id: string
+          created_at: string
+          currency: string
+          id: string
+          is_current: boolean
+          ordinal: number
+          patient_id: string
+          projection_revision: number
+          recorded_at: string | null
+          recorded_by: string | null
+          status: string
+          terms_snapshot: Json
+          updated_at: string
+        }
+        Insert: {
+          allocation: string
+          amount: number
+          appointment_id: string
+          base_amount: number
+          business_id: string
+          created_at?: string
+          currency?: string
+          id?: string
+          is_current?: boolean
+          ordinal?: never
+          patient_id: string
+          projection_revision: number
+          recorded_at?: string | null
+          recorded_by?: string | null
+          status: string
+          terms_snapshot: Json
+          updated_at?: string
+        }
+        Update: {
+          allocation?: string
+          amount?: number
+          appointment_id?: string
+          base_amount?: number
+          business_id?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          is_current?: boolean
+          ordinal?: never
+          patient_id?: string
+          projection_revision?: number
+          recorded_at?: string | null
+          recorded_by?: string | null
+          status?: string
+          terms_snapshot?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointment_deposit_requirement_business_id_appointment_id_fkey"
+            columns: ["business_id", "appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["business_id", "id"]
+          },
+          {
+            foreignKeyName: "appointment_deposit_requirements_business_id_patient_id_fkey"
+            columns: ["business_id", "patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["business_id", "id"]
+          },
+        ]
+      }
       appointment_deposits: {
         Row: {
           amount: number
@@ -375,6 +497,56 @@ export type Database = {
             isOneToOne: true
             referencedRelation: "appointments"
             referencedColumns: ["business_id", "id"]
+          },
+        ]
+      }
+      appointment_email_policies: {
+        Row: {
+          business_id: string
+          email_enabled: boolean
+          previous_deposit_disposition: string
+          require_deposit_on_reschedule: boolean
+          require_email: boolean
+          revision: number
+          sender_verified: boolean
+          show_cancel: boolean
+          show_reschedule: boolean
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          business_id: string
+          email_enabled?: boolean
+          previous_deposit_disposition?: string
+          require_deposit_on_reschedule?: boolean
+          require_email?: boolean
+          revision?: number
+          sender_verified?: boolean
+          show_cancel?: boolean
+          show_reschedule?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          business_id?: string
+          email_enabled?: boolean
+          previous_deposit_disposition?: string
+          require_deposit_on_reschedule?: boolean
+          require_email?: boolean
+          revision?: number
+          sender_verified?: boolean
+          show_cancel?: boolean
+          show_reschedule?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointment_email_policies_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: true
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -561,6 +733,56 @@ export type Database = {
             columns: ["business_id", "patient_id"]
             isOneToOne: false
             referencedRelation: "patients"
+            referencedColumns: ["business_id", "id"]
+          },
+        ]
+      }
+      appointment_management_states: {
+        Row: {
+          accepted_at: string | null
+          accepted_policy_revision: number | null
+          appointment_id: string
+          appointment_revision: number
+          business_id: string
+          generation: number
+          legacy_management_allowed: boolean
+          previous_deposit_disposition: string
+          require_deposit_on_reschedule: boolean
+          terms_acknowledged: boolean
+          terms_snapshot: Json
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_policy_revision?: number | null
+          appointment_id: string
+          appointment_revision?: number
+          business_id: string
+          generation?: number
+          legacy_management_allowed?: boolean
+          previous_deposit_disposition?: string
+          require_deposit_on_reschedule?: boolean
+          terms_acknowledged?: boolean
+          terms_snapshot?: Json
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_policy_revision?: number | null
+          appointment_id?: string
+          appointment_revision?: number
+          business_id?: string
+          generation?: number
+          legacy_management_allowed?: boolean
+          previous_deposit_disposition?: string
+          require_deposit_on_reschedule?: boolean
+          terms_acknowledged?: boolean
+          terms_snapshot?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointment_management_states_business_id_appointment_id_fkey"
+            columns: ["business_id", "appointment_id"]
+            isOneToOne: true
+            referencedRelation: "appointments"
             referencedColumns: ["business_id", "id"]
           },
         ]
@@ -4986,6 +5208,14 @@ export type Database = {
         Returns: boolean
       }
       is_email_enabled: { Args: { p_email: string }; Returns: boolean }
+      issue_appointment_management_capability: {
+        Args: {
+          p_appointment_id: string
+          p_business_id: string
+          p_expected_generation: number
+        }
+        Returns: string
+      }
       legacy_job_entrypoints_enabled: { Args: never; Returns: boolean }
       list_accessible_patients_page: {
         Args: {
@@ -5291,6 +5521,10 @@ export type Database = {
         Args: { p_appointment_id: string; p_now?: string }
         Returns: string
       }
+      resolve_appointment_management_access: {
+        Args: { p_legacy?: boolean; p_token: string }
+        Returns: Json
+      }
       restore_patient_radiograph: {
         Args: {
           p_actor_id: string
@@ -5314,6 +5548,15 @@ export type Database = {
           support_user_id: string
           updated_at: string
         }[]
+      }
+      revoke_appointment_management_access: {
+        Args: {
+          p_appointment_id: string
+          p_business_id: string
+          p_expected_revision: string
+          p_operation_id: string
+        }
+        Returns: Json
       }
       save_appointment_patient_instructions: {
         Args: {
