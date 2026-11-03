@@ -6,7 +6,6 @@ import { loadAppointmentBookingContext, type AppointmentBookingContext } from '$
 import { resolveMapsUrl } from '$lib/sites/location';
 import {
 	APPOINTMENT_STATUS_LABELS,
-	type AppointmentStatus,
 	isAppointmentStatus
 } from '$lib/server/scheduling/public/appointments';
 import {
@@ -15,52 +14,10 @@ import {
 } from '$lib/server/scheduling/public/public-booking';
 import { sanitizePublicImageUrl } from '$lib/server/sites/public/public-image';
 import { normalizeArgentineWhatsAppPhone } from '$lib/utils/phone';
-import { parseAppointmentDeposit, type AppointmentDepositView } from '$lib/scheduling/deposits';
+import { parseAppointmentDeposit } from '$lib/scheduling/deposits';
 
-export type PublicAppointmentView = {
-	booking_context?: AppointmentBookingContext | null;
- price_quote_snapshot?:import('$lib/booking/pricing').PriceQuote|null;patient_instructions_snapshot?:string|null;public_reminder_description_snapshot?:string|null;
-	id: string;
-	token: string;
-	status: AppointmentStatus;
-	starts_at: string;
-	ends_at: string;
-	service_name_snapshot: string;
-	professional_name_snapshot: string;
-	professional_count: number;
-	is_joint: boolean;
-	calendar_action_status: string;
-	calendar_action_at: string | null;
-	calendar_action_count: number;
-	calendar_sequence: number;
-	calendar_update_required_at: string | null;
-	business: {
-		id: string;
-		name: string;
-		slug: string;
-		phone: string | null;
-		address: string | null;
-		address_instructions: string | null;
-		maps_link: string | null;
-		logo_url: string | null;
-		timezone: string;
-		is_active: boolean;
-		cancellation_policy: string | null;
-		/** WhatsApp público del consultorio, normalizado; null si no lo habilitó o no se puede abrir. */
-		whatsapp_contact_phone: string | null;
-	};
-	patient_name: string | null;
-	/** The turn's deposit, or null when it asks for none (señas y avisos, stage B). */
-	deposit: AppointmentDepositView | null;
-	/** How to transfer, only while the deposit is pending. */
-	deposit_transfer_details: string | null;
-	public_status_label: string;
-	public_actions_available: boolean;
-	can_confirm: boolean;
-	can_cancel: boolean;
-	can_request_reschedule: boolean;
-	is_past: boolean;
-};
+import type { PublicAppointmentView } from '$lib/scheduling/public-appointment';
+export type { PublicAppointmentView } from '$lib/scheduling/public-appointment';
 
 // Turno de muestra para DEMO_MODE: misma forma que la vista real para que páginas
 // y endpoints públicos funcionen sin Supabase.

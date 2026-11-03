@@ -1,5 +1,5 @@
 import { isUuid } from '@cita-suite/shared/uuid';
-import { BOOKING_THEMES, BOOKING_INTEGRATION_KEY_PATTERN, parseBookingModalityWindows } from '@cita-suite/shared/booking-integration';
+import { BOOKING_THEMES, BOOKING_INTEGRATION_KEY_PATTERN, parseBookingModalityWindows, type BookingModality } from '@cita-suite/shared/booking-integration';
 import { InvalidDataContractError, readArray, readBoolean, readNullableText, readRecord, readText, readJson } from '$lib/contracts/json';
 import { parsePriceQuote } from '$lib/scheduling/price-contracts';
 import { parseAppointmentDeposit } from '$lib/scheduling/deposits';
@@ -40,7 +40,7 @@ const money = (value: unknown): string => typeof value === 'string' && /^(0|[1-9
  */
 export const parsePatientManagementView = (value: unknown) => {
  const row = readRecord(value, 'appointment.management');
- if (row.schema_version !== 1 || !isAppointmentStatus(row.status) || !['legacy', 'capability'].includes(String(row.access_kind))) return invalid();
+ if (row.schema_version !== 1 || typeof row.status !== 'string' || !isAppointmentStatus(row.status) || !['legacy', 'capability'].includes(String(row.access_kind))) return invalid();
  const business = readRecord(row.business, 'appointment.management.business');
  const financial = readRecord(row.financial_summary, 'appointment.management.financialSummary');
  const professionalIds = readArray(row.professional_ids, 'appointment.management.professionals').map(uuid);
@@ -59,13 +59,14 @@ export const parsePatientManagementView = (value: unknown) => {
  const durationMinutes = row.reschedule_duration_minutes === null ? null : counter(row.reschedule_duration_minutes);
  if (canReschedule && (!professionalIds.length || !isBusinessActive || !publicBookingEnabled || durationMinutes === null)) return invalid();
  if (row.modality !== 'in_person' && row.modality !== 'video') return invalid();
+ const modality: BookingModality = row.modality;
  const integration = row.integration === null ? null : (() => {
   const raw = readRecord(row.integration, 'appointment.management.integration');
   const theme = BOOKING_THEMES.find(candidate => candidate === raw.theme_snapshot);
   if (!theme || typeof raw.public_key !== 'string' || !BOOKING_INTEGRATION_KEY_PATTERN.test(raw.public_key) || raw.modality !== row.modality) return invalid();
   return { id: uuid(raw.id), revision: raw.revision === null ? null : counter(raw.revision),
    isActive: readBoolean(raw.is_active, 'appointment.management.integration.active'), publicKey: raw.public_key,
-   theme, modality: row.modality, videoInstructions: readNullableText(raw.video_instructions_snapshot, 'appointment.management.video'),
+   theme, modality, videoInstructions: readNullableText(raw.video_instructions_snapshot, 'appointment.management.video'),
    modalityWindows: parseBookingModalityWindows(raw.modality_windows) };
  })();
  if (row.modality === 'video' && !integration) return invalid();
@@ -145,7 +146,7 @@ export type PatientManagementCommand = {
 };
 const parseCommandResult = (value: unknown) => {
  const row = readRecord(value, 'appointment.management.result');
- if (!isAppointmentStatus(row.status)) return invalid();
+ if (typeof row.status !== 'string' || !isAppointmentStatus(row.status)) return invalid();
  return { appointmentId: uuid(row.appointment_id), status: row.status, startsAt: instant(row.starts_at), endsAt: instant(row.ends_at),
   revision: token(row.revision), scheduleRevision: counter(row.schedule_revision),
   changed: readBoolean(row.changed, 'appointment.management.result.changed'), idempotentReplay: readBoolean(row.idempotent_replay, 'appointment.management.result.replay') };
@@ -165,7 +166,7 @@ export const applyPatientManagementCommand = async (client: CitaSupabaseClient, 
  const args = {
   p_token: access.token, p_legacy: access.legacy, p_operation_id: input.operationId, p_expected_revision: input.expectedRevision,
   p_action: input.action, p_starts_at: startsAt, p_availability_revision: moving ? counter(input.availabilityRevision) : null,
-  p_integration_revision: input.integrationRevision == null ? null : counter(input.integrationRevision), p_financial_terms: terms ? readJson(terms) : null
+  p_integration_revision: input.integrationRevision == null ? null : counter(input.integrationRevision), p_financial_terms: terms ? readJson(terms, 'appointment.management.command.terms') : null
  };
  if (moving) {
   const { data: cached, error: recoveryError } = await client.rpc('recover_patient_appointment_management', args);
