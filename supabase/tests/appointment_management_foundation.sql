@@ -189,6 +189,9 @@ select extensions.is((select count(*) from public.appointment_deposit_requiremen
  '16. Otro consultorio no puede leer obligaciones ni dinero');
 reset role;
 
+-- SET ROLE and JWT identity are separate. Restore the owner after the negative
+-- tenant read; keeping the outsider would test the role guard, not an ABA move.
+select set_config('request.jwt.claim.sub',pg_temp.mid('owner')::text,true);
 do $$ declare before text:=pg_temp.management_revision('legacy'); begin
  update public.appointments set starts_at=starts_at+interval '1 hour',ends_at=ends_at+interval '1 hour',
   blocking_starts_at=blocking_starts_at+interval '1 hour',blocking_ends_at=blocking_ends_at+interval '1 hour' where id=pg_temp.mid('legacy');

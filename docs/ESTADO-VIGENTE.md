@@ -28,6 +28,7 @@ El chequeo compara esta lista con `git diff --name-status <produccion_revision> 
 A	apps/web/src/lib/scheduling/patient-action-context.test.ts
 A	apps/web/src/lib/scheduling/patient-action-context.ts
 A	scripts/check-repo-sync.mjs
+M	scripts/test-booking-foundation.mjs
 A	scripts/verify-production-auth-ux.mjs
 A	scripts/zoho-cpaas.py
 A	supabase/migrations/20261103010000_appointment_management_foundation.sql
@@ -42,6 +43,7 @@ A	supabase/tests/migrations/20261103010000_appointment_management_foundation.sql
 |---|---|---|
 | `apps/web/src/lib/scheduling/patient-action-context.ts` y su prueba | Contrato E1 de acciones/contexto para turno vigente y cancelación, todavía sin consumidores | No: desarrollo sin publicar |
 | `scripts/check-repo-sync.mjs` | Este chequeo | No: es una herramienta local |
+| `scripts/test-booking-foundation.mjs` | Conservar las aserciones previas cuando una prueba SQL posterior falla, con salida acotada | No: sólo la base descartable de CI |
 | `scripts/zoho-cpaas.py` | Administración local de Zoho por OAuth, con credenciales fuera de Git | No: no se despliega ni configura el correo de la app |
 | `scripts/verify-production-auth-ux.mjs` | Lectura de la pantalla de ingreso en producción, de otro trabajo (flujo manual `production-auth-ux.yml`) | No: no se despliega |
 | Migración `20261103010000`, contrato SQL y fixtures de actualización E1 | Preferencias, revisión semántica e historia de señas; roja previa demostrada y primera implementación por comprobar | No: no se aplicó en producción; sólo CI descartable |
