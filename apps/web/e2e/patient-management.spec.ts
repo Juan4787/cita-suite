@@ -106,6 +106,8 @@ for (const brand of ['cita-suite', 'natalia'] as const) {
     await context.addCookies([{ name: 'cita-theme', value: theme, url: appOrigin }]);
     await page.goto(`${path}?accion=cancelar&color_mode=${theme}`);
     await expect(page.getByRole('heading', { name: '¿Querés cancelar este turno?' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: '¿Querés cancelar este turno?' })).toBeInViewport();
+    await expect(page.getByRole('heading', { name: /Último paso/ })).toHaveCount(0);
     await expect(page.getByRole('link', { name: 'Prefiero reprogramar' })).toBeVisible();
     if (brand === 'natalia') await expect(page.locator('[data-booking-color-mode]').first()).toHaveAttribute('data-booking-color-mode', theme);
     else expect(await page.locator('html').evaluate(el => el.classList.contains('dark'))).toBe(theme === 'dark');
@@ -115,7 +117,13 @@ for (const brand of ['cita-suite', 'natalia'] as const) {
    expect(state()).toBe(beforeOpen);
    await page.getByRole('link', { name: 'Prefiero reprogramar' }).click();
    await expect(page.getByRole('heading', { name: '¿Querés reprogramar este turno?' })).toBeVisible();
-   await matrix(page, info, 'day-selection', page.getByLabel('Día para el nuevo turno'), issues);
+   for (const theme of ['light', 'dark'] as const) {
+    await context.addCookies([{ name: 'cita-theme', value: theme, url: appOrigin }]);
+    const choice = new URL(page.url()); choice.searchParams.set('color_mode', theme); await page.goto(choice.href);
+    await expect(page.getByRole('heading', { name: '¿Querés reprogramar este turno?' })).toBeInViewport();
+    await page.screenshot({ path: info.outputPath(`first-selection-${theme}.jpg`), type: 'jpeg', quality: 65 });
+    await matrix(page, info, `day-selection-${theme}`, page.getByLabel('Día para el nuevo turno'), issues);
+   }
    await page.getByLabel('Día para el nuevo turno').fill(targetDate);
    await page.getByRole('button', { name: 'Ver horarios', exact: true }).click();
    await expect(page).toHaveURL(url => url.searchParams.get('fecha') === targetDate);

@@ -37,7 +37,7 @@ Fuentes: [plan íntegro y ajustes](propuesta-senas-avisos-natalia.md#ejecucion-e
 
 **Fase:** E0 completo; E1 y primera integración E2 en implementación. Siete migraciones comprobadas en SQL descartable; adaptadores y pantalla compartida escritos, sin publicar ni aplicar SQL en producción. Personal/roles/contacto/cola pendientes. **Publicación de E:** no. **Pruebas integrales E:** no ejecutadas.
 
-**Siguiente acción:** recuperar navegador 41702920488 con fecha explícita y nuevas capturas. Ayuda vencida reproducida en 41702914905; .080 corrige reloj del helper y contrato ampliado a diez, pendientes SQL y carrera de bloqueo posterior (no se afirma corrección de esa espera por el helper solo). E1 personal/contacto/cola y E3–E6 abiertos. No hay migraciones E en producción, publicación ni correo nuevo. Después P1/P2/P3.
+**Siguiente acción:** comprobar .080 con revalidación posterior y seis carreras de personal tras roja 41703639993; recuperar tipos oficiales/digest de ocho migraciones si pasa. Navegador de fecha 41702920488 aprobado, pero después se corrigió prioridad de pregunta/resultado; ejecutar fast y navegador de esa superficie antes de cerrarla. E1 personal/contacto/vías auxiliares/cola y E3–E6 abiertos, después P1/P2/P3. Producción V12b intacta, ningún envío nuevo.
 
 **Evidencia privada de esta ejecución:** `.verification/etapa-e-20261103/`. Ningún secreto, dirección de paciente, cuerpo de correo recibido o dato personal se incluye en Git ni en documentos públicos. Las rutas de evidencia no equivalen a resultados aprobados.
 
@@ -60,15 +60,15 @@ La regla de cada caso se lee en la especificación; esta tabla registra su acept
 | EM11 | Parcial CI | Reparación controlada no hereda aceptación/deuda y eventos conservan generación en 41616550006; faltan destinatarios/rutas/alta idempotente y prueba integral. |
 | EM12 | Pendiente | Sin prueba funcional de E. |
 | AC01 | Parcial CI | Contrato puro: 44 casos en fast 41578321181 y cuatro mutaciones locales; faltan integración y recorridos reales. Ver E1.1/E1.15. |
-| AC02 | Pendiente | Sin prueba funcional de E. |
-| AC03 | Pendiente | Sin prueba funcional de E. |
+| AC02 | Parcial CI | Browser descartable 41702920488: GET/bot, alternativas y selección no alteran turno/dinero/auditoría/recibos observados; faltan correo/rastreo de proveedor y cobertura integral. E2.10. |
+| AC03 | Parcial CI | Browser descartable 41702920488: alternativas sin escritura y estado anterior conservado; hueco de día corregido. Nueva prioridad de pantalla pendiente de otra corrida. E2.9–E2.11. |
 | AC04 | Pendiente | Sin prueba funcional de E. |
 | AC05 | Parcial CI | Contrato puro: 44 casos en fast 41578321181 y cuatro mutaciones locales; faltan integración y recorridos reales. Ver E1.1/E1.15. |
 | AC06 | Parcial CI | Contrato puro: 44 casos en fast 41578321181 y cuatro mutaciones locales; faltan integración y recorridos reales. Ver E1.1/E1.15. |
-| AC07 | Parcial CI | Comando SQL 29/29 en 41609778146; alcance específico E1.22. Faltan carreras completas, consumidores y prueba integral. |
+| AC07 | Parcial CI | Comando SQL/trece carreras 41660810130 y repetición HTTP real en browser 41702920488; faltan correo/consumidores y escenarios integrales restantes. |
 | AC08 | Pendiente | Sin prueba funcional de E. |
 | AC09 | Parcial CI | Contrato puro y capacidades SQL 20/20, 41600939474; rutas legadas y corrección de email todavía sin integrar/verificar. E1.15. |
-| AC10 | Pendiente | Sin prueba funcional de E. |
+| AC10 | Parcial CI | Cancelación nativa sin JS en browser 41702920488; panel/errores de transporte dirigidos, sin prueba real de desconexión/teclado/lector integral. E2.10–E2.11. |
 | RP01 | Parcial CI | SQL del comando y carreras en 41614887283 (E1.28); faltan integración, UX y restantes condiciones del caso. |
 | RP02 | Parcial CI | SQL del comando y carreras en 41614887283 (E1.28); faltan integración, UX y restantes condiciones del caso. |
 | RP03 | Parcial CI | Comando SQL 29/29 en 41609778146; alcance específico E1.22. Faltan carreras completas, consumidores y prueba integral. |
@@ -76,13 +76,13 @@ La regla de cada caso se lee en la especificación; esta tabla registra su acept
 | RP05 | Pendiente | Sin prueba funcional de E. |
 | RP06 | Pendiente | Sin prueba funcional de E. |
 | RP07 | Pendiente | Sin prueba funcional de E. |
-| RP08 | Pendiente | Sin prueba funcional de E. |
+| RP08 | Parcial CI | SQL/adaptador de duración vigente y precisión, lectura/selección integradas y browser con 45 min; cambio concurrente de duración y UX íntegra aún por cerrar. E1.40/E2.10. |
 | RP09 | Parcial CI | SQL del comando y carreras en 41614887283 (E1.28); faltan integración, UX y restantes condiciones del caso. |
 | RP10 | Pendiente | Sin prueba funcional de E. |
 | RP11 | Pendiente | Sin prueba funcional de E. |
-| RP12 | Parcial CI | Comando SQL 29/29 en 41609778146; alcance específico E1.22. Faltan carreras completas, consumidores y prueba integral. |
+| RP12 | Parcial CI | Recuperación SQL de recibo antes del preflight 41660810130 y repetición HTTP en browser 41702920488; transporte incierto sólo simulado localmente, no desconexión real integral. |
 | RP13 | Pendiente | Sin prueba funcional de E. |
-| SN01 | Parcial CI | Comando SQL 29/29 en 41609778146; alcance específico E1.22. Faltan carreras completas, consumidores y prueba integral. |
+| SN01 | Parcial CI | SQL de pérdida/nueva obligación 41660810130 y browser 41702920488 con lectura posterior de historia/proyección; faltan alta informada real/correo/producción. |
 | SN02 | Parcial CI | Comando SQL 29/29 en 41609778146; alcance específico E1.22. Faltan carreras completas, consumidores y prueba integral. |
 | SN03 | Parcial CI | Comando SQL 29/29 en 41609778146; alcance específico E1.22. Faltan carreras completas, consumidores y prueba integral. |
 | SN04 | Parcial CI | Comando SQL 29/29 en 41609778146; alcance específico E1.22. Faltan carreras completas, consumidores y prueba integral. |
@@ -138,7 +138,7 @@ La regla de cada caso se lee en la especificación; esta tabla registra su acept
 | UI07 | Pendiente | Sin prueba funcional de E. |
 | UI08 | Pendiente | Sin prueba funcional de E. |
 | OP01 | Parcial CI | Fallas provocadas de auditoría/evento revierten SQL en 41614887283; falta recuperación de cola/proveedor y UX. |
-| OP02 | Pendiente | Sin prueba funcional de E. |
+| OP02 | Parcial CI | Ayuda vencida reproducida 41702914905; helper corrigió 10 grupos en 41703639993 pero carrera posterior roja. .080 ampliada escrita, seis escenarios y personal aún pendientes. E1.42–E1.43. |
 | OP03 | Parcial CI | Contrato puro: 44 casos en fast 41578321181 y cuatro mutaciones locales; faltan integración y recorridos reales. Ver E1.1/E1.15. |
 | OP04 | Pendiente | Sin prueba funcional de E. |
 | OP05 | Pendiente | Sin prueba funcional de E. |
@@ -550,3 +550,27 @@ La regla de cada caso se lee en la especificación; esta tabla registra su acept
 - **Roja de comportamiento 41702914905**, fuente `f1fce8226477f1a8c0765768970717da562c5edb`, main `e17bee4`. Fixture ya válido: primer grupo autoriza ayuda activa; **2–6 fallan por aserción**. deposit_actor devuelve admin tras vencer la ayuda, revocación y pago no lanzan rechazo y modifican generación/dinero/estado. Log privado `sql-ayuda-vencida-roja-v2-41702914905.log:1469–1505`. La falla de preparación anterior no se confunde con esta reproducción.
 - Nueva .080 reemplaza sólo el helper, conservando firma/grants/roles. Bloquea membresía/identidad/concesión/suscripción con SHARE y evalúa fechas de ayuda y regla comercial con clock_timestamp **después** de esas esperas, también inicio de concesión. El helper público comercial anterior conserva su ABI/semántica para consumidores que no forman parte de este cambio.
 - Contrato ampliado a 10 grupos, incluyendo apertura de pedido/política y ausencia de efectos. Corrección inicial escrita, todavía sin ejecutar. La carrera del bloqueo de turno/política sigue pendiente; modificar el helper por sí solo no demuestra revalidación después de esperas posteriores. Se ejecutará expresamente antes de cerrar OP02.
+
+
+### E1.43 — helper solo insuficiente frente a una espera posterior
+
+- SQL **41703639993**, fuente `5c5c125faefd203008e58b2037135bccd5a3f2bd`, main `f6cb85c`: los **10 grupos de ayuda vencida pasan**. Después, roja real de la nueva carrera: **«expired help executed revoke after a verified lock wait»** (`sql-ayuda-espera-roja-41703639993.log:6000`). El helper comprueba su propio reloj, pero su llamada previa no cubría la espera posterior por el turno. No es aprobación de la suite completa ni produjo tipos oficiales de ocho migraciones.
+- .080 se amplía con cuerpos estáticos de las RPC existentes, sin cambiar firmas/roles/reglas económicas: comprobar autoridad tras bloquear turno/seña, política o aviso, y antes del resultado de una operación con efectos. Así un vencimiento durante esperas posteriores revierte efectos y auditoría, también al apagar política tras esperar varios turnos. Fechas de registro/deshacer toman reloj posterior al bloqueo. Revocación/ocultar revalidan incluso antes de devolver repetición o sin cambio. No se modifica una migración aplicada.
+- Carrera ampliada a seis escenarios: revocar, pagar, abrir pedido, editar política, apagar política esperando un turno después de escribirla y ocultar un aviso real generado por el disparador C. Compara revisiones semánticas guardadas de **todos** los turnos propios, proyección/dinero, política, avisos y auditoría, y contador de deadlocks. `bash -n` aprobado, verde SQL pendiente.
+- Preparación local de la ampliación se detuvo por una aserción del generador (dos cláusulas de error iguales); no escribió el archivo. Se acotó la sustitución al SELECT del padre y se revisó el SQL resultante. No se ejecutó SQL local/productivo ni se ocultó una falla del producto.
+
+### E2.10 — fecha escogida acreditada en el navegador
+
+- **Browser diagnóstico 41702920488**, fuente `f1fce8226477f1a8c0765768970717da562c5edb`, main `e17bee4`: **2 aprobados, 0 omitidos/inesperados/flaky**, 14,11 s. La prueba nueva espera la URL/día consultado y exige el día en enlace/POST; ya no pasa sólo por coincidir lo guardado con un horario cualquiera enviado. Recorrido real descartable en ambas apariencias, con cancelación nativa sin JS, repetición, revocación y UID.
+- Evidencia privada `browser-autogestion-v4-41702920488.zip`, colección `browser-autogestion-v4-evidence`, 66 archivos, SHA-256 `31897cce8cd777551b9379ef3773058a109501c1d942015969d667f9e75f0091`. Revisadas capturas de selector oscuro móvil de ambas apariencias: fecha legible y botón en fila propia. Resumen Natalia claro móvil muestra ahora el **24 de noviembre**, con plazo futuro coherente; la corrida anterior había elegido el 3. No se deduce cobertura de todos los estados de E ni producción/proveedor.
+
+### E2.11 — prioridad de la pregunta y del resultado
+
+- Inspección del primer viewport: la pregunta del enlace de cancelación quedaba debajo de tareas de información/calendario/resumen. alignTaskForCapture desplazaba la página y enmascaraba esa prioridad. Roja dirigida `prioridad-contexto-roja.log`: **2 fallan/51 omitidos**. Se exige pregunta antes del detalle y sin tareas auxiliares durante esa decisión; encabezado con fecha neutral.
+- Pantalla compartida coloca el panel al comienzo al cancelar/reprogramar. El recorrido de consulta normal conserva calendario/seña/información. Rojo adicional `resultado-prioritario-roja.log`: el resultado de reprogramación quedaba después del nuevo pedido de seña (1 falla/53 omitidos); se prioriza el resultado conservando instrucciones de la obligación nueva. Verde dirigido **11/11**, 51 anteriores omitidos, en `prioridad-resultado-verde.log`; tipado/fast/navegador posteriores pendientes.
+- Spec exige ahora la pregunta en el viewport **antes** de alinear/desplazar para capturas. Selector se capturará en claro y oscuro, ambas apariencias/cinco anchos; sin inferir revisión visual por el desplazamiento del arnés. Esta corrección es del recorrido E, no inicia P2.
+
+### Continuación de auditoría de personal
+
+- Además de comandos atómicos del personal y seña tardía, revisar alta manual con Ayuda: el wrapper de alta conserva una comprobación de membresía directa proveniente de 20261017000000, distinta de la concesión independiente que usa deposit_actor. Hallazgo estático, no defecto nuevo de E ni reproducción realizada. Contrastar el contrato real y probar antes de decidir la corrección; no declararlo resuelto por el reloj de .080.
+- Investigación preparatoria de Zoho: páginas oficiales de envío/webhook consultadas de nuevo. Sigue pendiente integración, sin clave/envío nuevo. [API de envío](https://www.zoho.com/cpaas/help/api/email-sending.html), [firma y formato de webhook](https://www.zoho.com/cpaas/help/webhooks.html#securing-webhooks); no suponer deduplicación por client_reference ni formato JSON bruto de callback sin cotejar el contrato.
