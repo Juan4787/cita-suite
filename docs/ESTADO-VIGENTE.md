@@ -72,6 +72,7 @@ A	supabase/migrations/20261103050000_patient_appointment_management_view.sql
 A	supabase/migrations/20261103060000_appointment_creation_replay_identity.sql
 A	supabase/migrations/20261103070000_patient_appointment_management_recovery.sql
 A	supabase/migrations/20261103080000_staff_operation_authorization.sql
+A	supabase/migrations/20261103090000_staff_appointment_management.sql
 M	supabase/templates/recovery.html
 A	supabase/tests/appointment_management_capabilities.sql
 A	supabase/tests/appointment_management_foundation.sql
@@ -87,6 +88,7 @@ M	supabase/tests/run_deposit_expiry_concurrency.sh
 A	supabase/tests/run_patient_management_concurrency.sh
 A	supabase/tests/run_patient_management_view_concurrency.sh
 A	supabase/tests/run_staff_authorization_concurrency.sh
+A	supabase/tests/staff_appointment_management.sql
 ```
 
 | Archivo | Qué es | ¿Afecta a producción? |
@@ -114,6 +116,7 @@ A	supabase/tests/run_staff_authorization_concurrency.sh
 | Rutas `/turno`/`gestion`, hooks, componentes y flujos nuevos | Integración E2 compartida, mutación antigua retirada; fast 41710295801 (1783/277), browser 41708652093 (dos recorridos, prioridad/foco y día elegido) aprobados; sin paquete ni cierre integral | No: todavía sin publicar |
 | `apps/web/DESIGN.md` y superficie de gestión | Dirección de extensión/contexto; matriz browser y cuatro capturas inspeccionadas en 41708652093, sin cierre visual integral de E | No: documentación de desarrollo |
 | `patient-management.spec.ts` | Dos recorridos aislados aprobados 41708652093, matriz de ambas apariencias/claro-oscuro/cinco anchos; sin prueba de proveedor/correo ni aceptación integral | No: sólo CI |
+| Migración .090 y `staff_appointment_management.sql` | Comando backend del personal, autoridad compartida y campo calculado de revisión; escritos, todavía sin comprobar ni integrar | No: sin aplicar ni publicar |
 | `supabase/templates/recovery.html` | Plantilla del correo de recuperación, modificada en otro trabajo | No se despliega con la app: se carga aparte en Supabase. **No está verificado** si la versión de Supabase coincide con este archivo |
 
 ## Historia
