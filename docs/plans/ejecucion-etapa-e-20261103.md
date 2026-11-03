@@ -37,7 +37,7 @@ Fuentes: [plan íntegro y ajustes](propuesta-senas-avisos-natalia.md#ejecucion-e
 
 **Fase:** E0 completo; E1 en implementación, con alcance de ejecución autorizado. **Implementación iniciada:** contrato puro y primera migración E1 escrita; todavía sin rutas ni envíos integrados, sin migración aplicada en producción. **Publicación de E:** no. **Pruebas integrales E:** no ejecutadas.
 
-**Siguiente acción:** comprobar SQL conjunto corregido de comandos, 29 grupos, después de `41608026890` fallida por modificar el contrato existente de revisión de ventanas (E1.20). Fundamentos/economía previos siguen comprobados en sus fuentes exactas. Cuatro migraciones E escritas, última sin verificar ni aplicar. Obtener tipos de las cuatro sólo desde CI y continuar carreras, comandos de personal/cola y E2–E6. Q01/Q02 resueltas; P1/P2/P3 posteriores, no cambiar de tarea ni esperar otro permiso.
+**Siguiente acción:** recuperar SQL v4 que se solicitará con el escenario cancelación→cambio corregido. Última fuente ejecutada `db832ad5210e5a64c986a7b6eef69c37f7063870`, corrida `41609778146`: comando 29/29, suite global fallida en la tercera carrera por identidad de operación del fixture (E1.22). Hipótesis de heartbeat todavía sin reproducir. Cuatro migraciones E escritas, sin aplicar ni integrar; tipos oficiales de la cuarta todavía pendientes. Continuar carreras, personal/cola y E2–E6; P1/P2/P3 después. No pedir otro permiso.
 
 **Evidencia privada de esta ejecución:** `.verification/etapa-e-20261103/`. Ningún secreto, dirección de paciente, cuerpo de correo recibido o dato personal se incluye en Git ni en documentos públicos. Las rutas de evidencia no equivalen a resultados aprobados.
 
@@ -65,13 +65,13 @@ La regla de cada caso se lee en la especificación; esta tabla registra su acept
 | AC04 | Pendiente | Sin prueba funcional de E. |
 | AC05 | Parcial CI | Contrato puro: 44 casos en fast 41578321181 y cuatro mutaciones locales; faltan integración y recorridos reales. Ver E1.1/E1.15. |
 | AC06 | Parcial CI | Contrato puro: 44 casos en fast 41578321181 y cuatro mutaciones locales; faltan integración y recorridos reales. Ver E1.1/E1.15. |
-| AC07 | Pendiente | Sin prueba funcional de E. |
+| AC07 | Parcial CI | Comando SQL 29/29 en 41609778146; alcance específico E1.22. Faltan carreras completas, consumidores y prueba integral. |
 | AC08 | Pendiente | Sin prueba funcional de E. |
 | AC09 | Parcial CI | Contrato puro y capacidades SQL 20/20, 41600939474; rutas legadas y corrección de email todavía sin integrar/verificar. E1.15. |
 | AC10 | Pendiente | Sin prueba funcional de E. |
 | RP01 | Pendiente | Sin prueba funcional de E. |
 | RP02 | Pendiente | Sin prueba funcional de E. |
-| RP03 | Pendiente | Sin prueba funcional de E. |
+| RP03 | Parcial CI | Comando SQL 29/29 en 41609778146; alcance específico E1.22. Faltan carreras completas, consumidores y prueba integral. |
 | RP04 | Pendiente | Sin prueba funcional de E. |
 | RP05 | Pendiente | Sin prueba funcional de E. |
 | RP06 | Pendiente | Sin prueba funcional de E. |
@@ -80,26 +80,26 @@ La regla de cada caso se lee en la especificación; esta tabla registra su acept
 | RP09 | Pendiente | Sin prueba funcional de E. |
 | RP10 | Pendiente | Sin prueba funcional de E. |
 | RP11 | Pendiente | Sin prueba funcional de E. |
-| RP12 | Pendiente | Sin prueba funcional de E. |
+| RP12 | Parcial CI | Comando SQL 29/29 en 41609778146; alcance específico E1.22. Faltan carreras completas, consumidores y prueba integral. |
 | RP13 | Pendiente | Sin prueba funcional de E. |
-| SN01 | Pendiente | Sin prueba funcional de E. |
-| SN02 | Pendiente | Sin prueba funcional de E. |
-| SN03 | Pendiente | Sin prueba funcional de E. |
-| SN04 | Pendiente | Sin prueba funcional de E. |
-| SN05 | Pendiente | Sin prueba funcional de E. |
-| SN06 | Pendiente | Sin prueba funcional de E. |
-| SN07 | Pendiente | Sin prueba funcional de E. |
+| SN01 | Parcial CI | Comando SQL 29/29 en 41609778146; alcance específico E1.22. Faltan carreras completas, consumidores y prueba integral. |
+| SN02 | Parcial CI | Comando SQL 29/29 en 41609778146; alcance específico E1.22. Faltan carreras completas, consumidores y prueba integral. |
+| SN03 | Parcial CI | Comando SQL 29/29 en 41609778146; alcance específico E1.22. Faltan carreras completas, consumidores y prueba integral. |
+| SN04 | Parcial CI | Comando SQL 29/29 en 41609778146; alcance específico E1.22. Faltan carreras completas, consumidores y prueba integral. |
+| SN05 | Parcial CI | Comando SQL 29/29 en 41609778146; alcance específico E1.22. Faltan carreras completas, consumidores y prueba integral. |
+| SN06 | Parcial CI | Comando SQL 29/29 en 41609778146; alcance específico E1.22. Faltan carreras completas, consumidores y prueba integral. |
+| SN07 | Parcial CI | Comando SQL 29/29 en 41609778146; alcance específico E1.22. Faltan carreras completas, consumidores y prueba integral. |
 | SN08 | Pendiente | Sin prueba funcional de E. |
 | SN09 | Pendiente | Sin prueba funcional de E. |
 | SN10 | Pendiente | Sin prueba funcional de E. |
-| SN11 | Pendiente | Sin prueba funcional de E. |
+| SN11 | Parcial CI | Comando SQL 29/29 en 41609778146; alcance específico E1.22. Faltan carreras completas, consumidores y prueba integral. |
 | SN12 | Pendiente | Sin prueba funcional de E. |
 | SN13 | Pendiente | Sin prueba funcional de E. |
 | SN14 | Pendiente | Sin prueba funcional de E. |
 | SN15 | Pendiente | Sin prueba funcional de E. |
-| SN16 | Pendiente | Sin prueba funcional de E. |
+| SN16 | Parcial CI | Comando SQL 29/29 en 41609778146; alcance específico E1.22. Faltan carreras completas, consumidores y prueba integral. |
 | SN17 | Parcial CI | Cancelación conserva pago como unresolved en SQL 41600939474; falta comando público/UX/correo y comprobaciones integrales. |
-| SN18 | Pendiente | Sin prueba funcional de E. |
+| SN18 | Parcial CI | Comando SQL 29/29 en 41609778146; alcance específico E1.22. Faltan carreras completas, consumidores y prueba integral. |
 | SN19 | Parcial CI | Actualización real desde cinco estados anteriores, 8/8 en 41600939474; sin aplicación productiva ni UI de historia. |
 | RM01 | Pendiente | Sin prueba funcional de E. |
 | RM02 | Pendiente | Sin prueba funcional de E. |
@@ -325,3 +325,11 @@ La regla de cada caso se lee en la especificación; esta tabla registra su acept
 - Diez carreras nuevas escritas en `run_patient_management_concurrency.sh`: comando repetido, cambio/cancelación en ambos órdenes, pago/cambio en ambos órdenes, vencimiento/cambio en ambos órdenes, configuración/cambio en ambos órdenes y dos turnos por un horario. Cada espera se demuestra con pg_blocking_pids; el caso SKIP LOCKED exige que el worker termine mientras el movimiento sigue abierto. Estado posterior y contador de deadlocks son condiciones, no sólo éxito de psql. Destino exclusivamente loopback, namespace propio, restauración de interruptores y limpieza turno antes de paciente/consultorio.
 - **Hipótesis pendiente de reproducir:** FOR SHARE sobre la fila de `deposit_automation` en el comando puede detener el heartbeat del worker antes de su SKIP LOCKED, porque ese heartbeat actualiza la misma fila. La nueva carrera inversa está escrita para detectarlo. No se declara probado ni se corrige antes de recibir su resultado; si se confirma, separar sincronización de la configuración respecto de la escritura de heartbeat.
 - Local dirigido de revisiones/parser **27/27** ejecutado en secuencia con un trabajador/512 MiB; conservar resultado en `disponibilidad-dos-revisiones-verde.log`. No sustituye SQL, carreras ni integración del sitio. Próximo: snapshot SQL v3 con corrección y diez carreras.
+
+
+### E1.22 — comando 29/29 y corrección de identidad en el escenario de carrera
+
+- Corrida `41609778146`, fuente `db832ad5210e5a64c986a7b6eef69c37f7063870`, main `16b52c9`, globalmente **fallida**. El archivo `patient_appointment_management_commands.sql` sí terminó: **29/29**, secuencia exacta cotejada en el log, incluidas reversión por auditoría/evento, proyección recreada, dinero de las cuatro combinaciones, credenciales y cancelación mínima. No se atribuye a esta fuente entrega de correo, rutas ni tipos completos.
+- Log `sql-comandos-v3-41609778146.log`, desde 3200 el contrato, desde 5424 las carreras nuevas. Falló `cancel_before_move`: la segunda llamada reutilizaba la misma identidad de operación para otra acción, por lo que respondió correctamente `APPOINTMENT_OPERATION_CONFLICT`; el escenario esperaba conflicto por revisión. Se le asigna una operación distinta, como exige ese escenario. No se afloja el recibo ni la comparación del comando.
+- La corrida no llegó a las otras carreras nuevas ni a la hipótesis de heartbeat de E1.21; sigue pendiente su reproducción. Próximo: SQL v4 con sólo ese escenario corregido y recuperar el resultado completo. Mantener la prueba del worker que debe poder saltear un turno ocupado.
+- Contrato puro `reschedule-terms.ts` para consumidores futuros: preserva importes decimales exactos y microsegundos, valida el DTO completo sin recotizar, distingue arancel desconocido y evita números JS al formatear créditos grandes. Roja estructural por módulo ausente (`contrato-economico-ui-roja.log`), **20/20 locales** después (`contrato-economico-ui-verde.log`), un trabajador/512 MiB. No es prueba de una pantalla ni de que el servidor ya lo transporte.

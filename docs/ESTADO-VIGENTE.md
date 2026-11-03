@@ -29,6 +29,8 @@ M	apps/web/src/lib/availability/contracts.test.ts
 M	apps/web/src/lib/availability/contracts.ts
 A	apps/web/src/lib/scheduling/patient-action-context.test.ts
 A	apps/web/src/lib/scheduling/patient-action-context.ts
+A	apps/web/src/lib/scheduling/reschedule-terms.test.ts
+A	apps/web/src/lib/scheduling/reschedule-terms.ts
 M	apps/web/src/lib/server/scheduling/public/availability.test.ts
 M	apps/web/src/lib/server/scheduling/public/availability.ts
 M	packages/shared/src/database.types.ts
@@ -63,9 +65,10 @@ A	supabase/tests/run_patient_management_concurrency.sh
 | Migración `20261103020000` y `supabase/tests/appointment_management_capabilities.sql` | Enlaces revocables y recibo idempotente; comprobados en CI SQL `41600939474` | No: no se aplicó ni se integró a rutas; sólo CI descartable |
 | `packages/shared/src/database.types.ts` | Tipos oficiales, dos generaciones iguales en CI y digest de las migraciones locales cotejado antes de importar | No: todavía sin publicar |
 | Migración `20261103030000` y `supabase/tests/appointment_reschedule_financial_terms.sql` | Resumen económico de reprogramación sólo lectura, 19/19 y suite SQL aprobados en CI `41605022654`; sin consumidores | No: sólo CI descartable, sin aplicar ni conectar a rutas |
-| Migración `20261103040000` y `patient_appointment_management_commands.sql` | Comandos del paciente/eventos atómicos, 29 grupos; roja comprobada, implementación inicial sin verificar | No: sólo CI descartable, interruptores apagados al instalar |
+| Migración `20261103040000` y `patient_appointment_management_commands.sql` | Comandos del paciente/eventos atómicos, 29 grupos aprobados en CI `41609778146`; corrida global fallida en carreras, integración pendiente | No: sólo CI descartable, interruptores apagados al instalar |
 | `availability.ts` y su prueba | Contrato y calculador compartido con revisiones de catálogo/reserva y duración de la misma lectura; contrato anterior de slots conservado, 19/19 locales junto con ventanas | No: todavía sin publicar |
 | `run_patient_management_concurrency.sh` | Diez carreras controladas del comando, todavía sin ejecutar; sólo loopback descartable | No: sólo CI |
+| `reschedule-terms.ts` y su prueba | Validación y formato preciso de las condiciones SQL, 20/20 locales, sin consumidores todavía | No: desarrollo sin publicar |
 | `supabase/templates/recovery.html` | Plantilla del correo de recuperación, modificada en otro trabajo | No se despliega con la app: se carga aparte en Supabase. **No está verificado** si la versión de Supabase coincide con este archivo |
 
 ## Historia
