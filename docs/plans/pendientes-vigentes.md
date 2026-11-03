@@ -52,7 +52,7 @@ Fuente: `docs/clientes/natalia-frutos/informacion-20261029.md`, secciones 4 y 5,
    - **Economía:** aceptado gasto controlado de correo con un consultorio. KYC/compras de créditos a cargo de Juan, sin recarga automática ni cambios de infraestructura/Auth.
    - **Continúa pendiente de la clienta:** condiciones de devolución al cancelar y datos de la seña del punto 2.5. La pérdida acordada al reprogramar no define esas devoluciones.
    - **Conexión local terminada el 3 de noviembre:** Juan pidió acceso por terminal y conservarlo al reiniciar ([12.19](propuesta-senas-avisos-natalia.md#zoho-terminal-vigente)). OAuth, consultas y renovación comprobados; herramienta versionada y credenciales privadas persistentes. [Guía y comandos](../architecture/zoho-cpaas-terminal.md). No necesita una terminal abierta.
-   - **Ahora:** aplicar las decisiones resueltas Q01/Q02 del [registro activo](ejecucion-etapa-e-20261103.md) y continuar E1–E6 por cuenta propia, con autorización de publicación/pruebas productivas [12.20](propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada). No pedir otra instrucción de inicio ni cuenta/cliente/credenciales si funcionan.
+   - **Ahora:** revisar arquitectura/invariantes y causas antes de ampliar E, según [12.24](propuesta-senas-avisos-natalia.md#calidad-ingenieria-e) y conclusiones del [registro activo](ejecucion-etapa-e-20261103.md); continuar E1–E6 por cuenta propia, con autorización de publicación/pruebas productivas [12.20](propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada). No pedir otra instrucción de inicio ni cuenta/cliente/credenciales si funcionan.
 
 ## 4. Lanzamiento y operación general
 

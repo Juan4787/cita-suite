@@ -48,6 +48,29 @@ describe('patient management screen/controller', () => {
   const result = await submitPatientManagementAction({} as never, access, 'cancel', request(fields()));
   expect(result.retrySameOperation).toBe(true); expect(result.submitted).toEqual(fields()); expect(result.message).not.toMatch(/no se guardó|fetch/);
  });
+ it.each([null, { status: 'cancelled' }])('does not treat an invalid command reply %j as an invalid patient form', async reply => {
+  // Exercise the actual adapter through the controller. A response-schema
+  // failure happens AFTER dispatch and cannot prove that SQL rolled back.
+  const actual = await vi.importActual<typeof import('./patient-management')>('./patient-management');
+  vi.mocked(applyPatientManagementCommand).mockImplementationOnce(actual.applyPatientManagementCommand);
+  const rpc = vi.fn().mockResolvedValue({ data: reply, error: null });
+  const result = await submitPatientManagementAction({ rpc } as never, access, 'cancel', request(fields()));
+  expect(rpc).toHaveBeenCalledExactlyOnceWith('apply_patient_appointment_management', expect.objectContaining({ p_operation_id: fields().operation_id }));
+  expect(result.success).toBe(false);
+  expect(result.retrySameOperation).toBe(true);
+  expect(result.submitted).toEqual(fields());
+  expect(result.message).toMatch(/No pudimos comprobar el resultado/);
+  expect(result.message).not.toMatch(/Revisá el turno y sus condiciones|no se guardó|appointment\.management/);
+ });
+ it('still rejects invalid input before dispatch, without suggesting an uncertain-operation retry', async () => {
+  const actual = await vi.importActual<typeof import('./patient-management')>('./patient-management');
+  vi.mocked(applyPatientManagementCommand).mockImplementationOnce(actual.applyPatientManagementCommand);
+  const rpc = vi.fn();
+  const result = await submitPatientManagementAction({ rpc } as never, access, 'cancel', request({ ...fields(), operation_id: 'invalid' }));
+  expect(rpc).not.toHaveBeenCalled();
+  expect(result.retrySameOperation).toBe(false);
+  expect(result.message).toBe('Revisá el turno y sus condiciones antes de confirmar la acción.');
+ });
  it('requires review instead of retrying a known stale revision without consent', async () => {
   vi.mocked(applyPatientManagementCommand).mockRejectedValue(new Error('APPOINTMENT_MANAGEMENT_CHANGED'));
   const result = await submitPatientManagementAction({} as never, access, 'cancel', request(fields()));

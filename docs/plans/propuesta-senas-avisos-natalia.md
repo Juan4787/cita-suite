@@ -1306,3 +1306,11 @@ Pedido literal de Juan durante la implementación de E:
 **D reemplazada:** el aviso al celular del consultorio de 4.13 y su alcance D de la sección 6 quedan sustituidos por avisos internos generales de horarios liberados en la app, con lógica similar a Seguimientos. No se implementan push al personal ni requisitos de instalación/tipo de teléfono por esa D. Se iniciará como P3 después de E/P1/P2; no supone que la notificación interna nueva esté hecha. No cambia C ni los push/calendarios existentes del paciente, ni el correo de E. Las menciones anteriores a D en pausa conservan su sentido histórico; no son una tarea futura de push a retomar.
 
 **Verificación y documentación:** cada tarea conserva alcance, evidencia y cierre propios; actualizar fuentes activas/pendientes y mantener fechado el texto histórico. Revisar el estado real tras E antes de añadir algo que ya pudiera existir, especialmente cancelación/roles y avisos de C.
+
+<a id="calidad-ingenieria-e"></a>
+
+### 12.24 Diseño e invariantes antes de ampliar E (3 de noviembre)
+
+Juan indicó: «priorices la calidad de ingeniería por encima de la velocidad de implementación» y «El objetivo no es conseguir que todas las pruebas pasen a fuerza de iteraciones. Es construir una implementación cuya corrección pueda justificarse por su diseño, sus invariantes y su evidencia de verificación».
+
+**Aplicación:** antes de ampliar funcionalidades, revisar arquitectura e invariantes en todas las transiciones, concurrencia, reintentos, cambios de identidad, permisos vencidos y fallos parciales. Clasificar causas aisladas/estructurales, preservar contratos, buscar contraejemplos entre componentes y justificar cada mecanismo por una garantía concreta. Separar defectos del producto, arnés/datos inválidos y contratos aún sin implementar. Corregir causas estructurales; no agregar abstracciones o defensas para obtener un verde. Dejar conclusiones breves en el registro activo, sin otra especificación ni documentación extensa. Esta prioridad gobierna la continuación de E1–E6 y no sustituye sus requisitos, autonomía ni autorización. E sólo cierra con verificación integral final y regresiones, distinguiendo lo probado de lo pendiente.

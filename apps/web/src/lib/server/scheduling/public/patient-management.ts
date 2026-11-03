@@ -145,11 +145,19 @@ export type PatientManagementCommand = {
  startsAt?: string | null; availabilityRevision?: number | null; integrationRevision?: number | null; financialTerms?: unknown;
 };
 const parseCommandResult = (value: unknown) => {
- const row = readRecord(value, 'appointment.management.result');
- if (typeof row.status !== 'string' || !isAppointmentStatus(row.status)) return invalid();
- return { appointmentId: uuid(row.appointment_id), status: row.status, startsAt: instant(row.starts_at), endsAt: instant(row.ends_at),
-  revision: token(row.revision), scheduleRevision: counter(row.schedule_revision),
-  changed: readBoolean(row.changed, 'appointment.management.result.changed'), idempotentReplay: readBoolean(row.idempotent_replay, 'appointment.management.result.replay') };
+ // Both callers have already dispatched a command or found a stored receipt.
+ // Decoding failure is therefore an unknown outcome, never invalid input or
+ // evidence of rollback. Keep it distinct from preflight contract validation
+ // so the controller preserves the original operation for an exact retry.
+ try {
+  const row = readRecord(value, 'appointment.management.result');
+  if (typeof row.status !== 'string' || !isAppointmentStatus(row.status)) return invalid();
+  return { appointmentId: uuid(row.appointment_id), status: row.status, startsAt: instant(row.starts_at), endsAt: instant(row.ends_at),
+   revision: token(row.revision), scheduleRevision: counter(row.schedule_revision),
+   changed: readBoolean(row.changed, 'appointment.management.result.changed'), idempotentReplay: readBoolean(row.idempotent_replay, 'appointment.management.result.replay') };
+ } catch (cause) {
+  throw new Error('PATIENT_MANAGEMENT_RESULT_UNCERTAIN', { cause });
+ }
 };
 
 /** Only the exact authorized receipt may bypass current-slot preflight. A new
