@@ -5061,6 +5061,10 @@ export type Database = {
         }
         Returns: Json
       }
+      get_patient_appointment_management_view: {
+        Args: { p_legacy?: boolean; p_starts_at?: string; p_token: string }
+        Returns: Json
+      }
       get_patient_data_revision: {
         Args: { p_business_id: string }
         Returns: {
