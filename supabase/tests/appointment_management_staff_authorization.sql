@@ -1,7 +1,7 @@
 -- OP02: a temporary assistance grant is authority only while actually active.
 -- These are real actor/appointment/deposit calls, not a mocked authorization.
 begin;
-select extensions.plan(6);
+select extensions.plan(10);
 create temporary table staff_clock_fixture(label text primary key,id uuid);
 create function pg_temp.scid(p_label text) returns uuid language sql as $$ select id from staff_clock_fixture where label=p_label $$;
 do $$ declare b uuid:=gen_random_uuid(); owner_id uuid:=gen_random_uuid(); support_id uuid:=gen_random_uuid();
@@ -42,5 +42,17 @@ select extensions.ok((select status='pending' from public.appointment_deposits w
  and (select status='reserved' from public.appointments where id=pg_temp.scid('appointment'))
  and not exists(select 1 from public.appointment_deposit_requirements where appointment_id=pg_temp.scid('appointment') and status='paid'),
  '6. Rejected expired staff leaves the actual deposit and money history unchanged');
+select extensions.throws_ok($q$select public.open_appointment_deposit_reminder(pg_temp.scid('business'),pg_temp.scid('appointment'),false)$q$,
+ 'P0001','DEPOSIT_FORBIDDEN','7. Expired assistance cannot open a deposit reminder');
+select extensions.ok((select reminder_opened_at is null from public.appointment_deposits where appointment_id=pg_temp.scid('appointment'))
+ and not exists(select 1 from public.audit_logs where entity_id=pg_temp.scid('appointment') and action='appointment.deposit_reminder_opened'),
+ '8. Rejected reminder leaves its timestamp and audit unchanged');
+select extensions.throws_ok($q$select public.save_deposit_policy(pg_temp.scid('business'),jsonb_build_object(
+ 'enabled',true,'auto_cancel_enabled',false,'amount_mode','fixed','fixed_amount',50000,'percentage',null,
+ 'request_days',7,'deadline_hours',48,'min_payment_hours',24,'transfer_details','Changed synthetic transfer',
+ 'applies_to_manual',true,'excluded_service_ids','[]'::jsonb),1)$q$,
+ 'P0001','DEPOSIT_POLICY_FORBIDDEN','9. Expired assistance cannot change financial policy');
+select extensions.ok((select revision=1 and fixed_amount=40000 from public.deposit_policies where business_id=pg_temp.scid('business')),
+ '10. Rejected policy change leaves the actual policy unchanged');
 select * from extensions.finish();
 rollback;

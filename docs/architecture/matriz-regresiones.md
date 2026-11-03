@@ -119,7 +119,7 @@ El plan pide distinguir viajes HTTP a la base, llamadas a proveedores y trabajo 
 - **Contenido de los registros:** `platform/logging.ts` registra una etiqueta fija y sólo el SQLSTATE y el estado HTTP del error; `logging.test.ts` comprueba que excluye datos clínicos, tokens, URLs y metadatos arbitrarios. La guarda `scripts/lib/server-logging.test.mjs` recorre el árbol sintáctico del servidor y rechaza cualquier `console` con un error, una plantilla o un alias. `worker-tail` descarta encabezados, consultas y otros registros al recibirlos.
 - **Retención:** la telemetría push se conserva 90 días por pg_cron (`scheduled_job_batches.sql`), los eventos de límites de servidor 7 días, y los límites de lectura de integraciones y los intentos de OAuth se depuran. Los intentos de reserva pública (`public_booking_attempts`: teléfono, hash de la dirección y agente de usuario), que nada borraba, se conservan 7 días desde `20261020040000` (`public_booking_attempts_retention.sql`); el limitador sólo lee los últimos 10 y 30 minutos. Los eventos de webhooks de Mercado Pago y de WhatsApp se conservan 180 días (`webhook_events_retention.sql`); `audit_logs` y `patient_profile_change_events` son historia del producto y no se depuran ([control de consumo](control-de-consumo.md)).
 
-## E — matriz nueva pendiente de ejecución (2 de noviembre)
+## E — aceptación integral pendiente, con pruebas parciales en desarrollo (3 de noviembre)
 
 La [matriz identificada de E](../plans/etapa-e-correo-autogestion.md#4-matriz-completa-de-casos-y-aceptación) es la fuente única de casos EM/AC/RP/SN/RM/ZH/UI/OP. El [contraste C01–C13](../plans/etapa-e-correo-autogestion.md#2-contraste-con-el-código-qué-se-reutiliza-y-qué-debe-cambiar) es una revisión estática, no una corrida.
 

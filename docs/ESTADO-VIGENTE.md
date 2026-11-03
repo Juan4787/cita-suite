@@ -71,6 +71,7 @@ A	supabase/migrations/20261103040000_patient_appointment_management_commands.sql
 A	supabase/migrations/20261103050000_patient_appointment_management_view.sql
 A	supabase/migrations/20261103060000_appointment_creation_replay_identity.sql
 A	supabase/migrations/20261103070000_patient_appointment_management_recovery.sql
+A	supabase/migrations/20261103080000_staff_operation_authorization.sql
 M	supabase/templates/recovery.html
 A	supabase/tests/appointment_management_capabilities.sql
 A	supabase/tests/appointment_management_foundation.sql

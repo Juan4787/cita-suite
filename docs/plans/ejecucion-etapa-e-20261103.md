@@ -37,7 +37,7 @@ Fuentes: [plan íntegro y ajustes](propuesta-senas-avisos-natalia.md#ejecucion-e
 
 **Fase:** E0 completo; E1 y primera integración E2 en implementación. Siete migraciones comprobadas en SQL descartable; adaptadores y pantalla compartida escritos, sin publicar ni aplicar SQL en producción. Personal/roles/contacto/cola pendientes. **Publicación de E:** no. **Pruebas integrales E:** no ejecutadas.
 
-**Siguiente acción:** reproducir con fixture válido el vencimiento de ayuda (41667787310 se detuvo antes de aserciones), y el hueco de UX/selección de día encontrado al revisar el browser verde 41667741557. Nueva prueba SQL/carreras y aserciones de día/capturas de selector escritas. Resolver por evidencia; E1 personal/contacto/cola y E3–E6 siguen pendientes. Ninguna E aplicada/publicada ni envío nuevo. Después P1/P2/P3.
+**Siguiente acción:** recuperar navegador 41702920488 con fecha explícita y nuevas capturas. Ayuda vencida reproducida en 41702914905; .080 corrige reloj del helper y contrato ampliado a diez, pendientes SQL y carrera de bloqueo posterior (no se afirma corrección de esa espera por el helper solo). E1 personal/contacto/cola y E3–E6 abiertos. No hay migraciones E en producción, publicación ni correo nuevo. Después P1/P2/P3.
 
 **Evidencia privada de esta ejecución:** `.verification/etapa-e-20261103/`. Ningún secreto, dirección de paciente, cuerpo de correo recibido o dato personal se incluye en Git ni en documentos públicos. Las rutas de evidencia no equivalen a resultados aprobados.
 
@@ -543,3 +543,10 @@ La regla de cada caso se lee en la especificación; esta tabla registra su acept
 
 - Roja dirigida `fecha-seleccion-roja.log`: **1 falla/7 pasan**. Al cambiar la fecha de entrada seguían disponibles los horarios y el resumen/POST aceptado de la fecha anterior. La prueba exige retirar ambos hasta consultar la nueva fecha y conserva salida sin cambios. Confirma el hueco de UX, sin atribuir a SQL el salto observado en la prueba de navegador.
 - El panel conserva el borrador de fecha separado del día calculado en servidor. Si difieren, retira opciones/resumen y pide consultar; al volver una respuesta se sincroniza con el día consultado. El GET y la confirmación nativa sin JavaScript se conservan. Selector en fila completa en móvil para mantener legible la fecha; no se inicia P2 general. Verde dirigido **8/8** en `fecha-seleccion-verde.log`; tipado general y matriz/navegador nuevos pendientes.
+
+
+### E1.42 — ayuda vencida reproducida, reloj inicial corregido
+
+- **Roja de comportamiento 41702914905**, fuente `f1fce8226477f1a8c0765768970717da562c5edb`, main `e17bee4`. Fixture ya válido: primer grupo autoriza ayuda activa; **2–6 fallan por aserción**. deposit_actor devuelve admin tras vencer la ayuda, revocación y pago no lanzan rechazo y modifican generación/dinero/estado. Log privado `sql-ayuda-vencida-roja-v2-41702914905.log:1469–1505`. La falla de preparación anterior no se confunde con esta reproducción.
+- Nueva .080 reemplaza sólo el helper, conservando firma/grants/roles. Bloquea membresía/identidad/concesión/suscripción con SHARE y evalúa fechas de ayuda y regla comercial con clock_timestamp **después** de esas esperas, también inicio de concesión. El helper público comercial anterior conserva su ABI/semántica para consumidores que no forman parte de este cambio.
+- Contrato ampliado a 10 grupos, incluyendo apertura de pedido/política y ausencia de efectos. Corrección inicial escrita, todavía sin ejecutar. La carrera del bloqueo de turno/política sigue pendiente; modificar el helper por sí solo no demuestra revalidación después de esperas posteriores. Se ejecutará expresamente antes de cerrar OP02.
