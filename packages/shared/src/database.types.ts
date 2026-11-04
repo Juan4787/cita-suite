@@ -4302,6 +4302,21 @@ export type Database = {
         }
         Returns: Json
       }
+      begin_patient_push_test: {
+        Args: {
+          p_legacy: boolean
+          p_receipt_token_hash: string
+          p_request_key_hash: string
+          p_subscription_id: string
+          p_token: string
+        }
+        Returns: {
+          delivery_id: string
+          failure_kind: string
+          push_service_status: number
+          reused: boolean
+        }[]
+      }
       begin_patient_radiograph_upload: {
         Args: {
           p_actor_id: string
@@ -5584,6 +5599,15 @@ export type Database = {
           review_url: string
         }[]
       }
+      record_patient_push_test_feedback: {
+        Args: {
+          p_delivery_id: string
+          p_legacy: boolean
+          p_token: string
+          p_visible: boolean
+        }
+        Returns: boolean
+      }
       record_push_notification_click: {
         Args: {
           click_time?: string
@@ -5768,6 +5792,24 @@ export type Database = {
           p_settings: Json
         }
         Returns: number
+      }
+      save_patient_appointment_push_subscription: {
+        Args: {
+          p_auth: string
+          p_endpoint: string
+          p_legacy: boolean
+          p_p256dh: string
+          p_token: string
+          p_user_agent: string
+        }
+        Returns: {
+          device_id: string
+          endpoint: string
+          provider_gone: boolean
+          subscription_id: string
+          test_suppressed: boolean
+          verification_confirmed_at: string
+        }[]
       }
       save_professional_booking_form: {
         Args: {

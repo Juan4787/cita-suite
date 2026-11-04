@@ -145,6 +145,7 @@
 		deviceCheckReason === 'test_missing' && activeTestDeliveryId ? 'recovery' : 'initial';
 
 	const base = $derived(appointment ? `/turno/${appointment.token}` : '');
+ const managementBase = $derived(data.management?.url ?? base);
 	type CalendarHandoffProvider = 'google' | 'iphone';
 	type CalendarHandoffStage = 'idle' | 'waiting' | 'asking' | 'saved';
 	type StoredCalendarHandoff = {
@@ -454,7 +455,7 @@
 	) => {
 		// Una cancelación recibida mientras se preparaba el dispositivo invalida el alta.
 		if (!isActive || !base) return null;
-		const response = await fetch(`${base}/push`, {
+		const response = await fetch(`${managementBase}/push`, {
 			method: 'POST',
 			headers: { 'content-type': 'application/json' },
 			body: JSON.stringify({
@@ -560,7 +561,7 @@
 		if (!base) return null;
 		try {
 			const response = await fetch(
-				`${base}/push?delivery_id=${encodeURIComponent(deliveryId)}`,
+				`${managementBase}/push?delivery_id=${encodeURIComponent(deliveryId)}`,
 				{ cache: 'no-store' }
 			);
 			if (!response.ok) return null;
@@ -793,7 +794,7 @@
 		syncing = true;
 		pushMessage = '';
 		try {
-			const response = await fetch(`${base}/push`, {
+			const response = await fetch(`${managementBase}/push`, {
 				method: 'PATCH',
 				headers: { 'content-type': 'application/json' },
 				body: JSON.stringify({ deliveryId: activeTestDeliveryId, visible })

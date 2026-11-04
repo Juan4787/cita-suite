@@ -2,6 +2,7 @@ import { isUuid } from '@cita-suite/shared/uuid';
 import { logServerFailure } from '$lib/server/platform/logging';
 import {
 	readArray,
+	readBoolean,
 	readChoice,
 	readFiniteNumber,
 	readNullableText,
@@ -26,7 +27,7 @@ import type { CitaRow, CitaSupabaseClient } from '$lib/types/database';
 import { writeAuditLog } from '$lib/server/platform/audit';
 import { formatInTimeZone } from '$lib/utils/format';
 import { isActiveAppointmentStatus } from '$lib/utils/appointment-visibility';
-import type { PublicAppointmentView } from '$lib/server/scheduling/public/public-appointments';
+import type { PublicAppointmentView, PatientManagementAccess } from '$lib/scheduling/public-appointment';
 import {
 	JobBudgetExhaustedError,
 	MAX_CONCURRENT_EXTERNAL_CALLS,
@@ -205,43 +206,23 @@ export const isValidSubscriptionPayload = (raw: unknown): raw is PushSubscriptio
 // separado el vínculo con el turno y aplica el bloqueo absoluto de 48 horas tras
 // "Sí, la recibí". El paso del tiempo, por sí solo, nunca exige otra prueba.
 export const saveAppointmentPushSubscription = async (
-	supabase: CitaSupabaseClient,
-	appointment: PublicAppointmentView,
-	payload: PushSubscriptionPayload,
-	userAgent: string | null
+ supabase: CitaSupabaseClient,
+ access: PatientManagementAccess,
+ payload: PushSubscriptionPayload,
+ userAgent: string | null
 ) => {
-	const { data, error } = await supabase
-		.rpc('save_appointment_push_subscription', {
-			target_business_id: appointment.business.id,
-			target_appointment_id: appointment.id,
-			target_endpoint: payload.endpoint,
-			target_p256dh: payload.keys.p256dh,
-			target_auth: payload.keys.auth,
-			target_user_agent: userAgent,
-			save_time: new Date().toISOString()
-		})
-		.single();
-	if (error) throw error;
-	const saved = data;
-	if (!saved?.subscription_id) throw new Error('PUSH_SUBSCRIPTION_NOT_SAVED');
-
-	await writeAuditLog(supabase, {
-		businessId: appointment.business.id,
-		userId: null,
-		action: 'appointment.push_subscribed',
-		entityType: 'appointment',
-		entityId: appointment.id,
-		metadata: { endpoint_host: new URL(payload.endpoint).hostname }
-	});
-
-	return {
-		id: String(saved.subscription_id),
-		endpoint: String(saved.endpoint),
-		verifiedAt: saved.verification_confirmed_at
-			? String(saved.verification_confirmed_at)
-			: null,
-		providerGone: saved.provider_gone === true
-	};
+ const { data, error } = await supabase.rpc('save_patient_appointment_push_subscription', {
+  p_token: access.token, p_legacy: access.legacy, p_endpoint: payload.endpoint,
+  p_p256dh: payload.keys.p256dh, p_auth: payload.keys.auth, p_user_agent: userAgent
+ }).single();
+ if (error) throw error;
+ const saved=readRecord(data,'push.subscription');
+ const id=readText(saved.subscription_id,'push.subscription.id');
+ const endpoint=readText(saved.endpoint,'push.subscription.endpoint');
+ const verifiedAt=readNullableText(saved.verification_confirmed_at,'push.subscription.verifiedAt');
+ if(!isUuid(id)||endpoint!==payload.endpoint||(verifiedAt!==null&&!Number.isFinite(Date.parse(verifiedAt))))
+  throw new InvalidDataContractError('push.subscription');
+ return { id, endpoint, verifiedAt, providerGone:readBoolean(saved.provider_gone,'push.subscription.providerGone') };
 };
 
 const hashReceiptToken = (token: string) =>
@@ -370,20 +351,14 @@ export const recordPushDeliveryReceipt = async (
 };
 
 export const recordPushTestFeedback = async (
-	supabase: CitaSupabaseClient,
-	input: { appointmentId: string; deliveryId: string; visible: boolean; now?: Date }
+ supabase: CitaSupabaseClient,
+ input: { access: PatientManagementAccess; deliveryId: string; visible: boolean }
 ): Promise<boolean> => {
-	// La persona puede confirmar aunque Android omita el recibo "displayed". El RPC
-	// exige una prueba aceptada y serializa la respuesta con un posible clic del
-	// service worker para que una interacción real nunca se pierda por una carrera.
-	const { data, error } = await supabase.rpc('record_push_test_feedback', {
-		target_appointment_id: input.appointmentId,
-		target_delivery_id: input.deliveryId,
-		feedback_visible: input.visible,
-		feedback_time: (input.now ?? new Date()).toISOString()
-	});
-	if (error) throw error;
-	return data === true;
+ const { data, error } = await supabase.rpc('record_patient_push_test_feedback', {
+  p_token:input.access.token,p_legacy:input.access.legacy,p_delivery_id:input.deliveryId,p_visible:input.visible
+ });
+ if(error)throw error;
+ return readBoolean(data,'push.testFeedback');
 };
 
 export type TrackedPushTarget = {
@@ -449,15 +424,20 @@ export const sendTrackedPush = async (
 		requestKeyHash?: string | null;
 		googleReviewRequestId?: string | null;
 		requireTracking?: boolean;
+		/** A committed, authorized preparation. Never supplied by a public request body. */
+		preparedDelivery?: { id: string; receiptToken: string };
 	}
 ): Promise<TrackedPushResult> => {
-	const receiptToken = crypto.randomBytes(32).toString('base64url');
+	const receiptToken = input.preparedDelivery ? input.preparedDelivery.receiptToken : crypto.randomBytes(32).toString('base64url');
 	const expiresAt = new Date(input.now.getTime() + input.ttlSeconds * 1000).toISOString();
-	let deliveryId: string | null = null;
+	let deliveryId: string | null = input.preparedDelivery?.id ?? null;
+ if(input.preparedDelivery&&(!isUuid(input.preparedDelivery.id)||!/^[A-Za-z0-9_-]{32,256}$/.test(receiptToken)))
+  return {ok:false,deliveryId:null,error:new InvalidDataContractError('push.preparedDelivery')};
 
 	// La telemetría no debe impedir los avisos inmediatos. La prueba visible, en
 	// cambio, exige una fila durable: sin ella no podríamos garantizar que dos
 	// eventos de foco representen una sola entrega lógica.
+ if (!input.preparedDelivery) {
 	const { data: tracked, error: trackingError } = await supabase
 		.from('push_delivery_attempts')
 		.insert({
@@ -558,6 +538,8 @@ export const sendTrackedPush = async (
 		}
 	}
 
+ }
+
 	const delivery = deliveryId
 		? {
 				id: deliveryId,
@@ -613,68 +595,48 @@ export const pushTtlUntilAppointment = (
 ) => Math.max(0, Math.min(maximumSeconds, Math.floor((startsAt.getTime() - now.getTime()) / 1000)));
 
 export const sendTestPushNotification = async (
-	supabase: CitaSupabaseClient,
-	fetchFn: typeof fetch,
-	input: {
-		appointment: PublicAppointmentView;
-		subscription: TrackedPushTarget;
-		requestKey?: string;
-		now?: Date;
-	}
+ supabase: CitaSupabaseClient,
+ fetchFn: typeof fetch,
+ input: {
+  access: PatientManagementAccess; appointment: PublicAppointmentView; subscription: TrackedPushTarget;
+  requestKey?: string; now?: Date;
+ }
 ) => {
-	if (!isPushConfigured()) return { configured: false, accepted: false, deliveryId: null };
-	const now = input.now ?? new Date();
-	try {
-		const latest = await getLatestPushTestStatus(supabase, {
-			subscriptionId: input.subscription.id,
-			now
-		});
-		if (
-			latest &&
-			now.getTime() - new Date(latest.createdAt).getTime() < 30_000 &&
-			['pending', 'accepted', 'received', 'displayed', 'clicked', 'confirmed'].includes(
-				latest.state
-			)
-		) {
-			// Una segunda pestaña puede traer otra clave lógica, pero si apunta a la
-			// misma suscripción y ya hay una prueba viva, debe observar esa entrega en
-			// vez de generar otra. Los estados missing/failed/expired sí habilitan retry.
-			return { configured: true, accepted: true, deliveryId: latest.deliveryId, gone: false };
-		}
-	} catch (trackingError) {
-		// Una falla de observabilidad no bloquea la prueba ni los recordatorios reales.
-		logServerFailure('Error consultando prueba push reciente', trackingError);
-	}
-	const result = await sendTrackedPush(supabase, createWebPushSender(fetchFn), {
-		businessId: input.appointment.business.id,
-		appointmentId: input.appointment.id,
-		confirmationToken: input.appointment.token,
-		target: input.subscription,
-		kind: 'test',
-		payload: {
-			title: 'Notificaciones activadas',
-			body: `Esta es una prueba de ${input.appointment.business.name}.`,
-			url: pushAppointmentPath(input.appointment.token),
-			tag: `turno-${input.appointment.id}-test-${now.getTime()}`,
-			group: `turno-${input.appointment.id}`
-		},
-		ttlSeconds: TEST_PUSH_TTL_SECONDS,
-		topic: pushTopicForAppointment(input.appointment.id, 'test'),
-		now,
-		requestKeyHash: input.requestKey
-			? crypto.createHash('sha256').update(input.requestKey).digest('hex')
-			: null,
-		requireTracking: Boolean(input.requestKey)
-	});
-	if (!result.ok && isGoneError(result.error)) {
-		await markEndpointGone(supabase, input.subscription.endpoint, now);
-	}
-	return {
-		configured: true,
-		accepted: result.ok,
-		deliveryId: result.deliveryId,
-		gone: !result.ok && isGoneError(result.error)
-	};
+ if(!isPushConfigured())return {configured:false,accepted:false,deliveryId:null};
+ const now=input.now??new Date();
+ const receiptToken=crypto.randomBytes(32).toString('base64url');
+ const {data,error}=await supabase.rpc('begin_patient_push_test',{
+  p_token:input.access.token,p_legacy:input.access.legacy,p_subscription_id:input.subscription.id,
+  p_receipt_token_hash:hashReceiptToken(receiptToken),
+  p_request_key_hash:input.requestKey?crypto.createHash('sha256').update(input.requestKey).digest('hex'):null
+ }).single();
+ if(error) {
+  if(error.message?.includes('PUSH_DEVICE_GONE'))return {configured:true,accepted:false,deliveryId:null,gone:true};
+  throw error;
+ }
+ const prepared=readRecord(data,'push.testPreparation');
+ const deliveryId=readText(prepared.delivery_id,'push.testPreparation.id');
+ const reused=readBoolean(prepared.reused,'push.testPreparation.reused');
+ const failure=readNullableText(prepared.failure_kind,'push.testPreparation.failure');
+ if(!isUuid(deliveryId)||(failure!==null&&!['gone','rejected','transient'].includes(failure))||
+  (!reused&&(failure!==null||prepared.push_service_status!==null)))throw new InvalidDataContractError('push.testPreparation');
+ if(reused) {
+  // This means an existing logical attempt, including Pending, not evidence of
+  // provider acceptance. The public status/receipt flow retains that distinction.
+  return {configured:true,accepted:failure===null,deliveryId,gone:failure==='gone'};
+ }
+ const result=await sendTrackedPush(supabase,createWebPushSender(fetchFn),{
+  businessId:input.appointment.business.id,appointmentId:input.appointment.id,confirmationToken:input.appointment.token,
+  target:input.subscription,kind:'test',payload:{
+   title:'Notificaciones activadas',body:`Esta es una prueba de ${input.appointment.business.name}.`,
+   url:`/${input.access.legacy?'turno':'gestion'}/${encodeURIComponent(input.access.token)}`,
+   tag:`turno-${input.appointment.id}-test-${now.getTime()}`,group:`turno-${input.appointment.id}`
+  },
+  ttlSeconds:TEST_PUSH_TTL_SECONDS,topic:pushTopicForAppointment(input.appointment.id,'test'),now,
+  requireTracking:true,preparedDelivery:{id:deliveryId,receiptToken}
+ });
+ if(!result.ok&&isGoneError(result.error))await markEndpointGone(supabase,input.subscription.endpoint,now);
+ return {configured:true,accepted:result.ok,deliveryId:result.deliveryId,gone:!result.ok&&isGoneError(result.error)};
 };
 
 // Reprogramación: invalida los avisos pendientes del horario VIEJO y deja que se

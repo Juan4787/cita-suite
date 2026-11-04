@@ -18,7 +18,7 @@ produccion_repositorio: github-secundaria:Juan4787/cita-suite-verificacion.git
 
 ## Etapa E — ejecución al 4 de noviembre
 
-E conserva autorización íntegra de implementación/pruebas/publicación: [plan 12.18–12.26](plans/propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada), [especificación](plans/etapa-e-correo-autogestion.md) y [registro activo](plans/ejecucion-etapa-e-20261103.md). Quince migraciones aprobadas en SQL **41790517400** (información/documentos, 29 carreras y doce esperas), tipos oficiales/digest cotejados; consumidores clínicos y recuperación de respuesta web incierta escritos, fast 41791538890 aprobado (1822 servidor/280 cliente, cero errores/un aviso), browser clínico 41793557725 aprobado, dos marcas/ambos modos/cinco anchos, nativo, recuperación de respuesta ilegible y Storage aislado, con límites en E1.70. El aviso corregido no se reproduce en esa compilación posterior. Fast integrado previo 41762158350 y browser personal 41757455635 conservan su alcance anterior. No hay implementación E publicada, migraciones E productivas ni correo nuevo. Zoho OAuth administrativo persiste localmente; envío/webhook/recepción/integración pendientes. P1/P2/P3 pospuestas por 12.26, sin iniciarlas al cerrar E; D celular está reemplazada por futura P3 interna. No hay otra espera de permiso.
+E conserva autorización íntegra de implementación/pruebas/publicación: [plan 12.18–12.26](plans/propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada), [especificación](plans/etapa-e-correo-autogestion.md) y [registro activo](plans/ejecucion-etapa-e-20261103.md). Quince migraciones aprobadas en SQL **41790517400** (información/documentos, 29 carreras y doce esperas), tipos oficiales/digest cotejados; consumidores clínicos y recuperación de respuesta web incierta escritos, fast 41791538890 aprobado (1822 servidor/280 cliente, cero errores/un aviso), browser clínico 41793557725 aprobado, dos marcas/ambos modos/cinco anchos, nativo, recuperación de respuesta ilegible y Storage aislado, con límites en E1.70. El aviso corregido no se reproduce en esa compilación posterior. Fast integrado previo 41762158350 y browser personal 41757455635 conservan su alcance anterior. SQL de dieciséis **41798812002 aprobado** (21 grupos push, 35 carreras/dos contraejemplos FK, regresiones y limpieza), tipos oficiales/digest cotejados; consumidores push escritos y 58/58 dirigidas locales aprobadas, pendientes integración y disponibilidad auxiliar explícita. E1.73. No hay implementación E publicada, migraciones E productivas ni correo nuevo. Zoho OAuth administrativo persiste localmente; envío/webhook/recepción/integración pendientes. P1/P2/P3 pospuestas por 12.26, sin iniciarlas al cerrar E; D celular está reemplazada por futura P3 interna. No hay otra espera de permiso.
 
 ## Código que difiere de producción
 
@@ -48,6 +48,9 @@ A	apps/web/src/lib/scheduling/public-appointment.ts
 A	apps/web/src/lib/scheduling/reschedule-terms.test.ts
 A	apps/web/src/lib/scheduling/reschedule-terms.ts
 A	apps/web/src/lib/scheduling/staff-management.ts
+A	apps/web/src/lib/server/integrations/public/patient-push.ts
+M	apps/web/src/lib/server/integrations/public/push.test.ts
+M	apps/web/src/lib/server/integrations/public/push.ts
 A	apps/web/src/lib/server/patients/public/booking-documents.test.ts
 A	apps/web/src/lib/server/patients/public/booking-documents.ts
 A	apps/web/src/lib/server/patients/public/booking-information-page.test.ts
@@ -55,6 +58,8 @@ A	apps/web/src/lib/server/patients/public/booking-information-page.ts
 M	apps/web/src/lib/server/patients/public/booking-information.ts
 M	apps/web/src/lib/server/patients/public/clinical-files.ts
 A	apps/web/src/lib/server/scheduling/internal/management-contract.ts
+A	apps/web/src/lib/server/scheduling/public/appointment-token.test.ts
+M	apps/web/src/lib/server/scheduling/public/appointment-token.ts
 M	apps/web/src/lib/server/scheduling/public/appointments.test.ts
 M	apps/web/src/lib/server/scheduling/public/appointments.ts
 M	apps/web/src/lib/server/scheduling/public/availability.test.ts
@@ -77,6 +82,7 @@ A	apps/web/src/routes/gestion/[token]/documentos/+server.ts
 A	apps/web/src/routes/gestion/[token]/documentos/[fileId]/complete/+server.ts
 A	apps/web/src/routes/gestion/[token]/informacion/+page.server.ts
 A	apps/web/src/routes/gestion/[token]/informacion/+page.svelte
+A	apps/web/src/routes/gestion/[token]/push/+server.ts
 M	apps/web/src/routes/odonto/agenda/+page.server.ts
 M	apps/web/src/routes/odonto/agenda/agenda-day.server.test.ts
 M	apps/web/src/routes/odonto/turnos/[appointmentId]/+page.server.ts
@@ -92,6 +98,8 @@ M	apps/web/src/routes/turno/[token]/documentos/[fileId]/complete/+server.ts
 M	apps/web/src/routes/turno/[token]/informacion/+page.server.ts
 M	apps/web/src/routes/turno/[token]/informacion/+page.svelte
 M	apps/web/src/routes/turno/[token]/page.client.test.ts
+M	apps/web/src/routes/turno/[token]/push/+server.ts
+M	apps/web/src/routes/turno/[token]/push/push.server.test.ts
 M	packages/shared/src/database.types.ts
 A	scripts/check-repo-sync.mjs
 M	scripts/package-verification-evidence.py

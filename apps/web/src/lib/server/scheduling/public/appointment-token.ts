@@ -1,3 +1,5 @@
+import type { PatientManagementAccess } from '$lib/scheduling/public-appointment';
+import { loadPatientManagementView } from './patient-management';
 // Carga del turno por token para los endpoints públicos de calendario/maps.
 // En DEMO_MODE devuelve el turno de muestra sin tocar Supabase.
 
@@ -26,6 +28,22 @@ export const loadAppointmentForToken = async (
 	const supabase = await createSupabaseAdminClient('odonto', fetchFn);
 	const appointment = await loadPublicAppointmentByToken(supabase, token);
 	return { appointment, supabase, demo: false };
+};
+
+/** Management endpoints use explicit authority, never the calendar-only lookup.
+ * Missing/revoked access stays unavailable; there is no fallback to raw tokens.
+ * The write RPC samples its own authority again after waits and before commit.
+ */
+export const loadAppointmentForManagementAccess = async (
+ fetchFn: typeof fetch, access: PatientManagementAccess
+): Promise<TokenAppointmentContext> => {
+ if (env.DEMO_MODE === 'true') return { appointment: demoPublicAppointment(access.token), supabase: null, demo: true };
+ if (!/^[a-f0-9]{64}$/.test(access.token) || typeof access.legacy !== 'boolean') {
+  return { appointment: null, supabase: null, demo: false };
+ }
+ const supabase = await createSupabaseAdminClient('odonto', fetchFn);
+ const view = await loadPatientManagementView(supabase, access);
+ return { appointment: view?.appointment ?? null, supabase, demo: false };
 };
 
 // Redirect manual para poder fijar no-store: los redirects llevan el token en la URL

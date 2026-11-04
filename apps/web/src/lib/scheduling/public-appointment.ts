@@ -3,6 +3,9 @@ import type { BookingTheme, BookingModality } from '@cita-suite/shared/booking-i
 import type { AppointmentDepositView } from './deposits';
 import type { PriceQuote } from '$lib/booking/pricing';
 
+/** Explicit authority channel; a stable calendar token never implies it. */
+export type PatientManagementAccess = { token: string; legacy: boolean };
+
 export type PublicAppointmentView = {
 	booking_context?: { theme: BookingTheme; modality: BookingModality; videoInstructions: string | null } | null;
 	price_quote_snapshot?: PriceQuote | null;
