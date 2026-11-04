@@ -18,7 +18,7 @@ produccion_repositorio: github-secundaria:Juan4787/cita-suite-verificacion.git
 
 ## Etapa E — ejecución al 4 de noviembre
 
-E conserva autorización íntegra de implementación/pruebas/publicación: [plan 12.18–12.26](plans/propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada), [especificación](plans/etapa-e-correo-autogestion.md) y [registro activo](plans/ejecucion-etapa-e-20261103.md). Diecinueve migraciones aprobadas en SQL **41829516097** (43 carreras/dos contraejemplos FK, doce esperas y regresiones/limpieza), tipos oficiales/digest cotejados. Corrige deadlock real de 41828016563 y comprueba lotes con orden inverso. Consumidores OAuth/auxiliares con fast **41827070902** (1852 servidor/281 cliente, cero errores/avisos) y browser ampliado **41827075064** sobre 7b2fd22 aprobados con sus alcances; recuperación TS posterior b269876 con 37/37 modeladas, fast posterior pendiente. Lease/conciliación inmediata, tracking/borrado/métricas/PDF y retención OAuth siguen pendientes (E1.82), además de distribución/contacto/correo y E3–E6. No hay implementación E publicada, migraciones E productivas ni correo nuevo. Zoho OAuth administrativo persiste localmente; envío/webhook/recepción/integración pendientes. P1/P2/P3 pospuestas por 12.26, sin iniciarlas al cerrar E; D celular está reemplazada por futura P3 interna. No hay otra espera de permiso.
+E conserva autorización íntegra de implementación/pruebas/publicación: [plan 12.18–12.26](plans/propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada), [especificación](plans/etapa-e-correo-autogestion.md) y [registro activo](plans/ejecucion-etapa-e-20261103.md). Diecinueve migraciones aprobadas en SQL **41829516097** (43 carreras/dos contraejemplos FK, doce esperas y regresiones/limpieza), tipos oficiales/digest cotejados. Corrige deadlock real de 41828016563 y comprueba lotes con orden inverso. Consumidores OAuth/auxiliares con fast **41827070902** (1852 servidor/281 cliente, cero errores/avisos) y browser ampliado **41827075064** sobre 7b2fd22 aprobados con sus alcances; recuperación TS posterior b269876 con 37/37 modeladas, fast posterior pendiente. Lease/conciliación inmediata, tracking/borrado/métricas/PDF y retención OAuth siguen pendientes (E1.86: veinte escrita con 17 grupos/45 carreras sin verificar, tras roja 41835859614; consumidores pendientes), además de distribución/contacto/correo y E3–E6. No hay implementación E publicada, migraciones E productivas ni correo nuevo. Zoho OAuth administrativo persiste localmente; envío/webhook/recepción/integración pendientes. P1/P2/P3 pospuestas por 12.26, sin iniciarlas al cerrar E; D celular está reemplazada por futura P3 interna. No hay otra espera de permiso.
 
 ## Código que difiere de producción
 
@@ -134,6 +134,7 @@ A	supabase/migrations/20261104030000_patient_management_push_access.sql
 A	supabase/migrations/20261104040000_patient_management_auxiliary_presentation.sql
 A	supabase/migrations/20261104050000_patient_management_google_calendar_authority.sql
 A	supabase/migrations/20261104060000_calendar_sync_lock_order.sql
+A	supabase/migrations/20261104070000_calendar_sync_leases.sql
 M	supabase/templates/recovery.html
 M	supabase/tests/appointment_actor_revalidation.sql
 M	supabase/tests/appointment_deposits.sql

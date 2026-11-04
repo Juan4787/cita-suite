@@ -835,6 +835,80 @@ end $$;
 SQL
 echo 'PASS: two real batches with opposite result order serialize before the first child effect; duplicate results stay stale.'
 
+# A child-only claim and a grant must decide under the actual event row lock,
+# including a claimant that starts after the parent gate has been acquired.
+"${psql_command[@]}" <<'SQL'
+create function patient_management_race.prepare_calendar_reauthorization(p_label text) returns void language plpgsql as $$
+declare r patient_management_race.requests; state text; id uuid; begin
+ perform patient_management_race.prepare_calendar(p_label);
+ perform patient_management_race.consume_calendar(p_label);
+ perform patient_management_race.authorize_calendar(p_label);
+ select * into strict r from patient_management_race.requests where label=p_label;
+ state:=encode(extensions.digest('reauthorization/'||r.appointment_id,'sha256'),'hex');
+ id:=public.begin_patient_google_calendar_authorization(r.token,false,state,repeat('v',32),repeat('e',40),false);
+ perform public.consume_patient_google_calendar_authorization(state,r.token,false);
+ update patient_management_race.calendar_requests set attempt_id=id,state_hash=state where label=p_label;
+end $$;
+select patient_management_race.prepare_calendar_reauthorization('target_claim_before_grant');
+SQL
+race target_claim_before_reauthorization \
+ "select public.claim_google_calendar_event_sync(e.id,'e3100000-0000-4000-8000-000000000097') from public.appointment_google_calendar_events e join patient_management_race.requests r on r.appointment_id=e.appointment_id where r.label='target_claim_before_grant';" \
+ "select patient_management_race.authorize_calendar('target_claim_before_grant');" GOOGLE_CALENDAR_SYNC_IN_PROGRESS
+"${psql_command[@]}" <<'SQL'
+do $$ begin
+ if not exists(select 1 from public.appointment_google_calendar_events e join patient_management_race.requests r on r.appointment_id=e.appointment_id
+  where r.label='target_claim_before_grant' and e.claimed_at is not null and e.claim_token='e3100000-0000-4000-8000-000000000097')
+  or not exists(select 1 from public.google_calendar_oauth_attempts a join patient_management_race.calendar_requests r on r.attempt_id=a.id
+   where r.label='target_claim_before_grant' and a.authorized_at is null) then
+  raise exception 'REAUTHORIZATION_RETIRED_LIVE_TARGET_CLAIM'; end if;
+end $$;
+select patient_management_race.prepare_calendar_reauthorization('grant_before_target_claim');
+create function patient_management_race.pause_calendar_grant_with_event_lock() returns trigger language plpgsql as $$
+begin
+ if current_setting('application_name')='calendar-grant-holder' and new.action='appointment.google_calendar_authorized'
+  and new.entity_id=(select appointment_id from patient_management_race.requests where label='grant_before_target_claim') then
+  perform pg_advisory_xact_lock(34123,953);
+  for attempt in 1..240 loop
+   if exists(select 1 from patient_management_race.signals where label='calendar_target_claim_skipped') then return new; end if;
+   perform pg_sleep(0.025);
+  end loop;
+  raise exception 'CALENDAR_TARGET_CLAIM_DID_NOT_FINISH_SKIPPED';
+ end if;
+ return new;
+end $$;
+create trigger zz_pause_calendar_grant after insert on public.audit_logs for each row
+ execute function patient_management_race.pause_calendar_grant_with_event_lock();
+SQL
+PGAPPNAME=calendar-grant-holder "${psql_command[@]}" >"$task_directory/holder.log" 2>&1 -c "select patient_management_race.authorize_calendar('grant_before_target_claim');" &
+holder_pid=$!
+"${psql_command[@]}" <<'SQL'
+do $$ begin
+ for attempt in 1..240 loop
+  perform pg_stat_clear_snapshot();
+  if exists(select 1 from pg_locks where locktype='advisory' and classid=34123 and objid=953 and granted) then return; end if;
+  perform pg_sleep(0.025);
+ end loop;
+ raise exception 'CALENDAR_GRANT_DID_NOT_REACH_OWNED_EVENT_EFFECT';
+end $$;
+do $$ declare id uuid; begin
+ select e.id into strict id from public.appointment_google_calendar_events e join patient_management_race.requests r on r.appointment_id=e.appointment_id where r.label='grant_before_target_claim';
+ if public.claim_google_calendar_event_sync(id,gen_random_uuid()) is not null then raise exception 'CALENDAR_TARGET_CLAIM_BYPASSED_GRANT_EVENT_LOCK'; end if;
+ insert into patient_management_race.signals values('calendar_target_claim_skipped');
+end $$;
+SQL
+wait "$holder_pid"; holder_pid=''
+"${psql_command[@]}" <<'SQL'
+drop trigger zz_pause_calendar_grant on public.audit_logs;
+do $$ declare target_event uuid; owner uuid:=gen_random_uuid(); result jsonb; begin
+ select e.id into strict target_event from public.appointment_google_calendar_events e join patient_management_race.requests r on r.appointment_id=e.appointment_id where r.label='grant_before_target_claim';
+ result:=public.claim_google_calendar_event_sync(target_event,owner);
+ if result->>'event_row_id' is distinct from target_event::text
+  or not exists(select 1 from public.appointment_google_calendar_events where id=target_event and claim_token=owner) then
+  raise exception 'CALENDAR_TARGET_CLAIM_NOT_AVAILABLE_AFTER_COMMITTED_GRANT'; end if;
+end $$;
+SQL
+echo 'PASS: a target claimant skips the grant-held event and can own it after commit; a grant cannot retire an existing lease.'
+
 deadlocks_after=$("${psql_command[@]}" -c 'select deadlocks from pg_stat_database where datname=current_database();')
 [[ "$deadlocks_before" == "$deadlocks_after" ]]
-echo 'PASS: forty-three controlled management/contact/clinical/OAuth races plus two FK lock counterexamples; no PostgreSQL deadlock.'
+echo 'PASS: forty-five controlled management/contact/clinical/OAuth races plus two FK lock counterexamples; no PostgreSQL deadlock.'
