@@ -7,7 +7,7 @@ import { hashRateLimitSubject } from '$lib/server/platform/rate-limits';
 import { readBoolean, readRecord, readText, isRecord } from '$lib/contracts/json';
 
 export const bookingInformationEnabled = () => env.BOOKING_INFORMATION_ENABLED === 'true';
-export const privateInformationHeaders = { 'cache-control': 'no-store', 'referrer-policy': 'no-referrer', 'x-content-type-options': 'nosniff' };
+export const privateInformationHeaders = { 'cache-control': 'no-store', 'referrer-policy': 'no-referrer', 'x-content-type-options': 'nosniff', 'x-robots-tag': 'noindex, nofollow, noarchive' };
 import type { PublicInformation } from '$lib/patients/public-booking-information';
 export type { PublicInformation } from '$lib/patients/public-booking-information';
 
