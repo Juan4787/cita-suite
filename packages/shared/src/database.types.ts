@@ -5130,10 +5130,9 @@ export type Database = {
         Args: { p_integration_id: string }
         Returns: Json
       }
-      get_public_booking_information: {
-        Args: { p_token: string }
-        Returns: Json
-      }
+      get_public_booking_information:
+        | { Args: { p_token: string }; Returns: Json }
+        | { Args: { p_legacy: boolean; p_token: string }; Returns: Json }
       get_public_patient_booking_schema: {
         Args: {
           p_business_id: string
@@ -5817,17 +5816,30 @@ export type Database = {
           isSetofReturn: true
         }
       }
-      submit_public_booking_information: {
-        Args: {
-          p_answers: Json
-          p_comment: string
-          p_expected_version: string
-          p_request_key: string
-          p_schema_hash: string
-          p_token: string
-        }
-        Returns: string
-      }
+      submit_public_booking_information:
+        | {
+            Args: {
+              p_answers: Json
+              p_comment: string
+              p_expected_version: string
+              p_request_key: string
+              p_schema_hash: string
+              p_token: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_answers: Json
+              p_comment: string
+              p_expected_version: string
+              p_legacy: boolean
+              p_request_key: string
+              p_schema_hash: string
+              p_token: string
+            }
+            Returns: string
+          }
       trash_patient_radiograph: {
         Args: {
           p_actor_id: string

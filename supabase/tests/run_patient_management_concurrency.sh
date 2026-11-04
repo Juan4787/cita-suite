@@ -322,6 +322,54 @@ race patient_move_before_email_correction \
  "select patient_management_race.act('move_before_contact');" \
  "update public.patients set email='race-corrected@example.test' where id=(select a.patient_id from public.appointments a join patient_management_race.requests r on r.appointment_id=a.id where r.label='move_before_contact');"
 "${psql_command[@]}" -c "select patient_management_race.assert_corrected_contact('move_before_contact'); select patient_management_race.assert_state('move_before_contact','reserved','pending',true,1);"
+# Auxiliary clinical writes share the same contact authority and keep their
+# own profile/submission contract; these are real row waits, in both orders.
+"${psql_command[@]}" <<'SQL'
+create function patient_management_race.prepare_information(p_label text) returns void language plpgsql as $$
+declare r patient_management_race.requests; a public.appointments; begin
+ perform patient_management_race.prepare(p_label);
+ select * into strict r from patient_management_race.requests where label=p_label;
+ select * into strict a from public.appointments where id=r.appointment_id;
+ insert into public.appointment_patient_information_contexts(business_id,appointment_id,patient_id_snapshot,schema_snapshot)
+ values(a.business_id,a.id,a.patient_id,'[{"id":"coverage","label":"Cobertura","kind":"text","required":false,"maxLength":100,"patientField":"insurance"}]');
+end $$;
+create function patient_management_race.submit_information(p_label text) returns uuid language plpgsql as $$
+declare r patient_management_race.requests; info jsonb; begin
+ select * into strict r from patient_management_race.requests where label=p_label;
+ info:=public.get_public_booking_information(r.token,false);
+ return public.submit_public_booking_information(r.token,r.operation_id,info->>'schema_hash',info->>'version',
+  jsonb_build_object('coverage',p_label),null,false);
+end $$;
+SQL
+"${psql_command[@]}" -c "select patient_management_race.prepare_information('contact_before_information'); insert into patient_management_race.contact_snapshots select 'contact_before_information',patient_management_race.domain_state('contact_before_information');"
+race contact_correction_before_clinical_information \
+ "update public.patients set email='race-corrected@example.test' where id=(select a.patient_id from public.appointments a join patient_management_race.requests r on r.appointment_id=a.id where r.label='contact_before_information');" \
+ "select patient_management_race.submit_information('contact_before_information');" BOOKING_INFORMATION_UNAVAILABLE
+"${psql_command[@]}" <<'SQL'
+select patient_management_race.assert_corrected_contact('contact_before_information');
+do $$ declare a public.appointments; begin
+ select ap.* into strict a from public.appointments ap join patient_management_race.requests r on r.appointment_id=ap.id where r.label='contact_before_information';
+ if exists(select 1 from public.appointment_intake_submissions where appointment_id=a.id)
+  or (select insurance from public.patients where id=a.patient_id) is not null
+  or patient_management_race.domain_state('contact_before_information') is distinct from
+   (select value from patient_management_race.contact_snapshots where label='contact_before_information') then
+  raise exception 'CONTACT_CLINICAL_INFORMATION_PARTIAL_EFFECTS'; end if;
+end $$;
+SQL
+"${psql_command[@]}" -c "select patient_management_race.prepare_information('information_before_contact');"
+race clinical_information_before_contact_correction \
+ "select patient_management_race.submit_information('information_before_contact');" \
+ "update public.patients set email='race-corrected@example.test' where id=(select a.patient_id from public.appointments a join patient_management_race.requests r on r.appointment_id=a.id where r.label='information_before_contact');"
+"${psql_command[@]}" <<'SQL'
+select patient_management_race.assert_corrected_contact('information_before_contact');
+do $$ declare a public.appointments; begin
+ select ap.* into strict a from public.appointments ap join patient_management_race.requests r on r.appointment_id=ap.id where r.label='information_before_contact';
+ if (select count(*) from public.appointment_intake_submissions where appointment_id=a.id)<>1
+  or (select insurance from public.patients where id=a.patient_id) is distinct from 'information_before_contact' then
+  raise exception 'AUTHORIZED_CLINICAL_INFORMATION_NOT_PRESERVED'; end if;
+end $$;
+SQL
+
 deadlocks_after=$("${psql_command[@]}" -c 'select deadlocks from pg_stat_database where datname=current_database();')
 [[ "$deadlocks_before" == "$deadlocks_after" ]]
-echo 'PASS: thirteen patient, eight staff/cross-origin and three contact controlled races; no PostgreSQL deadlock.'
+echo 'PASS: thirteen patient, eight staff/cross-origin and five contact/clinical controlled races; no PostgreSQL deadlock.'
