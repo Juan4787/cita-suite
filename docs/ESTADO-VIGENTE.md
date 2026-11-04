@@ -148,6 +148,7 @@ A	supabase/tests/migrations/20261103010000_appointment_management_foundation.sql
 A	supabase/tests/patient_appointment_management_commands.sql
 A	supabase/tests/patient_appointment_management_recovery.sql
 A	supabase/tests/patient_appointment_management_view.sql
+A	supabase/tests/patient_calendar_sync_leases.sql
 M	supabase/tests/patient_change_history_atomic.sql
 M	supabase/tests/patient_identity_atomicity.sql
 A	supabase/tests/patient_management_document_access.sql
