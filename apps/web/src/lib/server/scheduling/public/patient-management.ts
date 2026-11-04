@@ -1,4 +1,3 @@
-import { isUuid } from '@cita-suite/shared/uuid';
 import { BOOKING_THEMES, BOOKING_INTEGRATION_KEY_PATTERN, parseBookingModalityWindows, type BookingModality } from '@cita-suite/shared/booking-integration';
 import { InvalidDataContractError, readArray, readBoolean, readNullableText, readRecord, readText, readJson } from '$lib/contracts/json';
 import { parsePriceQuote } from '$lib/scheduling/price-contracts';
@@ -14,24 +13,13 @@ import { APPOINTMENT_STATUS_LABELS, isAppointmentStatus } from './appointments';
 import { getAvailabilitySelection } from './availability';
 import type { PublicAppointmentView } from './public-appointments';
 
+import { managementId as uuid, managementRevision as token, managementCounter as counter, managementInstant as instant,
+ managementEpochMicroseconds as epochMicroseconds, sameManagementInstant, parseManagementResult as parseCommandResult } from '../internal/management-contract';
+export { sameManagementInstant } from '../internal/management-contract';
+const nullableInstant = (value: unknown): string | null => value === null ? null : instant(value);
+
 export type PatientManagementAccess = { token: string; legacy: boolean };
 const invalid = (): never => { throw new InvalidDataContractError('appointment.management'); };
-const uuid = (value: unknown): string => typeof value === 'string' && isUuid(value) ? value : invalid();
-const counter = (value: unknown, minimum = 1): number =>
- typeof value === 'number' && Number.isSafeInteger(value) && value >= minimum ? value : invalid();
-const token = (value: unknown): string => typeof value === 'string' && /^[a-f0-9]{64}$/.test(value) ? value : invalid();
-const instant = (value: unknown): string => {
- if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})$/.test(value) ||
-  !isAvailabilityDate(value.slice(0, 10)) || !Number.isFinite(Date.parse(value))) return invalid();
- return value;
-};
-const nullableInstant = (value: unknown): string | null => value === null ? null : instant(value);
-const epochMicroseconds = (value: string): bigint => {
- instant(value);
- const fraction = /\.(\d+)(?:Z|[+-]\d{2}:\d{2})$/.exec(value)?.[1] ?? '';
- return BigInt(Date.parse(value)) * 1000n + BigInt(fraction.padEnd(6, '0').slice(3));
-};
-export const sameManagementInstant = (left: string, right: string): boolean => epochMicroseconds(left) === epochMicroseconds(right);
 const money = (value: unknown): string => typeof value === 'string' && /^(0|[1-9]\d{0,127})$/.test(value) ? value : invalid();
 
 /** Validate the explicit SQL projection, then construct only the patient DTO.
@@ -143,21 +131,6 @@ export const listPatientManagementSlots = async (client: CitaSupabaseClient, vie
 export type PatientManagementCommand = {
  operationId: string; expectedRevision: string; action: 'cancel' | 'confirm' | 'reschedule';
  startsAt?: string | null; availabilityRevision?: number | null; integrationRevision?: number | null; financialTerms?: unknown;
-};
-const parseCommandResult = (value: unknown) => {
- // Both callers have already dispatched a command or found a stored receipt.
- // Decoding failure is therefore an unknown outcome, never invalid input or
- // evidence of rollback. Keep it distinct from preflight contract validation
- // so the controller preserves the original operation for an exact retry.
- try {
-  const row = readRecord(value, 'appointment.management.result');
-  if (typeof row.status !== 'string' || !isAppointmentStatus(row.status)) return invalid();
-  return { appointmentId: uuid(row.appointment_id), status: row.status, startsAt: instant(row.starts_at), endsAt: instant(row.ends_at),
-   revision: token(row.revision), scheduleRevision: counter(row.schedule_revision),
-   changed: readBoolean(row.changed, 'appointment.management.result.changed'), idempotentReplay: readBoolean(row.idempotent_replay, 'appointment.management.result.replay') };
- } catch (cause) {
-  throw new Error('PATIENT_MANAGEMENT_RESULT_UNCERTAIN', { cause });
- }
 };
 
 /** Only the exact authorized receipt may bypass current-slot preflight. A new

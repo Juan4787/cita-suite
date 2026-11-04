@@ -4,18 +4,13 @@ import {readBoundedBookingForm} from '$lib/server/platform/form-data';
 import { env } from '$env/dynamic/private';
 import { bookingContextsAvailable } from '$lib/server/sites/public/booking-integration-flags';
 import { demoBusinessContext } from '$lib/server/access/public/business';
-import { getAvailabilitySlots } from '$lib/server/scheduling/public/availability';
-import {
-	getHumanAppointmentErrorMessage,
-	isAppointmentStatus,
-	rescheduleAppointment,
-	updateAppointmentStatus
-} from '$lib/server/scheduling/public/appointments';
+import { parseStaffManagementSelection } from '$lib/server/scheduling/public/staff-management';
+import { submitStaffManagementAction } from '$lib/server/scheduling/public/staff-management-flow';
 import { getOdontoContext } from '$lib/server/access/public/odonto-context';
 import { createSupabaseAdminClient } from '$lib/server/platform/supabase';
 import { loadAppointmentBookingContext, loadAppointmentIntakeForPatient } from '$lib/server/sites/public/booking-integrations';
 import { processAppointmentGoogleCalendarSync } from '$lib/server/integrations/public/google-calendar';
-import { resetPushRemindersForReschedule, sendReschedulePushNotice } from '$lib/server/integrations/public/push';
+import { sendReschedulePushNotice } from '$lib/server/integrations/public/push';
 import {
 	buildAppointmentActivationDelivery,
 	buildArgentineWaMeUrl,
@@ -75,6 +70,7 @@ export const load: PageServerLoad = async ({ params, locals, fetch, cookies, url
 		return {
 			context: demoBusinessContext(),
 			appointment: null,
+            management: null,
 			deposit: null,
 			canRecordDeposit: false,
 			auditLogs: [],
@@ -106,7 +102,7 @@ export const load: PageServerLoad = async ({ params, locals, fetch, cookies, url
 	const { data, error } = await supabase
 		.from('appointments')
 		.select(
-			'id, business_id, patient_id, service_id, professional_id, starts_at, ends_at, blocking_starts_at, blocking_ends_at, status, source, confirmation_token, service_name_snapshot, professional_name_snapshot, duration_minutes_snapshot, buffer_before_minutes_snapshot, buffer_after_minutes_snapshot, break_minutes_snapshot, ignore_break, confirmed_at, cancelled_at, cancelled_reason, reschedule_requested_at, internal_note, patient_instructions_snapshot, public_reminder_description_snapshot, price_quote_snapshot, phone_communication_status_at_booking, phone_warning_acknowledged_at, created_by_user_id, updated_by_user_id, cancelled_by_user_id, created_at, updated_at, patients(id, full_name, phone_e164, email, blocked), appointment_deposits(appointment_id, status, amount, currency, request_from, due_at, auto_cancel, waived_reason, recorded_at, reminder_opened_at, expired_at, revision)'
+			'id, business_id, patient_id, service_id, professional_id, starts_at, ends_at, blocking_starts_at, blocking_ends_at, status, source, confirmation_token, service_name_snapshot, professional_name_snapshot, duration_minutes_snapshot, buffer_before_minutes_snapshot, buffer_after_minutes_snapshot, break_minutes_snapshot, ignore_break, confirmed_at, cancelled_at, cancelled_reason, reschedule_requested_at, internal_note, patient_instructions_snapshot, public_reminder_description_snapshot, price_quote_snapshot, phone_communication_status_at_booking, phone_warning_acknowledged_at, created_by_user_id, updated_by_user_id, cancelled_by_user_id, created_at, updated_at, appointment_management_revision, appointment_professionals(professional_id, position, is_primary, professional_name_snapshot, break_minutes_snapshot), patients(id, full_name, phone_e164, email, blocked), appointment_deposits(appointment_id, status, amount, currency, request_from, due_at, auto_cancel, waived_reason, recorded_at, reminder_opened_at, expired_at, revision)'
 		)
 		.eq('business_id', business.business.id)
 		.eq('id', params.appointmentId)
@@ -125,7 +121,10 @@ export const load: PageServerLoad = async ({ params, locals, fetch, cookies, url
 			'No encontramos ese turno o tu usuario no puede verlo. Volvé a la agenda y comprobá que siga disponible para tu rol.'
 		);
 	}
-	const { appointment_deposits: depositRelation, ...appointmentRow } = data;
+	let selection;
+ try { selection = parseStaffManagementSelection(data); }
+ catch (error) { logServerFailure('appointment.management_selection_unavailable', error); throw kitError(503, 'No pudimos cargar el turno completo. Volvé a intentar.'); }
+ const { appointment_deposits: depositRelation, appointment_professionals: team, ...appointmentRow } = data;
 	const depositRow: OneToOne<typeof depositRelation> = depositRelation;
 	const deposit = parseAppointmentDeposit(depositRow ?? null);
 	// It cancels itself only with its own snapshot and the practice's switch both on; unknown is said
@@ -158,7 +157,7 @@ export const load: PageServerLoad = async ({ params, locals, fetch, cookies, url
 	const requestedFromDate = url.searchParams.get('from_date') ?? '';
 	const fromDate = isAvailabilityDate(requestedFromDate) ? requestedFromDate : appointmentLocalDate;
 
-	const [auditResult, usersResult, teamResult] = await Promise.all([
+	const [auditResult, usersResult] = await Promise.all([
 		supabase
 			.from('audit_logs')
 			.select('id, user_id, action, entity_type, entity_id, metadata, created_at')
@@ -166,24 +165,9 @@ export const load: PageServerLoad = async ({ params, locals, fetch, cookies, url
 			.eq('entity_type', 'appointment')
 			.eq('entity_id', params.appointmentId)
 			.order('created_at', { ascending: false }),
-		supabase.rpc('list_business_users', { target_business_id: business.business.id }),
-		supabase
-			.from('appointment_professionals')
-			.select(
-				'professional_id, position, is_primary, professional_name_snapshot, break_minutes_snapshot'
-			)
-			.eq('business_id', business.business.id)
-			.eq('appointment_id', params.appointmentId)
-			.order('position')
+		supabase.rpc('list_business_users', { target_business_id: business.business.id })
 	]);
 
-	// Without its team a joint appointment would look like one professional's: an error.
-	// The history is secondary, so the page says it could not be loaded instead of
-	// showing it as empty; without the users, it names them by their identifier.
-	if (teamResult.error) {
-		logServerFailure('appointment.team_unavailable', teamResult.error);
-		throw kitError(503, 'No pudimos cargar el equipo del turno. Volvé a intentar.');
-	}
 	if (auditResult.error) logServerFailure('Error cargando auditoria del turno', auditResult.error);
 	if (usersResult.error) logServerFailure('Error cargando usuarios para auditoria', usersResult.error);
 
@@ -234,24 +218,14 @@ export const load: PageServerLoad = async ({ params, locals, fetch, cookies, url
 
 	return {
 		context: business,canEditInstructions,
+  management: { revision: selection.revision, statusOperationId: crypto.randomUUID(), rescheduleOperationId: crypto.randomUUID() },
 		appointment: {
 			...appointmentRow,
 			// The quote saved with the booking is JSON: validated here, never trusted as is.
 			price_quote_snapshot: parsePriceQuote(data.price_quote_snapshot),
 			booking_context: bookingContext,
 			booking_intake: bookingIntake,
-			professionals:
-				teamResult.data && teamResult.data.length > 0
-					? teamResult.data
-					: [
-							{
-								professional_id: data.professional_id,
-								position: 0,
-								is_primary: true,
-								professional_name_snapshot: data.professional_name_snapshot,
-								break_minutes_snapshot: data.break_minutes_snapshot ?? 0
-							}
-						]
+			professionals: [...team].sort((a,b) => a.position - b.position)
 		},
 		deposit: deposit ? { ...deposit, cancelsItself: depositCancelsItself } : null,
 		canRecordDeposit: business.canOperate && DEPOSIT_ROLES.has(business.role),
@@ -314,204 +288,40 @@ export const actions: Actions = {
 			return fail(getDepositErrorStatus(code), { message: getDepositErrorMessage(code) });
 		}
 	},
-	update_status: async ({ request, params, locals, fetch, cookies }) => {
-		if (!locals.auth) throw redirect(303, '/login');
-		if (env.DEMO_MODE === 'true') return fail(400, { message: 'No disponible en modo demo.' });
-		const { supabase, business, userId } = await getOdontoContext({ locals, fetch, cookies });
-
-		const form = await request.formData();
-		const status = String(form.get('status') ?? '').trim();
-		if (!isAppointmentStatus(status)) return fail(400, { message: 'Estado inválido.' });
-		if (status === 'confirmed') {
-			return fail(400, { message: 'La confirmación queda reservada al paciente desde su enlace.' });
-		}
-
-		if (!business.canOperate) {
-			return fail(403, { message: 'No tenés permiso para modificar este turno.' });
-		}
-
-		try {
-			await updateAppointmentStatus(supabase, {
-				businessId: business.business.id,
-				appointmentId: params.appointmentId,
-				status,
-				userId,
-				reason: String(form.get('reason') ?? '').trim() || null
-			});
-		} catch (error) {
-			logServerFailure('Error actualizando turno', error);
-			return fail(400, { message: getHumanAppointmentErrorMessage(error) });
-		}
-
-		if (status === 'cancelled') {
-			try {
-				const admin = await createSupabaseAdminClient('odonto', fetch);
-				await processAppointmentGoogleCalendarSync(admin, params.appointmentId, fetch);
-			} catch (calendarError) {
-				// El trigger ya dejó el borrado en la cola durable.
-				logServerFailure('Error sincronizando Google Calendar tras cancelar turno', {
-					appointmentId: params.appointmentId,
-					code:
-						calendarError instanceof Error
-							? calendarError.message.slice(0, 120)
-							: 'unknown'
-				});
-			}
-		}
-
-		return { success: true, message: 'Turno actualizado.' };
-	},
-	reschedule: async ({ request, params, locals, fetch, cookies }) => {
-		if (!locals.auth) throw redirect(303, '/login');
-		if (env.DEMO_MODE === 'true') return fail(400, { message: 'No disponible en modo demo.' });
-		const { supabase, business, userId } = await getOdontoContext({ locals, fetch, cookies });
-		if (!business.canOperate) {
-			return fail(403, {
-				message:
-					'Tu rol no permite reprogramar turnos. Pedile a recepción, al dueño o a un administrador que haga el cambio desde la agenda.'
-			});
-		}
-
-		const form = await request.formData();
-		const slotStartsAt = String(form.get('slot_starts_at') ?? '').trim();
-		const reprogramDate = String(form.get('reprogram_date') ?? '').trim();
-		const ignoreBreak = form.get('ignore_break') === 'true';
-		if (!slotStartsAt || !reprogramDate) {
-			return fail(400, {
-				message:
-					'Elegí una fecha y uno de los horarios que muestra la agenda antes de confirmar la reprogramación.'
-			});
-		}
-		if (reprogramDate < todayInTimeZone(business.business.timezone)) {
-			return fail(400, {
-				message:
-					'No se puede mover un turno a una fecha pasada. Elegí hoy o una fecha futura y seleccioná un horario disponible.'
-			});
-		}
-
-		const [appointmentResult, teamResult] = await Promise.all([
-			supabase
-				.from('appointments')
-				.select('id, service_id, professional_id, status, ignore_break')
-				.eq('business_id', business.business.id)
-				.eq('id', params.appointmentId)
-				.maybeSingle(),
-			supabase
-				.from('appointment_professionals')
-				.select('professional_id, position')
-				.eq('business_id', business.business.id)
-				.eq('appointment_id', params.appointmentId)
-				.order('position')
-		]);
-		const appointment = appointmentResult.data;
-		if (appointmentResult.error || teamResult.error) {
-			logServerFailure('Error cargando turno o equipo para reprogramar', appointmentResult.error ?? teamResult.error);
-			return fail(500, {
-				message:
-					'No pudimos cargar el turno completo y, por seguridad, no modificamos ninguna agenda. Recargá la página y volvé a intentar.'
-			});
-		}
-		if (!appointment) {
-			return fail(404, {
-				message:
-					'No encontramos el turno que querés reprogramar. Volvé a la agenda y abrilo nuevamente.'
-			});
-		}
-		const professionalIds =
-			teamResult.data && teamResult.data.length > 0
-				? teamResult.data.map((allocation) => String(allocation.professional_id))
-				: [String(appointment.professional_id)];
-
-		let slots;
-		try {
-			slots = await getAvailabilitySlots(supabase, {
-				business: business.business,
-				serviceId: appointment.service_id,
-				professionalId: professionalIds.length === 1 ? professionalIds[0] : null,
-				professionalIds: professionalIds.length > 1 ? professionalIds : [],
-				fromDate: reprogramDate,
-				toDate: reprogramDate,
-				publicOnly: false,
-				excludeAppointmentId: appointment.id,
-				ignoreBreak
-			});
-		} catch (availabilityError) {
-			logServerFailure('Error revalidando equipo antes de reprogramar', availabilityError);
-			return fail(500, {
-				message:
-					'No pudimos volver a comprobar la disponibilidad de todo el equipo y, por seguridad, el turno conserva su horario anterior. Recargá la página y volvé a intentar.'
-			});
-		}
-		const slot = slots.find((candidate) => candidate.starts_at === slotStartsAt);
-		if (!slot) {
-			return fail(409, {
-				message:
-					professionalIds.length > 1
-						? 'Ese horario ya no está disponible para todo el equipo. No se modificó ninguna agenda. Actualizá los horarios y elegí otra opción conjunta.'
-						: 'Ese horario dejó de estar disponible. El turno conserva su fecha anterior. Actualizá los horarios y elegí otra opción.'
-			});
-		}
-
-		try {
-			await rescheduleAppointment(supabase, {
-				businessId: business.business.id,
-				appointmentId: params.appointmentId,
-				userId,
-				startsAt: new Date(slot.starts_at),
-				ignoreBreak
-			});
-		} catch (error) {
-			logServerFailure('Error reprogramando turno', error);
-			return fail(400, { message: getHumanAppointmentErrorMessage(error) });
-		}
-
-		// Invalida los avisos push del horario viejo (redundante con el trigger de BD
-		// appointments_reset_push_reminders: acá queda como refuerzo) y manda el aviso
-		// inmediato de reprogramación, que además pisa la notificación vieja que pudiera
-		// seguir visible en el navegador del paciente. push_subscriptions es service-role
-		// only (RLS sin policies), por eso va con cliente admin. Best-effort: el turno ya
-		// quedó reprogramado, así que un fallo acá no debe abortar la acción.
-		try {
-			const admin = await createSupabaseAdminClient('odonto', fetch);
-			// El trigger de base de datos ya hace este reseteo dentro de la transacción.
-			// Este refuerzo no puede bloquear el aviso inmediato si falla por separado.
-			try {
-				await resetPushRemindersForReschedule(admin, {
-					businessId: business.business.id,
-					appointmentId: params.appointmentId
-				});
-			} catch (resetError) {
-				logServerFailure('Error reforzando el reseteo de avisos tras reprogramar', resetError);
-			}
-			try {
-				await sendReschedulePushNotice(admin, fetch, {
-					businessId: business.business.id,
-					appointmentId: params.appointmentId
-				});
-			} catch (noticeError) {
-				logServerFailure('Error enviando el aviso inmediato tras reprogramar', noticeError);
-			}
-		} catch (pushSetupError) {
-			logServerFailure('Error preparando avisos push tras reprogramar', pushSetupError);
-		}
-
-		try {
-			const admin = await createSupabaseAdminClient('odonto', fetch);
-			await processAppointmentGoogleCalendarSync(admin, params.appointmentId, fetch);
-		} catch (calendarError) {
-			// La reprogramacion ya quedó confirmada y la cola reintentará sin intervención.
-			logServerFailure('Error sincronizando Google Calendar tras reprogramar', {
-				appointmentId: params.appointmentId,
-				code:
-					calendarError instanceof Error
-						? calendarError.message.slice(0, 120)
-						: 'unknown'
-			});
-		}
-
-		throw redirect(
-			303,
-			`/odonto/turnos/${params.appointmentId}?from_date=${slot.date}&reprogram_date=${slot.date}&rescheduled=1`
-		);
-	}
+ update_status: async event => {
+  if (!event.locals.auth) throw redirect(303, '/login');
+  if (env.DEMO_MODE === 'true') return fail(400, { message: 'No disponible en modo demo.' });
+  const { supabase, business, userId } = await getOdontoContext(event);
+  if (!business.canOperate) return fail(403, { message: 'No tenés permiso para modificar este turno.' });
+  const form = await readBoundedBookingForm(event.request, []);
+  const admin = await createSupabaseAdminClient('odonto', event.fetch);
+  const feedback = await submitStaffManagementAction(supabase, { writer: admin, business: business.business,
+   userId, appointmentId: event.params.appointmentId }, 'update_status', form);
+  if (!feedback.success) return fail(feedback.retry ? 503 : 409, feedback);
+  if (feedback.result?.changed && !feedback.result.idempotentReplay && feedback.result.status === 'cancelled') {
+   try { await processAppointmentGoogleCalendarSync(admin, event.params.appointmentId, event.fetch); }
+   catch (error) { logServerFailure('Error sincronizando Google Calendar tras cancelar turno', error); }
+  }
+  return feedback;
+ },
+ reschedule: async event => {
+  if (!event.locals.auth) throw redirect(303, '/login');
+  if (env.DEMO_MODE === 'true') return fail(400, { message: 'No disponible en modo demo.' });
+  const { supabase, business, userId } = await getOdontoContext(event);
+  if (!business.canOperate) return fail(403, { message: 'No tenés permiso para reprogramar este turno.' });
+  const form = await readBoundedBookingForm(event.request, []);
+  const admin = await createSupabaseAdminClient('odonto', event.fetch);
+  const feedback = await submitStaffManagementAction(supabase, { writer: admin, business: business.business,
+   userId, appointmentId: event.params.appointmentId }, 'reschedule', form);
+  if (!feedback.success) return fail(feedback.retry ? 503 : 409, feedback);
+  if (!feedback.result?.changed || feedback.result.idempotentReplay) return feedback;
+  // Agenda, audit, reminder reset and recovery queues committed together in SQL.
+  // External attempts happen afterwards; an exact replay adds no immediate notice.
+  try { await sendReschedulePushNotice(admin, event.fetch, { businessId: business.business.id, appointmentId: event.params.appointmentId }); }
+  catch (error) { logServerFailure('Error enviando aviso de reprogramación', error); }
+  try { await processAppointmentGoogleCalendarSync(admin, event.params.appointmentId, event.fetch); }
+  catch (error) { logServerFailure('Error sincronizando Google Calendar tras reprogramar', error); }
+  const date = localDateFor(feedback.result.startsAt, business.business.timezone);
+  throw redirect(303, `/odonto/turnos/${event.params.appointmentId}?from_date=${date}&reprogram_date=${date}&rescheduled=1`);
+ }
 };

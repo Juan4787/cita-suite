@@ -33,16 +33,18 @@ const query = (result: unknown) => {
 };
 
 const appointmentId = '00000000-0000-4000-8000-0000000000a1';
-const appointment = {
-	id: appointmentId, business_id: 'business-1', patient_id: 'patient-1', professional_id: 'p1', status: 'confirmed', source: 'manual',
+const appointmentBase = {
+	id: appointmentId, business_id: 'business-1', patient_id: 'patient-1', professional_id: '00000000-0000-4000-8000-000000000001', status: 'confirmed', source: 'manual',
 	starts_at: '2026-10-28T13:00:00.000Z', ends_at: '2026-10-28T13:30:00.000Z', confirmation_token: null,
-	professional_name_snapshot: 'Profesional Uno', break_minutes_snapshot: 0, patients: { full_name: 'Paciente', phone_e164: null }
+	service_id: '00000000-0000-4000-8000-000000000003', appointment_management_revision: 'a'.repeat(64),
+ professional_name_snapshot: 'Profesional Uno', break_minutes_snapshot: 0, patients: { full_name: 'Paciente', phone_e164: null }
 };
 // A joint appointment: the colleague is the second professional.
 const team = [
-	{ professional_id: 'p1', position: 0, is_primary: true, professional_name_snapshot: 'Profesional Uno', break_minutes_snapshot: 0 },
-	{ professional_id: 'p2', position: 1, is_primary: false, professional_name_snapshot: 'Profesional Dos', break_minutes_snapshot: 0 }
+	{ professional_id: '00000000-0000-4000-8000-000000000001', position: 0, is_primary: true, professional_name_snapshot: 'Profesional Uno', break_minutes_snapshot: 0 },
+	{ professional_id: '00000000-0000-4000-8000-000000000002', position: 1, is_primary: false, professional_name_snapshot: 'Profesional Dos', break_minutes_snapshot: 0 }
 ];
+const appointment = { ...appointmentBase, appointment_professionals: team };
 const audit = [{ id: 'log-1', user_id: 'user-1', action: 'appointment.created', entity_type: 'appointment', entity_id: appointmentId, metadata: {}, created_at: '2026-10-20T12:00:00.000Z' }];
 const failure = { data: null, error: { code: '57014', message: 'canceling statement due to statement timeout' } };
 
@@ -84,12 +86,12 @@ describe('appointment detail load', () => {
 	it('shows the whole team of a joint appointment and its history', async () => {
 		tables();
 		const result = (await load(event())) as Detail;
-		expect(result.appointment.professionals.map((item) => item.professional_id)).toEqual(['p1', 'p2']);
+		expect(result.appointment.professionals.map((item) => item.professional_id)).toEqual(team.map(member => member.professional_id));
 		expect(result.auditLogs).toEqual(audit);
 	});
 
 	it('fails explicitly instead of showing a joint appointment as one professional when its team cannot be read', async () => {
-		tables({ appointment_professionals: failure });
+		tables({ appointments: { data: { ...appointment, appointment_professionals: [] }, error: null } });
 		await expect(load(event())).rejects.toMatchObject({ status: 503 });
 	});
 

@@ -10,10 +10,12 @@
 	import { agendaLongDate, agendaTime } from '$lib/utils/agenda-dates';
 	import { DEPOSIT_STATUS_LABELS, formatDepositAmount, type AppointmentDepositView } from '$lib/scheduling/deposits';
 	import { formatInTimeZone } from '$lib/utils/format';
+	import type { StaffManagementFeedback } from '$lib/scheduling/staff-management';
 	import type { PageData } from './$types';
 import { BOOKING_MODALITY_LABELS, type BookingModality } from '@cita-suite/shared/booking-integration';
 
 	type Slot = { date: string; time: string; starts_at: string; professional_name: string };
+ type SlotBatch = { slots: Slot[]; availabilityRevision: number; durationMinutes: number };
 	type AuditLog = {
 		id: string;
 		user_id: string | null;
@@ -26,6 +28,7 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@cita-suite/share
 		data: {
 			context: { canOperate: boolean; role: string; business?: { timezone?: string } };canEditInstructions?:boolean;
 			appointment: PageData['appointment'];
+   management: PageData['management'];
 			deposit: (AppointmentDepositView & { cancelsItself: boolean | null }) | null;
 			canRecordDeposit: boolean;
 			auditLogs: AuditLog[] | null;
@@ -47,7 +50,7 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@cita-suite/share
 		reschedulePublicUrl: string | null;
 			demo: boolean;
 		};
-		form?: { success?: boolean; message?: string };
+		form?: StaffManagementFeedback;
 	} = $props();
 
 	let refinedActivationDevice = $state<DeviceClass | null>(null);
@@ -65,7 +68,9 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@cita-suite/share
 		refinedActivationDevice = refineDeviceClass(data.activationDevice, navigator);
 	});
 
-	const canOperate = $derived(data.context.canOperate && !data.demo);
+	let localFeedback = $state<StaffManagementFeedback | null>(null);
+ const feedback = $derived(localFeedback ?? form);
+ const canOperate = $derived(data.context.canOperate && !data.demo);
 	const isClosed = $derived(data.appointment?.status === 'cancelled');
 	const canShowCancelAction = $derived(
 		!isClosed && data.appointment !== null && isUpcomingActiveAppointment(data.appointment)
@@ -176,7 +181,7 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@cita-suite/share
 
 	const canUseStatusAction = (status: string) => {
 		if (isClosed || !data.appointment || data.appointment.status === status) return false;
-		return canOperate;
+		return canOperate && !submitting && !feedback?.retry;
 	};
 
 	// --- Reprogramar: calendario inline + chips de horario ---
@@ -206,11 +211,7 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@cita-suite/share
 	let selectedDate = $state(reprogramInitial.reprogramDate);
 	let viewYear = $state(initParts.y);
 	let viewMonth = $state(initParts.m - 1);
-	let slotsCache = $state<Record<string, Slot[]>>(
-		reprogramInitial.reprogramSlotsLoaded
-			? { [reprogramInitial.reprogramDate]: reprogramInitial.reprogramSlots ?? [] }
-			: {}
-	);
+	let slotsCache = $state<Record<string, SlotBatch>>({});
 	let reprogramOpen = $state(false);
 	let loadingSlots = $state(false);
 	let slotsError = $state<string | null>(null);
@@ -225,9 +226,8 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@cita-suite/share
 		selectedDate = data.reprogramDate;
 		viewYear = nextParts.y;
 		viewMonth = nextParts.m - 1;
-		slotsCache = data.reprogramSlotsLoaded
-			? { [data.reprogramDate]: data.reprogramSlots ?? [] }
-			: {};
+		slotsCache = {};
+  slotRequest += 1;
 		selectedSlot = '';
 		slotsError = null;
 		loadingSlots = false;
@@ -235,7 +235,7 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@cita-suite/share
 
 	const weekdayLabels = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
 
-	const currentSlots = $derived(slotsCache[selectedDate] ?? []);
+	const currentSlots = $derived(slotsCache[selectedDate]?.slots ?? []);
 	const selectedSlotTime = $derived(currentSlots.find((s) => s.starts_at === selectedSlot)?.time ?? '');
 
 	const monthLabel = $derived(
@@ -276,6 +276,7 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@cita-suite/share
 		try {
 			const params = new URLSearchParams({
 				date,
+    expected_revision: data.management?.revision ?? '',
 				ignore_break: ignoreBreak ? 'true' : 'false'
 			});
 			const res = await fetch(
@@ -285,14 +286,16 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@cita-suite/share
 			if (request !== slotRequest) return;
 			if (!res.ok) {
 				slotsError = body?.message ?? 'No se pudieron cargar los horarios.';
-				slotsCache = { ...slotsCache, [date]: [] };
+				
 			} else {
-				slotsCache = { ...slotsCache, [date]: (body.slots ?? []) as Slot[] };
+				if (!Array.isArray(body.slots) || !Number.isSafeInteger(body.availabilityRevision) || body.availabilityRevision < 1 ||
+     !Number.isSafeInteger(body.durationMinutes) || body.durationMinutes < 1) throw new Error('Invalid slots');
+    slotsCache = { ...slotsCache, [date]: { slots: body.slots, availabilityRevision: body.availabilityRevision, durationMinutes: body.durationMinutes } };
 			}
 		} catch {
 			if (request !== slotRequest) return;
 			slotsError = 'No se pudieron cargar los horarios. Revisá tu conexión.';
-			slotsCache = { ...slotsCache, [date]: [] };
+			
 		} finally {
 			if (request === slotRequest) loadingSlots = false;
 		}
@@ -337,17 +340,22 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@cita-suite/share
 		}
 	};
 
-	const onReschedule: SubmitFunction = ({ cancel }) => {
-		if (!selectedSlot || submitting) {
-			cancel();
-			return;
-		}
-		submitting = true;
-		return async ({ update }) => {
-			await update();
-			submitting = false;
-		};
-	};
+ const onStaffAction: SubmitFunction = ({ cancel, action, formData }) => {
+  if (submitting || (action.search === '?/reschedule' && !selectedSlot && !feedback?.retry)) { cancel(); return; }
+  const fields = Object.fromEntries([...formData].map(([key,value]) => [key, String(value)]));
+  const kind = action.search === '?/reschedule' ? 'reschedule' as const : 'update_status' as const;
+  submitting = true;
+  localFeedback = null;
+  return async ({ result, update }) => {
+   try {
+    if (result.type === 'error') {
+     localFeedback = { success: false, message: 'No pudimos comprobar el resultado. Reintentá esta misma acción para consultar si quedó guardada.',
+      retry: { action: kind, fields } };
+    } else { await update(); }
+   } finally { submitting = false; }
+  };
+ };
+
 </script>
 
 <section class="flex flex-col gap-5">
@@ -362,11 +370,18 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@cita-suite/share
 		</div>
 	</div>
 
-	{#if form?.message}
-		<p class={`rounded-2xl px-4 py-3 text-sm font-semibold ${form.success ? 'bg-success-soft text-success-100' : 'bg-danger-500-15 text-danger-100'}`}>
-			{form.message}
+	{#if feedback?.message}
+		<p class={`rounded-2xl px-4 py-3 text-sm font-semibold ${feedback.success ? 'bg-success-soft text-success-100' : 'bg-danger-500-15 text-danger-100'}`}>
+			{feedback.message}
 		</p>
 	{/if}
+
+ {#if feedback?.retry}
+  <form method="POST" action={`?/${feedback.retry.action}`} use:enhance={onStaffAction} class="flex flex-wrap gap-3">
+   {#each Object.entries(feedback.retry.fields) as [name,value]}<input type="hidden" {name} {value} />{/each}
+   <button class="ux-btn-primary" disabled={submitting}>{submitting ? 'Comprobando…' : 'Comprobar esta misma acción'}</button>
+  </form>
+ {/if}
 
 	{#if data.justCreated && data.appointment && !data.phoneWarningAcknowledged}
 		<section
@@ -621,14 +636,16 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@cita-suite/share
 				<div class="mt-7 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
 					<details class="rounded-2xl border border-danger-400-20 bg-danger-500-10 md:col-span-2 xl:col-span-3">
 						<summary class="cursor-pointer list-none px-5 py-5 text-lg font-bold text-danger-100">Cancelar turno</summary>
-						<form method="POST" action="?/update_status" class="border-t border-danger-400-20 p-5">
+						<form method="POST" action="?/update_status" use:enhance={onStaffAction} class="border-t border-danger-400-20 p-5">
 							<input type="hidden" name="status" value="cancelled" />
+       <input type="hidden" name="operation_id" value={data.management?.statusOperationId ?? ''} />
+       <input type="hidden" name="expected_revision" value={data.management?.revision ?? ''} />
 							<label>
 								<span class="ux-label">Motivo (opcional)</span>
-								<textarea name="reason" rows="2" disabled={!canUseStatusAction('cancelled')} class="ux-textarea"></textarea>
+								<textarea name="reason" maxlength="500" rows="2" disabled={!canUseStatusAction('cancelled')} class="ux-textarea"></textarea>
 							</label>
 							<label class="mt-4 flex items-start gap-3 text-sm font-bold text-danger-100">
-								<input type="checkbox" required disabled={!canUseStatusAction('cancelled')} class="mt-1 h-4 w-4 accent-check-danger-600 disabled:opacity-60" />
+								<input type="checkbox" name="confirm_cancel" value="true" required disabled={!canUseStatusAction('cancelled')} class="mt-1 h-4 w-4 accent-check-danger-600 disabled:opacity-60" />
 								<span>Confirmo que quiero cancelar este turno.</span>
 							</label>
 							<button disabled={!canUseStatusAction('cancelled')} class="ux-btn-danger mt-4 w-full">Cancelar turno</button>
@@ -744,6 +761,7 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@cita-suite/share
 
 								{#if slotsError}
 									<p class="mt-3 rounded-xl bg-danger-500-15 px-3 py-2 text-sm text-danger-100">{slotsError}</p>
+         <button type="button" class="ux-btn-secondary mt-3" onclick={() => loadSlots(selectedDate)} disabled={loadingSlots}>Volver a consultar horarios</button>
 								{:else if loadingSlots && currentSlots.length === 0}
 									<div class="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4">
 										{#each Array(8) as _}
@@ -773,13 +791,17 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@cita-suite/share
 								{/if}
 							</div>
 
-							<form method="POST" action="?/reschedule" class="mt-5" use:enhance={onReschedule}>
-								<input type="hidden" name="slot_starts_at" value={selectedSlot} />
+							{#if slotsCache[selectedDate]}<p class="mt-4 text-sm text-fg-70">Duración de la consulta: {slotsCache[selectedDate].durationMinutes} minutos.</p>{/if}
+       <form method="POST" action="?/reschedule" class="mt-5" use:enhance={onStaffAction}>
+								<input type="hidden" name="operation_id" value={data.management?.rescheduleOperationId ?? ''} />
+        <input type="hidden" name="expected_revision" value={data.management?.revision ?? ''} />
+        <input type="hidden" name="availability_revision" value={slotsCache[selectedDate]?.availabilityRevision ?? ''} />
+        <input type="hidden" name="slot_starts_at" value={selectedSlot} />
 								<input type="hidden" name="reprogram_date" value={selectedDate} />
 								<input type="hidden" name="ignore_break" value={ignoreBreak ? 'true' : 'false'} />
 								<button
 									type="submit"
-									disabled={!selectedSlot || submitting}
+									disabled={!selectedSlot || submitting || !!feedback?.retry}
 									class="w-full rounded-2xl bg-accent-strong px-5 py-4 text-sm font-semibold text-on-accent transition hover:bg-accent-press disabled:cursor-not-allowed disabled:opacity-40"
 								>
 									{submitting

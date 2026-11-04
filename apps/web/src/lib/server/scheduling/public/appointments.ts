@@ -1,9 +1,9 @@
 import { isUuid } from '@cita-suite/shared/uuid';
-import type { CitaSupabaseClient, CitaUpdate } from '$lib/types/database';
+import type { CitaSupabaseClient } from '$lib/types/database';
 import { isRecord } from '$lib/contracts/json';
 import type { IntegratedBookingInput } from '$lib/server/sites/public/booking-integrations';
 import type { BookingDepositTerms } from '$lib/scheduling/deposits';
-import { writeAuditLog } from '$lib/server/platform/audit';
+import { applyStaffManagementCommand, type StaffManagementCommand } from './staff-management';
 import { normalizePhoneE164, normalizePhoneRaw } from '$lib/utils/phone';
 import {
 	getPatientUniqueConflictField,
@@ -127,6 +127,13 @@ export const getAppointmentCreationErrorStatus = (error: unknown): number => {
 export const getHumanAppointmentErrorMessage = (error: unknown) => {
 	const candidate = isRecord(error) ? error : {};
 	const raw = `${typeof candidate.message === 'string' ? candidate.message : ''} ${typeof candidate.details === 'string' ? candidate.details : ''}`;
+
+ if (raw.includes('APPOINTMENT_MANAGEMENT_CHANGED') || raw.includes('APPOINTMENT_OPERATION_CONFLICT'))
+  return 'Este turno cambió desde que lo abriste. Revisá su estado actual antes de volver a confirmar.';
+ if (raw.includes('APPOINTMENT_AVAILABILITY_CHANGED') || raw.includes('APPOINTMENT_SLOT_UNAVAILABLE'))
+  return 'Los horarios disponibles cambiaron. Recargá el turno y elegí otra opción.';
+ if (raw.includes('DEPOSIT_FORBIDDEN') || raw.includes('DEPOSIT_BUSINESS_UNAVAILABLE') || candidate.code === '42501')
+  return 'Tu permiso para modificar este turno ya no está vigente. Volvé a ingresar al consultorio y revisá tu acceso.';
 
 	// Señas: Confirmado exige la seña resuelta (plan de señas y avisos, sección 4.2).
 	if (raw.includes('APPOINTMENT_DEPOSIT_PENDING')) {
@@ -463,167 +470,19 @@ export const createJointAppointment = async (
 	return created;
 };
 
-export const updateAppointmentStatus = async (
-	supabase: CitaSupabaseClient,
-	input: {
-		businessId: string;
-		appointmentId: string;
-		status: AppointmentStatus;
-		userId: string;
-		reason?: string | null;
-		now?: Date;
-	}
-) => {
-	const now = input.now ?? new Date();
-
-	const { data: appointment, error: loadError } = await supabase
-		.from('appointments')
-		.select('id, starts_at, ends_at, status')
-		.eq('business_id', input.businessId)
-		.eq('id', input.appointmentId)
-		.maybeSingle();
-	if (loadError) throw loadError;
-	if (!appointment) throw new Error('APPOINTMENT_NOT_FOUND');
-	if (!isAppointmentStatus(appointment.status)) throw new Error('APPOINTMENT_STATUS_INVALID');
-
-	assertCanTransitionAppointment({
-		currentStatus: appointment.status,
-		nextStatus: input.status,
-		startsAt: new Date(appointment.starts_at),
-		endsAt: new Date(appointment.ends_at),
-		now
-	});
-
-	const updates: CitaUpdate<'appointments'> = {
-		status: input.status,
-		updated_by_user_id: input.userId,
-		updated_at: now.toISOString()
-	};
-
-	if (input.status === 'confirmed') updates.confirmed_at = now.toISOString();
-	if (input.status === 'cancelled') {
-		updates.cancelled_at = now.toISOString();
-		updates.cancelled_by_user_id = input.userId;
-		updates.cancelled_reason = input.reason || null;
-	}
-	if (input.status === 'reschedule_requested') updates.reschedule_requested_at = now.toISOString();
-
-	const { data: changedAppointment, error } = await supabase
-		.from('appointments')
-		.update(updates)
-		.eq('business_id', input.businessId)
-		.eq('id', input.appointmentId)
-		// Serialize competing transitions at the state observed above. Without
-		// this predicate, two professionals can both pass the local transition
-		// check and the last request can overwrite the first one.
-		.eq('status', appointment.status)
-		.select('id')
-		.maybeSingle();
-	if (error) throw error;
-	if (!changedAppointment) throw new Error('APPOINTMENT_STATUS_CONFLICT');
-
-	await writeAuditLog(supabase, {
-		businessId: input.businessId,
-		userId: input.userId,
-		action: `appointment.${input.status}`,
-		entityType: 'appointment',
-		entityId: input.appointmentId,
-		metadata: {
-			from_status: appointment.status,
-			to_status: input.status,
-			reason: input.status === 'cancelled' ? (input.reason ?? null) : null
-		}
-	});
+type StaffOperation = {
+ writer: CitaSupabaseClient; business: StaffManagementCommand['business']; appointmentId: string;
+ userId: string; operationId: string; expectedRevision: string;
 };
 
-export const rescheduleAppointment = async (
-	supabase: CitaSupabaseClient,
-	input: {
-		businessId: string;
-		appointmentId: string;
-		userId: string;
-		startsAt: Date;
-		ignoreBreak?: boolean;
-		now?: Date;
-	}
-) => {
-	const now = input.now ?? new Date();
-	const { data: appointment, error: loadError } = await supabase
-		.from('appointments')
-		.select(
-			'id, service_id, professional_id, starts_at, ends_at, status, confirmed_at, ignore_break, calendar_sequence, calendar_action_count, appointment_deposits(status)'
-		)
-		.eq('business_id', input.businessId)
-		.eq('id', input.appointmentId)
-		.maybeSingle();
-	if (loadError) throw loadError;
-	if (!appointment) throw new Error('APPOINTMENT_NOT_FOUND');
-	if (!isAppointmentStatus(appointment.status)) throw new Error('APPOINTMENT_STATUS_INVALID');
-	if (isTerminalAppointmentStatus(appointment.status)) {
-		throw new Error('APPOINTMENT_CANNOT_RESCHEDULE');
-	}
-
-	const { data: service, error: serviceError } = await supabase
-		.from('services')
-		.select('duration_minutes, is_active')
-		.eq('business_id', input.businessId)
-		.eq('id', appointment.service_id)
-		.maybeSingle();
-	if (serviceError) throw serviceError;
-	if (!service?.duration_minutes || !service.is_active) throw new Error('SERVICE_NOT_FOUND');
-
-	const endsAt = addMinutes(input.startsAt, Number(service.duration_minutes));
-	// Versionado del evento de calendario: el ICS del mismo turno sale con SEQUENCE
-	// incrementado, y si el paciente ya había registrado una acción de calendario el
-	// turno queda "pendiente de actualizar" (banner en /turno + sección Recordatorios).
-	const hadCalendarAction = Number(appointment.calendar_action_count ?? 0) > 0;
-	// Con la seña recibida o exceptuada el turno ya estaba asegurado: sigue Confirmado en la
-	// fecha nueva. Si alguien deshace la seña en el medio, la base rechaza la confirmación
-	// (APPOINTMENT_DEPOSIT_PENDING) y la reprogramación falla en vez de quedar incoherente.
-	const depositStatus = appointment.appointment_deposits?.status ?? null;
-	const depositSettled = depositStatus === 'paid' || depositStatus === 'waived';
-	const { data: changedAppointment, error } = await supabase
-		.from('appointments')
-		.update({
-			starts_at: input.startsAt.toISOString(),
-			ends_at: endsAt.toISOString(),
-			status: depositSettled ? 'confirmed' : 'reserved',
-			confirmed_at: depositSettled ? (appointment.confirmed_at ?? now.toISOString()) : null,
-			reschedule_requested_at: null,
-			reminder_due_at: null,
-			calendar_sequence: Number(appointment.calendar_sequence ?? 0) + 1,
-			calendar_update_required_at: hadCalendarAction ? now.toISOString() : null,
-			// Una reprogramación vuelve a calcular desde cero. La excepción al
-			// descanso sólo continúa si el usuario la solicita otra vez.
-			ignore_break: Boolean(input.ignoreBreak),
-			updated_by_user_id: input.userId,
-			updated_at: now.toISOString()
-		})
-		.eq('business_id', input.businessId)
-		.eq('id', input.appointmentId)
-		// Do not resurrect a cancellation (or overwrite another transition)
-		// that happened after the initial read.
-		.eq('status', appointment.status)
-		.select('id')
-		.maybeSingle();
-	if (error) throw error;
-	if (!changedAppointment) throw new Error('APPOINTMENT_STATUS_CONFLICT');
-
-	await writeAuditLog(supabase, {
-		businessId: input.businessId,
-		userId: input.userId,
-		action: 'appointment.rescheduled',
-		entityType: 'appointment',
-		entityId: input.appointmentId,
-		metadata: {
-			from_starts_at: appointment.starts_at,
-			from_ends_at: appointment.ends_at,
-			to_starts_at: input.startsAt.toISOString(),
-			to_ends_at: endsAt.toISOString(),
-			from_status: appointment.status,
-			to_status: depositSettled ? 'confirmed' : 'reserved',
-			ignore_break: Boolean(input.ignoreBreak),
-			calendar_update_required: hadCalendarAction
-		}
-	});
+export const updateAppointmentStatus = async (supabase: CitaSupabaseClient,
+ input: StaffOperation & { status: AppointmentStatus; reason?: string | null }) => {
+ const action = input.status === 'cancelled' ? 'cancel' : input.status === 'confirmed' ? 'confirm' :
+  input.status === 'reschedule_requested' ? 'request_reschedule' : null;
+ if (!action) throw new Error('APPOINTMENT_INVALID_TRANSITION');
+ return applyStaffManagementCommand(input.writer, supabase, { ...input, actorId: input.userId, action });
 };
+
+export const rescheduleAppointment = async (supabase: CitaSupabaseClient,
+ input: StaffOperation & { startsAt: string; ignoreBreak: boolean; availabilityRevision: number }) =>
+ applyStaffManagementCommand(input.writer, supabase, { ...input, actorId: input.userId, action: 'reschedule' });

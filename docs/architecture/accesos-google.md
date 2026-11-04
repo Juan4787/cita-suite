@@ -17,7 +17,7 @@ La carpeta padre **`ACCESOS-GOOGLE-CITA-SUITE/`** reúne los accesos Google del 
 - **Retorno único:** `https://app.cita-suite.com.ar/oauth/google-calendar/callback`, aceptado por Google (`.verification/calendar-proyecto-propio-20261102/`).
 - **Permiso único:** `calendar.events.owned`.
 - **Instalación:** instalado en producción el 2 de noviembre de 2026 a las 03:03 UTC (versión del Worker `986cf666-ae09-423b-ae05-1928007dccde`) y comprobado de punta a punta: permiso real de Juan, evento creado en su calendario y borrado al cancelar el turno.
-- **Vuelta atrás:** `wrangler rollback 59f81e89-412f-49be-b65b-3a2378ddf71e`.
+- **Vuelta atrás al cliente anterior (corregido el 3 de noviembre):** Desde el modo claro, volver al cliente anterior **no** se hace con una vuelta atrás de versión: `59f81e89…` desharía también V11f y V12b. Si hiciera falta, se cargan con `wrangler secret bulk` el ID y el secreto del JSON de `ACCESOS-GOOGLE-CITA-SUITE/GOOGLE-CALENDAR/`, como hizo `instalar-cliente-calendar.mjs` con el cliente nuevo. Nunca volver a `59f81e89…`.
 - **Lo que falta:** la verificación del permiso; ver `docs/plans/pendientes-vigentes.md`, sección 4, punto 1.
 
 La carpeta general y sus archivos están excluidos de Git. Cada integración tiene su JSON de credenciales propio: **Calendar**, `GOOGLE-CALENDAR/CREDENCIALES-GOOGLE-CALENDAR-CITA-SUITE-PRODUCCION.json`; **autenticación**, `AUTENTICACION-GOOGLE/CREDENCIALES-AUTENTICACION-GOOGLE-CITA-SUITE-PRODUCCION.json`. El segundo contiene el secreto nuevo creado por el usuario dentro del cliente Auth existente. Sus guías y metadatos están separados; no intercambiar los archivos. Guardarlos localmente no acredita que los secretos nuevos estén instalados o que los recorridos completos funcionen.

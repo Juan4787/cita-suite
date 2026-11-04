@@ -1,114 +1,27 @@
-import { todayInTimeZone } from '$lib/availability/calculate';
 import { logServerFailure } from '$lib/server/platform/logging';
 import { env } from '$env/dynamic/private';
-import { getAvailabilitySlots } from '$lib/server/scheduling/public/availability';
+import { isAvailabilityDate } from '$lib/availability/windows';
 import { getOdontoContext } from '$lib/server/access/public/odonto-context';
+import { listStaffManagementSlots, loadStaffManagementSelection } from '$lib/server/scheduling/public/staff-management';
 import { json, redirect } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
-// Horarios reales disponibles del profesional del turno para una fecha, excluyendo
-// el propio turno del cálculo (si no, el turno se bloquearía a sí mismo).
-export const GET: RequestHandler = async ({ params, url, locals, fetch, cookies }) => {
-	if (!locals.auth) throw redirect(303, '/login');
-	if (env.DEMO_MODE === 'true') return json({ slots: [] });
-
-	const { supabase, business } = await getOdontoContext({ locals, fetch, cookies });
-	if (!business.canOperate) {
-		return json(
-			{
-				message:
-					'Tu rol no permite reprogramar turnos. Pedile a recepción, al dueño o a un administrador que haga el cambio desde la agenda.',
-				slots: []
-			},
-			{ status: 403 }
-		);
-	}
-
-	const date = url.searchParams.get('date') ?? '';
-	if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-		return json(
-			{
-				message:
-					'La fecha no tiene un formato válido. Cerrá el panel de reprogramación, volvé a abrirlo y elegí un día del calendario.',
-				slots: []
-			},
-			{ status: 400 }
-		);
-	}
-	if (date < todayInTimeZone(business.business.timezone)) {
-		return json({ slots: [] });
-	}
-
-	const [appointmentResult, teamResult] = await Promise.all([
-		supabase
-			.from('appointments')
-			.select('id, service_id, professional_id, status, ignore_break')
-			.eq('business_id', business.business.id)
-			.eq('id', params.appointmentId)
-			.maybeSingle(),
-		supabase
-			.from('appointment_professionals')
-			.select('professional_id, position')
-			.eq('business_id', business.business.id)
-			.eq('appointment_id', params.appointmentId)
-			.order('position')
-	]);
-	const appointment = appointmentResult.data;
-
-	if (appointmentResult.error || teamResult.error) {
-		logServerFailure('Error cargando turno para slots de reprogramación', appointmentResult.error ?? teamResult.error);
-		return json(
-			{
-				message:
-					'No pudimos cargar el turno completo y no se modificó ninguna agenda. Cerrá este panel, recargá la página y volvé a intentar.',
-				slots: []
-			},
-			{ status: 500 }
-		);
-	}
-	if (!appointment) {
-		return json(
-			{
-				message:
-					'No encontramos este turno. Volvé a la agenda y abrilo nuevamente antes de reprogramar.',
-				slots: []
-			},
-			{ status: 404 }
-		);
-	}
-	if (appointment.status === 'cancelled') {
-		return json({ slots: [] });
-	}
-
-	try {
-		const professionalIds =
-			teamResult.data && teamResult.data.length > 0
-				? teamResult.data.map((allocation) => String(allocation.professional_id))
-				: [String(appointment.professional_id)];
-		// La nueva fecha parte respetando el descanso. Sólo se ignora cuando el
-		// usuario lo solicita explícitamente en esta reprogramación.
-		const ignoreBreak = url.searchParams.get('ignore_break') === 'true';
-		const slots = await getAvailabilitySlots(supabase, {
-			business: business.business,
-			serviceId: appointment.service_id,
-			professionalId: professionalIds.length === 1 ? professionalIds[0] : null,
-			professionalIds: professionalIds.length > 1 ? professionalIds : [],
-			fromDate: date,
-			toDate: date,
-			publicOnly: false,
-			excludeAppointmentId: appointment.id,
-			ignoreBreak
-		});
-		return json({ slots });
-	} catch (err) {
-		logServerFailure('Error calculando slots de reprogramación', err);
-		return json(
-			{
-				message:
-					'No pudimos comparar la disponibilidad de todos los profesionales. El turno conserva su horario actual. Recargá la página y volvé a intentar.',
-				slots: []
-			},
-			{ status: 500 }
-		);
-	}
+export const GET: RequestHandler = async event => {
+ if (!event.locals.auth) throw redirect(303, '/login');
+ if (env.DEMO_MODE === 'true') return json({ slots: [], availabilityRevision: null, durationMinutes: null });
+ const { supabase, business } = await getOdontoContext(event);
+ if (!business.canOperate) return json({ message: 'Tu rol no permite reprogramar turnos.', slots: [] }, { status: 403 });
+ const date = event.url.searchParams.get('date') ?? '';
+ const revision = event.url.searchParams.get('expected_revision') ?? '';
+ if (!isAvailabilityDate(date) || !/^[a-f0-9]{64}$/.test(revision))
+  return json({ message: 'Recargá el detalle del turno y elegí una fecha válida.', slots: [] }, { status: 400 });
+ try {
+  const appointment = await loadStaffManagementSelection(supabase, business.business.id, event.params.appointmentId);
+  if (appointment.revision !== revision) return json({ message: 'El turno cambió. Recargá su detalle antes de elegir otro horario.', slots: [] }, { status: 409 });
+  const selected = await listStaffManagementSlots(supabase, business.business, appointment, date, event.url.searchParams.get('ignore_break') === 'true');
+  return json({ slots: selected.slots, availabilityRevision: selected.availabilityRevision, durationMinutes: selected.durationMinutes });
+ } catch (error) {
+  logServerFailure('Error consultando horarios de reprogramación', error);
+  return json({ message: 'No pudimos consultar los horarios. Recargá el detalle y volvé a intentar.', slots: [] }, { status: 503 });
+ }
 };

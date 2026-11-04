@@ -1044,6 +1044,7 @@ export type Database = {
           whatsapp_reminder_marked_sent_by: string | null
           whatsapp_reminder_opened_at: string | null
           whatsapp_reminder_opened_by: string | null
+          appointment_management_revision: string | null
         }
         Insert: {
           blocking_ends_at: string
@@ -4231,6 +4232,28 @@ export type Database = {
           p_token: string
         }
         Returns: Json
+      }
+      apply_staff_appointment_management: {
+        Args: {
+          p_action: string
+          p_actor_id: string
+          p_appointment_id: string
+          p_availability_revision?: number
+          p_business_id: string
+          p_expected_revision: string
+          p_ignore_break?: boolean
+          p_operation_id: string
+          p_reason?: string
+          p_replay_only?: boolean
+          p_starts_at?: string
+        }
+        Returns: Json
+      }
+      appointment_management_revision: {
+        Args: { "": Database["public"]["Tables"]["appointments"]["Row"] }
+        Returns: {
+          error: true
+        } & "the function public.appointment_management_revision with parameter or with a single unnamed json/jsonb parameter, but no matches were found in the schema cache"
       }
       assert_email_available_for_business: {
         Args: { target_business_id: string; target_email: string }

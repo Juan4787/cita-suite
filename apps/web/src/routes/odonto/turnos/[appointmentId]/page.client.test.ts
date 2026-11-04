@@ -1,6 +1,6 @@
 /** @vitest-environment jsdom */
 
-import { cleanup, render, screen, waitFor } from '@testing-library/svelte';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/svelte';
 import '@testing-library/jest-dom/vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import Page from './+page.svelte';
@@ -43,6 +43,7 @@ const appointment = {
 	cancelled_by_user_id: null,
 	created_at: '2026-08-05T12:00:00.000Z',
 	updated_at: '2026-08-05T12:00:00.000Z',
+ appointment_management_revision: 'a'.repeat(64),
 	patients: {
 		id: 'patient-1',
 		full_name: 'Paciente de prueba',
@@ -66,6 +67,7 @@ const appointment = {
 type PageData = ComponentProps<typeof Page>['data'];
 const data: PageData = {
 	context: { canOperate: true, role: 'owner' },
+ management: { revision: 'a'.repeat(64),statusOperationId: '00000000-0000-4000-8000-000000000001',rescheduleOperationId: '00000000-0000-4000-8000-000000000002' },
 	appointment,
 	deposit: null,
 	canRecordDeposit: true,
@@ -95,6 +97,40 @@ afterEach(() => {
 	cleanup();
 	vi.restoreAllMocks();
 	vi.unstubAllGlobals();
+});
+
+describe('observed staff operation form', () => {
+ it('keeps the observed revision and distinct operation identities on the two forms', () => {
+  const { container } = render(Page, { data: { ...data, justCreated: false, appointment: { ...appointment, starts_at: new Date(Date.now()+86400000).toISOString() } } });
+  const cancel = container.querySelector('form[action="?/update_status"]');
+  expect(cancel?.querySelector('[name="expected_revision"]')).toHaveValue(data.management!.revision);
+  expect(cancel?.querySelector('[name="operation_id"]')).toHaveValue(data.management!.statusOperationId);
+  expect(cancel?.querySelector('[name="confirm_cancel"]')).toHaveAttribute('value', 'true');
+ });
+ it('retains the EXACT uncertain request even when the newly loaded appointment is already cancelled', () => {
+  const fields = { operation_id: 'original-operation', expected_revision: 'original-revision', status: 'cancelled', reason: 'Solicitado', confirm_cancel: 'true' };
+  const { container } = render(Page, { data: { ...data, appointment: { ...appointment, status: 'cancelled' } },
+   form: { success: false, message: 'Comprobar el resultado', retry: { action: 'update_status', fields } } });
+  const button = screen.getByRole('button', { name: 'Comprobar esta misma acción' });
+  const retry = button.closest('form')!;
+  expect(Object.fromEntries(new FormData(retry))).toEqual(fields);
+  expect(container.querySelectorAll('form[action="?/update_status"]')).toHaveLength(1);
+ });
+ it('binds the offered slots to the version and duration of that same calculation', async () => {
+  const fetch = vi.fn().mockResolvedValue(new Response(JSON.stringify({ slots: [{ date: '2026-08-20', time: '10:00', starts_at: '2026-08-20T13:00:00Z', professional_name: 'Profesional' }], availabilityRevision: 9, durationMinutes: 45 }), { status: 200 }));
+  vi.stubGlobal('fetch', fetch);
+  const { container } = render(Page, { data: { ...data, justCreated: false } });
+  const panel = container.querySelector<HTMLDetailsElement>('#reprogramar')!;
+  panel.open = true; await fireEvent(panel, new Event('toggle'));
+  await waitFor(() => expect(screen.getByRole('button', { name: '10:00', exact: true })).toBeInTheDocument());
+  const url = new URL(fetch.mock.calls[0][0], 'https://app.test');
+  expect(url.searchParams.get('expected_revision')).toBe(data.management!.revision);
+  await fireEvent.click(screen.getByRole('button', { name: '10:00', exact: true }));
+  const form = container.querySelector('form[action="?/reschedule"]');
+  expect(form?.querySelector('[name="availability_revision"]')).toHaveValue('9');
+  expect(form?.querySelector('[name="operation_id"]')).toHaveValue(data.management!.rescheduleOperationId);
+  expect(screen.getByText('Duración de la consulta: 45 minutos.')).toBeInTheDocument();
+ });
 });
 
 describe('último paso después de crear un turno desde Agenda', () => {
