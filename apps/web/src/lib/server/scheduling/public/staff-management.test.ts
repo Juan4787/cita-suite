@@ -94,8 +94,8 @@ describe('staff command trust and recovery boundary', () => {
 });
 
 describe('staff coherent selection', () => {
- it.each([[], [{ professional_id: id(4), position: 0 }, { professional_id: id(4), position: 1 }]])(
-  'does not silently replace an absent or corrupt team with the primary professional', async team => {
+ it.each([{ team: [] }, { team: [{ professional_id: id(4), position: 0 }, { professional_id: id(4), position: 1 }] }])(
+  'does not silently replace an absent or corrupt team with the primary professional', async ({ team }) => {
    await expect(loadStaffManagementSelection(reader({ ...snapshot(), appointment_professionals: team }) as never, id(1), id(2))).rejects.toThrow();
   });
  it('does not turn a missing revision into permission to change', async () => {

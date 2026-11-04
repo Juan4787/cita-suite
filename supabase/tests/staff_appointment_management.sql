@@ -1,7 +1,7 @@
 -- Operator agenda writes: current identity/permission, observed revision,
 -- durable recovery and all-or-nothing effects. Owned disposable DB only.
 begin;
-select extensions.plan(21);
+select extensions.plan(25);
 create temporary table staff_agenda_fixture(label text primary key,id uuid not null,extra jsonb);
 grant select on staff_agenda_fixture to authenticated;
 create function pg_temp.said(p_label text) returns uuid language sql as $$ select id from staff_agenda_fixture where label=p_label $$;
@@ -234,5 +234,41 @@ do $$ declare target timestamptz:=transaction_timestamp()+interval '72 hours'; b
   raise exception 'STAFF_PAYMENT_WINDOW_USED_TRANSACTION_CLOCK'; end if;
 end $$;
 select extensions.pass('21. The actual post-lock payment window cannot be extended by transaction-start time');
+select extensions.ok(not has_table_privilege('authenticated','public.appointments','UPDATE')
+ and not has_any_column_privilege('authenticated','public.appointments','UPDATE')
+ and not has_table_privilege('anon','public.appointments','UPDATE')
+ and has_table_privilege('service_role','public.appointments','UPDATE'),
+ '22. Direct authenticated writes cannot bypass the command; backend telemetry keeps its grant');
+select pg_temp.sacase('waived');
+do $$ declare a public.appointments; before_time timestamptz; target timestamptz:=pg_temp.satarget('waived'); begin
+ perform public.set_appointment_deposit(pg_temp.said('business'),pg_temp.said('waived'),'waived',1,null);
+ update public.appointments set calendar_sequence=2,calendar_action_count=1,ignore_break=true where id=pg_temp.said('waived');
+ select confirmed_at into before_time from public.appointments where id=pg_temp.said('waived');
+ perform pg_temp.sacall('waived',gen_random_uuid(),pg_temp.sarev('waived'),'reschedule',target,pg_temp.sacfg());
+ select * into a from public.appointments where id=pg_temp.said('waived');
+ if a.status<>'confirmed' or a.confirmed_at is distinct from before_time or a.ignore_break or a.calendar_sequence<>3
+  or a.calendar_update_required_at is null
+  or not exists(select 1 from public.appointment_deposits where appointment_id=a.id and status='waived') then raise exception 'STAFF_WAIVER_CALENDAR_CONTRACT'; end if;
+end $$;
+select extensions.pass('23. Waiver preserves confirmation; movement advances an existing calendar and resets an unrequested break exception');
+select pg_temp.sacase('no_calendar');
+do $$ declare a public.appointments; begin
+ update public.appointments set calendar_sequence=5,calendar_action_count=0,calendar_update_required_at=now() where id=pg_temp.said('no_calendar');
+ perform pg_temp.sacall('no_calendar',gen_random_uuid(),pg_temp.sarev('no_calendar'),'reschedule',pg_temp.satarget('no_calendar'),pg_temp.sacfg());
+ select * into a from public.appointments where id=pg_temp.said('no_calendar');
+ if a.status<>'reserved' or a.confirmed_at is not null or a.calendar_sequence<>6 or a.calendar_update_required_at is not null then
+  raise exception 'STAFF_UNUSED_CALENDAR_CONTRACT'; end if;
+end $$;
+select extensions.pass('24. Movement without a previous calendar action advances its sequence without inventing an update requirement');
+do $$ declare before jsonb:=pg_temp.sastate('no_calendar'); appointment_id uuid:=pg_temp.said('no_calendar'); begin
+ begin
+  set local role authenticated;
+  update public.appointments set status='cancelled' where id=appointment_id;
+  raise exception 'STAFF_DIRECT_WRITE_BYPASS';
+ exception when insufficient_privilege then null; end;
+ reset role;
+ if pg_temp.sastate('no_calendar') is distinct from before then raise exception 'STAFF_DIRECT_WRITE_PARTIAL'; end if;
+end $$;
+select extensions.pass('25. A real authenticated direct UPDATE is rejected without changing any agenda, money or audit state');
 select * from extensions.finish();
 rollback;

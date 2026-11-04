@@ -89,7 +89,9 @@ A	supabase/migrations/20261103060000_appointment_creation_replay_identity.sql
 A	supabase/migrations/20261103070000_patient_appointment_management_recovery.sql
 A	supabase/migrations/20261103080000_staff_operation_authorization.sql
 A	supabase/migrations/20261103090000_staff_appointment_management.sql
+A	supabase/migrations/20261103100000_close_staff_appointment_direct_updates.sql
 M	supabase/templates/recovery.html
+M	supabase/tests/appointment_deposits.sql
 A	supabase/tests/appointment_management_capabilities.sql
 A	supabase/tests/appointment_management_foundation.sql
 A	supabase/tests/appointment_management_staff_authorization.sql
@@ -207,3 +209,5 @@ Lo ignora `.gitignore` y no se publica nunca: el repositorio es público.
 - Actualización E1.48: SQL 41715645324 aprobó las nueve migraciones y carreras ampliadas; tipos oficiales reproducibles importados con digest cotejado. Parser de resultados compartido, 50/50 dirigidos del paciente. Integración del personal y HTTP pendientes; producción sigue en V12b.
 
 - E1.49: detalle/slots y exports del personal consumen el comando atómico, revisión observada y recuperación original; 79/79 dirigidos servidor. Interfaz escrita; tipos y HTTP pendientes, privilegios UPDATE autenticados aún conservados.
+
+- E1.50: .100 y cuatro grupos SQL adicionales escritos para cerrar UPDATE autenticado, sin aplicar; el alta con Ayuda tiene dos pruebas nuevas de contrato pendientes. Fast 41755701125 se detuvo en cuatro errores de tipos de pruebas, corregidos. La suite de nueve sigue como evidencia anterior; no acredita diez migraciones.
