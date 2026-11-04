@@ -49,10 +49,12 @@ test('@candidate-behavior isolated reception email: current contact, existing ed
   await expect(popup.getByRole('dialog', { name: 'Editar datos', exact: true })).toBeVisible();
   const email = popup.getByLabel('Correo electrónico (opcional)', { exact: true });
   await expect(email).toBeFocused();
+  await expect(popup.getByLabel('Teléfono (opcional)', { exact: true })).toHaveValue('3425048209');
   await email.fill('Reception+Patient@Example.test');
   await popup.getByRole('button', { name: 'Guardar cambios', exact: true }).click();
   await expect(popup.getByRole('dialog', { name: 'Editar datos', exact: true })).toHaveCount(0);
   expect(f.sql(`select email from public.patients where id='${patientId}' and business_id='${businessId}';`)).toBe('Reception+Patient@Example.test');
+  expect(f.sql(`select phone_e164 from public.patients where id='${patientId}' and business_id='${businessId}';`)).toBe('+5493425048209');
   await page.getByRole('button', { name: 'Confirmar turno', exact: true }).click();
   await expect(page).toHaveURL(/\/odonto\/turnos\/[0-9a-f-]{36}/);
   expect(f.sql(`select count(*) from public.appointments where business_id='${businessId}' and patient_id='${patientId}' and creation_request_key='${key}' and created_by_user_id='${receptionId}';`)).toBe('1');

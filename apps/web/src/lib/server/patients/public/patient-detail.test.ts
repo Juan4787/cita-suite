@@ -67,7 +67,12 @@ describe('authorized patient detail projection with typed SDK and simulated HTTP
 			}
 		}
 	);
-	it('returns an authoritative empty history and defers documents without requesting metadata, grants or originals', async () => {
+	it.each([
+		{ phone: null, phone_raw: null, phone_e164: null, expectedPhone: null },
+		{ phone: null, phone_raw: '342 504 8209', phone_e164: '+5493425048209', expectedPhone: '342 504 8209' },
+		{ phone: '', phone_raw: '', phone_e164: '+5493425048209', expectedPhone: '+5493425048209' },
+		{ phone: '3425048209', phone_raw: '342 504 8209', phone_e164: '+5493425048209', expectedPhone: '3425048209' }
+	])('retains the effective contact in the editable projection and defers documents ($expectedPhone)', async (contact) => {
 		const requests: URL[] = [];
 		const client = createClient<CitaDatabase>('https://supabase.example.test', 'synthetic-key', {
 			auth: { persistSession: false, autoRefreshToken: false },
@@ -81,7 +86,9 @@ describe('authorized patient detail projection with typed SDK and simulated HTTP
 							id: patientId,
 							full_name: 'Synthetic patient',
 							dni: null,
-							phone: null,
+							phone: contact.phone,
+							...(url.searchParams.get('select')?.split(',').includes('phone_raw')
+								? { phone_raw: contact.phone_raw, phone_e164: contact.phone_e164 } : {}),
 							email: null,
 							birth_date: null,
 							address: null,
@@ -105,6 +112,9 @@ describe('authorized patient detail projection with typed SDK and simulated HTTP
 			currentUserId: userId
 		});
 		expect(result.patient.id).toBe(patientId);
+		expect(result.patient.phone).toBe(contact.expectedPhone);
+		expect(result.patient).not.toHaveProperty('phone_raw');
+		expect(result.patient).not.toHaveProperty('phone_e164');
 		expect(result.entries).toEqual([]);
 		expect(result.hasMoreEntries).toBe(false);
 		expect(result.radiographs).toEqual([]);

@@ -126,3 +126,6 @@ E1.94, sin publicar: consumidores de tracking/ofrecido/retiro/métricas ahora pa
 
 
 E1.95 actualiza lo anterior: SQL 41875359541 aprobado con veintiuna, 15 grupos de observación/18 de lease, 48 carreras/dos contraejemplos FK y doce esperas; tipos oficiales importados con digest cotejado. PDF ampliado usa gestión vigente por su propio canal y conserva renderer/lectura independiente de ICS. 103 pruebas modeladas aprobadas; fast/navegador de esta revisión, proveedor real, retención/distribución/contacto/correo y publicación siguen pendientes.
+
+
+E3.4–E3.7, 4 de noviembre, sin publicar: requisito público y preferencias con SQL 41887356962/fast 41887362821; browser 41925050114 recompueba recuperación, comprobante virtual privado y revocación de lectores. Recepción conserva prueba parcial: advertencia/editor real aprobados hasta detectar pérdida de teléfono alternativo al guardar email; lector corregido y pendiente de browser. La nueva dirección de una reserva sólo pertenece a ese turno (plan 12.28), sin editar contacto global ni heredar destino al reparar identidad; migración veinticinco y contraprueba de contención escritas, sin resultado todavía. La preparación de correo debe revalidar paciente/revisión/destino/baja actuales. No hay integración Zoho ni entrega por estos fundamentos. Evidencia y límites en el registro activo.
