@@ -226,3 +226,5 @@ Lo ignora `.gitignore` y no se publica nunca: el repositorio es público.
 - E1.53: browser 41757455635 aprobado con HTTP/SQL reales, conflicto concurrente y recuperación después de commit; matriz de cinco anchos/dos modos con paneles cerrados. SQL 41758176583 se detuvo por expectativa antigua de privilegio del arnés clínico: adaptación conserva denegación autenticada y guardia profesional privilegiada, pendiente rerun integral. P1/P2/P3 pospuestas por 12.26, no iniciarlas al cerrar E. Producción sigue V12b.
 
 - E1.55: SQL 41759448286 aprobó once migraciones, diez esperas de Ayuda y 21 carreras paciente/personal; tipos oficiales idénticos y digest cotejado. Roja de contacto 41759878304 reproducida; .120 y contratos/carreras escritos, doce migraciones aún sin verde. No aplicado ni publicado, sin envíos nuevos.
+
+- E1.56: SQL 41760657679 instaló doce migraciones y aprobó revocación/legado/ABA/familiares; se detuvo en END duplicado de una prueba nueva de rollback, corregido sin cambios del producto. Rerun integral/tipos pendientes.

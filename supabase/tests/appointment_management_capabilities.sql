@@ -231,7 +231,7 @@ do $$ declare patient uuid; begin
  begin
   update public.patients set email='rolled-back@example.test' where id=patient;
   raise exception 'E1_PROVOKED_CONTACT_ROLLBACK';
- exception when others then if sqlerrm is distinct from 'E1_PROVOKED_CONTACT_ROLLBACK' then raise; end if; end;
+ exception when others then if sqlerrm is distinct from 'E1_PROVOKED_CONTACT_ROLLBACK' then raise; end if;
  end;
 end $$;
 select extensions.is(pg_temp.access_resolve('contact_current')->>'appointment_id',pg_temp.access_value('contact_appointment'),
