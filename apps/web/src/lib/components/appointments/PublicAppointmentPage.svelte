@@ -1676,7 +1676,7 @@
 				{/if}
 
 				<a
-					href={`${base}/comprobante.pdf`}
+					href={`${managementBase}/comprobante.pdf`}
 					download="comprobante-turno.pdf"
 					class="ux-btn-secondary mt-6 w-full px-3 sm:px-5"
 				>

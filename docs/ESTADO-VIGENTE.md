@@ -18,7 +18,7 @@ produccion_repositorio: github-secundaria:Juan4787/cita-suite-verificacion.git
 
 ## Etapa E — ejecución al 4 de noviembre
 
-E conserva autorización íntegra de implementación/pruebas/publicación: [plan 12.18–12.26](plans/propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada), [especificación](plans/etapa-e-correo-autogestion.md) y [registro activo](plans/ejecucion-etapa-e-20261103.md). Diecinueve migraciones aprobadas en SQL **41829516097** (43 carreras/dos contraejemplos FK, doce esperas y regresiones/limpieza), tipos oficiales/digest cotejados. Corrige deadlock real de 41828016563 y comprueba lotes con orden inverso. Consumidores OAuth/auxiliares con fast **41827070902** (1852 servidor/281 cliente, cero errores/avisos) y browser ampliado **41827075064** sobre 7b2fd22 aprobados con sus alcances; recuperación TS posterior b269876 con 37/37 modeladas, fast posterior pendiente. Veinte aprobada en SQL 41842452349: 18 grupos de lease, 45 carreras/dos contraejemplos FK, doce esperas y regresiones/limpieza. Tipos oficiales/digest cotejados e importados; consumidor común y retiro de revoke global con 65 dirigidas aprobadas, fast 41873691746 falló por un tipo de callback del arnés, corregido. Veintiuna en SQL 41875359541 con 15 grupos/48 carreras, resultado/tipos pendientes. Consumidores explícitos escritos con 99 dirigidas aprobadas; fast integrado pendiente (E1.94). Tracking/borrado/métricas/PDF, retención OAuth, distribución/contacto/correo y E3–E6 siguen pendientes. No hay implementación E publicada, migraciones E productivas ni correo nuevo. Zoho OAuth administrativo persiste localmente; envío/webhook/recepción/integración pendientes. P1/P2/P3 pospuestas por 12.26, sin iniciarlas al cerrar E; D celular está reemplazada por futura P3 interna. No hay otra espera de permiso.
+E conserva autorización íntegra de implementación/pruebas/publicación: [plan 12.18–12.26](plans/propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada), [especificación](plans/etapa-e-correo-autogestion.md) y [registro activo](plans/ejecucion-etapa-e-20261103.md). E1/E2 sin publicar ni SQL E productivo. Veintiuna aprobada en SQL 41875359541: 15 grupos de observación, 18 de lease, 48 carreras/dos contraejemplos FK, doce esperas y regresiones/limpieza; tipos oficiales/digest cotejados e importados. Consumidores de calendario/retiro/métricas/PDF con 103 dirigidas de ocho suites aprobadas. Fast integrado nuevo pendiente; 41873691746 falló por un tipo del proveedor modelado, corregido. El browser anterior 41827075064 y fast 41827070902 conservan sólo sus revisiones/alcances. Seguir verificación integrada y retención OAuth/lectores/distribución/contacto/correo/E3–E6. Checkpoint E1.95. Producción V12b, ningún envío nuevo ni cierre E. P1/P2/P3 pospuestas por 12.26: no iniciarlas al cerrar E; avisar y entregar documentación detallada. Zoho OAuth administrativo persiste; envío/webhook/recepción/integración siguen pendientes.
 
 ## Código que difiere de producción
 
@@ -80,6 +80,8 @@ A	apps/web/src/lib/server/scheduling/public/patient-management.test.ts
 A	apps/web/src/lib/server/scheduling/public/patient-management.ts
 M	apps/web/src/lib/server/scheduling/public/public-appointments.test.ts
 M	apps/web/src/lib/server/scheduling/public/public-appointments.ts
+A	apps/web/src/lib/server/scheduling/public/receipt-pdf-handler.test.ts
+A	apps/web/src/lib/server/scheduling/public/receipt-pdf-handler.ts
 A	apps/web/src/lib/server/scheduling/public/staff-management-flow.test.ts
 A	apps/web/src/lib/server/scheduling/public/staff-management-flow.ts
 A	apps/web/src/lib/server/scheduling/public/staff-management.test.ts
@@ -89,6 +91,7 @@ A	apps/web/src/routes/gestion/[token]/+page.svelte
 A	apps/web/src/routes/gestion/[token]/calendario-descargar.ics/+server.ts
 A	apps/web/src/routes/gestion/[token]/calendario-intent/+server.ts
 A	apps/web/src/routes/gestion/[token]/calendario.ics/+server.ts
+A	apps/web/src/routes/gestion/[token]/comprobante.pdf/+server.ts
 A	apps/web/src/routes/gestion/[token]/documentos/+server.ts
 A	apps/web/src/routes/gestion/[token]/documentos/[fileId]/complete/+server.ts
 A	apps/web/src/routes/gestion/[token]/google-calendar/connect/+server.ts
@@ -114,6 +117,7 @@ M	apps/web/src/routes/turno/[token]/calendar-openings.server.test.ts
 M	apps/web/src/routes/turno/[token]/calendario-descargar.ics/+server.ts
 M	apps/web/src/routes/turno/[token]/calendario-intent/+server.ts
 M	apps/web/src/routes/turno/[token]/calendario.ics/+server.ts
+M	apps/web/src/routes/turno/[token]/comprobante.pdf/+server.ts
 M	apps/web/src/routes/turno/[token]/documentos/+server.ts
 M	apps/web/src/routes/turno/[token]/documentos/[fileId]/complete/+server.ts
 M	apps/web/src/routes/turno/[token]/google-calendar/connect/+server.ts
