@@ -18,7 +18,7 @@ produccion_repositorio: github-secundaria:Juan4787/cita-suite-verificacion.git
 
 ## Etapa E — ejecución al 4 de noviembre
 
-E conserva autorización íntegra de implementación/pruebas/publicación: [plan 12.18–12.26](plans/propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada), [especificación](plans/etapa-e-correo-autogestion.md) y [registro activo](plans/ejecucion-etapa-e-20261103.md). E1/E2 sin publicar ni SQL E productivo. Veintiuna aprobada en SQL 41875359541: 15 grupos de observación, 18 de lease, 48 carreras/dos contraejemplos FK, doce esperas y regresiones/limpieza; tipos oficiales/digest cotejados e importados. Consumidores de calendario/retiro/métricas/PDF con 103 dirigidas de ocho suites aprobadas. Fast integrado nuevo pendiente; 41873691746 falló por un tipo del proveedor modelado, corregido. El browser anterior 41827075064 y fast 41827070902 conservan sólo sus revisiones/alcances. Seguir verificación integrada y retención OAuth/lectores/distribución/contacto/correo/E3–E6. Checkpoint E1.95. Producción V12b, ningún envío nuevo ni cierre E. P1/P2/P3 pospuestas por 12.26: no iniciarlas al cerrar E; avisar y entregar documentación detallada. Zoho OAuth administrativo persiste; envío/webhook/recepción/integración siguen pendientes.
+E conserva autorización íntegra de implementación/pruebas/publicación: [plan 12.18–12.26](plans/propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada), [especificación](plans/etapa-e-correo-autogestion.md) y [registro activo](plans/ejecucion-etapa-e-20261103.md). E1/E2 sin publicar ni SQL E productivo. Veintiuna aprobada en SQL 41875359541: 15 grupos de observación, 18 de lease, 48 carreras/dos contraejemplos FK, doce esperas y regresiones/limpieza; tipos oficiales/digest cotejados e importados. Consumidores de calendario/retiro/métricas/PDF con 103 dirigidas de ocho suites aprobadas. Fast integrado 41876511206 aprobado: 1896 servidor/281 cliente, cero errores/avisos, arquitectura sin violaciones. Browser ampliado 41877197500 en cola; veintidós/retención escrita sin ejecutar. El browser anterior 41827075064 y fast 41827070902 conservan sólo sus revisiones/alcances. Seguir verificación integrada y retención OAuth/lectores/distribución/contacto/correo/E3–E6. Checkpoint E1.97. Producción V12b, ningún envío nuevo ni cierre E. P1/P2/P3 pospuestas por 12.26: no iniciarlas al cerrar E; avisar y entregar documentación detallada. Zoho OAuth administrativo persiste; envío/webhook/recepción/integración siguen pendientes.
 
 ## Código que difiere de producción
 
@@ -158,6 +158,7 @@ A	supabase/migrations/20261104050000_patient_management_google_calendar_authorit
 A	supabase/migrations/20261104060000_calendar_sync_lock_order.sql
 A	supabase/migrations/20261104070000_calendar_sync_leases.sql
 A	supabase/migrations/20261104080000_patient_calendar_observations.sql
+A	supabase/migrations/20261104090000_calendar_oauth_retention.sql
 M	supabase/templates/recovery.html
 M	supabase/tests/appointment_actor_revalidation.sql
 M	supabase/tests/appointment_deposits.sql
@@ -166,6 +167,7 @@ A	supabase/tests/appointment_management_foundation.sql
 A	supabase/tests/appointment_management_staff_authorization.sql
 M	supabase/tests/appointment_patient_reassignment.sql
 A	supabase/tests/appointment_reschedule_financial_terms.sql
+A	supabase/tests/calendar_oauth_retention.sql
 M	supabase/tests/clinical_provenance_triggers.sql
 A	supabase/tests/migrations/20261103010000_appointment_management_foundation.sql.after.sql
 A	supabase/tests/migrations/20261103010000_appointment_management_foundation.sql.before.sql
