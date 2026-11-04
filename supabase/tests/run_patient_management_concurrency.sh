@@ -770,6 +770,71 @@ do $$ declare r patient_management_race.requests; begin
 end $$;
 SQL
 
+# Opposite JSON result order must not become opposite transaction lock order.
+"${psql_command[@]}" <<'SQL'
+select patient_management_race.prepare_calendar('batch_completion_left');
+select patient_management_race.consume_calendar('batch_completion_left');
+select patient_management_race.authorize_calendar('batch_completion_left');
+select patient_management_race.prepare_calendar('batch_completion_right');
+select patient_management_race.consume_calendar('batch_completion_right');
+select patient_management_race.authorize_calendar('batch_completion_right');
+update public.appointment_google_calendar_events set claim_token='e3100000-0000-4000-8000-000000000099',claimed_at=clock_timestamp()
+ where appointment_id in(select appointment_id from patient_management_race.requests where label in ('batch_completion_left','batch_completion_right'));
+create table patient_management_race.calendar_batch_results(label text primary key,result jsonb not null);
+create function patient_management_race.complete_calendar_batch(p_reverse boolean) returns jsonb language sql as $$
+ select public.complete_google_calendar_sync_batch('e3100000-0000-4000-8000-000000000099',clock_timestamp(),
+  jsonb_agg(jsonb_build_object('event_row_id',e.id,'outcome','synced','google_event_id','synthetic-'||r.label,'synced_sequence',a.calendar_sequence)
+   order by case when p_reverse then r.label end desc,case when not p_reverse then r.label end),false)
+ from patient_management_race.requests r join public.appointments a on a.id=r.appointment_id
+ join public.appointment_google_calendar_events e on e.appointment_id=a.id
+ where r.label in ('batch_completion_left','batch_completion_right')
+$$;
+create function patient_management_race.pause_calendar_first_result() returns trigger language plpgsql as $$
+begin
+ if current_setting('application_name')='calendar-batch-holder' and new.sync_status='active'
+  and new.appointment_id=(select appointment_id from patient_management_race.requests where label='batch_completion_right') then
+  perform pg_advisory_xact_lock(34123,952);
+  for attempt in 1..240 loop
+   perform pg_stat_clear_snapshot();
+   if exists(select 1 from pg_stat_activity a where a.application_name='patient-management-other' and a.wait_event_type='Lock'
+    and pg_backend_pid()=any(pg_blocking_pids(a.pid))) then return new; end if;
+   perform pg_sleep(0.025);
+  end loop;
+  raise exception 'CALENDAR_BATCH_COMPETITOR_DID_NOT_WAIT';
+ end if;
+ return new;
+end $$;
+create trigger zz_pause_calendar_batch after update on public.appointment_google_calendar_events for each row
+ execute function patient_management_race.pause_calendar_first_result();
+SQL
+PGAPPNAME=calendar-batch-holder "${psql_command[@]}" >"$task_directory/holder.log" 2>&1 -c "insert into patient_management_race.calendar_batch_results select 'holder',patient_management_race.complete_calendar_batch(true);" &
+holder_pid=$!
+"${psql_command[@]}" <<'SQL'
+do $$ begin
+ for attempt in 1..240 loop
+  perform pg_stat_clear_snapshot();
+  if exists(select 1 from pg_locks where locktype='advisory' and classid=34123 and objid=952 and granted) then return; end if;
+  perform pg_sleep(0.025);
+ end loop;
+ raise exception 'CALENDAR_BATCH_HOLDER_DID_NOT_REACH_FIRST_RESULT';
+end $$;
+SQL
+PGAPPNAME=patient-management-other "${psql_command[@]}" >"$task_directory/other.log" 2>&1 -c "insert into patient_management_race.calendar_batch_results select 'other',patient_management_race.complete_calendar_batch(false);"
+wait "$holder_pid"; holder_pid=''
+"${psql_command[@]}" <<'SQL'
+drop trigger zz_pause_calendar_batch on public.appointment_google_calendar_events;
+do $$ begin
+ if (select count(*) from public.appointment_google_calendar_events e join patient_management_race.requests r on r.appointment_id=e.appointment_id
+  where r.label in ('batch_completion_left','batch_completion_right') and e.sync_status='active' and e.event_id='synthetic-'||r.label and e.claim_token is null)<>2
+  or (select count(*) from patient_management_race.calendar_batch_results b,lateral jsonb_array_elements(b.result->'results') item
+    where b.label='holder' and item->>'status'='active')<>2
+  or (select count(*) from patient_management_race.calendar_batch_results b,lateral jsonb_array_elements(b.result->'results') item
+    where b.label='other' and item->>'status'='stale')<>2 then
+   raise exception 'REVERSED_CALENDAR_BATCH_PARTIAL_OR_DUPLICATE_EFFECT'; end if;
+end $$;
+SQL
+echo 'PASS: two real batches with opposite result order serialize before the first child effect; duplicate results stay stale.'
+
 deadlocks_after=$("${psql_command[@]}" -c 'select deadlocks from pg_stat_database where datname=current_database();')
 [[ "$deadlocks_before" == "$deadlocks_after" ]]
-echo 'PASS: forty-two controlled management/contact/clinical/OAuth races plus two FK lock counterexamples; no PostgreSQL deadlock.'
+echo 'PASS: forty-three controlled management/contact/clinical/OAuth races plus two FK lock counterexamples; no PostgreSQL deadlock.'

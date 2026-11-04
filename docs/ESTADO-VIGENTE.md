@@ -18,7 +18,7 @@ produccion_repositorio: github-secundaria:Juan4787/cita-suite-verificacion.git
 
 ## Etapa E — ejecución al 4 de noviembre
 
-E conserva autorización íntegra de implementación/pruebas/publicación: [plan 12.18–12.26](plans/propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada), [especificación](plans/etapa-e-correo-autogestion.md) y [registro activo](plans/ejecucion-etapa-e-20261103.md). Dieciocho migraciones aprobadas en SQL **41825879784** (vista 22 grupos, 41 carreras/dos contraejemplos FK, doce esperas y regresiones/limpieza), tipos oficiales/digest cotejados. Push fast **41823253513** aprobado (1837 servidor/280 cliente, cero errores/avisos); clínica conserva browser 41793557725 y personal 41757455635 con sus alcances. Disponibilidad auxiliar UI con 41/55 dirigidas; fast/browser ampliados pendientes. Frontera OAuth aprobada en ese SQL; consumidores originales cifrados/canales escritos, 54 dirigidas aprobadas y fast/browser integrado pendientes (E1.78). No hay implementación E publicada, migraciones E productivas ni correo nuevo. Zoho OAuth administrativo persiste localmente; envío/webhook/recepción/integración pendientes. P1/P2/P3 pospuestas por 12.26, sin iniciarlas al cerrar E; D celular está reemplazada por futura P3 interna. No hay otra espera de permiso.
+E conserva autorización íntegra de implementación/pruebas/publicación: [plan 12.18–12.26](plans/propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada), [especificación](plans/etapa-e-correo-autogestion.md) y [registro activo](plans/ejecucion-etapa-e-20261103.md). Dieciocho migraciones aprobadas en SQL **41825879784** (vista 22 grupos, 41 carreras/dos contraejemplos FK, doce esperas y regresiones/limpieza), tipos oficiales/digest cotejados. Push fast **41823253513** aprobado (1837 servidor/280 cliente, cero errores/avisos); clínica conserva browser 41793557725 y personal 41757455635 con sus alcances. Disponibilidad auxiliar UI con 41/55 dirigidas; fast 41827070902 y browser ampliado 41827075064 aprobados con sus alcances. Frontera OAuth aprobada en ese SQL; consumidores originales cifrados/canales escritos, 54 dirigidas aprobadas y fast 41827070902/browser ampliado 41827075064 aprobados. Carrera 42 en 41828016563 reprodujo deadlock entre concesión y callback; diecinueve escrita con orden estable de conjuntos, 43 carreras/dos contraejemplos FK aún sin verificar (E1.80). No hay implementación E publicada, migraciones E productivas ni correo nuevo. Zoho OAuth administrativo persiste localmente; envío/webhook/recepción/integración pendientes. P1/P2/P3 pospuestas por 12.26, sin iniciarlas al cerrar E; D celular está reemplazada por futura P3 interna. No hay otra espera de permiso.
 
 ## Código que difiere de producción
 
@@ -133,6 +133,7 @@ A	supabase/migrations/20261104020000_patient_management_document_access.sql
 A	supabase/migrations/20261104030000_patient_management_push_access.sql
 A	supabase/migrations/20261104040000_patient_management_auxiliary_presentation.sql
 A	supabase/migrations/20261104050000_patient_management_google_calendar_authority.sql
+A	supabase/migrations/20261104060000_calendar_sync_lock_order.sql
 M	supabase/templates/recovery.html
 M	supabase/tests/appointment_actor_revalidation.sql
 M	supabase/tests/appointment_deposits.sql
