@@ -282,6 +282,46 @@ race configuration_before_staff_move "update public.services set duration_minute
 "${psql_command[@]}" -c "select patient_management_race.assert_state('config_staff','reserved','pending',false,0); update public.services set duration_minutes=60 where id='$service_id'; select patient_management_race.prepare('staff_config');"
 race staff_move_before_configuration "select patient_management_race.staff_act('staff_config');" "update public.services set duration_minutes=90 where id='$service_id';"
 "${psql_command[@]}" -c "select patient_management_race.assert_state('staff_config','reserved','pending',true,1); update public.services set duration_minutes=60 where id='$service_id';"
+# Contact edits hold only the patient. Observe the command waiting at its
+# existing activity write AFTER the parent was taken, then commit the edit.
+# A final authority check must roll back every local command effect.
+"${psql_command[@]}" <<'SQL'
+create table patient_management_race.contact_snapshots(label text primary key,value jsonb not null);
+create function patient_management_race.domain_state(p_label text) returns jsonb language sql as $$
+ select jsonb_build_object('appointment',to_jsonb(a),
+  'management',(select to_jsonb(m) from public.appointment_management_states m where m.appointment_id=a.id),
+  'deposit',(select to_jsonb(d) from public.appointment_deposits d where d.appointment_id=a.id),
+  'requirements',(select jsonb_agg(to_jsonb(r) order by r.ordinal) from public.appointment_deposit_requirements r where r.appointment_id=a.id),
+  'money_events',(select jsonb_agg(to_jsonb(e) order by e.ordinal) from public.appointment_deposit_events e where e.appointment_id=a.id),
+  'releases',(select count(*) from public.appointment_slot_releases where appointment_id=a.id),
+  'audit',(select count(*) from public.audit_logs where entity_id=a.id),
+  'email_events',(select count(*) from private.appointment_email_events where appointment_id=a.id),
+  'receipts',(select count(*) from private.appointment_management_operations where appointment_id=a.id))
+ from public.appointments a join patient_management_race.requests q on q.appointment_id=a.id where q.label=p_label
+$$;
+create function patient_management_race.assert_corrected_contact(p_label text) returns void language plpgsql as $$
+declare r patient_management_race.requests; patient public.patients; begin
+ select * into strict r from patient_management_race.requests where label=p_label;
+ select p.* into strict patient from public.patients p join public.appointments a on a.patient_id=p.id where a.id=r.appointment_id;
+ if patient.email is distinct from 'race-corrected@example.test' or patient.email_contact_revision<>2
+  or (select count(*) from private.patient_email_contact_events where patient_id=patient.id and contact_revision=2)<>1
+  or private.appointment_management_access_at(r.token,false,clock_timestamp()) is not null then
+  raise exception 'CONTACT_RACE_PARTIAL_REVOCATION_%',p_label; end if;
+end $$;
+SQL
+for contact_action in cancel reschedule; do
+ contact_label="contact_before_$contact_action"
+ "${psql_command[@]}" -c "select patient_management_race.prepare('$contact_label'); insert into patient_management_race.contact_snapshots select '$contact_label',patient_management_race.domain_state('$contact_label');"
+ race "email_correction_before_patient_$contact_action" \
+  "update public.patients set email='race-corrected@example.test' where id=(select a.patient_id from public.appointments a join patient_management_race.requests r on r.appointment_id=a.id where r.label='$contact_label');" \
+  "select patient_management_race.act('$contact_label','$contact_action');" APPOINTMENT_LINK_UNAVAILABLE
+ "${psql_command[@]}" -c "select patient_management_race.assert_corrected_contact('$contact_label'); do \$\$ begin if patient_management_race.domain_state('$contact_label') is distinct from (select value from patient_management_race.contact_snapshots where label='$contact_label') then raise exception 'CONTACT_RACE_LEFT_PARTIAL_AGENDA_MONEY_EFFECTS'; end if; end \$\$;"
+done
+"${psql_command[@]}" -c "select patient_management_race.prepare('move_before_contact');"
+race patient_move_before_email_correction \
+ "select patient_management_race.act('move_before_contact');" \
+ "update public.patients set email='race-corrected@example.test' where id=(select a.patient_id from public.appointments a join patient_management_race.requests r on r.appointment_id=a.id where r.label='move_before_contact');"
+"${psql_command[@]}" -c "select patient_management_race.assert_corrected_contact('move_before_contact'); select patient_management_race.assert_state('move_before_contact','reserved','pending',true,1);"
 deadlocks_after=$("${psql_command[@]}" -c 'select deadlocks from pg_stat_database where datname=current_database();')
 [[ "$deadlocks_before" == "$deadlocks_after" ]]
-echo 'PASS: thirteen patient and eight staff/cross-origin controlled races; no PostgreSQL deadlock.'
+echo 'PASS: thirteen patient, eight staff/cross-origin and three contact controlled races; no PostgreSQL deadlock.'

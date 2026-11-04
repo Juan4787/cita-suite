@@ -1,6 +1,6 @@
 -- E1: revocable management, independent from calendar identity. No real email.
 begin;
-select extensions.plan(27);
+select extensions.plan(33);
 create temporary table management_access_fixture(label text primary key,value text not null);
 create function pg_temp.access_value(p_label text) returns text language sql as $$
  select value from management_access_fixture where label=p_label
@@ -184,7 +184,8 @@ do $$ declare a public.appointments; fresh uuid; sibling uuid; sibling_appointme
   a.blocking_starts_at+interval '2 days',a.blocking_ends_at+interval '2 days','reserved','manual','Contact service','Contact professional',60)
  returning id,confirmation_token into fresh,a.confirmation_token;
  insert into management_access_fixture values('contact_appointment',fresh::text),('contact_legacy',a.confirmation_token),
-  ('contact_before',public.issue_appointment_management_capability(a.business_id,fresh,1));
+  ('contact_before',public.issue_appointment_management_capability(a.business_id,fresh,1)),
+  ('contact_agenda_revision',private.appointment_semantic_revision(a.business_id,fresh));
  insert into public.patients(owner_id,business_id,full_name,email)
  values(pg_temp.access_id('owner'),a.business_id,'Separate family patient','family-a@example.test') returning id into sibling;
  insert into public.appointments(business_id,patient_id,professional_id,service_id,starts_at,ends_at,blocking_starts_at,blocking_ends_at,
@@ -201,10 +202,10 @@ select extensions.throws_ok($q$select pg_temp.access_resolve('contact_legacy',tr
  '22. Email correction also closes the original legacy management token');
 insert into management_access_fixture values('contact_a',public.issue_appointment_management_capability(
  pg_temp.access_id('business'),pg_temp.access_id('contact_appointment'),1));
-update public.patients set email='  FAMILY-A@example.test  ',activity_at=clock_timestamp()
+update public.patients set email='  family-a@example.test  ',activity_at=clock_timestamp()
  where id=(select patient_id from public.appointments where id=pg_temp.access_id('contact_appointment'));
 select extensions.is(pg_temp.access_resolve('contact_a')->>'appointment_id',pg_temp.access_value('contact_appointment'),
- '23. Case/outer spaces and unrelated activity do not revoke a still identical delivery address');
+ '23. Outer spaces and unrelated activity do not revoke a still identical delivery address');
 update public.patients set email='family-b@example.test'
  where id=(select patient_id from public.appointments where id=pg_temp.access_id('contact_appointment'));
 insert into management_access_fixture values('contact_b',public.issue_appointment_management_capability(
@@ -239,5 +240,33 @@ update public.patients set email=null
  where id=(select patient_id from public.appointments where id=pg_temp.access_id('contact_appointment'));
 select extensions.throws_ok($q$select pg_temp.access_resolve('contact_current')$q$,'P0001','APPOINTMENT_LINK_UNAVAILABLE',
  '27. Removing an email also revokes the previously delivered management credential');
+select extensions.ok((select p.email_contact_revision=5 and
+ (select count(*) from private.patient_email_contact_events e where e.patient_id=p.id)=4
+ from public.patients p join public.appointments a on a.patient_id=p.id where a.id=pg_temp.access_id('contact_appointment')),
+ '28. Exactly the four committed address changes have durable contact events; rollback and activity leave none');
+update public.patients set email_contact_revision=1,email='  '
+ where id=(select patient_id from public.appointments where id=pg_temp.access_id('contact_appointment'));
+select extensions.is((select p.email_contact_revision from public.patients p join public.appointments a on a.patient_id=p.id
+ where a.id=pg_temp.access_id('contact_appointment')),5::bigint,
+ '29. A writer cannot reset the authority revision, including a normalized null-to-empty edit');
+update public.patients set email_contact_revision=1,email='family-z@example.test'
+ where id=(select patient_id from public.appointments where id=pg_temp.access_id('contact_appointment'));
+select extensions.is((select p.email_contact_revision from public.patients p join public.appointments a on a.patient_id=p.id
+ where a.id=pg_temp.access_id('contact_appointment')),6::bigint,
+ '30. A simultaneous address/revision assignment advances from the persisted revision, never supplied input');
+select extensions.ok(not has_table_privilege('anon','private.patient_email_contact_events','SELECT,INSERT,UPDATE,DELETE')
+ and not has_table_privilege('authenticated','private.patient_email_contact_events','SELECT,INSERT,UPDATE,DELETE')
+ and not has_table_privilege('service_role','private.patient_email_contact_events','SELECT,INSERT,UPDATE,DELETE')
+ and not has_function_privilege('service_role','private.advance_patient_email_contact_revision()','EXECUTE'),
+ '31. Contact events and authority trigger have no directly callable Data API privilege');
+select extensions.is(private.appointment_semantic_revision(pg_temp.access_id('business'),pg_temp.access_id('contact_appointment')),
+ pg_temp.access_value('contact_agenda_revision'),
+ '32. Contact edits do not fabricate an agenda/economic revision or change accepted conditions');
+insert into management_access_fixture values('local_case_capability',public.issue_appointment_management_capability(
+ pg_temp.access_id('business'),pg_temp.access_id('contact_appointment'),1));
+update public.patients set email='FAMILY-Z@example.test'
+ where id=(select patient_id from public.appointments where id=pg_temp.access_id('contact_appointment'));
+select extensions.throws_ok($q$select pg_temp.access_resolve('local_case_capability')$q$,'P0001','APPOINTMENT_LINK_UNAVAILABLE',
+ '33. Different local-part case is not silently treated as an equivalent mailbox');
 select * from extensions.finish();
 rollback;

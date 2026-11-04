@@ -92,6 +92,7 @@ A	supabase/migrations/20261103080000_staff_operation_authorization.sql
 A	supabase/migrations/20261103090000_staff_appointment_management.sql
 A	supabase/migrations/20261103100000_close_staff_appointment_direct_updates.sql
 A	supabase/migrations/20261103110000_staff_creation_and_identity_authorization.sql
+A	supabase/migrations/20261103120000_patient_email_contact_authority.sql
 M	supabase/templates/recovery.html
 M	supabase/tests/appointment_actor_revalidation.sql
 M	supabase/tests/appointment_deposits.sql
@@ -223,3 +224,5 @@ Lo ignora `.gitignore` y no se publica nunca: el repositorio es público.
 - E1.52: SQL 41757452769 aprobó los 18 grupos de Ayuda y luego se detuvo por precondición comercial faltante del fixture de reasignación. Tres fixtures internos corregidos y negativas comerciales explícitas añadidas, once migraciones siguen pendientes. Browser 41757455635 en curso, sólo tipado e2e ya confirmado; foco/reintento 32/32 cliente.
 
 - E1.53: browser 41757455635 aprobado con HTTP/SQL reales, conflicto concurrente y recuperación después de commit; matriz de cinco anchos/dos modos con paneles cerrados. SQL 41758176583 se detuvo por expectativa antigua de privilegio del arnés clínico: adaptación conserva denegación autenticada y guardia profesional privilegiada, pendiente rerun integral. P1/P2/P3 pospuestas por 12.26, no iniciarlas al cerrar E. Producción sigue V12b.
+
+- E1.55: SQL 41759448286 aprobó once migraciones, diez esperas de Ayuda y 21 carreras paciente/personal; tipos oficiales idénticos y digest cotejado. Roja de contacto 41759878304 reproducida; .120 y contratos/carreras escritos, doce migraciones aún sin verde. No aplicado ni publicado, sin envíos nuevos.
