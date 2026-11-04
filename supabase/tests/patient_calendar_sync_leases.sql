@@ -1,7 +1,7 @@
 -- The immediate runner participates in the existing durable Calendar lease.
 -- A prior read is not a reservation, and reauthorization is not lease recovery.
 begin;
-select extensions.plan(17);
+select extensions.plan(18);
 create temporary table calendar_lease_fixture(label text primary key,value text not null);
 create temporary table calendar_lease_results(label text primary key,result jsonb);
 create function pg_temp.lv(p_label text) returns text language sql as $$ select value from calendar_lease_fixture where label=p_label $$;
@@ -45,6 +45,14 @@ insert into calendar_lease_results values('target',public.claim_google_calendar_
 select extensions.ok((select result->>'event_row_id' from calendar_lease_results where label='target')=pg_temp.lv('event')
  and exists(select 1 from public.appointment_google_calendar_events where id=pg_temp.lid('event') and claim_token=pg_temp.lid('target_claim')),
  'The targeted executor reclaims an expired lease durably through the same event row');
+-- Model a delayed SQL reply inside the live window. Recovering the same
+-- owner supplies its original work; it must not extend its authority deadline.
+update public.appointment_google_calendar_events set claimed_at=clock_timestamp()-interval '1 minute' where id=pg_temp.lid('event');
+insert into calendar_lease_fixture values('original_claim_time',(select claimed_at::text from public.appointment_google_calendar_events where id=pg_temp.lid('event')));
+insert into calendar_lease_results values('claim_recovered',public.claim_google_calendar_event_sync(pg_temp.lid('event'),pg_temp.lid('target_claim')));
+select extensions.ok((select (result->>'claim_recovered')::boolean and result->>'event_row_id'=pg_temp.lv('event') from calendar_lease_results where label='claim_recovered')
+ and (select claimed_at from public.appointment_google_calendar_events where id=pg_temp.lid('event'))=pg_temp.lv('original_claim_time')::timestamptz,
+ 'An unanswered claim can be recovered by its original executor without renewing the deadline');
 select extensions.is(public.claim_google_calendar_event_sync(pg_temp.lid('event'),gen_random_uuid()),null::jsonb,
  'A second immediate caller cannot execute the live lease');
 select extensions.ok(not exists(select 1 from jsonb_array_elements(public.claim_google_calendar_sync_batch(clock_timestamp(),100,gen_random_uuid())) item where item->>'event_row_id'=pg_temp.lv('event')),
