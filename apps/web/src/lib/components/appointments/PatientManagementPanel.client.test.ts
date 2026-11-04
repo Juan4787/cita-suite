@@ -72,7 +72,7 @@ describe('contextual patient management panel', () => {
  it('does not claim an unverified transport failure rolled back; retries only the original submitted operation', () => {
   const { container } = renderPanel({ context: context(), feedback: { message: 'No pudimos comprobar el resultado.', action: 'reschedule', retrySameOperation: true,
    submitted: { operation_id: 'lost-operation', expected_revision: 'old-revision', starts_at: '2026-12-02T12:00:00Z' } } });
-  expect(screen.getByRole('button', { name: 'Volver a comprobar la misma acción' })).toBeVisible();
+  expect(screen.getByRole('button', { name: 'Reintentar la misma acción' })).toBeVisible();
   expect(container.querySelector('input[name="operation_id"]')).toHaveValue('lost-operation');
   expect(container.querySelector('input[name="expected_revision"]')).toHaveValue('old-revision');
   expect(screen.queryByRole('link', { name: 'Cancelar turno' })).not.toBeInTheDocument();
@@ -88,7 +88,7 @@ describe('contextual patient management panel', () => {
   await complete({ action, formData, formElement: form, update, result: { type: 'error', status: 500, error: new Error('network unavailable') } });
   await tick();
   expect(update).not.toHaveBeenCalled();
-  expect(screen.getByRole('button', { name: 'Volver a comprobar la misma acción' })).toBeVisible();
+  expect(screen.getByRole('button', { name: 'Reintentar la misma acción' })).toBeVisible();
   expect(container.querySelector('input[name="operation_id"]')).toHaveValue('original-operation');
   expect(container.querySelector('input[name="expected_revision"]')).toHaveValue('observed-revision');
   expect(screen.getByRole('alert')).not.toHaveTextContent(/network unavailable|no se guardó/i);

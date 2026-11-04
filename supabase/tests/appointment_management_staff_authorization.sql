@@ -1,7 +1,7 @@
 -- OP02: a temporary assistance grant is authority only while actually active.
 -- These are real actor/appointment/deposit calls, not a mocked authorization.
 begin;
-select extensions.plan(12);
+select extensions.plan(18);
 create temporary table staff_clock_fixture(label text primary key,id uuid);
 create function pg_temp.scid(p_label text) returns uuid language sql as $$ select id from staff_clock_fixture where label=p_label $$;
 do $$ declare b uuid:=gen_random_uuid(); owner_id uuid:=gen_random_uuid(); support_id uuid:=gen_random_uuid();
@@ -73,5 +73,38 @@ select extensions.ok(exists(select 1 from public.appointments a where a.business
  and log.user_id=pg_temp.scid('support') and log.action='appointment.created'))
  and not exists(select 1 from public.business_users where business_id=pg_temp.scid('business') and user_id=pg_temp.scid('support')),
  '12. Assisted creation records the actual actor atomically without creating a permanent membership');
+do $$ declare original public.appointments; created record; begin
+ select * into original from public.appointments where id=pg_temp.scid('appointment');
+ select * into strict created from public.create_appointment_with_patient_identity(original.business_id,'new',null,'Synthetic patient loaded with assistance',
+  null,null,null,false,pg_temp.scid('support'),original.service_id,array[original.professional_id],original.starts_at+interval '3 days',
+  null,pg_temp.scid('support'),false,'manual','unknown',false,gen_random_uuid()::text,false);
+ if not exists(select 1 from public.patients where id=created.patient_id and owner_id=pg_temp.scid('owner'))
+  or not exists(select 1 from public.appointments where id=created.id and created_by_user_id=pg_temp.scid('support')) then raise exception 'HELP_PATIENT_OWNERSHIP'; end if;
+ insert into staff_clock_fixture values('replacement',created.patient_id),('original_patient',original.patient_id);
+end $$;
+select extensions.pass('13. A new assisted patient belongs to the clinic owner; the actual temporary helper remains the recorded actor');
+do $$ declare original public.appointments; professional uuid:=gen_random_uuid(); created record; begin
+ select * into original from public.appointments where id=pg_temp.scid('appointment');
+ insert into public.professionals(id,business_id,name) values(professional,original.business_id,'Synthetic assistance colleague');
+ insert into public.professional_services(business_id,professional_id,service_id) values(original.business_id,professional,original.service_id);
+ select * into strict created from public.create_appointment_with_patient_identity(original.business_id,'existing',original.patient_id,null,null,null,null,
+  false,pg_temp.scid('support'),original.service_id,array[original.professional_id,professional],original.starts_at+interval '4 days',
+  null,pg_temp.scid('support'),false,'manual','unknown',false,gen_random_uuid()::text,false);
+ if (select count(*) from public.appointment_professionals where appointment_id=created.id)<>2 then raise exception 'HELP_TEAM_INCOMPLETE'; end if;
+end $$;
+select extensions.pass('14. Independent assistance also preserves the real joint-creation contract');
+select extensions.lives_ok('select pg_temp.schelp_create()',
+ '15. Repeating an authorized assisted creation recovers its original result');
+update public.account_assistance_grants set expires_at=clock_timestamp()-interval '1 second' where business_id=pg_temp.scid('business');
+select extensions.throws_ok('select pg_temp.schelp_create()','P0001','APPOINTMENT_CREATOR_INVALID',
+ '16. An expired helper cannot recover a previously authorized creation');
+update public.account_assistance_grants set expires_at=clock_timestamp()+interval '2 minutes' where business_id=pg_temp.scid('business');
+select extensions.lives_ok($q$select public.reassign_appointment_patient_safely(pg_temp.scid('business'),pg_temp.scid('appointment'),
+ pg_temp.scid('replacement'),pg_temp.scid('support'),'Synthetic authorized identity correction')$q$,
+ '17. An active independent helper retains the distinct audited identity-repair contract');
+update public.account_assistance_grants set expires_at=clock_timestamp()-interval '1 second' where business_id=pg_temp.scid('business');
+select extensions.throws_ok($q$select public.reassign_appointment_patient_safely(pg_temp.scid('business'),pg_temp.scid('appointment'),
+ pg_temp.scid('original_patient'),pg_temp.scid('support'),'Synthetic expired identity correction')$q$,
+ 'P0001','APPOINTMENT_REASSIGNMENT_ACTOR_INVALID','18. Expired assistance cannot repair identity or invalidate patient integrations');
 select * from extensions.finish();
 rollback;

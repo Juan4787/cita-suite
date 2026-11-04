@@ -82,6 +82,19 @@ declare r staff_authorization_race.requests; b uuid:='e3200000-0000-4000-8000-00
    case when p_action='agenda_cancel' then 'cancel' else 'reschedule' end,
    case when p_action='agenda_reschedule' then (select starts_at+interval '6 hours' from public.appointments where id=r.appointment_id) end,
    false,case when p_action='agenda_reschedule' then (select booking_availability_revision from public.businesses where id=b) end);
+ elsif p_action='create' then
+  perform set_config('request.jwt.claim.sub','',true);
+  perform public.create_appointment_with_patient_identity(b,'existing',
+   (select patient_id from public.appointments where id=r.appointment_id),null,null,null,null,
+   false,'e3200000-0000-4000-8000-000000000003','e3200000-0000-4000-8000-000000000005',
+   array['e3200000-0000-4000-8000-000000000004']::uuid[],
+   (select starts_at+interval '6 hours' from public.appointments where id=r.appointment_id),null,
+   'e3200000-0000-4000-8000-000000000003',false,'manual','unknown',false,r.operation_id::text,false);
+ elsif p_action='repair' then
+  perform set_config('request.jwt.claim.sub','',true);
+  perform public.reassign_appointment_patient_safely(b,r.appointment_id,
+   (select patient_id from public.appointments where id<>(r.appointment_id) and business_id=b order by id limit 1),
+   'e3200000-0000-4000-8000-000000000003','Synthetic identity correction');
  elsif p_action in ('policy','policy_off') then
   settings:=jsonb_build_object('enabled',p_action='policy','auto_cancel_enabled',false,'amount_mode','fixed','fixed_amount',50000,'percentage',null,
    'request_days',7,'deadline_hours',48,'min_payment_hours',24,'transfer_details','Changed synthetic transfer','applies_to_manual',true,'excluded_service_ids','[]'::jsonb);
@@ -90,6 +103,7 @@ declare r staff_authorization_race.requests; b uuid:='e3200000-0000-4000-8000-00
 end $$;
 create function staff_authorization_race.assert_unchanged(p_label text) returns void language plpgsql as $$
 declare r staff_authorization_race.requests; begin
+ if (select count(*) from public.appointments where business_id='e3200000-0000-4000-8000-000000000001')<>(select count(*) from staff_authorization_race.requests) then raise exception 'STAFF_RACE_UNEXPECTED_CREATION'; end if;
  select * into strict r from staff_authorization_race.requests where label=p_label;
  if (select status from public.appointments where id=r.appointment_id) is distinct from 'reserved'
   or not exists(select 1 from public.appointment_deposits where appointment_id=r.appointment_id and status='pending' and reminder_opened_at is null)
@@ -105,10 +119,11 @@ declare r staff_authorization_race.requests; begin
 end $$;
 SQL
 staff_deadlocks=$("${staff_psql[@]}" -c 'select deadlocks from pg_stat_database where datname=current_database();')
-for staff_action in revoke pay remind policy policy_off hide agenda_cancel agenda_reschedule; do
+for staff_action in revoke pay remind policy policy_off hide agenda_cancel agenda_reschedule create repair; do
  "${staff_psql[@]}" -c "select staff_authorization_race.prepare('$staff_action');"
  staff_lock="select id from public.appointments where id=(select appointment_id from staff_authorization_race.requests where label='$staff_action') for no key update;"
  [[ "$staff_action" != policy ]] || staff_lock="select business_id from public.deposit_policies where business_id='$staff_business' for no key update;"
+ [[ "$staff_action" != create ]] || staff_lock="select id from public.patients where id=(select patient_id from public.appointments where id=(select appointment_id from staff_authorization_race.requests where label='$staff_action')) for update;"
  [[ "$staff_action" != hide ]] || staff_lock="select id from public.appointment_slot_releases where id=(select release_id from staff_authorization_race.requests where label='$staff_action') for no key update;"
  "${staff_psql[@]}" >"$staff_directory/holder.log" 2>&1 <<SQL &
 begin;
@@ -142,6 +157,8 @@ SQL
  [[ "$staff_action" != revoke ]] || staff_error=APPOINTMENT_MANAGEMENT_FORBIDDEN
  [[ "$staff_action" != agenda_cancel && "$staff_action" != agenda_reschedule ]] || staff_error=APPOINTMENT_MANAGEMENT_FORBIDDEN
  [[ "$staff_action" != policy && "$staff_action" != policy_off ]] || staff_error=DEPOSIT_POLICY_FORBIDDEN
+ [[ "$staff_action" != create ]] || staff_error=APPOINTMENT_CREATOR_INVALID
+ [[ "$staff_action" != repair ]] || staff_error=APPOINTMENT_REASSIGNMENT_ACTOR_INVALID
  [[ "$staff_action" != hide ]] || staff_error=SLOT_RELEASE_FORBIDDEN
  if [[ "$staff_result" == 0 ]] || ! grep -Fq "$staff_error" "$staff_directory/actor.log"; then
   cat "$staff_directory/actor.log" >&2; echo "FAIL: expired help executed $staff_action after a verified lock wait." >&2; exit 1

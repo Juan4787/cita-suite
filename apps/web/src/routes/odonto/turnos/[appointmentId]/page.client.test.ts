@@ -107,14 +107,15 @@ describe('observed staff operation form', () => {
   expect(cancel?.querySelector('[name="operation_id"]')).toHaveValue(data.management!.statusOperationId);
   expect(cancel?.querySelector('[name="confirm_cancel"]')).toHaveAttribute('value', 'true');
  });
- it('retains the EXACT uncertain request even when the newly loaded appointment is already cancelled', () => {
+ it('retains the EXACT uncertain request even when the newly loaded appointment is already cancelled', async () => {
   const fields = { operation_id: 'original-operation', expected_revision: 'original-revision', status: 'cancelled', reason: 'Solicitado', confirm_cancel: 'true' };
   const { container } = render(Page, { data: { ...data, appointment: { ...appointment, status: 'cancelled' } },
    form: { success: false, message: 'Comprobar el resultado', retry: { action: 'update_status', fields } } });
-  const button = screen.getByRole('button', { name: 'Comprobar esta misma acción' });
+  const button = screen.getByRole('button', { name: 'Reintentar la misma acción' });
   const retry = button.closest('form')!;
   expect(Object.fromEntries(new FormData(retry))).toEqual(fields);
   expect(container.querySelectorAll('form[action="?/update_status"]')).toHaveLength(1);
+  await waitFor(() => expect(screen.getByRole('alert')).toHaveFocus());
  });
  it('binds the offered slots to the version and duration of that same calculation', async () => {
   const fetch = vi.fn().mockResolvedValue(new Response(JSON.stringify({ slots: [{ date: '2026-08-20', time: '10:00', starts_at: '2026-08-20T13:00:00Z', professional_name: 'Profesional' }], availabilityRevision: 9, durationMinutes: 45 }), { status: 200 }));

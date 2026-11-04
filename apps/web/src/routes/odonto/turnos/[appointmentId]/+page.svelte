@@ -69,7 +69,9 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@cita-suite/share
 	});
 
 	let localFeedback = $state<StaffManagementFeedback | null>(null);
+ let feedbackElement = $state<HTMLElement | null>(null);
  const feedback = $derived(localFeedback ?? form);
+ $effect(() => { if (feedback?.message) feedbackElement?.focus(); });
  const canOperate = $derived(data.context.canOperate && !data.demo);
 	const isClosed = $derived(data.appointment?.status === 'cancelled');
 	const canShowCancelAction = $derived(
@@ -371,7 +373,7 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@cita-suite/share
 	</div>
 
 	{#if feedback?.message}
-		<p class={`rounded-2xl px-4 py-3 text-sm font-semibold ${feedback.success ? 'bg-success-soft text-success-100' : 'bg-danger-500-15 text-danger-100'}`}>
+		<p bind:this={feedbackElement} tabindex="-1" role={feedback.success ? 'status' : 'alert'} class={`rounded-2xl px-4 py-3 text-sm font-semibold ${feedback.success ? 'bg-success-soft text-success-100' : 'bg-danger-500-15 text-danger-100'}`}>
 			{feedback.message}
 		</p>
 	{/if}
@@ -379,7 +381,7 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@cita-suite/share
  {#if feedback?.retry}
   <form method="POST" action={`?/${feedback.retry.action}`} use:enhance={onStaffAction} class="flex flex-wrap gap-3">
    {#each Object.entries(feedback.retry.fields) as [name,value]}<input type="hidden" {name} {value} />{/each}
-   <button class="ux-btn-primary" disabled={submitting}>{submitting ? 'Comprobando…' : 'Comprobar esta misma acción'}</button>
+   <button class="ux-btn-primary" disabled={submitting}>{submitting ? 'Reintentando…' : 'Reintentar la misma acción'}</button>
   </form>
  {/if}
 
