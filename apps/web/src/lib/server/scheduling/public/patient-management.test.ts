@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { loadPatientManagementView, parsePatientManagementView, listPatientManagementSlots, applyPatientManagementCommand, patientManagementErrorMessage } from './patient-management';
+import { ManagementResultUncertainError } from '../internal/management-contract';
 import { getAvailabilitySelection } from './availability';
 vi.mock('./availability', () => ({ getAvailabilitySelection: vi.fn() }));
 vi.mock('$env/dynamic/private', () => ({ env: {} }));
@@ -54,7 +55,7 @@ describe('patient management command adapter', () => {
  it('preserves uncertainty when an existing operation receipt cannot be decoded, without executing another command', async () => {
   const rpc = vi.fn().mockResolvedValue({ data: { status: 'reserved' }, error: null });
   vi.mocked(getAvailabilitySelection).mockClear();
-  await expect(applyPatientManagementCommand({ rpc } as never, access, move())).rejects.toThrow('PATIENT_MANAGEMENT_RESULT_UNCERTAIN');
+  await expect(applyPatientManagementCommand({ rpc } as never, access, move())).rejects.toBeInstanceOf(ManagementResultUncertainError);
   expect(rpc).toHaveBeenCalledExactlyOnceWith('recover_patient_appointment_management', expect.objectContaining({ p_operation_id: move().operationId }));
   expect(getAvailabilitySelection).not.toHaveBeenCalled();
  });

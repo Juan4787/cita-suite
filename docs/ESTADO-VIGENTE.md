@@ -42,6 +42,7 @@ A	apps/web/src/lib/scheduling/patient-management-page.ts
 A	apps/web/src/lib/scheduling/public-appointment.ts
 A	apps/web/src/lib/scheduling/reschedule-terms.test.ts
 A	apps/web/src/lib/scheduling/reschedule-terms.ts
+A	apps/web/src/lib/server/scheduling/internal/management-contract.ts
 M	apps/web/src/lib/server/scheduling/public/availability.test.ts
 M	apps/web/src/lib/server/scheduling/public/availability.ts
 A	apps/web/src/lib/server/scheduling/public/patient-management-flow.test.ts
@@ -187,3 +188,5 @@ Lo ignora `.gitignore` y no se publica nunca: el repositorio es público.
    - el código difiere de producción sin estar declarado;
    - la copia local difiere de GitHub;
    - hay trabajo fuera de Git.
+
+- Actualización E1.48: SQL 41715645324 aprobó las nueve migraciones y carreras ampliadas; tipos oficiales reproducibles importados con digest cotejado. Parser de resultados compartido, 50/50 dirigidos del paciente. Integración del personal y HTTP pendientes; producción sigue en V12b.

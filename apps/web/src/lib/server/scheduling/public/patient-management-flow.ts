@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { ManagementResultUncertainError } from '../internal/management-contract';
 import { isAvailabilityDate } from '$lib/availability/windows';
 import { zonedDate } from '$lib/availability/calculate';
 import { InvalidDataContractError } from '$lib/contracts/json';
@@ -89,8 +90,8 @@ export const submitPatientManagementAction = async (client: CitaSupabaseClient, 
   logServerFailure('Error en una acción de autogestión', error);
   const raw = error instanceof Error ? error.message : typeof error === 'object' && error !== null && 'message' in error ? String(error.message) : '';
   const invalidForm = error instanceof InvalidDataContractError || error instanceof SyntaxError || /^(MANAGEMENT_FORM_INVALID|BOOKING_FORM_INVALID)$/.test(raw);
-  const knownRejection = invalidForm || raw.startsWith('APPOINTMENT_') ||
-   (typeof error === 'object' && error !== null && 'code' in error && error.code === '23P01');
+  const knownRejection = !(error instanceof ManagementResultUncertainError) && (invalidForm || raw.startsWith('APPOINTMENT_') ||
+   (typeof error === 'object' && error !== null && 'code' in error && error.code === '23P01'));
   return { success: false, action, message: invalidForm ? 'Revisá el turno y sus condiciones antes de confirmar la acción.' : patientManagementErrorMessage(error),
    submitted, retrySameOperation: !!submitted && !knownRejection };
  }
