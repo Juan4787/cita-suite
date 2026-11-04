@@ -122,10 +122,10 @@ describe('observed staff operation form', () => {
   const { container } = render(Page, { data: { ...data, justCreated: false } });
   const panel = container.querySelector<HTMLDetailsElement>('#reprogramar')!;
   panel.open = true; await fireEvent(panel, new Event('toggle'));
-  await waitFor(() => expect(screen.getByRole('button', { name: '10:00', exact: true })).toBeInTheDocument());
+  await waitFor(() => expect(screen.getByRole('button', { name: /^10:00$/ })).toBeInTheDocument());
   const url = new URL(fetch.mock.calls[0][0], 'https://app.test');
   expect(url.searchParams.get('expected_revision')).toBe(data.management!.revision);
-  await fireEvent.click(screen.getByRole('button', { name: '10:00', exact: true }));
+  await fireEvent.click(screen.getByRole('button', { name: /^10:00$/ }));
   const form = container.querySelector('form[action="?/reschedule"]');
   expect(form?.querySelector('[name="availability_revision"]')).toHaveValue('9');
   expect(form?.querySelector('[name="operation_id"]')).toHaveValue(data.management!.rescheduleOperationId);

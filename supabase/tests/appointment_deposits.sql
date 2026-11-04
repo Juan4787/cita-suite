@@ -257,7 +257,9 @@ select extensions.pass('las prestaciones excluidas no piden seña, la seña fija
 
 -- 6. A turn with a pending deposit cannot become Confirmado by any path: a direct write, the
 -- person's link (the server's update as service_role, at the observed status) or a status
--- update of the practice (as reception, through row level security).
+-- direct status update of the practice (as reception). E closes that raw write;
+-- its backend staff command independently exercises the pending-deposit guard
+-- in staff_appointment_management.sql, without weakening the direct-write guard.
 do $$
 -- Resolved before changing roles: service_role does not read the fixture table.
 declare v text; v_appointment uuid:=pg_temp.fid('public_far'); v_business uuid:=pg_temp.fid('business');
@@ -279,7 +281,7 @@ begin
  reset role;
  v:=pg_temp.as_actor('reception',format('update public.appointments set status=%L,confirmed_at=now() where id=%L and business_id=%L and status=%L returning status',
   'confirmed',pg_temp.fid('public_far'),pg_temp.fid('business'),'reserved'));
- if v not like 'ERROR %APPOINTMENT_DEPOSIT_PENDING%' then raise exception 'TEST_STAFF_NOT_ENFORCED %',v; end if;
+ if v not like 'ERROR %permission denied for table appointments%' then raise exception 'TEST_STAFF_NOT_ENFORCED %',v; end if;
 end $$;
 select extensions.ok((select status from public.appointments where id=pg_temp.fid('public_far'))='reserved',
  'un turno con la seña pendiente no puede pasar a Confirmado por ninguna vía');

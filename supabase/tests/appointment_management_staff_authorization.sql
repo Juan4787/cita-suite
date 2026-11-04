@@ -1,7 +1,7 @@
 -- OP02: a temporary assistance grant is authority only while actually active.
 -- These are real actor/appointment/deposit calls, not a mocked authorization.
 begin;
-select extensions.plan(10);
+select extensions.plan(12);
 create temporary table staff_clock_fixture(label text primary key,id uuid);
 create function pg_temp.scid(p_label text) returns uuid language sql as $$ select id from staff_clock_fixture where label=p_label $$;
 do $$ declare b uuid:=gen_random_uuid(); owner_id uuid:=gen_random_uuid(); support_id uuid:=gen_random_uuid();
@@ -54,5 +54,24 @@ select extensions.throws_ok($q$select public.save_deposit_policy(pg_temp.scid('b
  'P0001','DEPOSIT_POLICY_FORBIDDEN','9. Expired assistance cannot change financial policy');
 select extensions.ok((select revision=1 and fixed_amount=40000 from public.deposit_policies where business_id=pg_temp.scid('business')),
  '10. Rejected policy change leaves the actual policy unchanged');
+-- An independent active assistance grant has administration capability; it
+-- must not require inventing a permanent business membership to create a turn.
+update public.account_assistance_grants set starts_at=clock_timestamp()-interval '1 minute',expires_at=clock_timestamp()+interval '2 minutes'
+ where business_id=pg_temp.scid('business');
+select set_config('request.jwt.claim.sub','',true);
+create function pg_temp.schelp_create() returns uuid language sql as $$
+ select created.id from public.appointments original,
+ lateral public.create_appointment_with_patient_identity(original.business_id,'existing',original.patient_id,null,null,null,null,
+  false,pg_temp.scid('owner'),original.service_id,array[original.professional_id],original.starts_at+interval '2 days',
+  null,pg_temp.scid('support'),false,'manual','unknown',false,pg_temp.scid('operation')::text,false) created
+ where original.id=pg_temp.scid('appointment')
+$$;
+select extensions.lives_ok('select pg_temp.schelp_create()',
+ '11. Active independent assistance can use the real backend manual-creation contract');
+select extensions.ok(exists(select 1 from public.appointments a where a.business_id=pg_temp.scid('business')
+ and a.created_by_user_id=pg_temp.scid('support') and exists(select 1 from public.audit_logs log where log.entity_id=a.id
+ and log.user_id=pg_temp.scid('support') and log.action='appointment.created'))
+ and not exists(select 1 from public.business_users where business_id=pg_temp.scid('business') and user_id=pg_temp.scid('support')),
+ '12. Assisted creation records the actual actor atomically without creating a permanent membership');
 select * from extensions.finish();
 rollback;

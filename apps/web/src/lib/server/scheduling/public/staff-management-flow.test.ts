@@ -49,7 +49,8 @@ describe('staff original form and outcome', () => {
   expect(rejected.message).not.toContain(message);
  });
  it('rejects a generic confirmation, missing identity, or missing observed revision before dispatch', async () => {
-  for (const patch of [{ status: 'confirmed' },{ operation_id: '' },{ expected_revision: '' }]) {
+  const invalid: Record<string,string>[] = [{ status: 'confirmed' },{ operation_id: '' },{ expected_revision: '' }];
+  for (const patch of invalid) {
    expect(await submitStaffManagementAction(reader as never,input,'update_status',form(patch))).toMatchObject({ success: false,retry: undefined });
   }
   expect(rpc).not.toHaveBeenCalled();
