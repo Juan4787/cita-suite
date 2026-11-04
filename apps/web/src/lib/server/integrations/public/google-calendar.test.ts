@@ -136,7 +136,7 @@ describe('secretos Google Calendar', () => {
 		expect(rpc).not.toHaveBeenCalled();
 
 		await expect(
-			requestGoogleCalendarEventDeletion({ rpc } as any, appointment().id, fetch)
+			requestGoogleCalendarEventDeletion({ rpc } as any, managementAccess, fetch)
 		).resolves.toEqual({ status: 'not_configured' });
 		expect(rpc).not.toHaveBeenCalled();
 	});
