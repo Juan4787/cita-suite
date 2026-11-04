@@ -3,7 +3,7 @@
 -- professional/appointment -> patient order of other writers instead.
 begin;
 create or replace function private.serialize_patient_contact_changes()
-returns trigger language plpgsql security definer set search_path=public,pg_catalog as $$
+returns trigger language plpgsql security definer set search_path=pg_catalog,pg_temp as $$
 declare v_old_lock_key text; v_new_lock_key text; v_lock_key text;
 begin
  if tg_op='UPDATE' and
