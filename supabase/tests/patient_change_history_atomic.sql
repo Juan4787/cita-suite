@@ -2,7 +2,7 @@
 -- change it describes: a saved update cannot lose its history line, and a history line
 -- that cannot be written undoes the update. Synthetic data only; everything is rolled back.
 begin;
-select extensions.plan(8);
+select extensions.plan(9);
 
 create temporary table history_fixture(label text primary key, id uuid not null);
 
@@ -153,6 +153,42 @@ do $$ declare before jsonb; events bigint; begin
 end $$;
 drop trigger fail_profile_contact_history on public.patient_profile_change_events;
 select extensions.pass('history failure rolls back contact, authority revision and durable contact event together');
+
+-- A helper may also have a permanent professional membership. Expiry must not
+-- retain the previous administrator scope merely because the fallback role is
+-- still one of the roles generally allowed to edit assigned patients.
+update public.professional_patient_links set is_active=false
+ where business_id=pg_temp.fid('business') and patient_id=pg_temp.fid('x');
+delete from public.account_assistance_grants where business_id=pg_temp.fid('business');
+insert into public.account_assistance_support_users(user_id,email,enabled)
+ select id,email,true from auth.users where id=pg_temp.fid('pro');
+insert into public.account_assistance_grants(business_id,requested_by_user_id,support_user_id,starts_at,expires_at)
+ values(pg_temp.fid('business'),pg_temp.fid('owner'),pg_temp.fid('pro'),clock_timestamp()-interval '1 minute',clock_timestamp()+interval '2 seconds');
+create function pg_temp.expire_profile_help_during_history() returns trigger language plpgsql as $$
+begin
+ if new.patient_id=pg_temp.fid('x') then
+  perform pg_sleep_until((select expires_at+interval '25 milliseconds' from public.account_assistance_grants
+   where business_id=pg_temp.fid('business') and support_user_id=pg_temp.fid('pro')));
+ end if;
+ return new;
+end $$;
+create trigger expire_profile_help_during_history before insert on public.patient_profile_change_events
+ for each row execute function pg_temp.expire_profile_help_during_history();
+do $$ declare before jsonb; history bigint; events bigint; begin
+ select to_jsonb(p) into strict before from public.patients p where p.id=pg_temp.fid('x');
+ select count(*) into history from public.patient_profile_change_events where patient_id=pg_temp.fid('x');
+ select count(*) into events from private.patient_email_contact_events where patient_id=pg_temp.fid('x');
+ begin
+  perform pg_temp.save_name('pro','Expired admin scope retained',array['nombre','correo electrónico'],pg_temp.fid('p_own'),'unassigned-profile@example.test');
+  raise exception 'TEST_EXPIRED_HELP_RETAINED_ADMIN_CONTACT_SCOPE';
+ exception when others then if sqlerrm is distinct from 'PATIENT_UPDATE_DENIED' then raise; end if; end;
+ if (select to_jsonb(p) from public.patients p where p.id=pg_temp.fid('x')) is distinct from before
+  or (select count(*) from public.patient_profile_change_events where patient_id=pg_temp.fid('x')) is distinct from history
+  or (select count(*) from private.patient_email_contact_events where patient_id=pg_temp.fid('x')) is distinct from events then
+  raise exception 'TEST_EXPIRED_HELP_ADMIN_SCOPE_LEFT_PARTIAL_STATE'; end if;
+end $$;
+drop trigger expire_profile_help_during_history on public.patient_profile_change_events;
+select extensions.pass('natural help expiry during history cannot retain admin scope through a permanent professional fallback');
 
 select * from extensions.finish();
 rollback;

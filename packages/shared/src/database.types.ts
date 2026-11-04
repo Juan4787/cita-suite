@@ -745,6 +745,7 @@ export type Database = {
           appointment_revision: number
           business_id: string
           generation: number
+          legacy_contact_revision: number
           legacy_management_allowed: boolean
           previous_deposit_disposition: string
           require_deposit_on_reschedule: boolean
@@ -759,6 +760,7 @@ export type Database = {
           appointment_revision?: number
           business_id: string
           generation?: number
+          legacy_contact_revision: number
           legacy_management_allowed?: boolean
           previous_deposit_disposition?: string
           require_deposit_on_reschedule?: boolean
@@ -773,6 +775,7 @@ export type Database = {
           appointment_revision?: number
           business_id?: string
           generation?: number
+          legacy_contact_revision?: number
           legacy_management_allowed?: boolean
           previous_deposit_disposition?: string
           require_deposit_on_reschedule?: boolean
@@ -3268,6 +3271,7 @@ export type Database = {
           dni: string | null
           drive_folder_id: string | null
           email: string | null
+          email_contact_revision: number
           full_name: string
           id: string
           insurance: string | null
@@ -3299,6 +3303,7 @@ export type Database = {
           dni?: string | null
           drive_folder_id?: string | null
           email?: string | null
+          email_contact_revision?: number
           full_name: string
           id?: string
           insurance?: string | null
@@ -3330,6 +3335,7 @@ export type Database = {
           dni?: string | null
           drive_folder_id?: string | null
           email?: string | null
+          email_contact_revision?: number
           full_name?: string
           id?: string
           insurance?: string | null
