@@ -93,6 +93,7 @@ A	supabase/migrations/20261103090000_staff_appointment_management.sql
 A	supabase/migrations/20261103100000_close_staff_appointment_direct_updates.sql
 A	supabase/migrations/20261103110000_staff_creation_and_identity_authorization.sql
 A	supabase/migrations/20261103120000_patient_email_contact_authority.sql
+A	supabase/migrations/20261103130000_patient_contact_editor_authority.sql
 M	supabase/templates/recovery.html
 M	supabase/tests/appointment_actor_revalidation.sql
 M	supabase/tests/appointment_deposits.sql
@@ -229,3 +230,5 @@ Lo ignora `.gitignore` y no se publica nunca: el repositorio es público.
 - E1.55: SQL 41759448286 aprobó once migraciones, diez esperas de Ayuda y 21 carreras paciente/personal; tipos oficiales idénticos y digest cotejado. Roja de contacto 41759878304 reproducida; .120 y contratos/carreras escritos, doce migraciones aún sin verde. No aplicado ni publicado, sin envíos nuevos.
 
 - E1.56: SQL 41760657679 instaló doce migraciones y aprobó revocación/legado/ABA/familiares; se detuvo en END duplicado de una prueba nueva de rollback, corregido sin cambios del producto. Rerun integral/tipos pendientes.
+
+- E1.58: SQL 41761097542 aprobó doce migraciones, capacidades 33/comandos 40 y 24 carreras; tipos oficiales importados con digest cotejado. Roja del editor de contacto 41761295231 reproducida; .130 y nueve grupos/doce esperas escritos, trece migraciones pendientes. Producción intacta, sin correo nuevo.

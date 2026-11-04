@@ -90,6 +90,16 @@ declare r staff_authorization_race.requests; b uuid:='e3200000-0000-4000-8000-00
    array['e3200000-0000-4000-8000-000000000004']::uuid[],
    (select starts_at+interval '6 hours' from public.appointments where id=r.appointment_id),null,
    'e3200000-0000-4000-8000-000000000003',false,'manual','unknown',false,r.operation_id::text,false);
+ elsif p_action in ('profile','profile_history') then
+  perform set_config('request.jwt.claim.role','service_role',true);
+  perform set_config('request.jwt.claim.sub','',true);
+  perform public.update_patient_with_clinical_profile_safely(
+   p_actor_id=>'e3200000-0000-4000-8000-000000000003',p_business_id=>b,
+   p_patient_id=>(select patient_id from public.appointments where id=r.appointment_id),
+   p_full_name=>'Synthetic '||p_label,p_dni=>null,p_phone=>null,p_phone_raw=>null,p_phone_e164=>null,
+   p_email=>'must-not-save@example.test',p_birth_date=>null,p_address=>null,p_insurance=>null,p_insurance_plan=>null,
+   p_changed_fields=>array['correo electrónico'],p_change_summary=>'Synthetic contact edit',
+   p_changed_by_professional_id=>null,p_changed_by_name=>'Synthetic helper');
  elsif p_action='repair' then
   perform set_config('request.jwt.claim.sub','',true);
   perform public.reassign_appointment_patient_safely(b,r.appointment_id,
@@ -114,16 +124,22 @@ declare r staff_authorization_race.requests; begin
   or exists(select 1 from private.appointment_management_operations where appointment_id=r.appointment_id)
   or exists(select 1 from public.appointment_deposit_requirements where appointment_id=r.appointment_id and status='paid')
   or exists(select 1 from public.audit_logs where entity_id=r.appointment_id and action in ('appointment.management_access_revoked','appointment.deposit_paid','appointment.deposit_reminder_opened'))
+  or not exists(select 1 from public.patients p join public.appointments a on a.patient_id=p.id
+   where a.id=r.appointment_id and p.full_name='Synthetic '||p_label and p.email is null and p.email_contact_revision=1)
+  or exists(select 1 from public.patient_profile_change_events e join public.appointments a on a.patient_id=e.patient_id where a.id=r.appointment_id)
+  or exists(select 1 from private.patient_email_contact_events e join public.appointments a on a.patient_id=e.patient_id where a.id=r.appointment_id)
   or not exists(select 1 from public.deposit_policies where business_id='e3200000-0000-4000-8000-000000000001' and revision=1 and fixed_amount=40000)
  then raise exception 'STAFF_RACE_PARTIAL_STATE'; end if;
 end $$;
 SQL
 staff_deadlocks=$("${staff_psql[@]}" -c 'select deadlocks from pg_stat_database where datname=current_database();')
-for staff_action in revoke pay remind policy policy_off hide agenda_cancel agenda_reschedule create repair; do
+for staff_action in revoke pay remind policy policy_off hide agenda_cancel agenda_reschedule create repair profile profile_history; do
  "${staff_psql[@]}" -c "select staff_authorization_race.prepare('$staff_action');"
  staff_lock="select id from public.appointments where id=(select appointment_id from staff_authorization_race.requests where label='$staff_action') for no key update;"
  [[ "$staff_action" != policy ]] || staff_lock="select business_id from public.deposit_policies where business_id='$staff_business' for no key update;"
  [[ "$staff_action" != create ]] || staff_lock="select id from public.patients where id=(select patient_id from public.appointments where id=(select appointment_id from staff_authorization_race.requests where label='$staff_action')) for update;"
+ [[ "$staff_action" != profile ]] || staff_lock="select id from public.patients where id=(select patient_id from public.appointments where id=(select appointment_id from staff_authorization_race.requests where label='$staff_action')) for update;"
+ [[ "$staff_action" != profile_history ]] || staff_lock="lock table public.patient_profile_change_events in share mode;"
  [[ "$staff_action" != hide ]] || staff_lock="select id from public.appointment_slot_releases where id=(select release_id from staff_authorization_race.requests where label='$staff_action') for no key update;"
  "${staff_psql[@]}" >"$staff_directory/holder.log" 2>&1 <<SQL &
 begin;
@@ -159,6 +175,7 @@ SQL
  [[ "$staff_action" != policy && "$staff_action" != policy_off ]] || staff_error=DEPOSIT_POLICY_FORBIDDEN
  [[ "$staff_action" != create ]] || staff_error=APPOINTMENT_CREATOR_INVALID
  [[ "$staff_action" != repair ]] || staff_error=APPOINTMENT_REASSIGNMENT_ACTOR_INVALID
+ [[ "$staff_action" != profile && "$staff_action" != profile_history ]] || staff_error=PATIENT_UPDATE_DENIED
  [[ "$staff_action" != hide ]] || staff_error=SLOT_RELEASE_FORBIDDEN
  if [[ "$staff_result" == 0 ]] || ! grep -Fq "$staff_error" "$staff_directory/actor.log"; then
   cat "$staff_directory/actor.log" >&2; echo "FAIL: expired help executed $staff_action after a verified lock wait." >&2; exit 1
