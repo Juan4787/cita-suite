@@ -9,7 +9,7 @@
   let { data, form }: { data: PublicInformationPageData; form?: PublicInformationFeedback | null } = $props();
   let busy = $state(false);
   let transportMessage = $state("");
-  let feedback: HTMLParagraphElement | undefined;
+  let feedback = $state<HTMLParagraphElement>();
   const feedbackText = $derived(transportMessage || form?.message || "");
   const feedbackSaved = $derived(!transportMessage && form?.saved === true);
   const submitInformation: SubmitFunction = () => {
