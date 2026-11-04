@@ -12,6 +12,9 @@ declare
 begin
  insert into auth.users(id,email) values(owner_id,'info-owner@example.test'),(doctor_id,'info-doctor@example.test'),(reception_id,'info-reception@example.test'),(foreign_owner,'info-other@example.test');
  insert into public.businesses(name,slug,industry,timezone) values('Consultorio datos ficticios','info-'||gen_random_uuid(),'other','UTC') returning id into biz;
+ -- This regression exercises the explicitly optional email configuration;
+ -- required-contact entry points have their own default-on suite.
+ update public.appointment_email_policies set require_email=false where business_id=biz;
  insert into public.businesses(name,slug,industry,timezone) values('Consultorio ajeno','foreign-info-'||gen_random_uuid(),'other','UTC') returning id into foreign_biz;
  insert into public.business_users(business_id,user_id,role,status,accepted_at) values(biz,owner_id,'owner','active',now()),(biz,doctor_id,'professional','active',now()),(biz,reception_id,'reception','active',now()),(foreign_biz,foreign_owner,'owner','active',now());
  update public.business_subscriptions set commercial_access_enabled=true,is_permanent=true,subscription_status='active',paid_until=null,grace_until=null,restricted_until=null where business_id in (biz,foreign_biz);

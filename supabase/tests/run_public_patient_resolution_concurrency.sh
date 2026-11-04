@@ -32,6 +32,8 @@ values ('$owner_id', 'public-patient-resolution@example.test');
 
 insert into public.businesses (name, slug, industry, timezone)
 values ('E2E resolución pública', '$slug', 'odontology', 'UTC');
+-- This race preserves the optional-contact scenario; default-on email is tested separately.
+update public.appointment_email_policies set require_email=false where business_id=(select id from public.businesses where slug='$slug');
 
 insert into public.business_users (business_id, user_id, role, status, accepted_at)
 select id, '$owner_id', 'owner', 'active', statement_timestamp()

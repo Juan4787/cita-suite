@@ -40,6 +40,9 @@ begin
 		'UTC'
 	)
 	returning id into v_business_id;
+ -- This regression exercises the explicitly optional email configuration;
+ -- required-contact entry points have their own default-on suite.
+ update public.appointment_email_policies set require_email=false where business_id=v_business_id;
     -- Internal operations require current commercial access as well as the role.
     update public.business_subscriptions set commercial_access_enabled=true,is_permanent=true,subscription_status='active',
      paid_until=null,grace_until=null,restricted_until=null,archived_at=null where business_id=v_business_id;

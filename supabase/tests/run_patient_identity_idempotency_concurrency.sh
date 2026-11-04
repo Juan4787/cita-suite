@@ -33,6 +33,8 @@ values ('$owner_id', 'patient-idempotency@example.test');
 
 insert into public.businesses (name, slug, industry, timezone)
 values ('E2E identidad idempotente', '$slug', 'odontology', 'UTC');
+-- This race preserves the optional-contact scenario; default-on email is tested separately.
+update public.appointment_email_policies set require_email=false where business_id=(select id from public.businesses where slug='$slug');
 update public.business_subscriptions set commercial_access_enabled=true,is_permanent=true,subscription_status='active',
  paid_until=null,grace_until=null,restricted_until=null,archived_at=null
  where business_id=(select id from public.businesses where slug='$slug');

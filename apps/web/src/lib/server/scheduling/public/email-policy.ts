@@ -4,6 +4,12 @@ import { EMAIL_POLICY_BOOLEAN_KEYS, type AppointmentEmailPreferences } from '$li
 
 export type AppointmentEmailPolicy = AppointmentEmailPreferences & { revision: number; sender_verified: boolean };
 
+export const loadPublicBookingEmailRequirement = async (supabase: CitaSupabaseClient, businessId: string): Promise<boolean> => {
+ const { data, error } = await supabase.from('appointment_email_policies').select('require_email').eq('business_id', businessId).single();
+ if (error) throw error;
+ return readBoolean(readRecord(data, 'emailPolicy').require_email, 'emailPolicy.require_email');
+};
+
 const revision = (value: unknown) => {
  const result = readFiniteNumber(value, 'emailPolicy.revision');
  if (!Number.isSafeInteger(result) || result < 1) throw new Error('EMAIL_POLICY_INVALID');

@@ -60,6 +60,7 @@ export type BookingFormState = {
 
 /** Presentation projection, shared without importing a server implementation. */
 export type BookingViewData = {
+	requireEmail?: boolean;
 	priceQuote?: PriceQuote | null;
 	// Deposit terms of each slot of the loaded day (adjustment 4); null when they could not be computed.
 	depositTerms?: Record<string, DepositSlotTerms> | null;

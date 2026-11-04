@@ -12,6 +12,9 @@ declare
 begin
  insert into auth.users(id,email) values(owner_id,'extension-owner@example.test'),(doctor_id,'extension-doctor@example.test'),(other_doctor,'extension-second@example.test'),(outsider,'extension-other@example.test');
  insert into public.businesses(name,slug,industry,timezone,patient_documents_enabled,max_booking_days_ahead) values('Consultorio sintético extensiones','ext-'||gen_random_uuid(),'other','UTC',true,90) returning id into biz;
+ -- This regression exercises the explicitly optional email configuration;
+ -- required-contact entry points have their own default-on suite.
+ update public.appointment_email_policies set require_email=false where business_id=biz;
  insert into public.businesses(name,slug,industry,timezone) values('Otro consultorio sintético','ext-other-'||gen_random_uuid(),'other','UTC') returning id into foreign_biz;
  insert into public.business_users(business_id,user_id,role,status,accepted_at) values(biz,owner_id,'owner','active',now()),(biz,doctor_id,'professional','active',now()),(biz,other_doctor,'professional','active',now()),(foreign_biz,outsider,'owner','active',now());
  update public.business_subscriptions set commercial_access_enabled=true,is_permanent=true,subscription_status='active',paid_until=null,grace_until=null,restricted_until=null where business_id in (biz,foreign_biz);

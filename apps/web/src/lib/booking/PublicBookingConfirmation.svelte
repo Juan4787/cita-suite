@@ -116,6 +116,14 @@
 
 </script>
 
+{#snippet emailField(required: boolean)}
+ <div class="patient-field">
+  <label for="patient-email" class="patient-label"><span>Correo electrónico</span><span class={required ? 'patient-required' : 'patient-optional'} aria-hidden="true">{required ? '*' : 'Opcional'}</span></label>
+  <input id="patient-email" aria-label="Correo electrónico" name="patient_email" maxlength="254" type="email" autocomplete="email"
+   {required} value={String(values.patient_email ?? '')} class="ux-input patient-control" />
+ </div>
+{/snippet}
+
 				<form
 				  method="POST"
 				  action={confirmation.action}
@@ -247,6 +255,7 @@
 				        class="ux-input patient-control"
 				      />
 				    </div>
+				    {#if data.requireEmail ?? true}{@render emailField(true)}{/if}
 				    {#each requiredIntakeFields as field (field.id)}<PublicBookingIntakeField
 				        {field}
 				        today={patientToday}
@@ -278,24 +287,7 @@
 				        >{String(values.note ?? "")}</textarea
 				      >
 				    </div>
-				    <div class="patient-field">
-				      <label for="patient-email" class="patient-label"
-				        ><span>Correo electrónico</span><span
-				          class="patient-optional"
-				          aria-hidden="true">Opcional</span
-				        ></label
-				      >
-				      <input
-				        id="patient-email"
-				        aria-label="Correo electrónico"
-				        name="patient_email"
-				        maxlength={data.integration ? 254 : undefined}
-				        type="email"
-				        autocomplete="email"
-				        value={String(values.patient_email ?? "")}
-				        class="ux-input patient-control"
-				      />
-				    </div>
+				    {#if !(data.requireEmail ?? true)}{@render emailField(false)}{/if}
 				  </fieldset>
 
 				  {#if data.turnstileSiteKey}
