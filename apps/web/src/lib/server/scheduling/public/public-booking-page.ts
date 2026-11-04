@@ -22,7 +22,8 @@ import {
 	publicHash,
 	verifyTurnstileIfConfigured
 } from '$lib/server/scheduling/public/public-booking';
-import { fail, redirect, isRedirect } from '@sveltejs/kit';
+import { error as httpError, fail, redirect, isRedirect, isHttpError } from '@sveltejs/kit';
+import { loadPatientManagementView } from './patient-management';
 import type { RequestEvent } from '@sveltejs/kit';
 import type { BookingIntegration } from '$lib/server/sites/public/booking-integrations';
 import { assertIntegrationSelection, bookingPresentation, intakeAnswersFromForm, integratedBookingErrorMessage } from '$lib/server/sites/public/booking-integrations';
@@ -39,12 +40,19 @@ async function recoverIntegratedBooking(supabase: CitaSupabaseClient, url: URL, 
 	const requestId = url.searchParams.get('request_id') ?? '';
 	if (url.searchParams.get('recover') !== '1' || !BOOKING_REQUEST_ID_PATTERN.test(requestId)) return undefined;
 	const { data, error } = await supabase.from('appointments')
-		.select('confirmation_token, appointment_booking_contexts!inner(integration_id, entry_point)')
+		.select('id, confirmation_token, appointment_booking_contexts!inner(integration_id, entry_point)')
 		.eq('business_id', integration.businessId).eq('creation_request_key', requestId.toLowerCase())
 		.eq('appointment_booking_contexts.integration_id', integration.id)
 		.eq('appointment_booking_contexts.entry_point', entryPoint).maybeSingle();
 	if (error) throw error;
 	if (data) {
+  // The request key proves which creation is being recovered, not authority
+  // over its replacement identity or corrected contact. Reuse the existing
+  // coherent management reader; never mint new access from this lookup.
+  const view = await loadPatientManagementView(supabase, { token: data.confirmation_token, legacy: true });
+  if (!view || view.appointment.id !== data.id || view.appointment.business.id !== integration.businessId) {
+   throw httpError(404, 'Esta reserva ya no se puede gestionar desde este intento. Abrí el enlace más reciente del turno o contactá al consultorio.');
+  }
 		const query = new URLSearchParams({ recuperado: '1' });
 		const framed = entryPoint === 'embedded' && url.searchParams.has('parent_origin') && url.searchParams.has('instance_id');
 		if (framed) {
@@ -219,7 +227,7 @@ export const loadPublicBookingPage = async ({ params, fetch, url, setHeaders }: 
 			demo: false
 		};
 	} catch (error) {
-		if (isRedirect(error)) throw error;
+		if (isRedirect(error) || isHttpError(error)) throw error;
 		logServerFailure('Error cargando reserva publica', error);
 		return {
 			state: {
