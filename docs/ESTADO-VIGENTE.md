@@ -94,6 +94,7 @@ A	supabase/migrations/20261103100000_close_staff_appointment_direct_updates.sql
 A	supabase/migrations/20261103110000_staff_creation_and_identity_authorization.sql
 A	supabase/migrations/20261103120000_patient_email_contact_authority.sql
 A	supabase/migrations/20261103130000_patient_contact_editor_authority.sql
+A	supabase/migrations/20261104010000_patient_management_information_access.sql
 M	supabase/templates/recovery.html
 M	supabase/tests/appointment_actor_revalidation.sql
 M	supabase/tests/appointment_deposits.sql
