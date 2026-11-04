@@ -486,6 +486,28 @@ test.describe('isolated booking integration', () => {
 			0
 		);
 		await doctor.close();
+		// A creation key and a frame receipt retain the authority of their original
+		// contact; neither is an alternate way around a later correction.
+		const corrected = await db.from('patients').update({ email: 'corrected-booking@example.test' })
+			.eq('business_id', fixture.businessId).eq('id', saved.data![0].patient_id);
+		expect(corrected.error).toBeNull();
+		const frameQuery = '?parent_origin=' + encodeURIComponent(fixture.hostOrigin) + '&instance_id=' + 'b'.repeat(32);
+		const receiptPath = fixture.appOrigin + '/embed/v1/' + fixture.key + '/turno/' + saved.data![0].confirmation_token;
+		for (const revokedPath of [receiptPath + frameQuery, fixture.appOrigin + '/embed/v1/' + fixture.key + frameQuery + '&recover=1&request_id=' + attempt]) {
+			const revoked = await request.get(revokedPath, { maxRedirects: 0 });
+			expect(revoked.status()).toBe(404);
+			expect(await revoked.text()).not.toContain('Ana Prueba');
+		}
+		const oldNotice = await request.get(fixture.appOrigin + '/turno/' + saved.data![0].confirmation_token + '/reprogramado');
+		expect(await oldNotice.text()).toContain('Enlace no disponible');
+		const managedState = await db.from('appointment_management_states').select('generation').eq('appointment_id', saved.data![0].id).single();
+		expect(managedState.error).toBeNull();
+		const fresh = await db.rpc('issue_appointment_management_capability', { p_business_id: fixture.businessId,
+			p_appointment_id: saved.data![0].id, p_expected_generation: managedState.data!.generation });
+		expect(fresh.error).toBeNull();
+		const freshNotice = await request.get(fixture.appOrigin + '/gestion/' + fresh.data + '/reprogramado');
+		expect(freshNotice.status()).toBe(200);
+		expect(await freshNotice.text()).toContain('Tu turno actualizado');
 		expect(exceptions).toEqual([]);
 	});
 	test('pages real dates after an empty window in shared and Natalia booking, with keyboard and mobile layout', async ({

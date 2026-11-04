@@ -5825,6 +5825,14 @@ export type Database = {
         }
         Returns: Json
       }
+      save_appointment_email_policy: {
+        Args: {
+          p_business_id: string
+          p_expected_revision: number
+          p_settings: Json
+        }
+        Returns: number
+      }
       save_appointment_patient_instructions: {
         Args: {
           p_appointment_id: string
