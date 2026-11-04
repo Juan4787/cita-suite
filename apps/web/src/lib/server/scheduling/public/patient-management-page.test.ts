@@ -22,7 +22,7 @@ const event = (): RequestEvent => ({ params: { token }, fetch: vi.fn(), url: new
 beforeEach(() => {
  vi.clearAllMocks(); mock.client.rpc.mockResolvedValue({ data: true, error: null });
  mock.calendarState.mockResolvedValue({ available: false, state: 'none', current: false, reminderLabel: 'antes del turno' });
- mock.screen.mockResolvedValue({ view: { appointment: demoPublicAppointment('b'.repeat(64)), newBookingAllowed: false }, panel: null });
+ mock.screen.mockResolvedValue({ view: { appointment: demoPublicAppointment('b'.repeat(64)), newBookingAllowed: false, canManageReminders:true,canAddInformation:true }, panel: null });
 });
 describe('public appointment route delegation', () => {
  it.each([false, true])('uses the explicit legacy channel %s without guessing from identical token formats', async legacy => {
@@ -35,6 +35,13 @@ describe('public appointment route delegation', () => {
   const loaded = await createPatientManagementPage(true).load(event());
   expect(loaded.appointment).toBeNull(); expect(mock.screen).toHaveBeenCalledTimes(1);
   expect(mock.calendarState).not.toHaveBeenCalled(); expect(mock.mark).not.toHaveBeenCalled();
+ });
+ it('keeps minimum cancellation scope free of reminder offers and calendar tracking', async () => {
+  mock.screen.mockResolvedValue({view:{appointment:demoPublicAppointment('b'.repeat(64)),newBookingAllowed:false,canManageReminders:false,canAddInformation:false},panel:null});
+  mock.calendarState.mockResolvedValue({available:true,state:'active',current:true,reminderLabel:'antes del turno'});
+  const loaded=await createPatientManagementPage(false).load(event());
+  expect(loaded).toMatchObject({remindersEnabled:false,bookingInformationEnabled:false,androidCalendarIntent:null,googleCalendar:{available:false,state:'active'}});
+  expect(mock.mark).not.toHaveBeenCalled();
  });
  it('keeps a rejected stale/expired operation as a failure with its original retry data', async () => {
   const feedback = { success: false, message: 'El turno cambió.', submitted: { expected_revision: 'old' }, retrySameOperation: false };

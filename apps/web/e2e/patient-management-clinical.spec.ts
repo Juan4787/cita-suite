@@ -36,8 +36,6 @@ for (const brand of ['cita-suite', 'natalia'] as const) {
      service_name_snapshot,professional_name_snapshot,duration_minutes_snapshot)
      values('${appointment}','${business}','${patient}','${professional}','${service}',now()+interval '20 days',now()+interval '20 days 1 hour',
      'reserved','manual','Consulta sintética','Profesional sintética',60);
-    insert into public.appointment_patient_information_contexts(business_id,appointment_id,patient_id_snapshot,schema_snapshot)
-     values('${business}','${appointment}','${patient}','[{"id":"coverage","label":"Cobertura","kind":"text","required":false,"maxLength":100,"patientField":"insurance"}]');
     insert into public.booking_integrations(id,business_id,public_key,name,is_active,theme,allowed_origins,allowed_service_ids,allowed_professional_ids)
      values('${integration}','${business}','${integrationKey}','Synthetic clinical management',true,'${brand}',array['${origin}'],array['${service}']::uuid[],array['${professional}']::uuid[]);
     insert into public.appointment_booking_contexts(appointment_id,business_id,integration_id,integration_revision,contract_version,theme_snapshot,entry_point,modality,context_fingerprint)
@@ -53,6 +51,24 @@ for (const brand of ['cita-suite', 'natalia'] as const) {
    const legacy=f.sql(`select confirmation_token from public.appointments where id='${appointment}';`);
    const capability=f.sql(`select public.issue_appointment_management_capability('${business}','${appointment}',2);`);
    const path=`/gestion/${capability}`;
+   phase='auxiliary_scope';
+   await page.goto(path);
+   await expect(page.getByRole('heading',{name:'Último paso: activá el recordatorio'})).toBeVisible();
+   await expect(page.getByRole('link',{name:'Ver y ampliar mis datos'})).toHaveCount(0);
+   expect((await request.get(`${path}/informacion`)).status()).toBe(404);
+   f.sql(`insert into public.appointment_patient_information_contexts(business_id,appointment_id,patient_id_snapshot,schema_snapshot)
+     values('${business}','${appointment}','${patient}','[{"id":"coverage","label":"Cobertura","kind":"text","required":false,"maxLength":100,"patientField":"insurance"}]');`);
+   f.sql(`update public.businesses set public_booking_enabled=false where id='${business}';`);
+   await page.goto(path);
+   await expect(page.getByRole('heading',{name:'Último paso: activá el recordatorio'})).toBeVisible();
+   await expect(page.getByRole('link',{name:'Ver y ampliar mis datos'})).toBeVisible();
+   f.sql(`update public.business_subscriptions set commercial_access_enabled=false where business_id='${business}';`);
+   await page.goto(path);
+   await expect(page.getByRole('heading',{name:'Último paso: activá el recordatorio'})).toHaveCount(0);
+   await expect(page.getByRole('link',{name:'Ver y ampliar mis datos'})).toHaveCount(0);
+   expect((await request.get(`${path}/informacion`)).status()).toBe(404);
+   f.sql(`update public.business_subscriptions set commercial_access_enabled=true where business_id='${business}';
+    update public.businesses set public_booking_enabled=true where id='${business}';`);
    phase='read_and_navigation';
    const response=await request.get(`${path}/informacion`);
    expect(response.status()).toBe(200);expect(response.headers()['cache-control']).toContain('no-store');
@@ -130,7 +146,7 @@ for (const brand of ['cita-suite', 'natalia'] as const) {
    phase='layout_and_browser_errors';
    expect(issues).toEqual([]);expect(pageErrors).toEqual([]);
    await info.attach('clinical-management-proof',{body:JSON.stringify({brand,themes:['light','dark'],widths:[320,390,768,1280,1600],
-    nativeForm:true,unreadableCommittedResponse:true,replayWithoutDuplicate:true,realIsolatedStorage:true,revocation:true,issues,pageErrors}),contentType:'application/json'});
+    auxiliaryScope:true,nativeForm:true,unreadableCommittedResponse:true,replayWithoutDuplicate:true,realIsolatedStorage:true,revocation:true,issues,pageErrors}),contentType:'application/json'});
   } catch(cause) {
    primaryFailure=cause;
    await info.attach('clinical-failure-phase',{body:JSON.stringify({phase}),contentType:'application/json'});

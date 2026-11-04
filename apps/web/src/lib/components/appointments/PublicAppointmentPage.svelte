@@ -49,6 +49,7 @@
 			};
 			calendarMessage: string | null;
 			bookingInformationEnabled?: boolean;
+   remindersEnabled: boolean;
 			practiceWhatsApp: PracticeWhatsAppNotice | null;
 			depositWhatsApp: DepositWhatsAppNotices | null;
 			rebookUrl: string | null;
@@ -295,6 +296,7 @@
 	});
 
 	onMount(() => {
+  if (!data.remindersEnabled) return;
 		calendarHandoffMounted = true;
 		activeCalendarHandoffStorageKey = calendarHandoffStorageKey();
 		restoreCalendarHandoff();
@@ -854,6 +856,7 @@
 	};
 
 	onMount(() => {
+  if (!data.remindersEnabled) return;
 		mounted = true;
 		currentSiteOrigin = window.location.origin;
 		showSamsungPhoneGuide = data.notificationBrowser.samsungExclusive;
@@ -1621,7 +1624,7 @@
 				<div class="ux-alert ux-alert-success">
 					La nueva fecha y hora se están actualizando automáticamente en tu cuenta Google.
 				</div>
-			{:else if needsCalendarUpdate && isActive}
+			{:else if needsCalendarUpdate && isActive && data.remindersEnabled}
 				<div class="ux-alert">
 					Tu turno fue reprogramado. Actualizá el calendario para recibir el aviso correcto.
 				</div>
@@ -1631,7 +1634,7 @@
 				{@render locationCard(appointment)}
 			{/if}
 
-			{#if isActive}
+			{#if isActive && data.remindersEnabled}
 				{@render reminderCard()}
 			{/if}
    {/if}
