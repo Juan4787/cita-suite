@@ -132,3 +132,6 @@ E3.4–E3.7, 4 de noviembre, sin publicar: requisito público y preferencias con
 
 
 E3.8 actualiza el punto anterior, sin publicar: veinticinco pasó sus catorce grupos, pero SQL 41926786859 confirmó un ciclo real entre FK de alta y el disparador del editor; no se considera aprobado ese esquema. Veintiséis conserva los comandos y cambia sólo la serialización necesaria del disparador: email sin cambios de identidad no pide advisory; identidad/archivo/bloqueo adquieren las claves sin esperar desde una fila ya retenida, con conflicto atómico existente y recuperación del borrador. No se adelanta la fila del paciente en el núcleo público ni se añaden retries automáticos. SQL/tipos/cinco escenarios pendientes. Fast 41926791242 prueba d19c35a (1931/283, cero errores/avisos); adaptadores posteriores tienen sólo sus 37 dirigidas. Registro activo identifica los límites.
+
+
+E3.10, sin publicar, actualiza la verificación del párrafo anterior: SQL 41929889370 aprobó las veintiséis migraciones y regresiones, cinco contenciones nuevas, 48 carreras/dos contraejemplos FK y doce esperas, con tipos oficiales/digest de 157 migraciones cotejados. El trigger conserva la resolución endurecida de esquemas. Recepción/render nuevo siguen pendientes de browser; estas garantías SQL no prueban envío, entrega ni aplicación productiva.
