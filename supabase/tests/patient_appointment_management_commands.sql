@@ -2,7 +2,7 @@
 -- The backend has already checked the selected slot with the shared calculator;
 -- the command must hold its configuration version and enforce atomic persistence.
 begin;
-select extensions.plan(38);
+select extensions.plan(40);
 create temporary table command_fixture(label text primary key,id uuid not null,extra jsonb);
 create function pg_temp.cid(p_label text) returns uuid language sql as $$
  select id from command_fixture where label=p_label
@@ -445,5 +445,50 @@ do $$ declare target timestamptz:=clock_timestamp()+interval '72 hours 2 seconds
 end $$;
 drop trigger zzz_cross_payment_window on public.appointments;
 select extensions.pass('38. An unpaid move cannot restore auto-cancellation after a later trigger observes less than the minimum payment window');
+select pg_temp.command_case('contact_replay',false,'credit','pending');
+do $$ declare token text; op uuid:=gen_random_uuid(); rev text:=pg_temp.crevision('contact_replay'); before jsonb; begin
+ select extra->>'token' into token from command_fixture where label='contact_replay';
+ perform pg_temp.command_call(token,op,rev,'cancel',null,null,null);
+ update public.patients set email='corrected-recipient@example.test'
+ where id=(select patient_id from public.appointments where id=pg_temp.cid('contact_replay'));
+ before:=pg_temp.cstate('contact_replay');
+ begin
+  perform pg_temp.command_call(token,op,rev,'cancel',null,null,null);
+  raise exception 'E1_REVOKED_CONTACT_REPLAY_ALLOWED';
+ exception when others then if sqlerrm is distinct from 'APPOINTMENT_LINK_UNAVAILABLE' then raise; end if; end;
+ begin
+  perform public.recover_patient_appointment_management(token,false,op,rev,'cancel');
+  raise exception 'E1_REVOKED_CONTACT_RECOVERY_ALLOWED';
+ exception when others then if sqlerrm is distinct from 'APPOINTMENT_LINK_UNAVAILABLE' then raise; end if; end;
+ if pg_temp.cstate('contact_replay') is distinct from before then raise exception 'E1_REVOKED_CONTACT_REPLAY_MUTATED_STATE'; end if;
+end $$;
+select extensions.pass('39. Email revocation closes both execution replay and read recovery without undoing the original confirmed operation');
+
+select pg_temp.command_case('capability_clock',false,'credit','pending');
+create function pg_temp.expire_capability_during_audit() returns trigger language plpgsql as $$
+declare deadline timestamptz; begin
+ if new.entity_id=pg_temp.cid('capability_clock') then
+  select c.expires_at into strict deadline from private.appointment_management_capabilities c
+  where c.token_hash=encode(extensions.digest((select extra->>'token' from command_fixture where label='capability_clock'),'sha256'),'hex');
+  perform pg_sleep_until(deadline+interval '25 milliseconds');
+ end if;
+ return new;
+end $$;
+create trigger e1_capability_expiry_audit before insert on public.audit_logs
+ for each row execute function pg_temp.expire_capability_during_audit();
+do $$ declare before jsonb:=pg_temp.cstate('capability_clock'); token text; op uuid:=gen_random_uuid(); begin
+ select extra->>'token' into token from command_fixture where label='capability_clock';
+ update private.appointment_management_capabilities set expires_at=clock_timestamp()+interval '1 second'
+ where token_hash=encode(extensions.digest(token,'sha256'),'hex');
+ begin
+  perform pg_temp.command_call(token,op,pg_temp.crevision('capability_clock'),'cancel',null,null,null);
+  raise exception 'E1_POST_EFFECT_CAPABILITY_EXPIRY_ALLOWED';
+ exception when others then if sqlerrm is distinct from 'APPOINTMENT_LINK_UNAVAILABLE' then raise; end if; end;
+ if pg_temp.cstate('capability_clock') is distinct from before
+  or exists(select 1 from private.appointment_management_operations where operation_id=op) then
+  raise exception 'E1_POST_EFFECT_CAPABILITY_EXPIRY_PARTIAL_STATE'; end if;
+end $$;
+drop trigger e1_capability_expiry_audit on public.audit_logs;
+select extensions.pass('40. Expiry after actual command effects and audit delay rolls back agenda, money, release, events, audit and receipt');
 select * from extensions.finish();
 rollback;
