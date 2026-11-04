@@ -64,6 +64,21 @@ test.describe('isolated booking integration', () => {
 		const attempt = await booking.locator('[name="idempotency_key"]').inputValue();
 		const date = new URL(frame.url()).searchParams.get('date')!;
 		const slot = await booking.locator('[name="slot_starts_at"]').inputValue();
+		await expect(booking.getByLabel('Correo electrónico', { exact: true })).toHaveAttribute('required', '');
+		const appointmentsBeforeMissingEmail = await db.from('appointments').select('id', { count: 'exact', head: true }).eq('business_id', fixture.businessId);
+		const patientsBeforeMissingEmail = await db.from('patients').select('id', { count: 'exact', head: true }).eq('business_id', fixture.businessId);
+		expect(appointmentsBeforeMissingEmail.error).toBeNull(); expect(patientsBeforeMissingEmail.error).toBeNull();
+		const missingEmailPayload = await booking.locator('form').last().evaluate((element: HTMLFormElement) => Object.fromEntries(new FormData(element).entries()));
+		const missingEmailEndpoint = await booking.locator('form').last().evaluate((element: HTMLFormElement) => element.action);
+		const missingEmail = await request.post(missingEmailEndpoint, { form: missingEmailPayload as Record<string, string>, headers: { origin: fixture.appOrigin, accept: 'text/html' }, maxRedirects: 0 });
+		expect(missingEmail.status()).toBe(400);
+		expect(await missingEmail.text()).toContain('Completá tu correo electrónico');
+		const appointmentsAfterMissingEmail = await db.from('appointments').select('id', { count: 'exact', head: true }).eq('business_id', fixture.businessId);
+		const patientsAfterMissingEmail = await db.from('patients').select('id', { count: 'exact', head: true }).eq('business_id', fixture.businessId);
+		expect(appointmentsAfterMissingEmail.error).toBeNull(); expect(patientsAfterMissingEmail.error).toBeNull();
+		expect(appointmentsAfterMissingEmail.count).toBe(appointmentsBeforeMissingEmail.count);
+		expect(patientsAfterMissingEmail.count).toBe(patientsBeforeMissingEmail.count);
+		await booking.getByLabel('Correo electrónico', { exact: true }).fill('ana-booking@example.test');
 		await page.screenshot({
 			type: 'jpeg', quality: 65, path: test.info().outputPath('cita-booking-desktop.jpg'),
 			fullPage: true
@@ -196,8 +211,9 @@ test.describe('isolated booking integration', () => {
 		});
 		await popup.getByRole('link', { name: 'Volver a mi turno' }).click();
 		await popup.getByText('Cancelar turno', { exact: true }).first().click();
-		await expect(popup.getByText('Confirmo que quiero cancelar este turno.')).toBeVisible();
-		await popup.getByText('Confirmo que quiero cancelar este turno.').scrollIntoViewIfNeeded();
+		await expect(popup.getByRole('heading', { name: '¿Querés cancelar este turno?', exact: true })).toBeVisible();
+		await expect(popup.getByRole('button', { name: 'Sí, cancelar turno', exact: true })).toBeVisible();
+		await popup.getByRole('heading', { name: '¿Querés cancelar este turno?', exact: true }).scrollIntoViewIfNeeded();
 		await popup.screenshot({
 			type: 'jpeg', quality: 65, path: test.info().outputPath('cita-booking-manage-cancel-light.jpg'),
 			fullPage: true
@@ -296,6 +312,7 @@ test.describe('isolated booking integration', () => {
 			.first()
 			.click();
 		await virtual.getByLabel('Nombre y apellido').fill('Paciente Virtual');
+		await virtual.getByLabel('Correo electrónico', { exact: true }).fill('virtual-booking@example.test');
 		await virtual.getByLabel('Teléfono').fill('3425048210');
 		await virtual.getByLabel('Obra social y plan').fill('Particular');
 		await virtual.getByLabel('Edad', { exact: true }).fill('40');

@@ -18,7 +18,7 @@ produccion_repositorio: github-secundaria:Juan4787/cita-suite-verificacion.git
 
 ## Etapa E — ejecución al 4 de noviembre
 
-E conserva autorización íntegra de implementación/pruebas/publicación: [plan 12.18–12.26](plans/propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada), [especificación](plans/etapa-e-correo-autogestion.md) y [registro activo](plans/ejecucion-etapa-e-20261103.md). E1/E2 sin publicar ni SQL E productivo. Veintiuna aprobada en SQL 41875359541: 15 grupos de observación, 18 de lease, 48 carreras/dos contraejemplos FK, doce esperas y regresiones/limpieza; tipos oficiales/digest cotejados e importados. Consumidores de calendario/retiro/métricas/PDF con 103 dirigidas de ocho suites aprobadas. Fast integrado 41876511206 aprobado: 1896 servidor/281 cliente, cero errores/avisos, arquitectura sin violaciones. Browser ampliado 41877197500 aprobado (dos marcas, descarga PDF real/autoridad/UID/métricas y clínica/Storage). SQL veintidós 41881667166 aprobada con fixture válida y tipos cotejados. Recuperación/lectores embed-detalle actualizado ahora usan gestión, 112 dirigidas aprobadas; fast anterior falló en dos anotaciones props, corregidas; preferencias E3 con 15 unidades/14 grupos SQL aprobados y tipos oficiales de veintitrés importados. Fast/browser nuevos pendientes. El browser anterior 41827075064 y fast 41827070902 conservan sólo sus revisiones/alcances. Seguir verificación integrada y retención OAuth/lectores/distribución/contacto/correo/E3–E6. Checkpoint E3.2. Producción V12b, ningún envío nuevo ni cierre E. P1/P2/P3 pospuestas por 12.26: no iniciarlas al cerrar E; avisar y entregar documentación detallada. Zoho OAuth administrativo persiste; envío/webhook/recepción/integración siguen pendientes.
+E conserva autorización íntegra de implementación/pruebas/publicación: [plan 12.18–12.26](plans/propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada), [especificación](plans/etapa-e-correo-autogestion.md) y [registro activo](plans/ejecucion-etapa-e-20261103.md). E1/E2 sin publicar ni SQL E productivo. Veintiuna aprobada en SQL 41875359541: 15 grupos de observación, 18 de lease, 48 carreras/dos contraejemplos FK, doce esperas y regresiones/limpieza; tipos oficiales/digest cotejados e importados. Consumidores de calendario/retiro/métricas/PDF con 103 dirigidas de ocho suites aprobadas. Fast integrado 41876511206 aprobado: 1896 servidor/281 cliente, cero errores/avisos, arquitectura sin violaciones. Browser ampliado 41877197500 aprobado (dos marcas, descarga PDF real/autoridad/UID/métricas y clínica/Storage). SQL veintidós 41881667166 aprobada con fixture válida y tipos cotejados. Recuperación/lectores embed-detalle actualizado ahora usan gestión, 112 dirigidas aprobadas; fast anterior falló en dos anotaciones props, corregidas; preferencias E3 con 15 unidades/14 grupos SQL aprobados y tipos oficiales de veintitrés importados. Fast 41884508894 falló en inferencia del formulario, corregida; browser 41884513802 falló en dos contratos del arnés, corregidos. Obligación pública (veinticuatro) y 30 dirigidas servidor, SQL/client/browser nuevos pendientes; reinicio con archivos conservados y cliente local interrumpido. El browser anterior 41827075064 y fast 41827070902 conservan sólo sus revisiones/alcances. Seguir verificación integrada y retención OAuth/lectores/distribución/contacto/correo/E3–E6. Checkpoint E3.3. Producción V12b, ningún envío nuevo ni cierre E. P1/P2/P3 pospuestas por 12.26: no iniciarlas al cerrar E; avisar y entregar documentación detallada. Zoho OAuth administrativo persiste; envío/webhook/recepción/integración siguen pendientes.
 
 ## Código que difiere de producción
 
@@ -38,12 +38,15 @@ M	apps/web/src/hooks.server.ts
 M	apps/web/src/lib/availability/contracts.test.ts
 M	apps/web/src/lib/availability/contracts.ts
 M	apps/web/src/lib/booking/PatientDocumentUpload.svelte
+M	apps/web/src/lib/booking/PublicBookingConfirmation.svelte
+M	apps/web/src/lib/booking/PublicBookingFlow.client.test.ts
 A	apps/web/src/lib/booking/PublicInformationPage.svelte
 A	apps/web/src/lib/components/appointments/PatientManagementPanel.client.test.ts
 A	apps/web/src/lib/components/appointments/PatientManagementPanel.svelte
 A	apps/web/src/lib/components/appointments/PublicAppointmentPage.svelte
 A	apps/web/src/lib/components/appointments/RescheduleNoticePage.svelte
 A	apps/web/src/lib/patients/public-booking-information.ts
+M	apps/web/src/lib/scheduling/booking-view.ts
 A	apps/web/src/lib/scheduling/email-policy.ts
 A	apps/web/src/lib/scheduling/patient-action-context.test.ts
 A	apps/web/src/lib/scheduling/patient-action-context.ts
@@ -69,6 +72,7 @@ A	apps/web/src/lib/server/patients/public/booking-information-page.test.ts
 A	apps/web/src/lib/server/patients/public/booking-information-page.ts
 M	apps/web/src/lib/server/patients/public/booking-information.ts
 M	apps/web/src/lib/server/patients/public/clinical-files.ts
+M	apps/web/src/lib/server/public-booking-navigation.test.ts
 A	apps/web/src/lib/server/scheduling/internal/management-contract.ts
 A	apps/web/src/lib/server/scheduling/public/appointment-reader-authority.test.ts
 A	apps/web/src/lib/server/scheduling/public/appointment-token.test.ts
@@ -87,8 +91,10 @@ A	apps/web/src/lib/server/scheduling/public/patient-management.test.ts
 A	apps/web/src/lib/server/scheduling/public/patient-management.ts
 M	apps/web/src/lib/server/scheduling/public/public-appointments.test.ts
 M	apps/web/src/lib/server/scheduling/public/public-appointments.ts
+M	apps/web/src/lib/server/scheduling/public/public-booking-page.test.ts
 M	apps/web/src/lib/server/scheduling/public/public-booking-page.ts
 A	apps/web/src/lib/server/scheduling/public/public-booking-recovery.test.ts
+M	apps/web/src/lib/server/scheduling/public/public-booking.ts
 A	apps/web/src/lib/server/scheduling/public/receipt-pdf-handler.test.ts
 A	apps/web/src/lib/server/scheduling/public/receipt-pdf-handler.ts
 A	apps/web/src/lib/server/scheduling/public/reschedule-notice-page.ts
@@ -179,6 +185,7 @@ A	supabase/migrations/20261104070000_calendar_sync_leases.sql
 A	supabase/migrations/20261104080000_patient_calendar_observations.sql
 A	supabase/migrations/20261104090000_calendar_oauth_retention.sql
 A	supabase/migrations/20261104100000_appointment_email_policy_settings.sql
+A	supabase/migrations/20261104110000_public_booking_email_requirement.sql
 M	supabase/templates/recovery.html
 M	supabase/tests/appointment_actor_revalidation.sql
 M	supabase/tests/appointment_deposits.sql
@@ -188,6 +195,9 @@ A	supabase/tests/appointment_management_foundation.sql
 A	supabase/tests/appointment_management_staff_authorization.sql
 M	supabase/tests/appointment_patient_reassignment.sql
 A	supabase/tests/appointment_reschedule_financial_terms.sql
+M	supabase/tests/booking_extension_contracts.sql
+M	supabase/tests/booking_integration_foundation.sql
+M	supabase/tests/booking_patient_information.sql
 A	supabase/tests/calendar_oauth_retention.sql
 M	supabase/tests/clinical_provenance_triggers.sql
 A	supabase/tests/migrations/20261103010000_appointment_management_foundation.sql.after.sql
@@ -203,10 +213,15 @@ A	supabase/tests/patient_management_document_access.sql
 A	supabase/tests/patient_management_google_calendar_access.sql
 A	supabase/tests/patient_management_information_access.sql
 A	supabase/tests/patient_management_push_access.sql
+M	supabase/tests/price_confirmation_lifecycle.sql
+A	supabase/tests/public_booking_email_requirement.sql
+M	supabase/tests/public_booking_patient_policy.sql
 M	supabase/tests/run_deposit_expiry_concurrency.sh
 M	supabase/tests/run_patient_identity_idempotency_concurrency.sh
 A	supabase/tests/run_patient_management_concurrency.sh
 A	supabase/tests/run_patient_management_view_concurrency.sh
+M	supabase/tests/run_public_booking_limit_concurrency.sh
+M	supabase/tests/run_public_patient_resolution_concurrency.sh
 A	supabase/tests/run_staff_authorization_concurrency.sh
 A	supabase/tests/staff_appointment_management.sql
 ```
@@ -328,4 +343,4 @@ Lo ignora `.gitignore` y no se publica nunca: el repositorio es público.
 
 - E1.59: SQL 41762069407 aprobó trece migraciones, nueve grupos del editor/historia y doce esperas; tipos/digest cotejados. Fast 41762158350 aprobado (1808 servidor/280 cliente, sin errores/avisos). Nuevo contrato clínico auxiliar escrito, sin ejecutar; producción V12b, sin SQL aplicado ni envío nuevo.
 
-Preferencias E3 en desarrollo (4 de noviembre, E3.1): guardado transaccional y pantalla; 15 unidades del adaptador y 14 grupos SQL aprobados en 41883137075; tipos oficiales de veintitrés cotejados/importados, fast/browser nuevos pendientes. No acredita obligación efectiva de email, avisos, remitente listo ni envíos. Retención SQL veintidós aprobada en 41881667166 sobre 8b93846; producción sigue V12b sin SQL E.
+Preferencias E3 en desarrollo (4 de noviembre, E3.1): guardado transaccional y pantalla; 15 unidades del adaptador y 14 grupos SQL aprobados en 41883137075; tipos oficiales de veintitrés cotejados/importados, fast y browser posteriores fallaron en tipado/fixtures, corregidos en E3.3. Obligación pública escrita, 30 dirigidas servidor y SQL/client/browser nuevos pendientes. No acredita obligación efectiva de email, avisos, remitente listo ni envíos. Retención SQL veintidós aprobada en 41881667166 sobre 8b93846; producción sigue V12b sin SQL E.

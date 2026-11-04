@@ -35,6 +35,9 @@ begin
 		'UTC'
 	)
 	returning id into v_business_id;
+ -- This regression exercises the explicitly optional email configuration;
+ -- required-contact entry points have their own default-on suite.
+ update public.appointment_email_policies set require_email=false where business_id=v_business_id;
 
 	insert into public.business_users (business_id, user_id, role, status, accepted_at)
 	values (v_business_id, v_owner_id, 'owner', 'active', statement_timestamp());

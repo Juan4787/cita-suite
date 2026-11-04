@@ -216,7 +216,7 @@ function bookingFixture(modalities: Array<"in_person" | "video">) {
   };
 }
 
-it("places every required question before optional questions and contact details without changing schema order", () => {
+it("places every required question and contact before optional fields without changing schema order", () => {
   const data = bookingFixture(["in_person"]);
   const fields = [
     {
@@ -259,6 +259,7 @@ it("places every required question before optional questions and contact details
   expect([...new Set(names(".patient-required-fields"))]).toEqual([
     "patient_name",
     "patient_phone",
+    "patient_email",
     "intake_required_first",
     "intake_required_last",
   ]);
@@ -266,7 +267,6 @@ it("places every required question before optional questions and contact details
     "intake_optional_first",
     "intake_optional_last",
     "note",
-    "patient_email",
   ]);
   expect(fields.map((field) => field.id)).toEqual([
     "optional_first",
@@ -410,4 +410,15 @@ it("says nothing about a deposit when the chosen slot asks none", () => {
   };
   expect(noticeFor(data)).toBeNull();
   expect(screen.queryByText(/seña/)).toBeNull();
+});
+
+
+it("shows optional email only when the clinic disables the requirement and preserves the supplied alias", () => {
+  const data = bookingFixture(["in_person"]);
+  Object.assign(data, { requireEmail: false });
+  render(PublicBookingFlow, { data, form: { values: { patient_email: "Family+Turnos@Example.test" } } });
+  const email = screen.getByLabelText("Correo electrónico");
+  expect(email).not.toBeRequired();
+  expect(email.closest("fieldset")).toHaveClass("patient-optional-fields");
+  expect(email).toHaveValue("Family+Turnos@Example.test");
 });

@@ -13,16 +13,21 @@ test('@candidate-behavior isolated email preferences: independent settings, stal
  let pageErrors = 0;
  page.on('pageerror', () => { pageErrors++; });
  const base = new URL(process.env.E2E_BASE_URL!).origin;
+ const ownerEmail = `email-preferences-${randomUUID()}@example.test`, ownerPassword = `Owned-fixture-${randomUUID()}`;
+ let ownerId: string | null = null;
  const policy = () => JSON.parse(f.sql(`select to_jsonb(p) from public.appointment_email_policies p where business_id='${businessId}';`));
  const audits = () => Number(f.sql(`select count(*) from public.audit_logs where business_id='${businessId}' and action='business.appointment_email_policy_updated';`));
  let native: Awaited<ReturnType<typeof browser.newContext>> | null = null;
  try {
+  const created = await f.admin.auth.admin.createUser({ email: ownerEmail, password: ownerPassword, email_confirm: true });
+  if (created.error || !created.data.user?.id) throw new Error('Could not create the owned email preferences account.');
+  ownerId = created.data.user.id;
   f.sql(`begin;
    insert into public.businesses(id,name,slug,industry) values('${businessId}','Preferencias sintéticas','email-${businessId}','other');
    update public.business_subscriptions set commercial_access_enabled=true,is_permanent=true,subscription_status='active',paid_until=null,grace_until=null,restricted_until=null,archived_at=null where business_id='${businessId}';
    insert into public.business_users(business_id,user_id,role,status,accepted_at)
-    select '${businessId}',id,'owner','active',now() from auth.users where email=:'owner_email'; commit;`, { owner_email: f.email });
-  await loginWithSharedSession(page, { email: f.email, password: f.password });
+    values('${businessId}','${ownerId}','owner','active',now()); commit;`);
+  await loginWithSharedSession(page, { email: ownerEmail, password: ownerPassword });
   await context.addCookies([{ name: 'active-business-id', value: businessId, url: base }]);
   const before = policy();
   await page.goto('/odonto/configuracion/correo');
@@ -74,5 +79,9 @@ test('@candidate-behavior isolated email preferences: independent settings, stal
   await native?.close();
   f.sql(`delete from public.businesses where id='${businessId}';`);
   expect(f.sql(`select count(*) from public.businesses where id='${businessId}';`)).toBe('0');
+  if (ownerId) {
+   const removed = await f.admin.auth.admin.deleteUser(ownerId);
+   expect(removed.error).toBeNull();
+  }
  }
 });

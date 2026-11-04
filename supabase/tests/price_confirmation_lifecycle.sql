@@ -14,6 +14,9 @@ begin
   insert into auth.users(id,email) values(actor,actor||'@example.test');
   insert into public.businesses(id,name,slug,industry,timezone,min_booking_notice_minutes,max_booking_days_ahead)
     values(b,'Synthetic quote lifecycle',b::text,'other','America/Argentina/Buenos_Aires',0,90);
+ -- This regression exercises the explicitly optional email configuration;
+ -- required-contact entry points have their own default-on suite.
+ update public.appointment_email_policies set require_email=false where business_id=b;
   insert into public.business_users(business_id,user_id,role,status,accepted_at) values(b,actor,'owner','active',now());
   update public.business_subscriptions set commercial_access_enabled=true,is_permanent=true,subscription_status='active',
     paid_until=null,grace_until=null,restricted_until=null,archived_at=null where business_id=b;

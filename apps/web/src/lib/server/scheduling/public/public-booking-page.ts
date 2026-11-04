@@ -24,6 +24,7 @@ import {
 } from '$lib/server/scheduling/public/public-booking';
 import { error as httpError, fail, redirect, isRedirect, isHttpError } from '@sveltejs/kit';
 import { loadPatientManagementView } from './patient-management';
+import { loadPublicBookingEmailRequirement } from './email-policy';
 import type { RequestEvent } from '@sveltejs/kit';
 import type { BookingIntegration } from '$lib/server/sites/public/booking-integrations';
 import { assertIntegrationSelection, bookingPresentation, intakeAnswersFromForm, integratedBookingErrorMessage } from '$lib/server/sites/public/booking-integrations';
@@ -212,6 +213,7 @@ export const loadPublicBookingPage = async ({ params, fetch, url, setHeaders }: 
 		}
         return {
             priceQuote,
+            requireEmail: state.business ? await loadPublicBookingEmailRequirement(supabase, state.business.id) : true,
             depositTerms,
             patientFields,
 			state,

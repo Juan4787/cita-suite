@@ -25,6 +25,8 @@ delete from public.businesses where slug = 'e2e-public-booking-concurrency';
 
 insert into public.businesses (name, slug, industry, timezone)
 values ('E2E concurrencia reserva publica', 'e2e-public-booking-concurrency', 'odontology', 'America/Argentina/Buenos_Aires');
+-- This race preserves the optional-contact scenario; default-on email is tested separately.
+update public.appointment_email_policies set require_email=false where business_id=(select id from public.businesses where slug='e2e-public-booking-concurrency');
 
 insert into public.services (business_id, name, duration_minutes, buffer_before_minutes, buffer_after_minutes)
 select id, 'Consulta E2E concurrencia', 30, 0, 0

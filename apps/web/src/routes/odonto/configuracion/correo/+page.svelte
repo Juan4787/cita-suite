@@ -1,12 +1,14 @@
 <script lang="ts">
  import { enhance } from '$app/forms';
  import BackLink from '$lib/components/BackLink.svelte';
- import type { ActionData, PageData } from './$types';
- let { data, form }: { data: PageData; form: ActionData } = $props();
+ import type { PageData } from './$types';
+ import type { AppointmentEmailPreferences } from '$lib/scheduling/email-policy';
+ type FormState = { success?: boolean; message?: string; values?: AppointmentEmailPreferences; expectedRevision?: number; changed?: boolean };
+ let { data, form }: { data: PageData; form?: FormState | null } = $props();
  let saving = $state(false);
- const values = $derived(form && 'values' in form && form.values ? form.values : data.policy);
- const expectedRevision = $derived(form && 'expectedRevision' in form && form.expectedRevision ? form.expectedRevision : data.policy.revision);
- const changed = $derived(Boolean(form && 'changed' in form && form.changed));
+ const values = $derived(form?.values ?? data.policy);
+ const expectedRevision = $derived(form?.expectedRevision ?? data.policy.revision);
+ const changed = $derived(form?.changed ?? false);
 </script>
 
 <svelte:head><title>Correo y autogestión · Cita Suite</title></svelte:head>
@@ -20,7 +22,7 @@
   <p class="ux-alert" role="status">Falta completar el remitente del consultorio. Mientras tanto, no se enviarán correos.</p>
  {/if}
  {#if form?.message}
-  <div class={'success' in form && form.success ? 'ux-alert ux-alert-success' : 'ux-alert'} role="status">
+  <div class={form.success ? 'ux-alert ux-alert-success' : 'ux-alert'} role="status">
    <p>{form.message}</p>
    {#if changed}<a class="underline" href="/odonto/configuracion/correo">Recargar configuración</a>{/if}
   </div>
