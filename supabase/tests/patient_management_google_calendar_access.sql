@@ -28,7 +28,7 @@ create function pg_temp.calendar_consume(p_label text,p_access text,p_legacy boo
  select attempt_id from public.consume_patient_google_calendar_authorization(encode(extensions.digest(p_label,'sha256'),'hex'),pg_temp.cv(p_access),p_legacy)
 $$;
 create function pg_temp.calendar_authorize(p_label text,p_access text,p_legacy boolean,p_subject text default 'synthetic-subject') returns uuid language sql as $$
- select event_row_id from public.authorize_patient_google_calendar_event(pg_temp.cv(p_access),p_legacy,pg_temp.cid(p_label),'synthetic-client',p_subject,repeat('r',40),array['https://www.googleapis.com/auth/calendar.events.owned'])
+ select event_row_id from public.authorize_patient_google_calendar_event(pg_temp.cv(p_access),p_legacy,pg_temp.cid(p_label),repeat('c',64),p_subject,repeat('r',40),array['https://www.googleapis.com/auth/calendar.events.owned'])
 $$;
 select pg_temp.calendar_begin('initial','legacy',true);
 select extensions.ok(exists(select 1 from public.google_calendar_oauth_attempts where id=pg_temp.cid('initial')
