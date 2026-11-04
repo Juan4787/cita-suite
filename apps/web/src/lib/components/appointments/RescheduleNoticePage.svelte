@@ -66,14 +66,13 @@
 					<li class="flex gap-2">
 						<Icon name="bell" class="mt-0.5 h-4 w-4 shrink-0" />
 						<span>
-							Si activaste las notificaciones de la aplicación al reservar, vas a recibir
-							recordatorios en la nueva fecha y horario.
+							Podés revisar los recordatorios en la página de gestión del turno.
 						</span>
 					</li>
 					<li class="flex gap-2">
 						<Icon name="calendar" class="mt-0.5 h-4 w-4 shrink-0" />
 						<span>
-							Si habías agregado el turno anterior a tu calendario, no olvides actualizarlo.
+							Si usás un calendario, comprobá que muestre esta fecha y horario.
 						</span>
 					</li>
 				</ul>
