@@ -1,7 +1,7 @@
 -- E1/E2: one authorized snapshot for patient presentation and slot selection.
 -- This contract must fail before the read API exists; no browser/Zoho proof.
 begin;
-select extensions.plan(16);
+select extensions.plan(22);
 create temporary table management_view_fixture(label text primary key,id uuid not null,token text);
 create function pg_temp.vid(p_label text) returns uuid language sql as $$ select id from management_view_fixture where label=p_label $$;
 create function pg_temp.vread(p_label text default 'appointment',p_target timestamptz default null) returns jsonb language sql as $$
@@ -37,6 +37,37 @@ do $$ declare b uuid:=gen_random_uuid(); u uuid:=gen_random_uuid(); p uuid:=gen_
  end loop;
  insert into management_view_fixture(label,id) values('business',b),('owner',u),('service',s),('professional',p),('patient',patient);
 end $$;
+
+-- Auxiliary presentation follows its own scope, independently from moving slots.
+select extensions.ok((pg_temp.vread()->>'can_manage_reminders')::boolean
+ and not (pg_temp.vread()->>'can_add_information')::boolean,
+ 'Manual appointment without questionnaire still permits reminders, with no dead clinical link');
+insert into public.appointment_patient_information_contexts(business_id,appointment_id,patient_id_snapshot,schema_snapshot)
+values(pg_temp.vid('business'),pg_temp.vid('appointment'),pg_temp.vid('patient'),
+ '[{"id":"coverage","label":"Cobertura","kind":"text","required":false,"maxLength":100}]');
+select extensions.ok((pg_temp.vread()->>'can_manage_reminders')::boolean
+ and (pg_temp.vread()->>'can_add_information')::boolean,
+ 'Matching current clinical context permits information and reminders');
+update public.businesses set public_booking_enabled=false where id=pg_temp.vid('business');
+select extensions.ok((pg_temp.vread()->>'can_manage_reminders')::boolean
+ and (pg_temp.vread()->>'can_add_information')::boolean and not (pg_temp.vread()->>'can_reschedule')::boolean,
+ 'Turning new reservations off does not disable existing-appointment auxiliaries');
+update public.businesses set public_booking_enabled=true where id=pg_temp.vid('business');
+update public.business_subscriptions set commercial_access_enabled=false where business_id=pg_temp.vid('business');
+select extensions.ok(not (pg_temp.vread()->>'can_manage_reminders')::boolean
+ and not (pg_temp.vread()->>'can_add_information')::boolean and (pg_temp.vread()->>'can_cancel')::boolean,
+ 'Commercial suspension retains cancellation without offering new reminders or clinical editing');
+update public.business_subscriptions set commercial_access_enabled=true where business_id=pg_temp.vid('business');
+update public.patients set archived_at=now() where id=pg_temp.vid('patient');
+select extensions.ok(not (pg_temp.vread()->>'can_manage_reminders')::boolean
+ and not (pg_temp.vread()->>'can_add_information')::boolean,
+ 'Archived patient does not receive new auxiliary configuration through minimal management');
+update public.patients set archived_at=null where id=pg_temp.vid('patient');
+update private.appointment_management_runtime set reschedule_enabled=false;
+select extensions.ok((pg_temp.vread()->>'can_manage_reminders')::boolean
+ and (pg_temp.vread()->>'can_add_information')::boolean and not (pg_temp.vread()->>'can_reschedule')::boolean,
+ 'A paused reschedule command does not become the authority for independent reminder or clinical scope');
+update private.appointment_management_runtime set reschedule_enabled=true;
 
 select extensions.ok((select v->>'id'=pg_temp.vid('appointment')::text and v->>'revision'=private.appointment_semantic_revision(pg_temp.vid('business'),pg_temp.vid('appointment'))
  and v->>'generation'='1' and v->>'schema_version'='1' and v->>'schedule_revision'='1' from (select pg_temp.vread() v) q),
@@ -98,11 +129,13 @@ do $$ declare v_token text; begin
 end $$;
 select extensions.ok((select v->>'status'='cancelled' and not (v->>'can_cancel')::boolean and not (v->>'can_reschedule')::boolean
  and v->'financial_terms'='null'::jsonb and (v->>'new_booking_allowed')::boolean
+ and not (v->>'can_add_information')::boolean and not (v->>'can_manage_reminders')::boolean
  and v->'financial_summary'->>'unresolved_amount'='40000' from (select pg_temp.vread() v) q),
  '13. Cancellation presents current state and unresolved money; no cancel/reschedule/retroactive financial offer');
 update public.appointments set starts_at=now()-interval '2 hours',ends_at=now()-interval '1 hour' where id=pg_temp.vid('pending');
 select extensions.ok((select (v->>'is_past')::boolean and not (v->>'can_cancel')::boolean and not (v->>'can_reschedule')::boolean
- and not (v->>'can_confirm')::boolean and v->'financial_terms'='null'::jsonb and v->'deposit_transfer_details'='null'::jsonb
+ and not (v->>'can_confirm')::boolean and not (v->>'can_add_information')::boolean
+ and not (v->>'can_manage_reminders')::boolean and v->'financial_terms'='null'::jsonb and v->'deposit_transfer_details'='null'::jsonb
  from (select pg_temp.vread('pending') v) q),'14. Already-started appointment offers minimal consultation/contact, not agenda changes or a new payment request');
 select public.revoke_appointment_management_access(pg_temp.vid('business'),pg_temp.vid('appointment'),gen_random_uuid(),
  private.appointment_semantic_revision(pg_temp.vid('business'),pg_temp.vid('appointment')));
