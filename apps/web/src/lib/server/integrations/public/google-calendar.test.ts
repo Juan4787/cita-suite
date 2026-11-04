@@ -553,6 +553,38 @@ describe('sincronización programada por lotes', () => {
 		]);
 	});
 
+
+ it('reconciles current schedule after a previous accepted create whose local response was lost',async()=>{
+  const current=appointmentRow('apt-1',{starts_at:'2026-08-11T15:00:00.000Z',ends_at:'2026-08-11T15:30:00.000Z',calendar_sequence:4});
+  const database=calendarDatabase({claimed:[claimedEvent(1)],appointments:[current]});
+  const id=deterministicGoogleCalendarEventId('apt-1');
+  let remote:Record<string,any>={id,start:{dateTime:'2026-08-10T15:00:00.000Z'},end:{dateTime:'2026-08-10T15:30:00.000Z'},extendedProperties:{private:{citaSuiteSequence:'3'}}};
+  const service=google(database.timeline,async request=>{
+   if(request.method==='POST'&&request.url.endsWith('/events'))return Response.json({error:{code:409}},{status:409});
+   if(request.url.endsWith(`/events/${id}`)) {
+    if(request.method==='PATCH')remote={...remote,...await request.json()};
+    return Response.json(remote);
+   }
+   return undefined;
+  });
+  const result=await processGoogleCalendarSyncBatch({supabase:database.supabase,budget:createJobBudget('free'),providerFetch:service.fetchFn,now});
+  expect(result.active).toBe(1);
+  expect(remote.start.dateTime).toBe(current.starts_at);
+  expect(remote.end.dateTime).toBe(current.ends_at);
+  expect(remote.extendedProperties.private.citaSuiteSequence).toBe('4');
+  expect(database.completions()[0].args.p_results).toEqual([{event_row_id:'event-1',outcome:'synced',google_event_id:id,synced_sequence:4}]);
+ });
+ it('deletes an accepted remote event even when its original create response left no stored provider ID',async()=>{
+  const database=calendarDatabase({claimed:[claimedEvent(1,{sync_status:'pending_delete',event_id:null})],appointments:[appointmentRow('apt-1',{status:'cancelled'})]});
+  const id=deterministicGoogleCalendarEventId('apt-1');let remoteExists=true;
+  const service=google(database.timeline,request=>{
+   if(request.method==='DELETE'&&request.url.endsWith(`/events/${id}`)){remoteExists=false;return new Response(null,{status:204});}
+   return undefined;
+  });
+  const result=await processGoogleCalendarSyncBatch({supabase:database.supabase,budget:createJobBudget('free'),providerFetch:service.fetchFn,now});
+  expect(result.deleted).toBe(1);expect(remoteExists).toBe(false);
+ });
+
 	it('una autorización revocada pide reconectar todos sus eventos con un solo intento de token', async () => {
 		const database = calendarDatabase({
 			claimed: [claimedEvent(1), claimedEvent(2)],
