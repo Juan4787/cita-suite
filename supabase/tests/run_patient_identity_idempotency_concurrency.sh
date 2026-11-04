@@ -33,6 +33,10 @@ values ('$owner_id', 'patient-idempotency@example.test');
 
 insert into public.businesses (name, slug, industry, timezone)
 values ('E2E identidad idempotente', '$slug', 'odontology', 'UTC');
+update public.business_subscriptions set commercial_access_enabled=true,is_permanent=true,subscription_status='active',
+ paid_until=null,grace_until=null,restricted_until=null,archived_at=null
+ where business_id=(select id from public.businesses where slug='$slug');
+
 
 insert into public.business_users (business_id, user_id, role, status, accepted_at)
 select id, '$owner_id', 'owner', 'active', statement_timestamp()

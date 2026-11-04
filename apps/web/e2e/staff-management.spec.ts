@@ -57,10 +57,10 @@ test('@candidate-behavior staff management: coherent observation, stale write, u
    insert into public.patients(id,business_id,owner_id,full_name) values('${patientId}','${f.businessId}','${ownerId}','Paciente sintético de operación');
    insert into public.appointments(id,business_id,patient_id,service_id,professional_id,starts_at,ends_at,status,source,
     service_name_snapshot,professional_name_snapshot,duration_minutes_snapshot)
-    select identifier,'${f.businessId}','${patientId}','${assignment.service_id}','${assignment.professional_id}',starts,starts+interval '30 minutes',
-     'reserved','manual','Consulta sintética','Profesional sintético',30 from public.businesses b,
+    select identifier,'${f.businessId}','${patientId}','${assignment.service_id}','${assignment.professional_id}',starts,starts+make_interval(mins=>s.duration_minutes),
+     'reserved','manual','Consulta sintética','Profesional sintético',s.duration_minutes from public.businesses b,public.services s,
      (values ('${appointmentId}'::uuid,20),('${noJsId}'::uuid,22)) f(identifier,days),
-     lateral (select ((now() at time zone b.timezone)::date+days+time '12:00') at time zone b.timezone as starts) t where b.id='${f.businessId}';
+     lateral (select ((now() at time zone b.timezone)::date+days+time '12:00') at time zone b.timezone as starts) t where b.id='${f.businessId}' and s.id='${assignment.service_id}' and s.business_id=b.id;
    commit;`);
   await loginWithSharedSession(page,{ email:f.email,password:f.password });
   await page.goto(`/odonto/turnos/${appointmentId}`);

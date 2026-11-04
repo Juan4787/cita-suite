@@ -93,6 +93,7 @@ A	supabase/migrations/20261103090000_staff_appointment_management.sql
 A	supabase/migrations/20261103100000_close_staff_appointment_direct_updates.sql
 A	supabase/migrations/20261103110000_staff_creation_and_identity_authorization.sql
 M	supabase/templates/recovery.html
+M	supabase/tests/appointment_actor_revalidation.sql
 M	supabase/tests/appointment_deposits.sql
 A	supabase/tests/appointment_management_capabilities.sql
 A	supabase/tests/appointment_management_foundation.sql
@@ -104,7 +105,9 @@ A	supabase/tests/migrations/20261103010000_appointment_management_foundation.sql
 A	supabase/tests/patient_appointment_management_commands.sql
 A	supabase/tests/patient_appointment_management_recovery.sql
 A	supabase/tests/patient_appointment_management_view.sql
+M	supabase/tests/patient_identity_atomicity.sql
 M	supabase/tests/run_deposit_expiry_concurrency.sh
+M	supabase/tests/run_patient_identity_idempotency_concurrency.sh
 A	supabase/tests/run_patient_management_concurrency.sh
 A	supabase/tests/run_patient_management_view_concurrency.sh
 A	supabase/tests/run_staff_authorization_concurrency.sh
@@ -215,3 +218,5 @@ Lo ignora `.gitignore` y no se publica nunca: el repositorio es público.
 - E1.50: .100 y cuatro grupos SQL adicionales escritos para cerrar UPDATE autenticado, sin aplicar; el alta con Ayuda tiene dos pruebas nuevas de contrato pendientes. Fast 41755701125 se detuvo en cuatro errores de tipos de pruebas, corregidos. La suite de nueve sigue como evidencia anterior; no acredita diez migraciones.
 
 - E1.51: fast 41756406163 aprobado (1808 servidor/280 cliente), fuente 7b8bd4ef. SQL 41756409931 reprodujo rechazo incorrecto del alta con Ayuda activa. .110 y pruebas/esperas ampliadas escritos, once migraciones pendientes. Browser nuevo escrito y foco/reintento ajustados después del fast; aún sin prueba HTTP del personal.
+
+- E1.52: SQL 41757452769 aprobó los 18 grupos de Ayuda y luego se detuvo por precondición comercial faltante del fixture de reasignación. Tres fixtures internos corregidos y negativas comerciales explícitas añadidas, once migraciones siguen pendientes. Browser 41757455635 en curso, sólo tipado e2e ya confirmado; foco/reintento 32/32 cliente.
