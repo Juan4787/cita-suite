@@ -205,13 +205,11 @@ begin
   elsif v_outcome='failed' then
    v_status:=public.fail_google_calendar_event_sync(v_id,v_item->>'failure_category',v_item->>'error_code',(v_item->>'next_attempt_at')::timestamptz,p_now);
   else
-   if exists(select 1 from public.appointments where id=v_appointment and status in ('reserved','confirmed','reschedule_requested')) then
-    v_status:=v_sync_status;
-   else
-    perform public.request_google_calendar_event_deletion(v_appointment,p_now);
-    v_status:='pending_delete';
-   end if;
+   -- Preserve the established backend command contract. This is an explicit
+   -- deletion request, not a failure of a superseded create/update payload.
+   perform public.request_google_calendar_event_deletion(v_appointment,p_now);
    update public.appointment_google_calendar_events set claimed_at=null where id=v_id;
+   v_status:='pending_delete';
   end if;
   update public.appointment_google_calendar_events set claim_token=null where id=v_id;
   v_results:=v_results||jsonb_build_array(jsonb_build_object('event_row_id',v_id,'status',v_status,'removed_connection_id',v_removed));
