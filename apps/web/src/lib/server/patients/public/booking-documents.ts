@@ -56,7 +56,7 @@ export const createPublicPatientDocumentUpload = (legacy: boolean) => async (eve
     );
     if (error) throw error;
     const file = data;
-    if (!file) throw new Error("RADIOGRAPH_NOT_FOUND");
+    if (!file || !isUuid(file.id)) throw new Error("RADIOGRAPH_NOT_FOUND");
     if (file.status === "ready")
       return json({ id: file.id, already_complete: true });
     if (file.status !== "uploading") throw new Error("RADIOGRAPH_UPLOAD_EXPIRED");
@@ -91,7 +91,7 @@ export const createPublicPatientDocumentCompletion = (legacy: boolean) => async 
     );
     if (error) throw error;
     const file = data;
-    if (!file) throw new Error("RADIOGRAPH_NOT_FOUND");
+    if (!file || file.id !== fileId || !["uploading", "ready"].includes(file.status)) throw new Error("RADIOGRAPH_NOT_FOUND");
     if (file.status === "ready") return json({ ready: true, id: file.id });
     if (!file.storage_bucket || !file.storage_path) throw new Error("RADIOGRAPH_UPLOAD_INVALID");
     if (!isClinicalFileMime(file.mime_type))
@@ -113,6 +113,7 @@ export const createPublicPatientDocumentCompletion = (legacy: boolean) => async 
       },
     );
     if (result.error) throw result.error;
+    if (result.data !== file.id) throw new Error("CLINICAL_DOCUMENT_RESULT_UNCERTAIN");
     return json({ ready: true, id: file.id });
   } catch (cause) {
     const safe = clinicalFileError(

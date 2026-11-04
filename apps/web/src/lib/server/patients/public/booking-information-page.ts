@@ -1,3 +1,4 @@
+import { isUuid } from '@cita-suite/shared/uuid';
 import { randomUUID } from 'node:crypto';
 import { fail, error, isHttpError } from '@sveltejs/kit';
 import { informationContext, informationErrorMessage, loadBookingInformation } from '$lib/server/patients/public/booking-information';
@@ -29,11 +30,12 @@ const actions = {
       const answers = intakeAnswersFromForm({ intakeFields: info.schema }, form);
       submitted = { answers, comment: String(form.get('comment') ?? '').trim(), requestKey: String(form.get('request_key') ?? ''),
         schemaHash: String(form.get('schema_hash') ?? ''), version: String(form.get('version') ?? '') };
-      const { error: cause } = await admin.rpc('submit_public_booking_information', {
+      const { data: savedId, error: cause } = await admin.rpc('submit_public_booking_information', {
         p_token: token, p_legacy: legacy, p_request_key: submitted.requestKey, p_schema_hash: submitted.schemaHash,
         p_expected_version: submitted.version, p_answers: answers, p_comment: submitted.comment
       });
       if (cause) throw cause;
+      if (!isUuid(savedId)) throw new Error('BOOKING_INFORMATION_RESULT_UNCERTAIN');
       return { saved: true, message: 'La información quedó guardada para la profesional.' };
     } catch (cause) {
       if (isHttpError(cause)) throw cause;
