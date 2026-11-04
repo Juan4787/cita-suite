@@ -397,7 +397,7 @@ describe('sincronización programada por lotes', () => {
 		} as any;
 		return { supabase, rpcCalls, reads, timeline, completions: () => rpcCalls.filter((call) => call.name === 'complete_google_calendar_sync_batch') };
 	};
-	const google = (timeline: string[], handler?: (request: Request) => Response | Promise<Response> | undefined) => {
+	const google = (timeline: string[], handler?: (request: Request) => Response | undefined | Promise<Response | undefined>) => {
 		const requests: Request[] = [];
 		const fetchFn: typeof fetch = async (input, init) => {
 			const request = new Request(input, init);

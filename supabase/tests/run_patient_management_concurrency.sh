@@ -909,6 +909,92 @@ end $$;
 SQL
 echo 'PASS: a target claimant skips the grant-held event and can own it after commit; a grant cannot retire an existing lease.'
 
+# Observations write patient activity; lock its final mode before any effect.
+"${psql_command[@]}" <<'SQL'
+create function patient_management_race.observe_calendar(p_label text) returns boolean language sql as $$
+ select public.record_patient_calendar_action(token,false,'clicked_ics',null) from patient_management_race.requests where label=p_label
+$$;
+select patient_management_race.prepare('contact_before_calendar_observation');
+insert into patient_management_race.contact_snapshots select 'contact_before_calendar_observation',patient_management_race.domain_state('contact_before_calendar_observation');
+SQL
+race contact_correction_before_calendar_observation \
+ "update public.patients set email='race-corrected@example.test' where id=(select a.patient_id from public.appointments a join patient_management_race.requests r on r.appointment_id=a.id where r.label='contact_before_calendar_observation');" \
+ "select patient_management_race.observe_calendar('contact_before_calendar_observation');" APPOINTMENT_LINK_UNAVAILABLE
+"${psql_command[@]}" <<'SQL'
+select patient_management_race.assert_corrected_contact('contact_before_calendar_observation');
+do $$ begin
+ if patient_management_race.domain_state('contact_before_calendar_observation') is distinct from
+  (select value from patient_management_race.contact_snapshots where label='contact_before_calendar_observation') then
+  raise exception 'REVOKED_OBSERVATION_LEFT_PARTIAL_TELEMETRY'; end if;
+end $$;
+select patient_management_race.prepare('calendar_observation_before_contact');
+SQL
+race calendar_observation_before_contact_correction \
+ "select patient_management_race.observe_calendar('calendar_observation_before_contact');" \
+ "update public.patients set email='race-corrected@example.test' where id=(select a.patient_id from public.appointments a join patient_management_race.requests r on r.appointment_id=a.id where r.label='calendar_observation_before_contact');"
+"${psql_command[@]}" <<'SQL'
+select patient_management_race.assert_corrected_contact('calendar_observation_before_contact');
+do $$ begin
+ if not exists(select 1 from public.appointments a join patient_management_race.requests r on r.appointment_id=a.id
+  where r.label='calendar_observation_before_contact' and a.calendar_action_count=1 and a.calendar_action_status='clicked_ics')
+  or (select count(*) from public.audit_logs l join patient_management_race.requests r on r.appointment_id=l.entity_id
+   where r.label='calendar_observation_before_contact' and l.action='appointment.calendar_action')<>1 then
+  raise exception 'COMMITTED_OBSERVATION_LOST_BEFORE_CONTACT_REVOCATION'; end if;
+end $$;
+select patient_management_race.prepare('shared_patient_calendar_left');
+do $$ declare first public.appointments; other uuid; begin
+ select a.* into strict first from public.appointments a join patient_management_race.requests r on r.appointment_id=a.id where r.label='shared_patient_calendar_left';
+ insert into public.appointments(business_id,patient_id,professional_id,service_id,starts_at,ends_at,status,source,
+  service_name_snapshot,professional_name_snapshot,duration_minutes_snapshot)
+ values(first.business_id,first.patient_id,first.professional_id,first.service_id,first.starts_at+interval '2 hours',first.ends_at+interval '2 hours',
+  'reserved','manual','Synthetic shared calendar','Synthetic shared professional',60) returning id into other;
+ insert into patient_management_race.requests(label,appointment_id,token)
+ values('shared_patient_calendar_right',other,public.issue_appointment_management_capability(first.business_id,other,1));
+end $$;
+create function patient_management_race.pause_calendar_before_activity() returns trigger language plpgsql as $$
+begin
+ if current_setting('application_name')='calendar-observation-holder' and new.calendar_action_status='clicked_ics'
+  and new.id=(select appointment_id from patient_management_race.requests where label='shared_patient_calendar_left') then
+  perform pg_advisory_xact_lock(34123,954);
+  for attempt in 1..240 loop
+   perform pg_stat_clear_snapshot();
+   if exists(select 1 from pg_stat_activity a where a.application_name='patient-management-other' and a.wait_event_type='Lock'
+    and pg_backend_pid()=any(pg_blocking_pids(a.pid))) then return new; end if;
+   perform pg_sleep(0.025);
+  end loop;
+  raise exception 'SHARED_PATIENT_OBSERVATION_DID_NOT_SERIALIZE';
+ end if;
+ return new;
+end $$;
+create trigger zz_pause_calendar_observation before update on public.appointments for each row
+ execute function patient_management_race.pause_calendar_before_activity();
+SQL
+PGAPPNAME=calendar-observation-holder "${psql_command[@]}" >"$task_directory/holder.log" 2>&1 -c "select patient_management_race.observe_calendar('shared_patient_calendar_left');" &
+holder_pid=$!
+"${psql_command[@]}" <<'SQL'
+do $$ begin
+ for attempt in 1..240 loop
+  perform pg_stat_clear_snapshot();
+  if exists(select 1 from pg_locks where locktype='advisory' and classid=34123 and objid=954 and granted) then return; end if;
+  perform pg_sleep(0.025);
+ end loop;
+ raise exception 'CALENDAR_OBSERVATION_HOLDER_DID_NOT_REACH_PREWRITE';
+end $$;
+SQL
+PGAPPNAME=patient-management-other "${psql_command[@]}" >"$task_directory/other.log" 2>&1 -c "select patient_management_race.observe_calendar('shared_patient_calendar_right');"
+wait "$holder_pid"; holder_pid=''
+"${psql_command[@]}" <<'SQL'
+drop trigger zz_pause_calendar_observation on public.appointments;
+do $$ begin
+ if (select count(*) from public.appointments a join patient_management_race.requests r on r.appointment_id=a.id
+  where r.label in ('shared_patient_calendar_left','shared_patient_calendar_right') and a.calendar_action_count=1 and a.calendar_action_status='clicked_ics')<>2
+  or (select count(*) from public.audit_logs l join patient_management_race.requests r on r.appointment_id=l.entity_id
+   where r.label in ('shared_patient_calendar_left','shared_patient_calendar_right') and l.action='appointment.calendar_action')<>2 then
+  raise exception 'SHARED_PATIENT_CALENDAR_OBSERVATION_PARTIAL_EFFECT'; end if;
+end $$;
+SQL
+echo 'PASS: two different appointments of the same patient serialize before activity, preserving both observations without lock upgrades.'
+
 deadlocks_after=$("${psql_command[@]}" -c 'select deadlocks from pg_stat_database where datname=current_database();')
 [[ "$deadlocks_before" == "$deadlocks_after" ]]
-echo 'PASS: forty-five controlled management/contact/clinical/OAuth races plus two FK lock counterexamples; no PostgreSQL deadlock.'
+echo 'PASS: forty-eight controlled management/contact/clinical/OAuth races plus two FK lock counterexamples; no PostgreSQL deadlock.'
