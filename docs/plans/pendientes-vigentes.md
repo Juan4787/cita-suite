@@ -75,15 +75,16 @@ Fuente: `docs/clientes/natalia-frutos/informacion-20261029.md`, secciones 4 y 5,
 
      Recibos en `.verification/calendar-proyecto-propio-20261102/`.
    - **Credenciales:** en `ACCESOS-GOOGLE-CITA-SUITE/GOOGLE-CALENDAR-PROYECTO-CITA-SUITE/`. `GOOGLE-CALENDAR/` es el cliente anterior.
-   - **Vuelta atrás:** `npx wrangler rollback 59f81e89-412f-49be-b65b-3a2378ddf71e --name app`, desde `apps/web`. Restaura el cliente anterior.
+   - **Vuelta atrás al cliente anterior (corregido el 3 de noviembre):** Desde el modo claro, volver al cliente anterior **no** se hace con una vuelta atrás de versión: `59f81e89…` desharía también V11f y V12b. Si hiciera falta, se cargan con `wrangler secret bulk` el ID y el secreto del JSON de `ACCESOS-GOOGLE-CITA-SUITE/GOOGLE-CALENDAR/`, como hizo `instalar-cliente-calendar.mjs` con el cliente nuevo. Nunca volver a `59f81e89…`.
 
    **Falta:**
    1. ~~**Juan: confirmar que el evento de prueba desapareció** de su Google Calendar.~~ **Hecho:** Juan confirmó el 2 de noviembre, literal, «si, desaparecio de mi google calendar».
-   2. **Juan: pedir la verificación del permiso delicado** desde el «Centro de verificación» del proyecto nuevo. El agente preparó el texto y el guion del video (registro, 2 de noviembre). Hasta que Google la apruebe:
+   2. ~~**Juan: declarar el permiso en «Acceso a los datos»**~~ **Hecho el 3 de noviembre** (aparece en «Tus permisos sensibles»). Falta la justificación, de 751 caracteres, en la sección de la guía de verificación. Antecedente: La tabla «Tus permisos sensibles» está vacía en la captura de Juan. Pasos en `docs/architecture/verificacion-google-calendar.md`, sección «Declarar el permiso». Hasta hacerlo, la verificación no puede pedirse completa.
+   3. **Juan: pedir la verificación del permiso delicado** desde el «Centro de verificación» del proyecto nuevo. El agente preparó el texto y el guion del video (registro, 2 de noviembre). **Bloqueado el 3 de noviembre:** la función gestionada no tiene botón para que un paciente la inicie, así que no se puede grabar el recorrido (punto 7). Hasta que Google la apruebe:
       - los pacientes ven el aviso de «app no verificada» y deben tocar «Avanzada → Ir a Cita Suite»;
       - Google admite hasta 100 usuarios.
-   3. **El ingreso con Google sigue en «Dashboard Odontologia»,** con su aviso. Es aparte y no bloquea a Natalia.
-   4. **«Dashboard Odontologia», por ahora sin tocar** (recomendación del 2 de noviembre):
+   4. **El ingreso con Google sigue en «Dashboard Odontologia»,** con su aviso. Es aparte y no bloquea a Natalia.
+   5. **«Dashboard Odontologia», por ahora sin tocar** (recomendación del 2 de noviembre):
       - su cliente de ingreso lo usa Supabase y no se modifica;
       - su cliente de Calendar anterior se conserva como vuelta atrás.
 
@@ -121,6 +122,30 @@ Fuente: `docs/clientes/natalia-frutos/informacion-20261029.md`, secciones 4 y 5,
 
 - **Divergencia del repositorio: resuelta el 2 de noviembre.** `origin/main`, la rama local y la línea de producción (V12b) quedaron unidas en `main`, sin perder commits. El estado vigente está en `docs/ESTADO-VIGENTE.md` y lo comprueba `node scripts/check-repo-sync.mjs`.
 - **Plantilla del correo de recuperación** (`supabase/templates/recovery.html`): modificada en otro trabajo. No está verificado si la versión cargada en Supabase coincide con el archivo.
+
+7. **Recordatorio del paciente en Android: defectos del flujo de avisos y del calendario** (Juan, 3 de noviembre).
+
+   El diagnóstico del agente se hizo sobre el código de producción V12b (`routes/turno/[token]/+page.svelte`). La lógica es idéntica en `main` (`lib/components/appointments/PublicAppointmentPage.svelte`), archivo en curso en la etapa E: hay que coordinar antes de editarlo.
+
+   **Lo que vio Juan en su teléfono,** con las notificaciones de Chrome apagadas en el teléfono:
+   - tocar «Permitir» en la pregunta del navegador no cambia nada ni ofrece otra salida;
+   - al tercer intento aparecen los pasos de los ajustes del teléfono, con el botón «Ya estaba activado»;
+   - ese botón lleva a los pasos del sitio, con «Ya lo permití», que no hace nada.
+
+   **Causas en el código:**
+   1. **Pregunta sin respuesta:** si después de la pregunta el permiso sigue «sin decidir» (`default`), sólo Samsung Browser pasa a la recuperación del teléfono. Chrome vuelve al mismo botón (`awaiting_permission`), sin guía ni alternativa.
+   2. **Bloqueo automático:** Chrome bloquea solo el permiso de un sitio después de tres preguntas sin aceptar, durante siete días ([diseño de Chromium](https://groups.google.com/a/chromium.org/g/blink-dev/c/fHl9GNxPPpA)). El permiso pasa a «bloqueado» (`denied`) y recién ahí aparece una guía. Eso explicaría el «tercer intento»: falta confirmarlo en el teléfono.
+   3. **Guías como alternativas:** con el permiso bloqueado, la página trata los ajustes del teléfono y los del sitio como alternativas («Ya estaba activado» pasa de una guía a la otra). En el caso de Juan hacían falta las dos cosas.
+   4. **Botón sin respuesta:** «Ya lo permití» vuelve a leer el permiso y, si sigue bloqueado, no muestra nada.
+   5. **Sin alternativa:** con el permiso bloqueado en Chrome no se ofrece ningún calendario. La alternativa sólo aparece cuando una prueba no llegó.
+   6. **Pregunta por la marca:** «¿Tu teléfono es Samsung? / ¿de otra marca?» sólo aparece cuando se envió la prueba y no llegó. En el caso de Juan nunca se envió.
+   7. **Función gestionada sin botón:** no tiene botón desde el 5 de agosto (`adf8ddc`). «¿Tu teléfono es de otra marca? Agregar a Google Calendar» abre el enlace manual.
+
+   **Diseño del 4 de agosto** (`4d0905d`): ofrecía «Agregar a Calendario Samsung», un evento con avisos en la cuenta de Google que sincroniza Calendario Samsung, y Google Calendar para otros Android, los dos con la función gestionada. Se quitó al día siguiente sin motivo documentado.
+
+   **Pedido de Juan:** probar si Cita Suite puede crear y controlar recordatorios en Calendario Samsung a través de la cuenta de Google del paciente, porque eso podría cambiar el flujo.
+
+   **Siguiente paso:** probar en los teléfonos de Juan, un Samsung y un Xiaomi, por depuración inalámbrica. `adb` y `scrcpy` ya están instalados en esta computadora. La matriz y los pasos están en el registro, 3 de noviembre. Después vienen las pruebas que fallan primero, la corrección y la publicación con la autorización de Juan. El video de verificación de Google se graba después.
 
 ## 5. Límites conocidos (no son tareas, pero no se deben olvidar)
 

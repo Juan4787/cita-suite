@@ -1159,3 +1159,51 @@ Pedidos literales y precedencia en [plan 12.19](propuesta-senas-avisos-natalia.m
 Juan encargó ejecutar E completa, auditar, probar y publicar, con autonomía posterior a las dudas iniciales y una regla de continuidad ante compactaciones. Literal y precedencia en [12.20](propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada). Sustituye los puntos de continuación históricos que esperaban otra instrucción de inicio.
 
 Se crea [registro activo de E](ejecucion-etapa-e-20261103.md) para concentrar checkpoint, decisiones, trabajo y evidencia de los 97 casos, sin duplicar sus reglas. Allí continúa el detalle técnico de E; este registro conserva la historia A/B/C y el enlace al trabajo actual. Preparación inicial y conexiones comprobadas; Q01/Q02 planteadas antes de implementar, pendientes de respuesta. Ningún cambio funcional, migración, envío nuevo ni publicación en esta preparación.
+- **3 de noviembre, verificación de Google:** Juan envió una captura de «Acceso a los datos» con la tabla «Tus permisos sensibles» vacía («No hay filas para mostrar»). La guía decía que `calendar.events.owned` estaba declarado: era incorrecto y se corrigió. El permiso funciona en el flujo real, porque el código exige el alcance para guardar la conexión, pero no figura en la consola. Falta declararlo antes de pedir la verificación, y el enlace directo que estaba en la guía no fue verificado: se reemplazó por la opción del menú. El motivo de la desaparición no se pudo comprobar.
+
+## 3 de noviembre: recordatorio del paciente en Android (diagnóstico y plan de pruebas en teléfonos)
+
+**Pedido de Juan:** que se solucione, con su análisis y el siguiente paso, la falla de los avisos en Chrome de Android. Pidió además probar si Cita Suite puede crear y controlar recordatorios en Calendario Samsung a través de la cuenta de Google del paciente. Tiene un Samsung y un Xiaomi para conectar por depuración inalámbrica. Aportó dos capturas: el estado «la prueba no llegó» con Samsung y otra marca, y la guía del sitio con «Ya lo permití».
+
+**Antes de empezar:**
+- **Control del repositorio:** `check-repo-sync.mjs` falló por siete archivos fuera de Git:
+  - código y la carpeta `scheduling/internal/`, de la etapa E en curso, no tocados por esta tarea;
+  - tres documentos con los cambios del agente sobre la verificación de Google.
+- **Código servido:** producción sirve V12b; `PublicAppointmentPage.svelte` es nuevo en `main`. El flujo de avisos tiene la misma huella en los dos, en las funciones `enablePush` y `continueAfterPermissionChange` y en los bloques `pushBlock` y `androidCalendarFallback`.
+
+**Diagnóstico sobre el código de producción:** las siete causas están en `pendientes-vigentes.md`, sección 4, punto 7. La explicación del «tercer intento» es el bloqueo automático de Chrome tras tres preguntas sin aceptar. Es una hipótesis compatible con el código y con la documentación de Chromium, sin comprobar todavía en el teléfono.
+
+**Historia en Git:**
+- **4 de agosto (`4d0905d`):** la página construía `/google-calendar/connect?target=samsung|google`, con los botones «Agregar a Calendario Samsung» y «Agregar a Google Calendar».
+- **5 de agosto (`adf8ddc`, «harden appointment reminder activation»):** se quitaron. La prueba nueva «si Samsung no concede el permiso efectivo…» exige que no aparezca ningún enlace de Google Calendar. Ningún documento explica el motivo.
+
+**Corrección de errores propios:**
+- **Afirmaciones falsas:** dos respuestas del agente del 3 de noviembre dijeron que la guía de verificación ya estaba corregida. No lo estaba; se corrigió en este paso.
+- **Vuelta atrás vieja:** las guías de Google y los pendientes indicaban volver a `59f81e89…` para restaurar el cliente anterior de Calendar. Eso desharía V11f y V12b. Se reemplazó por la recarga de los dos secretos, y quedó la prohibición en todos los lugares.
+
+**Plan de pruebas en los teléfonos, sin cambiar código:**
+- **Conexión:**
+  - en cada teléfono, Opciones de desarrollador → Depuración inalámbrica → «Vincular dispositivo con código»;
+  - Juan corre `adb pair <IP>:<puerto>` en su terminal y escribe el código, que no pasa por el chat;
+  - después, `adb connect`, o `adb mdns services` para encontrar el puerto;
+  - en Xiaomi puede hacer falta «Depuración USB (ajustes de seguridad)» para tocar la pantalla y cambiar permisos.
+- **Qué se observa:**
+  - capturas con `adb exec-out screencap`;
+  - Chrome por depuración remota (`adb forward tcp:9222 localabstract:chrome_devtools_remote`): estado de la página, `Notification.permission` y errores de consola;
+  - permiso de notificaciones de Chrome en el teléfono, con `pm revoke` y `pm grant` de `android.permission.POST_NOTIFICATIONS` en Android 13 o posterior;
+  - avisos publicados, con `dumpsys notification` filtrado sólo a Chrome, Calendario Samsung y Google Calendar.
+- **Privacidad:** son teléfonos personales. Sólo se tocan Chrome, los turnos de prueba y los calendarios, y nunca se imprime el contenido de otras aplicaciones. Al terminar, Juan apaga la depuración inalámbrica.
+- **Matriz de Samsung (Chrome):**
+  - S1, todo permitido: llega la prueba;
+  - S2, notificaciones de Chrome apagadas en el teléfono: reproducir los tres intentos;
+  - S3, sitio bloqueado por Chrome: seguir cada botón;
+  - S4, Samsung Internet, si Juan lo usa;
+  - S5, Calendario Samsung: saber si la cuenta de Google del teléfono sincroniza el calendario. Después, crear con la función gestionada el evento de un turno sintético del consultorio ficticio Ramirez, a unos 45 minutos, con aviso 30 minutos antes (`alarmsForProximity`). Ver si aparece y suena en Calendario Samsung, y si se actualiza al reprogramar y se borra al cancelar.
+- **Matriz de Xiaomi (Chrome):**
+  - X1 a X3, igual que S1 a S3;
+  - X4, aviso con la pantalla apagada y Chrome cerrado, porque la capa de Xiaomi suele frenar aplicaciones en segundo plano;
+  - X5, aviso del evento gestionado en Google Calendar.
+- **Después de las pruebas:** pruebas que fallan primero con cada recorrido observado, corrección, CI, publicación con la autorización de Juan, la misma matriz en los teléfonos sobre lo publicado y recién entonces el video de verificación.
+- **Decisión pendiente de Juan:** dónde entra la corrección.
+  - Opción a: una versión aparte sobre producción (V12b), luego integrada a `main`.
+  - Opción b: dentro de la publicación de E, coordinada con la sesión de E, que tiene ese archivo en curso.
