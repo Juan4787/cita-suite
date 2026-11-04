@@ -1,0 +1,46 @@
+import { randomUUID } from 'node:crypto';
+import { fail, error, isHttpError } from '@sveltejs/kit';
+import { informationContext, informationErrorMessage, loadBookingInformation } from '$lib/server/patients/public/booking-information';
+import { readBoundedBookingForm } from '$lib/server/platform/form-data';
+import { intakeAnswersFromForm } from '$lib/server/sites/public/booking-integrations';
+import type { Actions, RequestEvent } from '@sveltejs/kit';
+import type { PublicInformationFeedback } from '$lib/patients/public-booking-information';
+
+export const createPublicInformationPage = (legacy: boolean) => {
+const load = async (event: RequestEvent) => {
+  try {
+    const { admin, token } = await informationContext(event);
+    const info = await loadBookingInformation(admin, token, legacy);
+    const base = `/${legacy ? 'turno' : 'gestion'}/${token}`;
+    return { info, token, requestKey: randomUUID(), managementUrl: base, documentsUrl: `${base}/documentos` };
+  } catch (cause) {
+    if (isHttpError(cause)) throw cause;
+    error(404, informationErrorMessage(cause));
+  }
+};
+
+const actions = {
+  save: async (event) => {
+    let submitted: PublicInformationFeedback['submitted'];
+    try {
+      const { admin, token } = await informationContext(event);
+      const form = await readBoundedBookingForm(event.request);
+      const info = await loadBookingInformation(admin, token, legacy);
+      const answers = intakeAnswersFromForm({ intakeFields: info.schema }, form);
+      submitted = { answers, comment: String(form.get('comment') ?? '').trim(), requestKey: String(form.get('request_key') ?? ''),
+        schemaHash: String(form.get('schema_hash') ?? ''), version: String(form.get('version') ?? '') };
+      const { error: cause } = await admin.rpc('submit_public_booking_information', {
+        p_token: token, p_legacy: legacy, p_request_key: submitted.requestKey, p_schema_hash: submitted.schemaHash,
+        p_expected_version: submitted.version, p_answers: answers, p_comment: submitted.comment
+      });
+      if (cause) throw cause;
+      return { saved: true, message: 'La información quedó guardada para la profesional.' };
+    } catch (cause) {
+      if (isHttpError(cause)) throw cause;
+      return fail(400, { saved: false, message: informationErrorMessage(cause), ...(submitted ? { submitted } : {}) });
+    }
+  }
+} satisfies Actions;
+
+return { load, actions };
+};

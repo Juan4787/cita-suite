@@ -34,9 +34,12 @@ M	apps/web/src/hooks.server.test.ts
 M	apps/web/src/hooks.server.ts
 M	apps/web/src/lib/availability/contracts.test.ts
 M	apps/web/src/lib/availability/contracts.ts
+M	apps/web/src/lib/booking/PatientDocumentUpload.svelte
+A	apps/web/src/lib/booking/PublicInformationPage.svelte
 A	apps/web/src/lib/components/appointments/PatientManagementPanel.client.test.ts
 A	apps/web/src/lib/components/appointments/PatientManagementPanel.svelte
 A	apps/web/src/lib/components/appointments/PublicAppointmentPage.svelte
+A	apps/web/src/lib/patients/public-booking-information.ts
 A	apps/web/src/lib/scheduling/patient-action-context.test.ts
 A	apps/web/src/lib/scheduling/patient-action-context.ts
 A	apps/web/src/lib/scheduling/patient-management-page.ts
@@ -44,6 +47,9 @@ A	apps/web/src/lib/scheduling/public-appointment.ts
 A	apps/web/src/lib/scheduling/reschedule-terms.test.ts
 A	apps/web/src/lib/scheduling/reschedule-terms.ts
 A	apps/web/src/lib/scheduling/staff-management.ts
+A	apps/web/src/lib/server/patients/public/booking-information-page.test.ts
+A	apps/web/src/lib/server/patients/public/booking-information-page.ts
+M	apps/web/src/lib/server/patients/public/booking-information.ts
 A	apps/web/src/lib/server/scheduling/internal/management-contract.ts
 M	apps/web/src/lib/server/scheduling/public/appointments.test.ts
 M	apps/web/src/lib/server/scheduling/public/appointments.ts
@@ -63,6 +69,8 @@ A	apps/web/src/lib/server/scheduling/public/staff-management.test.ts
 A	apps/web/src/lib/server/scheduling/public/staff-management.ts
 A	apps/web/src/routes/gestion/[token]/+page.server.ts
 A	apps/web/src/routes/gestion/[token]/+page.svelte
+A	apps/web/src/routes/gestion/[token]/informacion/+page.server.ts
+A	apps/web/src/routes/gestion/[token]/informacion/+page.svelte
 M	apps/web/src/routes/odonto/agenda/+page.server.ts
 M	apps/web/src/routes/odonto/agenda/agenda-day.server.test.ts
 M	apps/web/src/routes/odonto/turnos/[appointmentId]/+page.server.ts
@@ -73,6 +81,8 @@ M	apps/web/src/routes/odonto/turnos/[appointmentId]/reschedule.server.test.ts
 M	apps/web/src/routes/odonto/turnos/[appointmentId]/slots/+server.ts
 M	apps/web/src/routes/turno/[token]/+page.server.ts
 M	apps/web/src/routes/turno/[token]/+page.svelte
+M	apps/web/src/routes/turno/[token]/informacion/+page.server.ts
+M	apps/web/src/routes/turno/[token]/informacion/+page.svelte
 M	apps/web/src/routes/turno/[token]/page.client.test.ts
 M	packages/shared/src/database.types.ts
 A	scripts/check-repo-sync.mjs
@@ -111,6 +121,7 @@ A	supabase/tests/patient_appointment_management_recovery.sql
 A	supabase/tests/patient_appointment_management_view.sql
 M	supabase/tests/patient_change_history_atomic.sql
 M	supabase/tests/patient_identity_atomicity.sql
+A	supabase/tests/patient_management_document_access.sql
 A	supabase/tests/patient_management_information_access.sql
 M	supabase/tests/run_deposit_expiry_concurrency.sh
 M	supabase/tests/run_patient_identity_idempotency_concurrency.sh

@@ -4,7 +4,7 @@
     sha256File,
     uploadClinicalFileWithProgress,
   } from "$lib/client/clinical-files";
-  let { token }: { token: string } = $props();
+  let { endpoint }: { endpoint: string } = $props();
   let files = $state<FileList | null>(null);
   let selected = $derived(files?.[0] ?? null);
   let note = $state("");
@@ -51,7 +51,7 @@
     try {
       if (pendingId && !uploaded) {
         try {
-          await post(`/turno/${token}/documentos/${pendingId}/complete`);
+          await post(`${endpoint}/${pendingId}/complete`);
           uploaded = true;
         } catch {
           pendingId = "";
@@ -61,7 +61,7 @@
         const validation = await validateClinicalImageFile(selected);
         if (!validation.ok) throw new Error(validation.message);
         requestId ||= crypto.randomUUID();
-        const started = await post(`/turno/${token}/documentos`, {
+        const started = await post(endpoint, {
           requestId,
           filename: selected.name,
           mime: validation.mimeType,
@@ -86,7 +86,7 @@
           "La subida se interrumpió. Volvé a elegir el archivo y probá nuevamente.",
         );
       }
-      await post(`/turno/${token}/documentos/${pendingId}/complete`);
+      await post(`${endpoint}/${pendingId}/complete`);
       message = "El documento quedó guardado en tu ficha para la profesional.";
       files = null;
       if (picker) picker.value = "";

@@ -8,12 +8,8 @@ import { readBoolean, readRecord, readText, isRecord } from '$lib/contracts/json
 
 export const bookingInformationEnabled = () => env.BOOKING_INFORMATION_ENABLED === 'true';
 export const privateInformationHeaders = { 'cache-control': 'no-store', 'referrer-policy': 'no-referrer', 'x-content-type-options': 'nosniff' };
-export type PublicInformation = {
- documents_enabled?:boolean;
-  theme: import('@cita-suite/shared/booking-integration').BookingTheme;
-  schema: ReturnType<typeof parsePublicPatientFields>;
-  schema_hash: string; answers: Record<string, string | boolean>; comment: string; version: string;
-};
+import type { PublicInformation } from '$lib/patients/public-booking-information';
+export type { PublicInformation } from '$lib/patients/public-booking-information';
 
 export async function informationContext(event: RequestEvent) {
   if (!event.locals.bookingInformationHeadersApplied) {
@@ -43,8 +39,8 @@ export function informationErrorMessage(cause: unknown) {
   return 'No pudimos completar el envío. Tu reserva se conserva. Volvé a intentar en unos minutos.';
 }
 
-export async function loadBookingInformation(admin: CitaSupabaseClient, token: string): Promise<PublicInformation> {
-  const { data, error: cause } = await admin.rpc('get_public_booking_information', { p_token: token });
+export async function loadBookingInformation(admin: CitaSupabaseClient, token: string, legacy = true): Promise<PublicInformation> {
+  const { data, error: cause } = await admin.rpc('get_public_booking_information', { p_token: token, p_legacy: legacy });
   if (cause) throw cause;
   const row = readRecord(data, 'bookingInformation');
   const theme = row.theme;

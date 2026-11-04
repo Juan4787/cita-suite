@@ -1614,7 +1614,7 @@
 				<p class="ux-alert ux-alert-success">Recibimos tu seña. Tu turno está confirmado.</p>
 			{/if}
 			{#if data.bookingInformationEnabled && isActive}
-				<section class="ux-soft-card p-5"><h2 class="ux-section-title">Información para tu consulta</h2><p class="mt-2 text-fg-65 bk-muted">Podés ampliar la información para la profesional. Los campos configurados se incorporan a tu perfil. Tu reserva se conserva.</p><a class="ux-btn-primary mt-4" href={`/turno/${appointment.token}/informacion`}>Ver y ampliar mis datos</a></section>
+				<section class="ux-soft-card p-5"><h2 class="ux-section-title">Información para tu consulta</h2><p class="mt-2 text-fg-65 bk-muted">Podés ampliar la información para la profesional. Los campos configurados se incorporan a tu perfil. Tu reserva se conserva.</p><a class="ux-btn-primary mt-4" href={`${data.management?.url ?? base}/informacion`}>Ver y ampliar mis datos</a></section>
 			{/if}
 			{#if googleCalendarIsUpdating && isActive}
 				<div class="ux-alert ux-alert-success">
