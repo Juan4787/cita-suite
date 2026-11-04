@@ -813,20 +813,18 @@ const applyGoogleCalendarChange = async (
 	now: Date
 ): Promise<GoogleCalendarChange> => {
 	if (event.sync_status === 'pending_delete' || appointment.status === 'cancelled') {
-		if (event.event_id) {
-			try {
-				await googleCalendarRequest(
-					`/calendars/${encodeURIComponent(event.calendar_id)}/events/${encodeURIComponent(event.event_id)}`,
-					await accessToken(),
-					fetchFn,
-					{ method: 'DELETE' }
-				);
-			} catch (error) {
-				if (!(error instanceof GoogleCalendarRemoteError) || error.category !== 'missing') {
-					throw error;
-				}
-			}
-		}
+  // A create may have reached Google before its response/SQL result was lost.
+  // The known deterministic ID remains actionable even without event_id locally.
+  const remoteId = event.event_id ?? deterministicGoogleCalendarEventId(appointment.id);
+  try {
+   await googleCalendarRequest(
+    `/calendars/${encodeURIComponent(event.calendar_id)}/events/${encodeURIComponent(remoteId)}`,
+    await accessToken(), fetchFn, { method: 'DELETE' }
+   );
+  } catch (error) {
+   if (!(error instanceof GoogleCalendarRemoteError) || error.category !== 'missing') throw error;
+  }
+
 		return { outcome: 'deleted' };
 	}
 
@@ -850,14 +848,15 @@ const applyGoogleCalendarChange = async (
 			if (!(error instanceof GoogleCalendarRemoteError) || error.category !== 'conflict') {
 				throw error;
 			}
-			// La creacion anterior llego a Google pero la respuesta se perdio.
-			const existing = await googleCalendarRequest(
-				`/calendars/${encodeURIComponent(event.calendar_id)}/events/${encodeURIComponent(deterministicId)}`,
-				token,
-				fetchFn
-			);
-			if (!isRecord(existing) || typeof existing.id !== 'string' || !existing.id) throw new GoogleCalendarRemoteError('transient', 'calendar_response_invalid');
-			googleEventId = existing.id;
+   // Finding the original ID is insufficient after a reschedule: reconcile
+   // the current managed fields before recording this sequence as synchronized.
+   // PATCH preserves unrelated user fields and replaces the former GET, keeping
+   // this recovery within the same outgoing-request budget.
+   await googleCalendarRequest(
+    `/calendars/${encodeURIComponent(event.calendar_id)}/events/${encodeURIComponent(deterministicId)}`,
+    token, fetchFn, { method: 'PATCH', body: resource }
+   );
+   googleEventId = deterministicId;
 		}
 	} else {
 		await googleCalendarRequest(
