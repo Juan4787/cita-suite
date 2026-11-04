@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
+import { readFile } from 'node:fs/promises';
 import { ownedAppointmentFixture } from './helpers/owned-appointment-fixture';
 import { must } from './helpers/fixture-db';
 import { layoutIssues, type LayoutIssue } from './helpers/layout-usability';
@@ -69,6 +70,41 @@ for (const brand of ['cita-suite', 'natalia'] as const) {
    expect((await request.get(`${path}/informacion`)).status()).toBe(404);
    f.sql(`update public.business_subscriptions set commercial_access_enabled=true where business_id='${business}';
     update public.businesses set public_booking_enabled=true where id='${business}';`);
+   phase='calendar_and_receipt_authority';
+   await page.goto(path);
+   const receiptLink=page.getByRole('link',{name:'Guardar comprobante',exact:true});
+   await expect(receiptLink).toHaveAttribute('href',`${path}/comprobante.pdf`);
+   const [receiptDownload]=await Promise.all([page.waitForEvent('download'),receiptLink.click()]);
+   const receiptPath=info.outputPath('synthetic-management-receipt.pdf');
+   await receiptDownload.saveAs(receiptPath);
+   expect((await readFile(receiptPath)).subarray(0,5).toString()).toBe('%PDF-');
+   expect((await request.get(`/turno/${legacy}/comprobante.pdf`)).status()).toBe(404);
+   const beforeCalendarRevision=f.sql(`select private.appointment_semantic_revision('${business}','${appointment}');`);
+   const calendarResponse=await request.get(`${path}/calendario.ics?p=phone`);
+   expect(calendarResponse.status()).toBe(200);
+   expect(calendarResponse.headers()['referrer-policy']).toBe('no-referrer');
+   const calendarText=await calendarResponse.text();
+   const calendarUid=calendarText.match(/^UID:([^\r\n]+)/m)?.[1];
+   expect(calendarUid).toBeTruthy();
+   const savedCalendarCount=f.sql(`select calendar_action_count from public.appointments where id='${appointment}';`);
+   expect(savedCalendarCount).toBe('1');
+   const stableCalendar=await request.get(`/turno/${legacy}/calendario.ics`);
+   expect(stableCalendar.status()).toBe(200);
+   expect((await stableCalendar.text()).match(/^UID:([^\r\n]+)/m)?.[1]).toBe(calendarUid);
+   expect(f.sql(`select calendar_action_count from public.appointments where id='${appointment}';`)).toBe(savedCalendarCount);
+   expect((await request.get(`${path}/calendario-descargar.ics`)).headers()['content-disposition']).toContain('attachment');
+   // Do not follow an external editor redirect; this verifies our route/SQL,
+   // not a new Google or Microsoft account operation.
+   const googleOpening=await request.get(`${path}/ir/google?source=android_native_fallback`,{maxRedirects:0});
+   expect(googleOpening.status()).toBe(302);expect(googleOpening.headers().location).toContain('https://calendar.google.com/');
+   const outlookOpening=await request.get(`${path}/ir/outlook`,{maxRedirects:0});
+   expect(outlookOpening.status()).toBe(302);expect(outlookOpening.headers().location).toContain('https://outlook.live.com/');
+   expect(f.sql(`select calendar_action_count from public.appointments where id='${appointment}';`)).toBe('4');
+   expect((await request.post(`${path}/calendario-intent`,{data:{variant:'data',legacy:true}})).status()).toBe(204);
+   expect(f.sql(`select calendar_action_count from public.appointments where id='${appointment}';`)).toBe('4');
+   expect(f.sql(`select count(*) from public.audit_logs where entity_id='${appointment}' and action='appointment.calendar_intent_attempt';`)).toBe('1');
+   expect(f.sql(`select count(*) from public.audit_logs where entity_id='${appointment}' and action='appointment.calendar_action';`)).toBe('4');
+   expect(f.sql(`select private.appointment_semantic_revision('${business}','${appointment}');`)).toBe(beforeCalendarRevision);
    phase='read_and_navigation';
    const response=await request.get(`${path}/informacion`);
    expect(response.status()).toBe(200);expect(response.headers()['cache-control']).toContain('no-store');
@@ -139,14 +175,24 @@ for (const brand of ['cita-suite', 'natalia'] as const) {
    f.sql(`update public.patients set email='corrected-clinical-${patient}@example.test' where id='${patient}';`);
    expect((await request.get(`${path}/informacion`)).status()).toBe(404);
    expect((await request.post(`${path}/documentos/${file.id}/complete`,{data:{}})).status()).toBe(404);
+   expect((await request.get(`${path}/comprobante.pdf`)).status()).toBe(404);
+   expect((await request.get(`${path}/calendario.ics`)).status()).toBe(404);
+   expect((await request.post(`${path}/calendario-intent`,{data:{variant:'type'}})).status()).toBe(204);
+   const stillReadableCalendar=await request.get(`/turno/${legacy}/calendario.ics`);
+   expect(stillReadableCalendar.status()).toBe(200);
+   expect((await stillReadableCalendar.text()).match(/^UID:([^\r\n]+)/m)?.[1]).toBe(calendarUid);
+   expect(f.sql(`select calendar_action_count from public.appointments where id='${appointment}';`)).toBe('4');
+   expect(f.sql(`select count(*) from public.audit_logs where entity_id='${appointment}' and action='appointment.calendar_intent_attempt';`)).toBe('1');
    const fresh=f.sql(`select public.issue_appointment_management_capability('${business}','${appointment}',2);`);
+   const currentReceipt=await request.get(`/gestion/${fresh}/comprobante.pdf`);
+   expect(currentReceipt.status()).toBe(200);expect((await currentReceipt.body()).subarray(0,5).toString()).toBe('%PDF-');
    expect((await request.get(`/gestion/${fresh}/informacion`)).status()).toBe(200);
    expect((await request.post(`/gestion/${fresh}/documentos/${file.id}/complete`,{data:{}})).status()).toBe(200);
    expect(f.sql(`select count(*) from public.audit_logs where entity_id='${file.id}' and action='clinical_document.patient_upload_completed';`)).toBe('1');
    phase='layout_and_browser_errors';
    expect(issues).toEqual([]);expect(pageErrors).toEqual([]);
    await info.attach('clinical-management-proof',{body:JSON.stringify({brand,themes:['light','dark'],widths:[320,390,768,1280,1600],
-    auxiliaryScope:true,nativeForm:true,unreadableCommittedResponse:true,replayWithoutDuplicate:true,realIsolatedStorage:true,revocation:true,issues,pageErrors}),contentType:'application/json'});
+    auxiliaryScope:true,calendarObservations:true,stableCalendarUid:true,receiptDownload:true,receiptRevocation:true,auditOnlyIntent:true,nativeForm:true,unreadableCommittedResponse:true,replayWithoutDuplicate:true,realIsolatedStorage:true,revocation:true,issues,pageErrors}),contentType:'application/json'});
   } catch(cause) {
    primaryFailure=cause;
    await info.attach('clinical-failure-phase',{body:JSON.stringify({phase}),contentType:'application/json'});
