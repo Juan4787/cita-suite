@@ -77,7 +77,12 @@ select extensions.ok((select claimed_at is null and claim_token is null from pub
 select public.request_google_calendar_event_deletion(pg_temp.lid('appointment'),clock_timestamp());
 insert into calendar_lease_fixture values('observed_sequence',(select calendar_sequence::text from public.appointments where id=pg_temp.lid('appointment')));
 select public.claim_google_calendar_event_sync(pg_temp.lid('event'),pg_temp.lid('delete_intent_claim'));
-update public.appointments set starts_at=starts_at+interval '1 day',ends_at=ends_at+interval '1 day' where id=pg_temp.lid('appointment');
+-- Exercise the actual staff writer: moving a schedule also advances the
+-- established Calendar sequence. A raw date-only UPDATE does not model it.
+select public.apply_staff_appointment_management(pg_temp.lid('business'),pg_temp.lid('owner'),pg_temp.lid('appointment'),
+ gen_random_uuid(),private.appointment_semantic_revision(pg_temp.lid('business'),pg_temp.lid('appointment')),
+ 'reschedule',(select starts_at+interval '1 day' from public.appointments where id=pg_temp.lid('appointment')),false,
+ (select booking_availability_revision from public.businesses where id=pg_temp.lid('business')));
 insert into calendar_lease_results values('same_delete',public.complete_google_calendar_sync_batch(pg_temp.lid('delete_intent_claim'),clock_timestamp(),jsonb_build_array(jsonb_build_object(
  'event_row_id',pg_temp.lid('event'),'outcome','failed','failure_category','permanent','error_code','same-delete-intent',
  'next_attempt_at',clock_timestamp()+interval '1 hour','observed_sequence',pg_temp.lv('observed_sequence')::integer,'observed_sync_status','pending_delete')),false));
@@ -131,7 +136,12 @@ do $$ declare access text; nonce uuid; event uuid; begin
  update calendar_lease_fixture set value=(select calendar_sequence::text from public.appointments where id=pg_temp.lid('appointment')) where label='observed_sequence';
 end $$;
 select public.claim_google_calendar_event_sync(pg_temp.lid('event'),pg_temp.lid('context_claim'));
-update public.appointments set starts_at=starts_at+interval '1 day',ends_at=ends_at+interval '1 day' where id=pg_temp.lid('appointment');
+-- Exercise the actual staff writer: moving a schedule also advances the
+-- established Calendar sequence. A raw date-only UPDATE does not model it.
+select public.apply_staff_appointment_management(pg_temp.lid('business'),pg_temp.lid('owner'),pg_temp.lid('appointment'),
+ gen_random_uuid(),private.appointment_semantic_revision(pg_temp.lid('business'),pg_temp.lid('appointment')),
+ 'reschedule',(select starts_at+interval '1 day' from public.appointments where id=pg_temp.lid('appointment')),false,
+ (select booking_availability_revision from public.businesses where id=pg_temp.lid('business')));
 insert into calendar_lease_results values('schedule_context',public.complete_google_calendar_sync_batch(pg_temp.lid('context_claim'),clock_timestamp(),jsonb_build_array(jsonb_build_object(
  'event_row_id',pg_temp.lid('event'),'outcome','failed','failure_category','permanent','error_code','old-create-payload',
  'next_attempt_at',clock_timestamp()+interval '1 hour','observed_sequence',pg_temp.lv('observed_sequence')::integer,'observed_sync_status','pending_create')),false));
@@ -141,7 +151,8 @@ select extensions.ok((select result from calendar_lease_results where label='sch
  'A superseded payload failure preserves and promptly releases the new useful schedule for synchronization');
 update calendar_lease_fixture set value=(select calendar_sequence::text from public.appointments where id=pg_temp.lid('appointment')) where label='observed_sequence';
 select public.claim_google_calendar_event_sync(pg_temp.lid('event'),pg_temp.lid('context_delete_claim'));
-update public.appointments set status='cancelled' where id=pg_temp.lid('appointment');
+select public.apply_staff_appointment_management(pg_temp.lid('business'),pg_temp.lid('owner'),pg_temp.lid('appointment'),
+ gen_random_uuid(),private.appointment_semantic_revision(pg_temp.lid('business'),pg_temp.lid('appointment')),'cancel');
 insert into calendar_lease_results values('delete_context',public.complete_google_calendar_sync_batch(pg_temp.lid('context_delete_claim'),clock_timestamp(),jsonb_build_array(jsonb_build_object(
  'event_row_id',pg_temp.lid('event'),'outcome','failed','failure_category','authorization','error_code','old-work-authorization',
  'next_attempt_at',clock_timestamp()+interval '1 hour','observed_sequence',pg_temp.lv('observed_sequence')::integer,'observed_sync_status','pending_create')),false));
