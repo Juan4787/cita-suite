@@ -44,7 +44,6 @@ import { isActiveAppointmentStatus } from '$lib/utils/appointment-visibility';
 
 const GOOGLE_AUTHORIZATION_ENDPOINT = 'https://accounts.google.com/o/oauth2/v2/auth';
 const GOOGLE_TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token';
-const GOOGLE_TOKEN_REVOCATION_ENDPOINT = 'https://oauth2.googleapis.com/revoke';
 const GOOGLE_USERINFO_ENDPOINT = 'https://openidconnect.googleapis.com/v1/userinfo';
 const GOOGLE_CALENDAR_API = 'https://www.googleapis.com/calendar/v3';
 const GOOGLE_CALENDAR_SCOPE = 'https://www.googleapis.com/auth/calendar.events.owned';
@@ -183,8 +182,8 @@ export const parseGoogleCalendarEncryptionKey = (raw: string): Buffer => {
 
 const readGoogleCalendarConfig = (): GoogleCalendarConfig | null => {
 	if (!isManagedGoogleCalendarEnabled()) return null;
-	// Cliente dedicado: no se reutiliza el OAuth público de Drive. Así una
-	// revocación del calendario nunca corta el acceso del consultorio a archivos.
+	// Client dedicated to Calendar, independent from the public Drive flow.
+ // Revocation is project-wide at Google; removing one event never invokes it.
 	const clientId = trimmed(env.GOOGLE_CALENDAR_CLIENT_ID);
 	const clientSecret = trimmed(env.GOOGLE_CALENDAR_CLIENT_SECRET);
 	const encryptionKeyRaw = trimmed(env.GOOGLE_CALENDAR_TOKEN_ENCRYPTION_KEY);
@@ -733,45 +732,6 @@ const syncFailure = (error: unknown, attemptCount: number, now: Date) => {
 	};
 };
 
-const revokeGoogleRefreshToken = async (
-	connection: ConnectionRow,
-	fetchFn: typeof fetch
-): Promise<void> => {
-	if (!connection.refresh_token_ciphertext) return;
-	let token: string;
-	try {
-		token = decryptGoogleCalendarSecret(
-			connection.refresh_token_ciphertext,
-			requireGoogleCalendarConfig().encryptionKey
-		);
-	} catch {
-		return;
-	}
-	const timer = timeoutSignal(GOOGLE_REQUEST_TIMEOUT_MS);
-	try {
-		const response = await fetchFn(GOOGLE_TOKEN_REVOCATION_ENDPOINT, {
-			method: 'POST',
-			headers: { 'content-type': 'application/x-www-form-urlencoded' },
-			body: new URLSearchParams({ token }),
-			signal: timer.signal
-		});
-		if (!response.ok) {
-			logServerFailure('Google no confirmó la revocación de una autorización sin vínculos', {
-				connectionId: connection.id,
-				httpStatus: response.status
-			});
-		}
-	} catch {
-		// El secreto ya fue eliminado de la base. No se registra ni se reintenta con
-		// una copia adicional: el usuario también puede revocarlo desde Google.
-		logServerFailure('No se pudo confirmar la revocación de Google Calendar', {
-			connectionId: connection.id
-		});
-	} finally {
-		timer.clear();
-	}
-};
-
 type GoogleCalendarChange =
 	| { outcome: 'deleted' }
 	| { outcome: 'delete_requested' }
@@ -906,7 +866,6 @@ export const processGoogleCalendarEvent = async (
  if (completionError) throw completionError;
  const completion = readCalendarCompletion(completionData, [event.id]);
  const completed = completion.results[0];
- if (completed.removedConnectionId === connection.id) await revokeGoogleRefreshToken(connection, boundedFetch);
  return { status: completed.status, ...(errorCode ? { errorCode } : {}) };
 };
 
@@ -914,7 +873,7 @@ export const processGoogleCalendarEvent = async (
 
 /** Events of one chunk are read, changed and recorded together. */
 const CALENDAR_CHUNK_SIZE = MAX_CONCURRENT_EXTERNAL_CALLS;
-/** Worst case of one event at Google: token refresh, the change and a lookup or a revocation. */
+/** Worst case: token refresh, create conflict and reconciliation of the same ID. */
 const CALENDAR_EVENT_PROVIDER_CALLS = 3;
 /** Each chunk reads its appointments and records its results. */
 const CALENDAR_CHUNK_DATABASE_CALLS = 2;
@@ -1141,9 +1100,6 @@ export const processGoogleCalendarSyncBatch = async (job: ScheduledJobRun) => {
 				else if (result.status === 'stale') summary.stale += 1;
 				else if (result.status.startsWith('pending_')) summary.retrying += 1;
 				else summary.attention += 1;
-				// Revoked only after the deletion that removed its last link is committed.
-				const connection = chunk.find((item) => item.connection.id === result.removedConnectionId)?.connection;
-				if (connection) await revokeGoogleRefreshToken(connection, job.providerFetch);
 			}
 		}
 		if (!finished) {

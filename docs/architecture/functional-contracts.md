@@ -117,3 +117,6 @@ Actualización E, 4 de noviembre, sin publicar (E1.73–E1.82): push decide alta
 
 
 E1.89, 4 de noviembre, todavía sin publicar: veinte añade reclamación dirigida backend con recuperación del mismo owner sin renovar plazo y protege la lease frente a otra concesión. 18/18 grupos propios pasaron en 41841284461; regresión de un comando backend existente corregida, comprobación conjunta/tipos pendientes. Inmediato y lote ya comparten protocolo de propietario/resultado; respuesta SQL perdida no habilita otra escritura por ID, y sólo se libera trabajo conocido como no iniciado. 51 pruebas modeladas aprobadas; tipado/fast nuevos, proveedor real, fronteras restantes/distribución/contacto/correo y cierre E siguen pendientes. El estado incierto de una mutación remota conserva la ventana de reclamación y no se anuncia como rechazo ni entrega.
+
+
+E1.91: veinte aprobada íntegramente en SQL 41842452349 (18 grupos propios, 45 carreras/dos contraejemplos FK y doce esperas), tipos oficiales importados con digest cotejado. Consumidores y retiro de revocación global del plan 12.27 tienen 65 pruebas modeladas; fast integrado posterior pendiente. Esto actualiza el estado parcial de E1.89 sin atribuir nuevas llamadas reales a Google ni publicación. Tracking/borrado público/retención/distribución/contacto/correo conservan pendientes.

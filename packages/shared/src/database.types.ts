@@ -4528,6 +4528,10 @@ export type Database = {
         Args: { p_actor_id: string; p_business_id: string }
         Returns: Json
       }
+      claim_google_calendar_event_sync: {
+        Args: { p_claim_token: string; p_event_row_id: string }
+        Returns: Json
+      }
       claim_google_calendar_sync_batch: {
         Args: { p_claim_token: string; p_limit: number; p_now: string }
         Returns: Json
