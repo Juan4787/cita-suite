@@ -39,6 +39,10 @@ update public.clinical_upload_slots s set expires_at=clock_timestamp()-interval 
 select private.release_expired_clinical_reservations();
 delete from public.clinical_upload_slots s using public.businesses b where s.business_id=b.id and b.id='$business_id' and b.slug='$slug';
 delete from public.patient_radiographs f using public.businesses b where f.business_id=b.id and b.id='$business_id' and b.slug='$slug';
+delete from public.push_delivery_attempts d using public.businesses b where d.business_id=b.id and b.id='$business_id' and b.slug='$slug';
+delete from public.push_subscriptions s using public.businesses b where s.business_id=b.id and b.id='$business_id' and b.slug='$slug';
+delete from public.push_devices d where d.endpoint like 'https://fcm.googleapis.com/management-race/$business_id/%'
+ and not exists(select 1 from public.push_subscriptions s where s.device_id=d.id);
 delete from public.appointments a using public.businesses b where a.business_id=b.id and b.id='$business_id' and b.slug='$slug';
 delete from public.businesses where id='$business_id' and slug='$slug';
 delete from auth.users where id='$owner_id' and email='patient-management-race@example.test';
@@ -490,6 +494,178 @@ do $$ declare f uuid:=(select file_id from patient_management_race.document_requ
 end $$;
 SQL
 
+# New enrollment/test/feedback share only the management authority gate;
+# an independently verified device receipt remains a different contract.
+"${psql_command[@]}" <<'SQL'
+create table patient_management_race.push_requests(label text primary key,subscription_id uuid not null,delivery_id uuid);
+create function patient_management_race.enroll_push(p_label text) returns uuid language plpgsql as $$
+declare r patient_management_race.requests; result uuid; begin
+ select * into strict r from patient_management_race.requests where label=p_label;
+ select subscription_id into result from public.save_patient_appointment_push_subscription(r.token,false,
+  'https://fcm.googleapis.com/management-race/e3100000-0000-4000-8000-000000000001/'||p_label,'synthetic-key','synthetic-auth','Synthetic race browser');
+ return result;
+end $$;
+create function patient_management_race.prepare_push(p_label text,p_with_test boolean default false) returns void language plpgsql as $$
+declare r patient_management_race.requests; subscription uuid; delivery uuid; begin
+ perform patient_management_race.prepare(p_label);
+ select * into strict r from patient_management_race.requests where label=p_label;
+ subscription:=patient_management_race.enroll_push(p_label);
+ if p_with_test then
+  select delivery_id into delivery from public.begin_patient_push_test(r.token,false,subscription,repeat('a',64),repeat('b',64));
+  update public.push_delivery_attempts set accepted_at=clock_timestamp(),push_service_status=201 where id=delivery;
+ end if;
+ insert into patient_management_race.push_requests values(p_label,subscription,delivery);
+end $$;
+create function patient_management_race.push_feedback(p_label text) returns boolean language plpgsql as $$
+declare r patient_management_race.requests; begin
+ select * into strict r from patient_management_race.requests where label=p_label;
+ return public.record_patient_push_test_feedback(r.token,false,(select delivery_id from patient_management_race.push_requests where label=p_label),true);
+end $$;
+select patient_management_race.prepare('contact_before_push');
+insert into patient_management_race.contact_snapshots select 'contact_before_push',patient_management_race.domain_state('contact_before_push');
+SQL
+race contact_correction_before_push_enrollment \
+ "update public.patients set email='race-corrected@example.test' where id=(select a.patient_id from public.appointments a join patient_management_race.requests r on r.appointment_id=a.id where r.label='contact_before_push');" \
+ "select patient_management_race.enroll_push('contact_before_push');" APPOINTMENT_LINK_UNAVAILABLE
+"${psql_command[@]}" <<'SQL'
+select patient_management_race.assert_corrected_contact('contact_before_push');
+do $$ begin
+ if exists(select 1 from public.push_devices where endpoint='https://fcm.googleapis.com/management-race/e3100000-0000-4000-8000-000000000001/contact_before_push')
+  or patient_management_race.domain_state('contact_before_push') is distinct from
+   (select value from patient_management_race.contact_snapshots where label='contact_before_push') then
+  raise exception 'CONTACT_PUSH_ENROLLMENT_PARTIAL_EFFECTS'; end if;
+end $$;
+select patient_management_race.prepare('push_before_contact');
+SQL
+race push_enrollment_before_contact_correction \
+ "select patient_management_race.enroll_push('push_before_contact');" \
+ "update public.patients set email='race-corrected@example.test' where id=(select a.patient_id from public.appointments a join patient_management_race.requests r on r.appointment_id=a.id where r.label='push_before_contact');"
+"${psql_command[@]}" <<'SQL'
+select patient_management_race.assert_corrected_contact('push_before_contact');
+do $$ declare a uuid:=(select appointment_id from patient_management_race.requests where label='push_before_contact'); begin
+ if (select count(*) from public.push_subscriptions where appointment_id=a and detached_at is null)<>1
+  or (select count(*) from public.audit_logs where entity_id=a and action='appointment.push_subscribed')<>1 then
+  raise exception 'AUTHORIZED_PUSH_ENROLLMENT_NOT_PRESERVED'; end if;
+end $$;
+select patient_management_race.prepare_push('parallel_push_test');
+SQL
+race two_tabs_prepare_one_push_test \
+ "select * from public.begin_patient_push_test((select token from patient_management_race.requests where label='parallel_push_test'),false,(select subscription_id from patient_management_race.push_requests where label='parallel_push_test'),repeat('a',64),repeat('b',64));" \
+ "select * from public.begin_patient_push_test((select token from patient_management_race.requests where label='parallel_push_test'),false,(select subscription_id from patient_management_race.push_requests where label='parallel_push_test'),repeat('c',64),repeat('d',64));"
+"${psql_command[@]}" <<'SQL'
+do $$ declare a uuid:=(select appointment_id from patient_management_race.requests where label='parallel_push_test'); begin
+ if (select count(*) from public.push_delivery_attempts where appointment_id=a)<>1
+  or (select receipt_token_hash from public.push_delivery_attempts where appointment_id=a) is distinct from repeat('a',64)
+  or exists(select 1 from public.push_delivery_attempts where appointment_id=a and accepted_at is not null) then
+  raise exception 'PARALLEL_PUSH_TEST_DUPLICATE_OR_FALSE_ACCEPTANCE'; end if;
+end $$;
+select patient_management_race.prepare_push('contact_before_feedback',true);
+SQL
+race contact_correction_before_push_feedback \
+ "update public.patients set email='race-corrected@example.test' where id=(select a.patient_id from public.appointments a join patient_management_race.requests r on r.appointment_id=a.id where r.label='contact_before_feedback');" \
+ "select patient_management_race.push_feedback('contact_before_feedback');" APPOINTMENT_LINK_UNAVAILABLE
+"${psql_command[@]}" <<'SQL'
+select patient_management_race.assert_corrected_contact('contact_before_feedback');
+do $$ begin
+ if exists(select 1 from public.push_delivery_attempts where id=(select delivery_id from patient_management_race.push_requests where label='contact_before_feedback') and user_confirmed_at is not null)
+  or exists(select 1 from public.push_devices d join public.push_subscriptions s on s.device_id=d.id
+   where s.id=(select subscription_id from patient_management_race.push_requests where label='contact_before_feedback') and d.last_test_confirmed_at is not null) then
+  raise exception 'CONTACT_PUSH_FEEDBACK_PARTIAL_EFFECTS'; end if;
+end $$;
+select patient_management_race.prepare_push('feedback_before_contact',true);
+SQL
+race push_feedback_before_contact_correction \
+ "select patient_management_race.push_feedback('feedback_before_contact');" \
+ "update public.patients set email='race-corrected@example.test' where id=(select a.patient_id from public.appointments a join patient_management_race.requests r on r.appointment_id=a.id where r.label='feedback_before_contact');"
+"${psql_command[@]}" <<'SQL'
+select patient_management_race.assert_corrected_contact('feedback_before_contact');
+do $$ begin
+ if not exists(select 1 from public.push_delivery_attempts where id=(select delivery_id from patient_management_race.push_requests where label='feedback_before_contact') and user_confirmed_at is not null)
+  or not exists(select 1 from public.push_devices d join public.push_subscriptions s on s.device_id=d.id
+   where s.id=(select subscription_id from patient_management_race.push_requests where label='feedback_before_contact') and d.last_test_confirmed_at is not null) then
+  raise exception 'AUTHORIZED_PUSH_FEEDBACK_NOT_PRESERVED'; end if;
+end $$;
+SQL
+
+# FK progress while enrollment holds its parent/device before association
+# upsert. This attacks both unnecessary UPDATE locks, using the real generic
+# delivery trigger and real foreign keys, not an assumed multi-table lock order.
+"${psql_command[@]}" <<'SQL'
+select patient_management_race.prepare_push('push_fk_progress');
+create function patient_management_race.pause_push_after_device_update() returns trigger language plpgsql as $$
+begin
+ if new.endpoint='https://fcm.googleapis.com/management-race/e3100000-0000-4000-8000-000000000001/push_fk_progress'
+  and current_setting('application_name')='push-enrollment-holder' then
+  perform pg_advisory_xact_lock(34123,951);
+  for attempt in 1..240 loop
+   if exists(select 1 from patient_management_race.signals where label='push_child_finished') then return new; end if;
+   perform pg_sleep(0.025);
+  end loop;
+  raise exception 'PUSH_DELIVERY_FK_DID_NOT_FINISH';
+ end if;
+ return new;
+end $$;
+create trigger zz_pause_push_device after update on public.push_devices for each row
+ execute function patient_management_race.pause_push_after_device_update();
+SQL
+for lock_probe in compatible parent_update device_update; do
+ "${psql_command[@]}" -c "delete from patient_management_race.signals where label='push_child_finished';"
+ before_lock=''
+ case "$lock_probe" in
+  parent_update) before_lock="select 1 from public.appointments where id=(select appointment_id from patient_management_race.requests where label='push_fk_progress') for update;" ;;
+  device_update) before_lock="select 1 from public.appointments where id=(select appointment_id from patient_management_race.requests where label='push_fk_progress') for no key update; select 1 from public.push_devices where endpoint='https://fcm.googleapis.com/management-race/e3100000-0000-4000-8000-000000000001/push_fk_progress' for update;" ;;
+ esac
+ PGAPPNAME=push-enrollment-holder "${psql_command[@]}" >"$task_directory/holder.log" 2>&1 <<SQL &
+begin;
+$before_lock
+select patient_management_race.enroll_push('push_fk_progress');
+commit;
+SQL
+ holder_pid=$!
+ "${psql_command[@]}" <<'SQL'
+do $$ begin
+ for attempt in 1..240 loop
+  perform pg_stat_clear_snapshot();
+  if exists(select 1 from pg_locks where locktype='advisory' and classid=34123 and objid=951 and granted) then return; end if;
+  perform pg_sleep(0.025);
+ end loop;
+ raise exception 'PUSH_ENROLLMENT_DID_NOT_REACH_DEVICE_UPDATE';
+end $$;
+SQL
+ child_status=0
+ "${psql_command[@]}" >"$task_directory/other.log" 2>&1 <<'SQL' || child_status=$?
+set lock_timeout='300ms';
+set statement_timeout='1s';
+insert into public.push_delivery_attempts(business_id,appointment_id,subscription_id,kind,receipt_token_hash,expires_at)
+ select 'e3100000-0000-4000-8000-000000000001',r.appointment_id,p.subscription_id,'24h',repeat('f',64),clock_timestamp()+interval '5 minutes'
+ from patient_management_race.requests r join patient_management_race.push_requests p using(label) where r.label='push_fk_progress';
+SQL
+ if [[ "$lock_probe" == compatible ]]; then
+  [[ "$child_status" == 0 ]]
+ else
+  [[ "$child_status" != 0 ]]
+  grep -Fq 'lock timeout' "$task_directory/other.log"
+  if [[ "$lock_probe" == parent_update ]]; then
+   grep -Fq 'relation "appointments"' "$task_directory/other.log"
+  else
+   grep -Fq 'relation "push_devices"' "$task_directory/other.log"
+  fi
+ fi
+ kill -0 "$holder_pid"
+ "${psql_command[@]}" -c "insert into patient_management_race.signals values('push_child_finished');"
+ wait "$holder_pid"; holder_pid=''
+ echo "PASS: push FK lock probe $lock_probe (actual compatible command progresses; stronger counterexamples block)."
+done
+"${psql_command[@]}" <<'SQL'
+drop trigger zz_pause_push_device on public.push_devices;
+do $$ declare a uuid:=(select appointment_id from patient_management_race.requests where label='push_fk_progress'); begin
+ if (select count(*) from public.push_delivery_attempts where appointment_id=a and kind='24h')<>1
+  or (select count(*) from public.push_subscriptions where appointment_id=a and detached_at is null)<>1 then
+  raise exception 'PUSH_DELIVERY_FK_PARTIAL_STATE'; end if;
+end $$;
+SQL
+echo 'PASS: actual delivery child foreign keys finish while enrollment holds parent/device before association upsert.'
+
 deadlocks_after=$("${psql_command[@]}" -c 'select deadlocks from pg_stat_database where datname=current_database();')
 [[ "$deadlocks_before" == "$deadlocks_after" ]]
-echo 'PASS: twenty-nine controlled management/contact/clinical races; no PostgreSQL deadlock.'
+echo 'PASS: thirty-five controlled management/contact/clinical races plus two FK lock counterexamples; no PostgreSQL deadlock.'

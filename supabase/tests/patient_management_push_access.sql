@@ -1,7 +1,7 @@
 -- AC09: new push enrollment/test/feedback use current management authority.
 -- Independent device receipts retain their own authenticated scope.
 begin;
-select extensions.plan(20);
+select extensions.plan(21);
 create temporary table push_access_fixture(label text primary key,value text not null);
 create function pg_temp.iv(p_label text) returns text language sql as $$
  select value from push_access_fixture where label=p_label
@@ -68,6 +68,14 @@ select extensions.is(pg_temp.save_push('capability',false),pg_temp.iid('subscrip
  'Current capability reuses the existing device without erasing its real confirmation');
 select extensions.is(public.record_patient_push_test_feedback(pg_temp.iv('capability'),false,pg_temp.iid('delivery'),true),true,
  'A current management capability can finish accepted test feedback');
+-- A provider timeout can be recorded after an independently authenticated
+-- click. The established state precedence treats that real interaction as
+-- stronger evidence; preparation must not turn it into another test.
+update public.push_delivery_attempts set failed_at=clock_timestamp(),failure_kind='transient' where id=pg_temp.iid('delivery');
+select extensions.ok((select delivery_id=pg_temp.iid('delivery') and reused and failure_kind is null
+ from public.begin_patient_push_test(pg_temp.iv('capability'),false,pg_temp.iid('subscription'),repeat('c',64),repeat('e',64))),
+ 'A real click wins over a late provider failure and reuses its recent test');
+update public.push_delivery_attempts set failed_at=null,failure_kind=null where id=pg_temp.iid('delivery');
 update public.patients set email='corrected-push@example.test' where id=pg_temp.iid('patient');
 select extensions.throws_ok($q$select pg_temp.save_push('capability',false,'former-contact')$q$,'P0001','APPOINTMENT_LINK_UNAVAILABLE',
  'Correcting email revokes enrollment from its former capability');
