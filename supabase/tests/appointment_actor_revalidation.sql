@@ -2,7 +2,7 @@
 -- actor's role changed before the service-role RPC reached PostgreSQL.
 -- Only synthetic data, rolled back; claims model separate HTTP statements.
 begin;
-select extensions.plan(17);
+select extensions.plan(20);
 
 create temporary table appointment_actor_fixture (
  business_id uuid, owner_id uuid, actor_id uuid, membership_id uuid,
@@ -113,5 +113,17 @@ select extensions.throws_ok('select pg_temp.create_actor_appointment(0,false,tru
 select extensions.is((select count(*) from public.appointments where business_id=(select business_id from appointment_actor_fixture)),2::bigint,
  'authorization failures do not create an appointment or replace legitimate ones');
 reset role;
+select extensions.is(private.business_operation_actor((select business_id from appointment_actor_fixture),array['owner'],
+ (select owner_id from appointment_actor_fixture)),'owner','positive control: the owner has valid authority before disabling commercial access');
+update public.business_subscriptions set commercial_access_enabled=false where business_id=(select business_id from appointment_actor_fixture);
+select extensions.throws_ok($q$select created.id from appointment_actor_fixture f,
+ lateral public.create_appointment_with_patient_identity(f.business_id,'existing',f.patient_id,null,null,null,null,false,
+ f.owner_id,f.service_id,f.professional_ids[1:1],date_trunc('day',statement_timestamp())+interval '55 days 9 hours',
+ null,f.owner_id,false,'manual','unknown',false,gen_random_uuid()::text,false) created$q$,
+ 'P0001','APPOINTMENT_CREATOR_INVALID','commercial access disabled: even an accepted owner cannot create an internal appointment');
+select extensions.throws_ok($q$select public.reassign_appointment_patient_safely(f.business_id,
+ (select id from public.appointments where business_id=f.business_id limit 1),f.patient_id,f.owner_id,'Synthetic suspended repair')
+ from appointment_actor_fixture f$q$,'P0001','APPOINTMENT_REASSIGNMENT_ACTOR_INVALID',
+ 'commercial access disabled: identity repair cannot bypass the internal-operation restriction');
 select * from extensions.finish();
 rollback;
