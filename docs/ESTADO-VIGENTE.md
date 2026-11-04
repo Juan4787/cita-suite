@@ -42,7 +42,10 @@ A	apps/web/src/lib/scheduling/patient-management-page.ts
 A	apps/web/src/lib/scheduling/public-appointment.ts
 A	apps/web/src/lib/scheduling/reschedule-terms.test.ts
 A	apps/web/src/lib/scheduling/reschedule-terms.ts
+A	apps/web/src/lib/scheduling/staff-management.ts
 A	apps/web/src/lib/server/scheduling/internal/management-contract.ts
+M	apps/web/src/lib/server/scheduling/public/appointments.test.ts
+M	apps/web/src/lib/server/scheduling/public/appointments.ts
 M	apps/web/src/lib/server/scheduling/public/availability.test.ts
 M	apps/web/src/lib/server/scheduling/public/availability.ts
 A	apps/web/src/lib/server/scheduling/public/patient-management-flow.test.ts
@@ -53,8 +56,20 @@ A	apps/web/src/lib/server/scheduling/public/patient-management.test.ts
 A	apps/web/src/lib/server/scheduling/public/patient-management.ts
 M	apps/web/src/lib/server/scheduling/public/public-appointments.test.ts
 M	apps/web/src/lib/server/scheduling/public/public-appointments.ts
+A	apps/web/src/lib/server/scheduling/public/staff-management-flow.test.ts
+A	apps/web/src/lib/server/scheduling/public/staff-management-flow.ts
+A	apps/web/src/lib/server/scheduling/public/staff-management.test.ts
+A	apps/web/src/lib/server/scheduling/public/staff-management.ts
 A	apps/web/src/routes/gestion/[token]/+page.server.ts
 A	apps/web/src/routes/gestion/[token]/+page.svelte
+M	apps/web/src/routes/odonto/agenda/+page.server.ts
+M	apps/web/src/routes/odonto/agenda/agenda-day.server.test.ts
+M	apps/web/src/routes/odonto/turnos/[appointmentId]/+page.server.ts
+M	apps/web/src/routes/odonto/turnos/[appointmentId]/+page.svelte
+M	apps/web/src/routes/odonto/turnos/[appointmentId]/appointment-detail.server.test.ts
+M	apps/web/src/routes/odonto/turnos/[appointmentId]/page.client.test.ts
+M	apps/web/src/routes/odonto/turnos/[appointmentId]/reschedule.server.test.ts
+M	apps/web/src/routes/odonto/turnos/[appointmentId]/slots/+server.ts
 M	apps/web/src/routes/turno/[token]/+page.server.ts
 M	apps/web/src/routes/turno/[token]/+page.svelte
 M	apps/web/src/routes/turno/[token]/page.client.test.ts
@@ -117,7 +132,7 @@ A	supabase/tests/staff_appointment_management.sql
 | Rutas `/turno`/`gestion`, hooks, componentes y flujos nuevos | Integración E2 compartida, mutación antigua retirada; fast 41710295801 (1783/277), browser 41708652093 (dos recorridos, prioridad/foco y día elegido) aprobados; sin paquete ni cierre integral | No: todavía sin publicar |
 | `apps/web/DESIGN.md` y superficie de gestión | Dirección de extensión/contexto; matriz browser y cuatro capturas inspeccionadas en 41708652093, sin cierre visual integral de E | No: documentación de desarrollo |
 | `patient-management.spec.ts` | Dos recorridos aislados aprobados 41708652093, matriz de ambas apariencias/claro-oscuro/cinco anchos; sin prueba de proveedor/correo ni aceptación integral | No: sólo CI |
-| Migración .090 y `staff_appointment_management.sql` | Comando backend del personal, autoridad compartida y campo calculado: 20 grupos parciales en 41714684984; defecto del reloj compartido reproducido y corregido, suite actual/carreras pendientes, sin consumidores | No: sin aplicar ni publicar |
+| Migración .090 y `staff_appointment_management.sql` | Comando backend, autoridad compartida y campo calculado: suite de nueve migraciones aprobada en 41715645324; 21 grupos personal/38 paciente, 21 carreras y ocho esperas. Consumidores escritos, integración HTTP pendiente | No: sin aplicar ni publicar |
 | `supabase/templates/recovery.html` | Plantilla del correo de recuperación, modificada en otro trabajo | No se despliega con la app: se carga aparte en Supabase. **No está verificado** si la versión de Supabase coincide con este archivo |
 
 ## Historia
@@ -190,3 +205,5 @@ Lo ignora `.gitignore` y no se publica nunca: el repositorio es público.
    - hay trabajo fuera de Git.
 
 - Actualización E1.48: SQL 41715645324 aprobó las nueve migraciones y carreras ampliadas; tipos oficiales reproducibles importados con digest cotejado. Parser de resultados compartido, 50/50 dirigidos del paciente. Integración del personal y HTTP pendientes; producción sigue en V12b.
+
+- E1.49: detalle/slots y exports del personal consumen el comando atómico, revisión observada y recuperación original; 79/79 dirigidos servidor. Interfaz escrita; tipos y HTTP pendientes, privilegios UPDATE autenticados aún conservados.

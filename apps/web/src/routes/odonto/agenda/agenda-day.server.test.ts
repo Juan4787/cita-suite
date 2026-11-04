@@ -207,6 +207,10 @@ describe('daily agenda load', () => {
 			const form = new FormData();
 			form.set('appointment_id', 'a1');
 			form.set('status', 'cancelled');
+   form.set('operation_id','00000000-0000-4000-8000-000000000001');
+   form.set('expected_revision','a'.repeat(64));
+   form.set('confirm_cancel','true');
+   mocks.updateAppointmentStatus.mockResolvedValueOnce({ changed:true,idempotentReplay:false });
 			await expect(
 				actions.update_status({
 					request: new Request('http://localhost/odonto/agenda?/update_status', { method: 'POST', body: form }),

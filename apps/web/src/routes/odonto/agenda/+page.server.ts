@@ -572,20 +572,22 @@ export const actions: Actions = {
 			return fail(400, { message: 'La confirmación queda reservada al paciente desde su enlace.' });
 		}
 
-		try {
-			await updateAppointmentStatus(supabase, {
-				businessId: business.business.id,
-				appointmentId,
-				status,
-				userId,
-				reason: String(form.get('reason') ?? '').trim() || null
-			});
-		} catch (error) {
-			logServerFailure('Error actualizando turno', error);
-			return fail(400, { message: getHumanAppointmentErrorMessage(error) });
-		}
+  if (!isUuid(String(form.get('operation_id') ?? '')) || !/^[a-f0-9]{64}$/.test(String(form.get('expected_revision') ?? '')) ||
+   (status === 'cancelled' && form.get('confirm_cancel') !== 'true')) {
+   return fail(409, { message: 'Abrí el detalle del turno y revisá su estado antes de confirmar el cambio.' });
+  }
+  let change;
+  try {
+   const writer = await createSupabaseAdminClient('odonto', fetch);
+   change = await updateAppointmentStatus(supabase, { writer, business: business.business, appointmentId, status, userId,
+    operationId: String(form.get('operation_id')), expectedRevision: String(form.get('expected_revision')),
+    reason: String(form.get('reason') ?? '').trim() || null });
+  } catch (error) {
+   logServerFailure('Error actualizando turno', error);
+   return fail(400, { message: getHumanAppointmentErrorMessage(error) });
+  }
 
-		if (status === 'cancelled') {
+		if (status === 'cancelled' && change.changed && !change.idempotentReplay) {
 			try {
 				const admin = await createSupabaseAdminClient('odonto', fetch);
 				await processAppointmentGoogleCalendarSync(admin, appointmentId, fetch);
