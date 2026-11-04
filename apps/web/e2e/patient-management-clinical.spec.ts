@@ -18,6 +18,8 @@ for (const brand of ['cita-suite', 'natalia'] as const) {
   if (!['t','f'].includes(previous)) throw new Error('Missing clinical budget fixture state');
   const issues:LayoutIssue[]=[];
   const pageErrors:string[]=[];page.on('pageerror',cause=>pageErrors.push(cause.message));
+  let phase='fixture';
+  let primaryFailure:unknown;
   try {
    f.sql(`begin;
     insert into auth.users(id,email) values('${owner}','clinical-management-${owner}@example.test');
@@ -51,6 +53,7 @@ for (const brand of ['cita-suite', 'natalia'] as const) {
    const legacy=f.sql(`select confirmation_token from public.appointments where id='${appointment}';`);
    const capability=f.sql(`select public.issue_appointment_management_capability('${business}','${appointment}',2);`);
    const path=`/gestion/${capability}`;
+   phase='read_and_navigation';
    const response=await request.get(`${path}/informacion`);
    expect(response.status()).toBe(200);expect(response.headers()['cache-control']).toContain('no-store');
    expect(response.headers()['referrer-policy']).toBe('no-referrer');expect(response.headers()['x-robots-tag']).toContain('noindex');
@@ -59,6 +62,7 @@ for (const brand of ['cita-suite', 'natalia'] as const) {
    await expect(page.getByRole('link',{name:'Ver y ampliar mis datos'})).toHaveAttribute('href',`${path}/informacion`);
    await page.getByRole('link',{name:'Ver y ampliar mis datos'}).click();
    await expect(page.getByRole('link',{name:'Volver a mi turno'})).toHaveAttribute('href',path);
+   phase='visual_matrix';
    for(const theme of ['light','dark']) {
     await context.addCookies([{name:'cita-theme',value:theme,url:origin}]);
     await page.goto(`${path}/informacion?color_mode=${theme}`);
@@ -70,6 +74,7 @@ for (const brand of ['cita-suite', 'natalia'] as const) {
      await page.screenshot({path:info.outputPath(`clinical-${theme}-${width}.jpg`),type:'jpeg',quality:65});
     }
    }
+   phase='native_form';
    const native=await browser.newContext({javaScriptEnabled:false,baseURL:origin});
    try {
     const nativePage=await native.newPage();await nativePage.goto(`${path}/informacion`);
@@ -78,6 +83,7 @@ for (const brand of ['cita-suite', 'natalia'] as const) {
     await expect(nativePage.getByRole('status')).toContainText('La información quedó guardada');
    } finally { await native.close(); }
    expect(f.sql(`select insurance from public.patients where id='${patient}';`)).toBe('Native coverage');
+   phase='uncertain_form_response';
    await page.goto(`${path}/informacion`);
    await page.getByLabel('Cobertura (opcional)',{exact:true}).fill('Uncertain response coverage');
    const key=await page.locator('input[name=request_key]').inputValue();
@@ -97,13 +103,16 @@ for (const brand of ['cita-suite', 'natalia'] as const) {
    await page.getByRole('button',{name:'Guardar información',exact:true}).click();
    await expect(page.getByRole('status')).toContainText('La información quedó guardada');
    expect(f.sql(`select count(*) from public.appointment_intake_submissions where appointment_id='${appointment}';`)).toBe('2');
+   phase='upload_document';
    await page.getByLabel('Documento',{exact:true}).setInputFiles({name:'synthetic.png',mimeType:'image/png',
     buffer:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScLbtAAAAABJRU5ErkJggg==','base64')});
    await page.getByRole('button',{name:'Adjuntar documento',exact:true}).click();
    await expect(page.getByRole('status').filter({hasText:'El documento quedó guardado'})).toBeVisible();
+   phase='stored_file_readback';
    const file=await must(f.admin.from('patient_radiographs').select('id,status').eq('business_id',business).single());
    expect(file.status).toBe('ready');
    expect((await request.post(`/turno/${legacy}/documentos/${file.id}/complete`,{data:{}})).status()).toBe(404);
+   phase='contact_revocation';
    f.sql(`update public.patients set email='corrected-clinical-${patient}@example.test' where id='${patient}';`);
    expect((await request.get(`${path}/informacion`)).status()).toBe(404);
    expect((await request.post(`${path}/documentos/${file.id}/complete`,{data:{}})).status()).toBe(404);
@@ -111,10 +120,16 @@ for (const brand of ['cita-suite', 'natalia'] as const) {
    expect((await request.get(`/gestion/${fresh}/informacion`)).status()).toBe(200);
    expect((await request.post(`/gestion/${fresh}/documentos/${file.id}/complete`,{data:{}})).status()).toBe(200);
    expect(f.sql(`select count(*) from public.audit_logs where entity_id='${file.id}' and action='clinical_document.patient_upload_completed';`)).toBe('1');
+   phase='layout_and_browser_errors';
    expect(issues).toEqual([]);expect(pageErrors).toEqual([]);
    await info.attach('clinical-management-proof',{body:JSON.stringify({brand,themes:['light','dark'],widths:[320,390,768,1280,1600],
     nativeForm:true,unreadableCommittedResponse:true,replayWithoutDuplicate:true,realIsolatedStorage:true,revocation:true,issues,pageErrors}),contentType:'application/json'});
+  } catch(cause) {
+   primaryFailure=cause;
+   await info.attach('clinical-failure-phase',{body:JSON.stringify({phase}),contentType:'application/json'});
+   throw cause;
   } finally {
+   try {
    const files=await must(f.admin.from('patient_radiographs').select('storage_path').eq('business_id',business));
    const paths=files.map(file=>file.storage_path).filter((path):path is string=>typeof path==='string');
    if(paths.length) await must(f.admin.storage.from('patient-clinical-files').remove(paths));
@@ -125,10 +140,17 @@ for (const brand of ['cita-suite', 'natalia'] as const) {
     delete from public.clinical_upload_slots where business_id='${business}';
     delete from public.patient_radiographs where business_id='${business}';
     delete from public.appointments where business_id='${business}';
+    delete from public.booking_integrations where business_id='${business}';
     delete from public.businesses where id='${business}' and slug='clinical-management-${business}';
     delete from auth.users where id='${owner}' and email='clinical-management-${owner}@example.test';
     update public.clinical_storage_budget set uploads_enabled='${previous}'::boolean where singleton;
     commit;`);
+   expect(f.sql(`select count(*) from public.businesses where id='${business}';`)).toBe('0');
+   expect(f.sql(`select count(*) from auth.users where id='${owner}';`)).toBe('0');
+   } catch(cleanupFailure) {
+    if(primaryFailure) throw new AggregateError([primaryFailure,cleanupFailure], 'Clinical browser operation and fixture cleanup both failed');
+    throw cleanupFailure;
+   }
   }
  });
 }
