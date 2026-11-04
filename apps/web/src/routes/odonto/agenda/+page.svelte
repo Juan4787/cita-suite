@@ -87,6 +87,7 @@
 				message?: string;
 				slotReleaseMessage?: string;
 				phoneWarning?: { kind: 'missing' | 'invalid' };
+				emailWarning?: boolean;
 				values?: Record<string, unknown>;
 			};
 	} = $props();
@@ -532,7 +533,7 @@
 
 	$effect(() => {
 		if (initialized) return;
-		showCreate = Boolean(form?.message || form?.phoneWarning || data.selectedPatientId || data.selectedTime);
+		showCreate = Boolean(form?.message || form?.phoneWarning || form?.emailWarning || data.selectedPatientId || data.selectedTime);
 		showSearch = Boolean(hasActiveSearch);
 		// Recepción usa esta pantalla para operar: empezamos el snapshot en
 		// background apenas abre /agenda, antes de que elija el primer servicio.

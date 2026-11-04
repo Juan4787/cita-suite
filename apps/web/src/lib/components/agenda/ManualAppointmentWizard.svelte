@@ -60,6 +60,7 @@
 		form?: {
 			message?: string;
 			phoneWarning?: { kind: PhoneWarningKind };
+			emailWarning?: boolean;
 			values?: Record<string, unknown>;
 		};
 	} = $props();
@@ -130,6 +131,9 @@
 		untrack(() => (patientMode === 'new' ? value('patient_phone') : ''))
 	);
 	let patientEmail = $state(value('patient_email'));
+	let emailWarning = $state(untrack(() => Boolean(form?.emailWarning)));
+	let emailWarningAcknowledged = $state(value('email_warning_acknowledged') === 'true');
+	let emailInput = $state<HTMLInputElement | null>(null);
 	let patientSearch = $state('');
 	let internalNote = $state(value('internal_note'));
 	let idempotencyKey = $state(untrack(() => value('idempotency_key') || appointmentRequestId));
@@ -252,6 +256,7 @@
 		patientPhone = '';
 		newPatientPhoneDraft = '';
 		patientEmail = '';
+		emailWarning = false; emailWarningAcknowledged = false;
 		patientSearch = '';
 		selectedRemotePatient = null;
 		internalNote = '';
@@ -353,6 +358,7 @@
 	const patientPhoneValue = (patient: Patient | null) =>
 		String(patient?.phone_raw ?? patient?.phone ?? patient?.phone_e164 ?? '').trim();
 	const selectPatient = (patient: Patient) => {
+		emailWarning = false; emailWarningAcknowledged = false;
 		selectedRemotePatient = patient;
 		selectedPatientId = patient.id;
 		patientPhone = patientPhoneValue(patient);
@@ -365,6 +371,7 @@
 
 	const selectPatientMode = (mode: 'existing' | 'new') => {
 		if (mode === patientMode) return;
+		emailWarning = false; emailWarningAcknowledged = false;
 		if (patientMode === 'new') newPatientPhoneDraft = patientPhone;
 		patientMode = mode;
 		phoneWarningOverride = '';
@@ -382,6 +389,7 @@
 		const shouldKeepAttention = phoneNeedsAttention || Boolean(phoneWarning);
 		patientPhoneChanged = patientMode === 'existing';
 		if (patientMode === 'new') newPatientPhoneDraft = patientPhone;
+		if (patientMode === 'new') emailWarningAcknowledged = false;
 		phoneWarningOverride = '';
 		phoneWarning = null;
 		phoneNeedsAttention = shouldKeepAttention;
@@ -394,6 +402,14 @@
 		await tick();
 		phoneInput?.focus();
 		phoneInput?.select();
+	};
+	const addNewPatientEmail = async () => {
+		emailWarning = false; emailWarningAcknowledged = false;
+		await tick(); emailInput?.focus();
+	};
+	const confirmWithoutEmail = async () => {
+		emailWarningAcknowledged = true; emailWarning = false;
+		await tick(); appointmentForm?.requestSubmit();
 	};
 
 	const confirmWithoutPhone = async () => {
@@ -693,6 +709,7 @@
 		const result = form;
 		if (result === appliedFormResult) return;
 		appliedFormResult = result;
+		if (result?.emailWarning) { emailWarning = true; emailWarningAcknowledged = false; }
 		const warning = result?.phoneWarning?.kind;
 		if (!warning) return;
 		const serverPhone = String(result.values?.patient_phone ?? patientPhone);
@@ -749,6 +766,7 @@
 	<input type="hidden" name="ignore_break" value={ignoreBreak ? 'true' : 'false'} />
 	<input type="hidden" name="patient_phone_changed" value={patientPhoneChanged ? 'true' : 'false'} />
 	<input type="hidden" name="phone_warning_override" value={phoneWarningOverride} />
+	<input type="hidden" name="email_warning_acknowledged" value={emailWarningAcknowledged ? 'true' : ''} />
 
 	<section class="ux-card min-w-0 w-full px-5 py-4 sm:px-6">
 		<div class="flex flex-col items-start gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
@@ -1172,6 +1190,7 @@
 							<input
 								name="patient_name"
 								bind:value={patientName}
+								oninput={() => { emailWarning = false; emailWarningAcknowledged = false; }}
 								required
 								disabled={!canOperate}
 								class="ux-input"
@@ -1198,6 +1217,8 @@
 							<input
 								name="patient_email"
 								type="email"
+								bind:this={emailInput}
+								oninput={() => { emailWarning = false; emailWarningAcknowledged = false; }}
 								bind:value={patientEmail}
 								disabled={!canOperate}
 								class="ux-input"
@@ -1206,6 +1227,20 @@
 					</div>
 				{/if}
 
+				{#if emailWarning}
+					<div class="ux-alert mt-5" role="alert">
+						<p>Si no se registra el email, este paciente no recibirá recordatorios por ese medio.</p>
+						<div class="mt-4 flex flex-col gap-2 sm:flex-row">
+							{#if patientMode === 'existing' && selectedPatientId}
+								<a class="ux-btn-primary" href={`/odonto/pacientes/${selectedPatientId}?editar=correo`} target="_blank" rel="noopener noreferrer">Agregar email</a>
+							{:else}
+								<button type="button" class="ux-btn-primary" onclick={addNewPatientEmail}>Agregar email</button>
+							{/if}
+							<button type="button" class="ux-btn-secondary" onclick={confirmWithoutEmail}>Continuar sin email</button>
+						</div>
+						{#if patientMode === 'existing'}<p class="mt-3 text-sm">La ficha se abre en otra pestaña. Después de guardar el email, volvé y confirmá el turno para comprobar el dato actualizado.</p>{/if}
+					</div>
+				{/if}
 				{#if phoneWarning}
 					<div id="phone-warning" class="mt-5 rounded-2xl border border-warning-300-35 bg-warning-400-07 p-4 text-warning-50" role="alert">
 						<p class="text-base font-bold">

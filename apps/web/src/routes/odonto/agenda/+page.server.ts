@@ -402,12 +402,13 @@ export const actions: Actions = {
 		}
 
 			let effectivePatientPhone = patientPhone;
+			let effectivePatientEmail = patientEmail;
 			let selectedPatientBlocked = false;
 			let selectedPatientArchived = false;
 			if (patientMode === 'existing') {
 			const { data: selectedPatient, error: selectedPatientError } = await admin
 				.from('patients')
-				.select('id, blocked, archived_at, phone, phone_raw, phone_e164')
+				.select('id, blocked, archived_at, phone, phone_raw, phone_e164, email')
 				.eq('business_id', business.business.id)
 				.eq('id', patientId)
 				.maybeSingle();
@@ -420,6 +421,7 @@ export const actions: Actions = {
 			}
 				selectedPatientBlocked = Boolean(selectedPatient.blocked);
 				selectedPatientArchived = Boolean(selectedPatient.archived_at);
+				effectivePatientEmail = String(selectedPatient.email ?? '').trim();
 			if (!patientPhoneChanged) {
 				effectivePatientPhone = String(
 					selectedPatient.phone_raw ?? selectedPatient.phone ?? selectedPatient.phone_e164 ?? ''
@@ -489,6 +491,15 @@ export const actions: Actions = {
 						'La ficha seleccionada está archivada. Restaurala desde Pacientes o elegí otra ficha activa.',
 					values
 				});
+			}
+			// Replay above recovers an already committed operation before this
+			// presentation warning. Existing patients use their actual saved email,
+			// never the deliberately empty hidden field of the booking form.
+			if (!effectivePatientEmail && form.get('email_warning_acknowledged') !== 'true') {
+				return fail(422, { emailWarning: true, values: {
+					...values, patient_phone: effectivePatientPhone,
+					patient_phone_changed: patientPhoneChanged ? 'true' : 'false', email_warning_acknowledged: ''
+				} });
 			}
 
 			let slots;

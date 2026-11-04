@@ -23,6 +23,7 @@ vi.mock('$lib/server/scheduling/public/patient-management', () => ({ loadPatient
 import { loadPublicBookingPage, submitPublicBookingPage } from '$lib/server/scheduling/public/public-booking-page';
 import { parseBookingIntegration } from '$lib/server/sites/public/booking-integrations';
 import { load as receiptLoad } from '../../routes/embed/v1/[integrationKey]/turno/[token]/+page.server';
+import { load as embedLayoutLoad } from '../../routes/embed/v1/[integrationKey]/+layout.server';
 
 const appointmentId = '10000000-0000-4000-8000-000000000006';
 const businessId = '10000000-0000-4000-8000-000000000001';
@@ -121,5 +122,23 @@ describe('one Cita Suite flow for shared and Natalia links', () => {
     expect(mocks.admin).toHaveBeenCalledWith('odonto', expect.any(Function));
     mocks.appointment.mockResolvedValue(null);
     await expect(receiptLoad(event())).rejects.toMatchObject({ status: 404 });
+  });
+  it.each(['layout-first', 'page-first'])('composes receipt privacy headers with its parent layout (%s)', async (order) => {
+    const e = event(frameQuery);
+    const headers: Record<string, string> = {};
+    // SvelteKit shares this header collection across nested load functions and
+    // rejects duplicates even when both functions request the same value.
+    e.setHeaders = (values: Record<string, string>) => {
+      for (const [key, value] of Object.entries(values)) {
+        const lower = key.toLowerCase();
+        if (lower in headers) throw new Error('Duplicate response header');
+        headers[lower] = value;
+      }
+    };
+    mocks.resolve.mockResolvedValue({ integration, embed: { parentOrigin: 'https://natalia.example.test', instanceId } });
+    const loads = order === 'layout-first' ? [embedLayoutLoad, receiptLoad] : [receiptLoad, embedLayoutLoad];
+    for (const load of loads) await load(e);
+    expect(headers).toEqual({ 'cache-control': 'no-store', 'referrer-policy': 'no-referrer', 'x-robots-tag': 'noindex, nofollow, noarchive' });
+    expect(mocks.appointment).toHaveBeenCalledWith(expect.anything(), { token, legacy: true });
   });
 });
