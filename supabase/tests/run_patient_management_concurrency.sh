@@ -28,14 +28,21 @@ cleanup() {
  echo "Patient management cleanup begins, status $status." >&2
  if [[ -n "$holder_pid" ]]; then kill "$holder_pid" 2>/dev/null || true; wait "$holder_pid" 2>/dev/null || true; fi
  if ! "${psql_command[@]}" <<SQL
+begin;
+select private.clinical_budget_lock();
 update public.clinical_storage_budget set uploads_enabled='$previous_uploads'::boolean where singleton;
 update private.deposit_automation set enabled='$previous_deposit'::boolean;
 update private.appointment_management_runtime set reschedule_enabled='${previous_runtime%|*}'::boolean,email_producer_enabled='${previous_runtime#*|}'::boolean;
 drop schema if exists patient_management_race cascade;
+update public.clinical_upload_slots s set expires_at=clock_timestamp()-interval '1 second'
+ from public.businesses b where s.business_id=b.id and b.id='$business_id' and b.slug='$slug';
+select private.release_expired_clinical_reservations();
+delete from public.clinical_upload_slots s using public.businesses b where s.business_id=b.id and b.id='$business_id' and b.slug='$slug';
 delete from public.patient_radiographs f using public.businesses b where f.business_id=b.id and b.id='$business_id' and b.slug='$slug';
 delete from public.appointments a using public.businesses b where a.business_id=b.id and b.id='$business_id' and b.slug='$slug';
 delete from public.businesses where id='$business_id' and slug='$slug';
 delete from auth.users where id='$owner_id' and email='patient-management-race@example.test';
+commit;
 SQL
  then status=1; fi
  rm -r -- "$task_directory"
