@@ -18,7 +18,7 @@ produccion_repositorio: github-secundaria:Juan4787/cita-suite-verificacion.git
 
 ## Etapa E — ejecución al 4 de noviembre
 
-E conserva autorización íntegra de implementación/pruebas/publicación: [plan 12.18–12.26](plans/propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada), [especificación](plans/etapa-e-correo-autogestion.md) y [registro activo](plans/ejecucion-etapa-e-20261103.md). E1/E2/E3 sin publicar ni SQL E productivo. Veinticuatro migraciones aprobadas en SQL 41887356962: once grupos de email público requerido, catorce de preferencias y regresiones anteriores, 48 carreras/dos contraejemplos FK y doce esperas; tipos/digest oficiales cotejados. Fast integrado 41887362821 aprobado: 1920 servidor/282 cliente, cero errores/avisos, arquitectura sin violaciones. Browser 41922591151: preferencias aprobadas (Auth/SQL, conflicto, nativo y cinco anchos/dos modos); integración pasó la negativa HTTP de email y recuperación, pero falló al abrir el comprobante virtual. Se reprodujo una duplicación de Referrer-Policy entre layout/página; corregida con regresión roja/verde en ambos órdenes y apertura directa añadida al browser. Aviso de recepción/editor existente implementados, 15 dirigidas servidor aprobadas junto con navegación; cliente/browser nuevos pendientes. Evidencia anterior válida sólo para sus revisiones/alcances. Seguir recomprobación focalizada y contacto/distribución/altas informadas/SN14/correo/E3–E6. Checkpoint E3.5. Producción V12b, ningún envío nuevo ni cierre E. P1/P2/P3 pospuestas por 12.26: no iniciarlas al cerrar E; avisar y entregar documentación detallada. Zoho OAuth administrativo persiste; envío/webhook/recepción/integración siguen pendientes.
+E conserva autorización íntegra de implementación/pruebas/publicación: [plan 12.18–12.26](plans/propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada), [especificación](plans/etapa-e-correo-autogestion.md) y [registro activo](plans/ejecucion-etapa-e-20261103.md). E1/E2/E3 sin publicar ni SQL E productivo. Veinticuatro migraciones aprobadas en SQL 41887356962 y fast 41887362821 (1920 servidor/282 cliente, cero errores/avisos). Browser 41925050114 aprobó integración completa: email requerido, respuesta perdida, comprobante virtual/GET privado y revocación de lectores; recepción falló por pérdida de teléfono alternativo al editar sólo email. Lector corregido con roja/verde dirigida, 24 servidor aprobadas. Fast 41925044989 falló en dos opciones incompatibles del test cliente (Testing Library/Playwright), corregidas. Contacto por reserva añadido en veinticinco y catorce grupos SQL escritos; nueva contraprueba de contención edición/alta pendiente, sin atribuir todavía un deadlock al producto. Siguiente: SQL/fast de esta revisión y clasificar la carrera antes de navegador; después contacto/outbox/distribución/altas informadas/SN14/correo/E3–E6. Checkpoint E3.7. Producción V12b, ningún envío nuevo ni cierre E; P1/P2/P3 pospuestas. Zoho OAuth administrativo persiste; envío/webhook/recepción/integración siguen pendientes.
 
 ## Código que difiere de producción
 
@@ -76,6 +76,8 @@ A	apps/web/src/lib/server/patients/public/booking-information-page.test.ts
 A	apps/web/src/lib/server/patients/public/booking-information-page.ts
 M	apps/web/src/lib/server/patients/public/booking-information.ts
 M	apps/web/src/lib/server/patients/public/clinical-files.ts
+M	apps/web/src/lib/server/patients/public/patient-detail.test.ts
+M	apps/web/src/lib/server/patients/public/patient-detail.ts
 M	apps/web/src/lib/server/public-booking-navigation.test.ts
 A	apps/web/src/lib/server/scheduling/internal/management-contract.ts
 A	apps/web/src/lib/server/scheduling/public/appointment-reader-authority.test.ts
@@ -193,6 +195,7 @@ A	supabase/migrations/20261104080000_patient_calendar_observations.sql
 A	supabase/migrations/20261104090000_calendar_oauth_retention.sql
 A	supabase/migrations/20261104100000_appointment_email_policy_settings.sql
 A	supabase/migrations/20261104110000_public_booking_email_requirement.sql
+A	supabase/migrations/20261104120000_public_booking_email_contact_scope.sql
 M	supabase/templates/recovery.html
 M	supabase/tests/appointment_actor_revalidation.sql
 M	supabase/tests/appointment_deposits.sql
@@ -221,8 +224,10 @@ A	supabase/tests/patient_management_google_calendar_access.sql
 A	supabase/tests/patient_management_information_access.sql
 A	supabase/tests/patient_management_push_access.sql
 M	supabase/tests/price_confirmation_lifecycle.sql
+A	supabase/tests/public_booking_email_contact_scope.sql
 A	supabase/tests/public_booking_email_requirement.sql
 M	supabase/tests/public_booking_patient_policy.sql
+A	supabase/tests/run_booking_email_contact_concurrency.sh
 M	supabase/tests/run_deposit_expiry_concurrency.sh
 M	supabase/tests/run_patient_identity_idempotency_concurrency.sh
 A	supabase/tests/run_patient_management_concurrency.sh

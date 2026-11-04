@@ -61,7 +61,7 @@ export async function readPatientDetail({
 		supabase
 			.from('patients')
 			.select(
-				'id, full_name, dni, phone, email, birth_date, address, insurance, insurance_plan, archived_at, created_at, updated_at'
+				'id, full_name, dni, phone, phone_raw, phone_e164, email, birth_date, address, insurance, insurance_plan, archived_at, created_at, updated_at'
 			)
 			.eq('id', patientId)
 			.eq('business_id', context.business.id)
@@ -138,10 +138,15 @@ export async function readPatientDetail({
 	}));
 	const hasMoreEntries = entriesWithCosts.length > ENTRIES_PAGE_SIZE;
 	const bookingProfile = parsePatientBookingProfile(clinicalProfile?.custom_fields);
+	const { phone_raw, phone_e164, ...patientData } = patient;
+	// The legacy display field can be empty while the patient has a usable
+	// contact. Editing only email must not submit that existing phone as blank.
+	const effectivePhone = [patient.phone, phone_raw, phone_e164].find(value => value?.trim()) ?? null;
 
 	return {
 		patient: {
-			...patient,
+			...patientData,
+			phone: effectivePhone,
 			allergies: clinicalProfile?.allergies ?? null,
 			medication: clinicalProfile?.medication ?? null,
 			background: clinicalProfile?.background ?? null,
