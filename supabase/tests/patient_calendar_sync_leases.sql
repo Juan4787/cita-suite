@@ -1,7 +1,7 @@
 -- The immediate runner participates in the existing durable Calendar lease.
 -- A prior read is not a reservation, and reauthorization is not lease recovery.
 begin;
-select extensions.plan(12);
+select extensions.plan(15);
 create temporary table calendar_lease_fixture(label text primary key,value text not null);
 create function pg_temp.lv(p_label text) returns text language sql as $$ select value from calendar_lease_fixture where label=p_label $$;
 create function pg_temp.lid(p_label text) returns uuid language sql as $$ select pg_temp.lv(p_label)::uuid $$;
@@ -20,7 +20,7 @@ do $$ declare b uuid:=gen_random_uuid(); u uuid:=gen_random_uuid(); professional
  nonce:=public.begin_patient_google_calendar_authorization(access,false,repeat('a',64),repeat('v',32),repeat('e',40),false);
  perform public.consume_patient_google_calendar_authorization(repeat('a',64),access,false);
  select event_row_id into event from public.authorize_patient_google_calendar_event(access,false,nonce,repeat('c',64),'synthetic-lease-subject',repeat('r',40),array['https://www.googleapis.com/auth/calendar.events.owned']);
- insert into calendar_lease_fixture values('business',b::text),('owner',u::text),('patient',patient::text),('appointment',a::text),('access',access),('event',event::text),('first_claim',gen_random_uuid()::text),('target_claim',gen_random_uuid()::text);
+ insert into calendar_lease_fixture values('business',b::text),('owner',u::text),('patient',patient::text),('appointment',a::text),('access',access),('event',event::text),('first_claim',gen_random_uuid()::text),('target_claim',gen_random_uuid()::text),('core_claim',gen_random_uuid()::text),('repair_claim',gen_random_uuid()::text),('delete_intent_claim',gen_random_uuid()::text),('context_claim',gen_random_uuid()::text),('context_delete_claim',gen_random_uuid()::text);
  nonce:=public.begin_patient_google_calendar_authorization(access,false,repeat('b',64),repeat('v',32),repeat('e',40),false);
  perform public.consume_patient_google_calendar_authorization(repeat('b',64),access,false);
  insert into calendar_lease_fixture values('pending_nonce',nonce::text);
@@ -58,12 +58,27 @@ select extensions.pass('A committed completion replay is stale without another t
 -- Standalone cores intentionally clear claimed_at. The token must leave with it,
 -- rather than leaving a lease that a delayed callback can still present.
 update public.appointment_google_calendar_events set sync_status='pending_update',next_attempt_at=clock_timestamp() where id=pg_temp.lid('event');
-select public.claim_google_calendar_event_sync(pg_temp.lid('event'),pg_temp.lid('target_claim'));
+select public.claim_google_calendar_event_sync(pg_temp.lid('event'),pg_temp.lid('core_claim'));
 select public.complete_google_calendar_event_sync(pg_temp.lid('event'),'synthetic-stable-event',0,clock_timestamp());
 select extensions.ok((select claimed_at is null and claim_token is null from public.appointment_google_calendar_events where id=pg_temp.lid('event')),
  'The completion core cannot leave a token attached to a released lease');
+-- Removing this calendar is independent from rescheduling the still active
+-- appointment. A failure of that SAME deletion intent remains a real failure.
+select public.request_google_calendar_event_deletion(pg_temp.lid('appointment'),clock_timestamp());
+insert into calendar_lease_fixture values('observed_sequence',(select calendar_sequence::text from public.appointments where id=pg_temp.lid('appointment')));
+select public.claim_google_calendar_event_sync(pg_temp.lid('event'),pg_temp.lid('delete_intent_claim'));
+update public.appointments set starts_at=starts_at+interval '1 day',ends_at=ends_at+interval '1 day' where id=pg_temp.lid('appointment');
+select extensions.is(public.complete_google_calendar_sync_batch(pg_temp.lid('delete_intent_claim'),clock_timestamp(),jsonb_build_array(jsonb_build_object(
+ 'event_row_id',pg_temp.lid('event'),'outcome','failed','failure_category','permanent','error_code','same-delete-intent',
+ 'next_attempt_at',clock_timestamp()+interval '1 hour','observed_sequence',pg_temp.lv('observed_sequence')::integer,'observed_sync_status','pending_delete')),false)->'results'->0->>'status','failed',
+ 'Moving the appointment does not invalidate an explicit calendar-removal intent or hide its actual failure');
+-- Complete the previously rejected local grant after the lease has ended; the
+-- exact nonce remains one-use and bound to its original authority.
+select public.authorize_patient_google_calendar_event(pg_temp.lv('access'),false,pg_temp.lid('pending_nonce'),repeat('c',64),'synthetic-lease-subject',repeat('r',40),array['https://www.googleapis.com/auth/calendar.events.owned']);
+select public.complete_google_calendar_event_sync(pg_temp.lid('event'),'synthetic-stable-event',(select calendar_sequence from public.appointments where id=pg_temp.lid('appointment')),clock_timestamp());
 update public.appointment_google_calendar_events set sync_status='pending_update',next_attempt_at=clock_timestamp() where id=pg_temp.lid('event');
-select public.claim_google_calendar_event_sync(pg_temp.lid('event'),pg_temp.lid('target_claim'));
+insert into calendar_lease_fixture values('repair_sequence',(select calendar_sequence::text from public.appointments where id=pg_temp.lid('appointment')));
+select public.claim_google_calendar_event_sync(pg_temp.lid('event'),pg_temp.lid('repair_claim'));
 do $$ declare replacement uuid; begin
  insert into public.patients(business_id,owner_id,full_name) values(pg_temp.lid('business'),pg_temp.lid('owner'),'Synthetic replacement') returning id into replacement;
  insert into calendar_lease_fixture values('replacement',replacement::text);
@@ -84,7 +99,7 @@ select public.reassign_appointment_patient_safely(pg_temp.lid('business'),pg_tem
 select extensions.ok(exists(select 1 from public.appointment_google_calendar_events where id=pg_temp.lid('event') and sync_status='pending_delete' and claimed_at is null and claim_token is null)
  and (select patient_id from public.appointments where id=pg_temp.lid('appointment'))=pg_temp.lid('replacement'),
  'Expired work can be repaired and enqueues old-account deletion with no former lease retained');
-select extensions.is(public.complete_google_calendar_sync_batch(pg_temp.lid('target_claim'),clock_timestamp(),jsonb_build_array(jsonb_build_object('event_row_id',pg_temp.lid('event'),'outcome','synced','google_event_id','late-old-resource','synced_sequence',0)),false)->'results'->0->>'status','stale',
+select extensions.is(public.complete_google_calendar_sync_batch(pg_temp.lid('repair_claim'),clock_timestamp(),jsonb_build_array(jsonb_build_object('event_row_id',pg_temp.lid('event'),'outcome','synced','google_event_id','late-old-resource','synced_sequence',pg_temp.lv('repair_sequence')::integer)),false)->'results'->0->>'status','stale',
  'A delayed result from the former lease cannot apply to the replacement identity');
 insert into calendar_lease_fixture values('delete_claim',gen_random_uuid()::text);
 select public.claim_google_calendar_event_sync(pg_temp.lid('event'),pg_temp.lid('delete_claim'));
@@ -92,6 +107,34 @@ select public.complete_google_calendar_sync_batch(pg_temp.lid('delete_claim'),cl
 select extensions.ok(not exists(select 1 from public.appointment_google_calendar_events where id=pg_temp.lid('event'))
  and (select patient_id from public.appointments where id=pg_temp.lid('appointment'))=pg_temp.lid('replacement'),
  'Owned deletion completion removes the former account link while preserving the replacement appointment');
+-- A failure of the OLD create/update payload cannot close or snooze the new
+-- schedule/intent. Use a real new grant after the previous link was cleaned up.
+do $$ declare access text; nonce uuid; event uuid; begin
+ access:=public.issue_appointment_management_capability(pg_temp.lid('business'),pg_temp.lid('appointment'),
+  (select generation from public.appointment_management_states where appointment_id=pg_temp.lid('appointment')));
+ nonce:=public.begin_patient_google_calendar_authorization(access,false,repeat('d',64),repeat('v',32),repeat('e',40),false);
+ perform public.consume_patient_google_calendar_authorization(repeat('d',64),access,false);
+ select event_row_id into event from public.authorize_patient_google_calendar_event(access,false,nonce,repeat('c',64),'synthetic-lease-subject',repeat('r',40),array['https://www.googleapis.com/auth/calendar.events.owned']);
+ update calendar_lease_fixture set value=event::text where label='event';
+ update calendar_lease_fixture set value=(select calendar_sequence::text from public.appointments where id=pg_temp.lid('appointment')) where label='observed_sequence';
+end $$;
+select public.claim_google_calendar_event_sync(pg_temp.lid('event'),pg_temp.lid('context_claim'));
+update public.appointments set starts_at=starts_at+interval '1 day',ends_at=ends_at+interval '1 day' where id=pg_temp.lid('appointment');
+select extensions.ok(public.complete_google_calendar_sync_batch(pg_temp.lid('context_claim'),clock_timestamp(),jsonb_build_array(jsonb_build_object(
+ 'event_row_id',pg_temp.lid('event'),'outcome','failed','failure_category','permanent','error_code','old-create-payload',
+ 'next_attempt_at',clock_timestamp()+interval '1 hour','observed_sequence',pg_temp.lv('observed_sequence')::integer,'observed_sync_status','pending_create')),false)->'results'->0->>'status'='pending_create'
+ and exists(select 1 from public.appointment_google_calendar_events where id=pg_temp.lid('event') and sync_status='pending_create' and claim_token is null
+  and last_error_code is null and next_attempt_at<=clock_timestamp()+interval '1 second'),
+ 'A superseded payload failure preserves and promptly releases the new useful schedule for synchronization');
+update calendar_lease_fixture set value=(select calendar_sequence::text from public.appointments where id=pg_temp.lid('appointment')) where label='observed_sequence';
+select public.claim_google_calendar_event_sync(pg_temp.lid('event'),pg_temp.lid('context_delete_claim'));
+update public.appointments set status='cancelled' where id=pg_temp.lid('appointment');
+select extensions.ok(public.complete_google_calendar_sync_batch(pg_temp.lid('context_delete_claim'),clock_timestamp(),jsonb_build_array(jsonb_build_object(
+ 'event_row_id',pg_temp.lid('event'),'outcome','failed','failure_category','authorization','error_code','old-work-authorization',
+ 'next_attempt_at',clock_timestamp()+interval '1 hour','observed_sequence',pg_temp.lv('observed_sequence')::integer,'observed_sync_status','pending_create')),false)->'results'->0->>'status'='pending_delete'
+ and exists(select 1 from public.appointment_google_calendar_events where id=pg_temp.lid('event') and sync_status='pending_delete' and claim_token is null)
+ and (select status from public.appointments where id=pg_temp.lid('appointment'))='cancelled',
+ 'A result of the former create intent cannot discard the now required cancellation cleanup');
 select extensions.ok(not has_function_privilege('anon','public.claim_google_calendar_event_sync(uuid,uuid)','EXECUTE')
  and not has_function_privilege('authenticated','public.claim_google_calendar_event_sync(uuid,uuid)','EXECUTE')
  and has_function_privilege('service_role','public.claim_google_calendar_event_sync(uuid,uuid)','EXECUTE'),
