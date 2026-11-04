@@ -16,6 +16,7 @@ import {
 	deterministicGoogleCalendarEventId,
 	encryptGoogleCalendarSecret,
 	googleCalendarEventResource,
+ getGoogleCalendarPublicMessage,
 	googleCalendarReminderMinutes,
 	isGoogleCalendarConfigured,
 	loadGoogleCalendarUiState,
@@ -26,6 +27,8 @@ import {
 import { WORK_DEADLINE_MS, createJobBudget } from '$lib/server/integrations/internal/job-budget';
 import type { PublicAppointmentView } from '$lib/server/scheduling/public/public-appointments';
 
+const managementAccess={token:'a'.repeat(64),legacy:false};
+const attemptId='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 const CALENDAR_SCOPE = 'https://www.googleapis.com/auth/calendar.events.owned';
 const KEY = Buffer.alloc(32, 7);
 
@@ -140,61 +143,89 @@ describe('secretos Google Calendar', () => {
 });
 
 describe('inicio OAuth', () => {
-	it('usa state de un solo uso, PKCE, acceso offline y no persiste secretos en claro', async () => {
-		let inserted: Record<string, unknown> | null = null;
-		const chain: any = {
-			delete: () => chain,
-			lt: async () => ({ data: null, error: null }),
-			insert: async (value: Record<string, unknown>) => {
-				inserted = value;
-				return { error: null };
-			}
-		};
-		const supabase = { from: () => chain } as any;
+ it('binds encrypted original access, PKCE and one-use state through the protected SQL command', async () => {
+  const rpc=vi.fn().mockResolvedValue({data:attemptId,error:null});
+  const url=new URL(await createGoogleCalendarAuthorizationUrl({rpc} as never,managementAccess));
+  expect(url.origin).toBe('https://accounts.google.com');
+  expect(url.searchParams.get('access_type')).toBe('offline');
+  expect(url.searchParams.get('code_challenge_method')).toBe('S256');
+  expect(url.searchParams.get('prompt')).toBe('select_account');
+  expect(url.searchParams.get('scope')).toContain(CALENDAR_SCOPE);
+  expect(url.searchParams.has('include_granted_scopes')).toBe(false);
+  const [name,args]=rpc.mock.calls[0];
+  expect(name).toBe('begin_patient_google_calendar_authorization');
+  expect(args).toMatchObject({p_token:managementAccess.token,p_legacy:false,p_force_consent:false});
+  expect(args.p_state_hash).toBe(crypto.createHash('sha256').update(url.searchParams.get('state')!).digest('hex'));
+  const verifier=decryptGoogleCalendarSecret(args.p_verifier_ciphertext,KEY,'oauth_verifier');
+  expect(url.searchParams.get('code_challenge')).toBe(crypto.createHash('sha256').update(verifier).digest('base64url'));
+  expect(decryptGoogleCalendarSecret(args.p_management_ciphertext,KEY,'oauth_management')).toBe(managementAccess.token);
+  expect(args.p_management_ciphertext).not.toContain(managementAccess.token);
+  expect(()=>decryptGoogleCalendarSecret(args.p_management_ciphertext,KEY,'oauth_verifier')).toThrow('GOOGLE_CALENDAR_SECRET_INVALID');
+ });
+ it('forces renewed consent only when explicitly reconnecting', async () => {
+  const rpc=vi.fn().mockResolvedValue({data:attemptId,error:null});
+  const url=new URL(await createGoogleCalendarAuthorizationUrl({rpc} as never,managementAccess,{forceConsent:true}));
+  expect(url.searchParams.get('prompt')).toBe('consent select_account');
+ });
+ it('does not redirect to the provider after rejected or unreadable nonce creation', async () => {
+  const rpc=vi.fn().mockResolvedValueOnce({data:null,error:{message:'APPOINTMENT_LINK_UNAVAILABLE'}})
+   .mockResolvedValueOnce({data:null,error:null});
+  await expect(createGoogleCalendarAuthorizationUrl({rpc} as never,managementAccess)).rejects.toMatchObject({message:'APPOINTMENT_LINK_UNAVAILABLE'});
+  await expect(createGoogleCalendarAuthorizationUrl({rpc} as never,managementAccess)).rejects.toMatchObject({name:'InvalidDataContractError',contract:'googleCalendar.authorizationAttempt'});
+ });
+});
 
-		const authorizationUrl = new URL(
-			await createGoogleCalendarAuthorizationUrl(supabase, appointment(), {
-				now: new Date('2026-08-04T12:00:00.000Z')
-			})
-		);
-		const state = authorizationUrl.searchParams.get('state')!;
-		expect(authorizationUrl.origin).toBe('https://accounts.google.com');
-		expect(authorizationUrl.searchParams.get('access_type')).toBe('offline');
-		expect(authorizationUrl.searchParams.get('code_challenge_method')).toBe('S256');
-		expect(authorizationUrl.searchParams.get('prompt')).toBe('select_account');
-		expect(authorizationUrl.searchParams.get('scope')).toContain(CALENDAR_SCOPE);
-		expect(authorizationUrl.searchParams.has('include_granted_scopes')).toBe(false);
-		expect(inserted).not.toBeNull();
-		expect(inserted!.state_hash).toBe(crypto.createHash('sha256').update(state).digest('hex'));
-		expect(inserted!.state_hash).not.toBe(state);
-		expect(String(inserted!.code_verifier_ciphertext)).toMatch(/^v1\./);
-		expect(JSON.stringify(inserted)).not.toContain('turno-secreto');
-
-		const verifier = decryptGoogleCalendarSecret(
-			String(inserted!.code_verifier_ciphertext),
-			KEY,
-			'oauth_verifier'
-		);
-		const challenge = crypto.createHash('sha256').update(verifier).digest('base64url');
-		expect(authorizationUrl.searchParams.get('code_challenge')).toBe(challenge);
-	});
-
-	it('fuerza consentimiento solamente al reconectar', async () => {
-		const chain: any = {
-			delete: () => chain,
-			lt: async () => ({ data: null, error: null }),
-			insert: async () => ({ error: null })
-		};
-		const url = new URL(
-			await createGoogleCalendarAuthorizationUrl({ from: () => chain } as any, appointment(), {
-				forceConsent: true
-			})
-		);
-		expect(url.searchParams.get('prompt')).toBe('consent select_account');
-	});
+describe('consumo OAuth con autoridad original', () => {
+ const state='state-abcdefghijklmnopqrstuvwxyz-123456';
+ const context=(stored:unknown,error:unknown=null,result:unknown={attempt_id:attemptId,business_id:appointment().business.id,
+  appointment_id:appointment().id,code_verifier_ciphertext:encryptGoogleCalendarSecret('verifier',KEY,'oauth_verifier'),force_consent:false})=>{
+  const chain:any={select:()=>chain,eq:()=>chain,maybeSingle:async()=>({data:stored,error:null})};
+  const rpc=vi.fn(()=>({single:async()=>({data:result,error})}));
+  return {from:vi.fn(()=>chain),rpc};
+ };
+ const binding=()=>({management_token_ciphertext:encryptGoogleCalendarSecret(managementAccess.token,KEY,'oauth_management'),management_legacy:false});
+ it('decrypts the original channel and lets SQL decide nonce consumption with that exact token', async()=>{
+  const client=context(binding());const attempt=await consumeGoogleCalendarOAuthAttempt(client as never,state);
+  expect(attempt).toMatchObject({attemptId,access:managementAccess,codeVerifier:'verifier'});
+  expect(client.rpc).toHaveBeenCalledExactlyOnceWith('consume_patient_google_calendar_authorization',{
+   p_token:managementAccess.token,p_legacy:false,p_state_hash:crypto.createHash('sha256').update(state).digest('hex')
+  });
+ });
+ it('rejects old unbound attempts without issuing or recovering another management credential',async()=>{
+  const client=context({management_token_ciphertext:null,management_legacy:null});
+  await expect(consumeGoogleCalendarOAuthAttempt(client as never,state)).rejects.toThrow('GOOGLE_CALENDAR_OAUTH_STATE_INVALID');
+  expect(client.rpc).not.toHaveBeenCalled();
+ });
+ it('rejects ciphertext from the verifier purpose before attempting any write',async()=>{
+  const client=context({...binding(),management_token_ciphertext:encryptGoogleCalendarSecret(managementAccess.token,KEY,'oauth_verifier')});
+  await expect(consumeGoogleCalendarOAuthAttempt(client as never,state)).rejects.toThrow('GOOGLE_CALENDAR_SECRET_INVALID');
+  expect(client.rpc).not.toHaveBeenCalled();
+ });
+ it('preserves a revoked-after-read SQL decision and never falls back to the ID-only consumer',async()=>{
+  const client=context(binding(),{message:'APPOINTMENT_LINK_UNAVAILABLE'});
+  await expect(consumeGoogleCalendarOAuthAttempt(client as never,state)).rejects.toMatchObject({message:'APPOINTMENT_LINK_UNAVAILABLE'});
+  expect(client.rpc).toHaveBeenCalledTimes(1);
+ });
+ it('does not invent a consumed nonce from an empty or malformed SDK response',async()=>{
+  const client=context(binding(),null,null);
+  await expect(consumeGoogleCalendarOAuthAttempt(client as never,state)).rejects.toMatchObject({name:'InvalidDataContractError',contract:'googleCalendar.oauthAttempt'});
+ });
 });
 
 describe('evento y autorización', () => {
+ it.each([
+  {data:null,error:{message:'APPOINTMENT_LINK_UNAVAILABLE'}},
+  {data:null,error:null}
+ ])('does not produce an external-event command result from rejected or unreadable final SQL: %j',async result=>{
+  const rpc=vi.fn(()=>({single:async()=>result}));
+  const fetchFn=vi.fn(async (input:RequestInfo|URL)=>new Response(JSON.stringify(String(input).includes('/token')
+   ?{access_token:'synthetic-access',refresh_token:'synthetic-refresh',scope:CALENDAR_SCOPE}:{sub:'synthetic-subject'}),{status:200}));
+  await expect(authorizeGoogleCalendarAppointment({rpc} as never,{access:managementAccess,attemptId,businessId:appointment().business.id,
+   appointmentId:appointment().id,codeVerifier:'verifier',forceConsent:false},'code',fetchFn as typeof fetch)).rejects.toBeDefined();
+  expect(rpc).toHaveBeenCalledExactlyOnceWith('authorize_patient_google_calendar_event',expect.objectContaining({p_token:managementAccess.token,p_legacy:false,p_attempt_id:attemptId}));
+  expect(fetchFn.mock.calls.map(call=>String(call[0]))).toEqual(['https://oauth2.googleapis.com/token','https://openidconnect.googleapis.com/v1/userinfo']);
+ });
+
 	it('genera un ID remoto estable e idempotente', () => {
 		const first = deterministicGoogleCalendarEventId(appointment().id);
 		expect(first).toBe(deterministicGoogleCalendarEventId(appointment().id));
@@ -236,13 +267,10 @@ describe('evento y autorización', () => {
 	it('cifra el refresh token y persiste solo un subject contextual', async () => {
 		let rpcInput: Record<string, unknown> | null = null;
 		const supabase = {
-			rpc: async (_name: string, input: Record<string, unknown>) => {
-				rpcInput = input;
-				return {
-					data: [{ event_row_id: '33333333-3333-4333-8333-333333333333' }],
-					error: null
-				};
-			}
+			rpc: (name: string, input: Record<string, unknown>) => {
+    expect(name).toBe('authorize_patient_google_calendar_event'); rpcInput = input;
+    return {single:async()=>({data:{event_row_id:'33333333-3333-4333-8333-333333333333',connection_row_id:'44444444-4444-4444-8444-444444444444'},error:null})};
+   }
 		} as any;
 		const fetchFn = vi.fn(async (input: RequestInfo | URL) => {
 			const url = String(input);
@@ -265,7 +293,7 @@ describe('evento y autorización', () => {
 		await authorizeGoogleCalendarAppointment(
 			supabase,
 			{
-				attemptId: 'attempt',
+				attemptId, access:managementAccess,
 				businessId: appointment().business.id,
 				appointmentId: appointment().id,
 				codeVerifier: 'verifier',
@@ -276,6 +304,8 @@ describe('evento y autorización', () => {
 		);
 
 		expect(rpcInput).not.toBeNull();
+  expect(rpcInput).toMatchObject({p_token:managementAccess.token,p_legacy:false,p_attempt_id:attemptId});
+  expect(rpcInput).not.toHaveProperty('p_appointment_id');
 		expect(rpcInput!.p_google_subject).toMatch(/^[0-9a-f]{64}$/);
 		expect(rpcInput!.p_google_subject).not.toBe('google-subject-in-clear');
 		expect(String(rpcInput!.p_refresh_token_ciphertext)).not.toContain('refresh-secret');
@@ -626,4 +656,15 @@ describe('sincronización programada por lotes', () => {
 		expect(summary).toMatchObject({ configured: false, claimed: 0 });
 		expect(database.rpcCalls).toHaveLength(0);
 	});
+});
+
+
+describe('calendar feedback based on persisted UI state',()=>{
+ it('does not turn a query string or an unreadable result into a saved/removed claim',()=>{
+  const state={available:true,state:'preparing' as const,current:false,reminderLabel:'antes del turno'};
+  expect(getGoogleCalendarPublicMessage('connected',state)).toContain('Estamos comprobando');
+  expect(getGoogleCalendarPublicMessage('removed',state)).toContain('Estamos comprobando');
+  expect(getGoogleCalendarPublicMessage('connected',{...state,state:'active',current:true})).toContain('Listo');
+  expect(getGoogleCalendarPublicMessage('unavailable',state)).toContain('No pudimos comprobar');
+ });
 });

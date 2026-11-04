@@ -6,47 +6,33 @@ import {
 	processGoogleCalendarEvent
 } from '$lib/server/integrations/public/google-calendar';
 import { createSupabaseAdminClient } from '$lib/server/platform/supabase';
-import type { CitaSupabaseClient } from '$lib/types/database';
+import type { PatientManagementAccess } from '$lib/scheduling/public-appointment';
 import type { RequestHandler } from './$types';
 
-const redirectToAppointment = (token: string, status: string) =>
+const redirectToAppointment = (access: PatientManagementAccess, status: string) =>
 	new Response(null, {
 		status: 303,
 		headers: {
-			location: `/turno/${token}?calendar=${encodeURIComponent(status)}`,
+			location: `/${access.legacy ? 'turno' : 'gestion'}/${encodeURIComponent(access.token)}?calendar=${encodeURIComponent(status)}`,
 			'cache-control': 'no-store',
 			'referrer-policy': 'no-referrer'
 		}
 	});
 
-const loadToken = async (
-	supabase: CitaSupabaseClient,
-	appointmentId: string
-): Promise<string | null> => {
-	const { data, error } = await supabase
-		.from('appointments')
-		.select('confirmation_token')
-		.eq('id', appointmentId)
-		.maybeSingle();
-	if (error) throw error;
-	return data?.confirmation_token ? String(data.confirmation_token) : null;
-};
-
 export const GET: RequestHandler = async ({ url, fetch }) => {
 	const state = url.searchParams.get('state') ?? '';
 	let appointmentId: string | null = null;
-	let appointmentToken: string | null = null;
+	let appointmentAccess: PatientManagementAccess | null = null;
 	try {
 		const supabase = await createSupabaseAdminClient('odonto', fetch);
 		const attempt = await consumeGoogleCalendarOAuthAttempt(supabase, state);
 		appointmentId = attempt.appointmentId;
-		appointmentToken = await loadToken(supabase, appointmentId);
-		if (!appointmentToken) throw new Error('GOOGLE_CALENDAR_APPOINTMENT_NOT_FOUND');
+		appointmentAccess = attempt.access;
 
 		const providerError = url.searchParams.get('error');
 		if (providerError) {
 			return redirectToAppointment(
-				appointmentToken,
+				appointmentAccess,
 				providerError === 'access_denied' ? 'cancelled' : 'unavailable'
 			);
 		}
@@ -72,16 +58,16 @@ export const GET: RequestHandler = async ({ url, fetch }) => {
 					: sync.status.startsWith('pending_')
 						? 'preparing'
 						: 'unavailable';
-		return redirectToAppointment(appointmentToken, status);
+		return redirectToAppointment(appointmentAccess, status);
 	} catch (error) {
 		const code = error instanceof Error ? error.message : isRecord(error) ? String(error.message ?? error.code ?? 'unknown') : 'unknown';
 		logServerFailure('No se pudo completar Google Calendar', {
 			appointmentId,
 			code: code.slice(0, 120)
 		});
-		if (appointmentToken) {
+		if (appointmentAccess) {
 			return redirectToAppointment(
-				appointmentToken,
+				appointmentAccess,
 				code.includes('REAUTH_REQUIRED') ? 'reconnect' : 'unavailable'
 			);
 		}

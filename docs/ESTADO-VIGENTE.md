@@ -18,7 +18,7 @@ produccion_repositorio: github-secundaria:Juan4787/cita-suite-verificacion.git
 
 ## Etapa E — ejecución al 4 de noviembre
 
-E conserva autorización íntegra de implementación/pruebas/publicación: [plan 12.18–12.26](plans/propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada), [especificación](plans/etapa-e-correo-autogestion.md) y [registro activo](plans/ejecucion-etapa-e-20261103.md). Diecisiete migraciones aprobadas en SQL **41824317218** (vista 22 grupos, 35 carreras/dos contraejemplos FK, doce esperas y regresiones/limpieza), tipos oficiales/digest cotejados. Push fast **41823253513** aprobado (1837 servidor/280 cliente, cero errores/avisos); clínica conserva browser 41793557725 y personal 41757455635 con sus alcances. Disponibilidad auxiliar UI con 41/55 dirigidas; fast/browser ampliados pendientes. Frontera OAuth dieciocho y 41 carreras/dos contraejemplos escritas sin comprobar; SQL/tipos y consumidores pendientes (E1.77). No hay implementación E publicada, migraciones E productivas ni correo nuevo. Zoho OAuth administrativo persiste localmente; envío/webhook/recepción/integración pendientes. P1/P2/P3 pospuestas por 12.26, sin iniciarlas al cerrar E; D celular está reemplazada por futura P3 interna. No hay otra espera de permiso.
+E conserva autorización íntegra de implementación/pruebas/publicación: [plan 12.18–12.26](plans/propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada), [especificación](plans/etapa-e-correo-autogestion.md) y [registro activo](plans/ejecucion-etapa-e-20261103.md). Dieciocho migraciones aprobadas en SQL **41825879784** (vista 22 grupos, 41 carreras/dos contraejemplos FK, doce esperas y regresiones/limpieza), tipos oficiales/digest cotejados. Push fast **41823253513** aprobado (1837 servidor/280 cliente, cero errores/avisos); clínica conserva browser 41793557725 y personal 41757455635 con sus alcances. Disponibilidad auxiliar UI con 41/55 dirigidas; fast/browser ampliados pendientes. Frontera OAuth aprobada en ese SQL; consumidores originales cifrados/canales escritos, 54 dirigidas aprobadas y fast/browser integrado pendientes (E1.78). No hay implementación E publicada, migraciones E productivas ni correo nuevo. Zoho OAuth administrativo persiste localmente; envío/webhook/recepción/integración pendientes. P1/P2/P3 pospuestas por 12.26, sin iniciarlas al cerrar E; D celular está reemplazada por futura P3 interna. No hay otra espera de permiso.
 
 ## Código que difiere de producción
 
@@ -48,6 +48,9 @@ A	apps/web/src/lib/scheduling/public-appointment.ts
 A	apps/web/src/lib/scheduling/reschedule-terms.test.ts
 A	apps/web/src/lib/scheduling/reschedule-terms.ts
 A	apps/web/src/lib/scheduling/staff-management.ts
+M	apps/web/src/lib/server/integrations/public/google-calendar.test.ts
+M	apps/web/src/lib/server/integrations/public/google-calendar.ts
+A	apps/web/src/lib/server/integrations/public/patient-google-calendar.ts
 A	apps/web/src/lib/server/integrations/public/patient-push.ts
 M	apps/web/src/lib/server/integrations/public/push.test.ts
 M	apps/web/src/lib/server/integrations/public/push.ts
@@ -80,9 +83,12 @@ A	apps/web/src/routes/gestion/[token]/+page.server.ts
 A	apps/web/src/routes/gestion/[token]/+page.svelte
 A	apps/web/src/routes/gestion/[token]/documentos/+server.ts
 A	apps/web/src/routes/gestion/[token]/documentos/[fileId]/complete/+server.ts
+A	apps/web/src/routes/gestion/[token]/google-calendar/connect/+server.ts
 A	apps/web/src/routes/gestion/[token]/informacion/+page.server.ts
 A	apps/web/src/routes/gestion/[token]/informacion/+page.svelte
 A	apps/web/src/routes/gestion/[token]/push/+server.ts
+M	apps/web/src/routes/oauth/google-calendar/callback/+server.ts
+M	apps/web/src/routes/oauth/google-calendar/callback/callback.server.test.ts
 M	apps/web/src/routes/odonto/agenda/+page.server.ts
 M	apps/web/src/routes/odonto/agenda/agenda-day.server.test.ts
 M	apps/web/src/routes/odonto/turnos/[appointmentId]/+page.server.ts
@@ -95,6 +101,8 @@ M	apps/web/src/routes/turno/[token]/+page.server.ts
 M	apps/web/src/routes/turno/[token]/+page.svelte
 M	apps/web/src/routes/turno/[token]/documentos/+server.ts
 M	apps/web/src/routes/turno/[token]/documentos/[fileId]/complete/+server.ts
+M	apps/web/src/routes/turno/[token]/google-calendar/connect/+server.ts
+M	apps/web/src/routes/turno/[token]/google-calendar/connect/connect.server.test.ts
 M	apps/web/src/routes/turno/[token]/informacion/+page.server.ts
 M	apps/web/src/routes/turno/[token]/informacion/+page.svelte
 M	apps/web/src/routes/turno/[token]/page.client.test.ts

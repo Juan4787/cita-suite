@@ -1,8 +1,11 @@
+import { isUuid } from '@cita-suite/shared/uuid';
+import type { PatientManagementAccess } from '$lib/scheduling/public-appointment';
 import { logServerFailure } from '$lib/server/platform/logging';
 import {
 	InvalidDataContractError,
 	isRecord,
 	readArray,
+	readBoolean,
 	readChoice,
 	readFiniteNumber,
 	readNullableText,
@@ -43,12 +46,12 @@ const GOOGLE_TOKEN_REVOCATION_ENDPOINT = 'https://oauth2.googleapis.com/revoke';
 const GOOGLE_USERINFO_ENDPOINT = 'https://openidconnect.googleapis.com/v1/userinfo';
 const GOOGLE_CALENDAR_API = 'https://www.googleapis.com/calendar/v3';
 const GOOGLE_CALENDAR_SCOPE = 'https://www.googleapis.com/auth/calendar.events.owned';
-type GoogleCalendarSecretPurpose = 'refresh_token' | 'oauth_verifier';
+type GoogleCalendarSecretPurpose = 'refresh_token' | 'oauth_verifier' | 'oauth_management';
 const SECRET_AAD: Record<GoogleCalendarSecretPurpose, Buffer> = {
 	refresh_token: Buffer.from('cita-suite/google-calendar/refresh-token/v1'),
-	oauth_verifier: Buffer.from('cita-suite/google-calendar/oauth-verifier/v1')
+	oauth_verifier: Buffer.from('cita-suite/google-calendar/oauth-verifier/v1'),
+ oauth_management: Buffer.from('cita-suite/google-calendar/oauth-management/v1')
 };
-const OAUTH_ATTEMPT_TTL_MS = 10 * 60 * 1000;
 const GOOGLE_REQUEST_TIMEOUT_MS = 12_000;
 
 export const GOOGLE_CALENDAR_PENDING_STATUSES = [
@@ -106,6 +109,7 @@ type GoogleTokenResponse = {
 };
 
 export type OAuthAttempt = {
+ access: PatientManagementAccess;
 	attemptId: string;
 	businessId: string;
 	appointmentId: string;
@@ -266,48 +270,27 @@ const stateHash = (state: string): string =>
 const isValidOAuthState = (state: string): boolean => /^[A-Za-z0-9_-]{32,180}$/.test(state);
 
 export const createGoogleCalendarAuthorizationUrl = async (
-	supabase: CitaSupabaseClient,
-	appointment: PublicAppointmentView,
-	options: { forceConsent?: boolean; now?: Date } = {}
+ supabase: CitaSupabaseClient,
+ access: PatientManagementAccess,
+ options: { forceConsent?: boolean } = {}
 ): Promise<string> => {
-	const config = requireGoogleCalendarConfig();
-	const now = options.now ?? new Date();
-	if (
-		appointment.is_past ||
-		!['reserved', 'confirmed', 'reschedule_requested'].includes(appointment.status)
-	) {
-		throw new Error('GOOGLE_CALENDAR_APPOINTMENT_NOT_ACTIVE');
-	}
-
-	const state = base64url(crypto.randomBytes(32));
-	const codeVerifier = base64url(crypto.randomBytes(48));
-	const codeChallenge = base64url(crypto.createHash('sha256').update(codeVerifier).digest());
-	const expiresAt = new Date(now.getTime() + OAUTH_ATTEMPT_TTL_MS);
-
-	// Limpieza acotada y best-effort; una falla no debilita el state nuevo.
-	try {
-		await supabase
-			.from('google_calendar_oauth_attempts')
-			.delete()
-			.lt('expires_at', now.toISOString());
-	} catch {
-		// El indice por expires_at mantiene barata la limpieza del intento siguiente.
-	}
-
-	const { error } = await supabase.from('google_calendar_oauth_attempts').insert({
-		business_id: appointment.business.id,
-		appointment_id: appointment.id,
-		state_hash: stateHash(state),
-		code_verifier_ciphertext: encryptGoogleCalendarSecret(
-			codeVerifier,
-			config.encryptionKey,
-			'oauth_verifier'
-		),
-		force_consent: Boolean(options.forceConsent),
-		expires_at: expiresAt.toISOString(),
-		created_at: now.toISOString()
-	});
-	if (error) throw error;
+ const config = requireGoogleCalendarConfig();
+ if (!/^[a-f0-9]{64}$/.test(access.token) || typeof access.legacy !== 'boolean') {
+  throw new Error('APPOINTMENT_LINK_UNAVAILABLE');
+ }
+ const state = base64url(crypto.randomBytes(32));
+ const codeVerifier = base64url(crypto.randomBytes(48));
+ const codeChallenge = base64url(crypto.createHash('sha256').update(codeVerifier).digest());
+ // SQL owns the current authority, expiry and durable pending nonce. The return
+ // path is the original encrypted token, never a new credential from calendar ID.
+ const { data, error } = await supabase.rpc('begin_patient_google_calendar_authorization', {
+  p_token: access.token, p_legacy: access.legacy, p_state_hash: stateHash(state),
+  p_verifier_ciphertext: encryptGoogleCalendarSecret(codeVerifier, config.encryptionKey, 'oauth_verifier'),
+  p_management_ciphertext: encryptGoogleCalendarSecret(access.token, config.encryptionKey, 'oauth_management'),
+  p_force_consent: Boolean(options.forceConsent)
+ });
+ if (error) throw error;
+ if (typeof data !== 'string' || !isUuid(data)) throw new InvalidDataContractError('googleCalendar.authorizationAttempt');
 
 	const params = new URLSearchParams({
 		client_id: config.clientId,
@@ -327,33 +310,40 @@ export const createGoogleCalendarAuthorizationUrl = async (
 };
 
 export const consumeGoogleCalendarOAuthAttempt = async (
-	supabase: CitaSupabaseClient,
-	state: string,
-	now = new Date()
+ supabase: CitaSupabaseClient,
+ state: string
 ): Promise<OAuthAttempt> => {
-	// Impide que un callback histórico reactive el flujo mientras el producto lo
-	// mantiene fuera de servicio. Las tablas y el código quedan intactos.
-	requireGoogleCalendarConfig();
-	if (!isValidOAuthState(state)) throw new Error('GOOGLE_CALENDAR_OAUTH_STATE_INVALID');
-	const { data, error } = await supabase.rpc('consume_google_calendar_oauth_attempt', {
-		p_state_hash: stateHash(state),
-		p_now: now.toISOString()
-	});
-	if (error) throw error;
-	const row = Array.isArray(data) ? data[0] : data;
-	if (!row) throw new Error('GOOGLE_CALENDAR_OAUTH_STATE_INVALID');
-	const config = requireGoogleCalendarConfig();
-	return {
-		attemptId: String(row.attempt_id),
-		businessId: String(row.business_id),
-		appointmentId: String(row.appointment_id),
-		codeVerifier: decryptGoogleCalendarSecret(
-			String(row.code_verifier_ciphertext),
-			config.encryptionKey,
-			'oauth_verifier'
-		),
-		forceConsent: Boolean(row.force_consent)
-	};
+ const config = requireGoogleCalendarConfig();
+ if (!isValidOAuthState(state)) throw new Error('GOOGLE_CALENDAR_OAUTH_STATE_INVALID');
+ const hash = stateHash(state);
+ // This read supplies only encrypted original authority. The consuming write
+ // matches its hash/channel and revalidates current scope under the SQL gate.
+ const { data: stored, error: readError } = await supabase.from('google_calendar_oauth_attempts')
+  .select('management_token_ciphertext, management_legacy').eq('state_hash', hash).maybeSingle();
+ if (readError) throw readError;
+ if (!stored || stored.management_token_ciphertext === null || stored.management_legacy === null) {
+  throw new Error('GOOGLE_CALENDAR_OAUTH_STATE_INVALID');
+ }
+ const binding = readRecord(stored, 'googleCalendar.oauthBinding');
+ const access: PatientManagementAccess = {
+  token: decryptGoogleCalendarSecret(readText(binding.management_token_ciphertext, 'googleCalendar.oauthBinding.ciphertext'), config.encryptionKey, 'oauth_management'),
+  legacy: readBoolean(binding.management_legacy, 'googleCalendar.oauthBinding.legacy')
+ };
+ if (!/^[a-f0-9]{64}$/.test(access.token)) throw new InvalidDataContractError('googleCalendar.oauthBinding.token');
+ const { data, error } = await supabase.rpc('consume_patient_google_calendar_authorization', {
+  p_state_hash: hash, p_token: access.token, p_legacy: access.legacy
+ }).single();
+ if (error) throw error;
+ const row = readRecord(data, 'googleCalendar.oauthAttempt');
+ const attemptId = readText(row.attempt_id, 'googleCalendar.oauthAttempt.id');
+ const businessId = readText(row.business_id, 'googleCalendar.oauthAttempt.business');
+ const appointmentId = readText(row.appointment_id, 'googleCalendar.oauthAttempt.appointment');
+ if (![attemptId, businessId, appointmentId].every(isUuid)) throw new InvalidDataContractError('googleCalendar.oauthAttempt.identity');
+ return {
+  access, attemptId, businessId, appointmentId,
+  codeVerifier: decryptGoogleCalendarSecret(readText(row.code_verifier_ciphertext, 'googleCalendar.oauthAttempt.verifier'), config.encryptionKey, 'oauth_verifier'),
+  forceConsent: readBoolean(row.force_consent, 'googleCalendar.oauthAttempt.forceConsent')
+ };
 };
 
 const timeoutSignal = (milliseconds: number) => {
@@ -487,20 +477,22 @@ export const authorizeGoogleCalendarAppointment = async (
 		? encryptGoogleCalendarSecret(token.refresh_token, config.encryptionKey)
 		: null;
 
-	const { data, error } = await supabase.rpc('authorize_google_calendar_event', {
-		p_appointment_id: attempt.appointmentId,
+	const { data, error } = await supabase.rpc('authorize_patient_google_calendar_event', {
+  p_token: attempt.access.token, p_legacy: attempt.access.legacy, p_attempt_id: attempt.attemptId,
 		p_oauth_client_key: config.clientKey,
 		p_google_subject: googleSubjectKey,
 		p_refresh_token_ciphertext: refreshCiphertext,
-		p_granted_scopes: grantedScopes,
-		p_now: new Date().toISOString()
-	});
+		p_granted_scopes: grantedScopes
+	}).single();
 	if (error) throw error;
-	const row = Array.isArray(data) ? data[0] : data;
-	if (!row?.event_row_id) throw new Error('GOOGLE_CALENDAR_EVENT_LINK_NOT_CREATED');
+	const row = readRecord(data, 'googleCalendar.authorizationResult');
+ const eventRowId = readText(row.event_row_id, 'googleCalendar.authorizationResult.event');
+ if (!isUuid(eventRowId) || typeof row.connection_row_id !== 'string' || !isUuid(row.connection_row_id)) {
+  throw new InvalidDataContractError('googleCalendar.authorizationResult.identity');
+ }
 	return {
 		appointmentId: attempt.appointmentId,
-		eventRowId: String(row.event_row_id),
+		eventRowId,
 		accessToken: token.access_token
 	};
 };
@@ -1293,12 +1285,15 @@ export const requestGoogleCalendarEventDeletion = async (
 	return processAppointmentGoogleCalendarSync(supabase, appointmentId, fetchFn, { now });
 };
 
-export const getGoogleCalendarPublicMessage = (code: string | null): string | null => {
+export const getGoogleCalendarPublicMessage = (code: string | null, state?: GoogleCalendarUiState): string | null => {
+ if ((code === 'connected' && state && !state.current) || (code === 'removed' && state && state.state !== 'removed')) {
+  return 'Estamos comprobando el calendario. Su estado actualizado aparece en este turno.';
+ }
 	if (code === 'connected') return 'Listo, el turno quedó guardado en tu cuenta Google con avisos.';
 	if (code === 'preparing') return 'Estamos terminando de guardar el turno con sus avisos.';
 	if (code === 'removed') return 'El turno se quitó de tu cuenta Google.';
 	if (code === 'cancelled') return 'No se hicieron cambios en tu calendario.';
 	if (code === 'reconnect') return 'Volvé a elegir tu cuenta Google para actualizar los avisos.';
-	if (code === 'unavailable') return 'Esta cuenta no pudo guardar el turno. Podés elegir otra forma de calendario.';
+	if (code === 'unavailable') return 'No pudimos comprobar el calendario. Revisá su estado antes de volver a intentarlo.';
 	return null;
 };

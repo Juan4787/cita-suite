@@ -2275,6 +2275,7 @@ export type Database = {
       google_calendar_oauth_attempts: {
         Row: {
           appointment_id: string
+          authorized_at: string | null
           business_id: string
           code_verifier_ciphertext: string
           consumed_at: string | null
@@ -2282,10 +2283,14 @@ export type Database = {
           expires_at: string
           force_consent: boolean
           id: string
+          management_legacy: boolean | null
+          management_token_ciphertext: string | null
+          management_token_hash: string | null
           state_hash: string
         }
         Insert: {
           appointment_id: string
+          authorized_at?: string | null
           business_id: string
           code_verifier_ciphertext: string
           consumed_at?: string | null
@@ -2293,10 +2298,14 @@ export type Database = {
           expires_at: string
           force_consent?: boolean
           id?: string
+          management_legacy?: boolean | null
+          management_token_ciphertext?: string | null
+          management_token_hash?: string | null
           state_hash: string
         }
         Update: {
           appointment_id?: string
+          authorized_at?: string | null
           business_id?: string
           code_verifier_ciphertext?: string
           consumed_at?: string | null
@@ -2304,6 +2313,9 @@ export type Database = {
           expires_at?: string
           force_consent?: boolean
           id?: string
+          management_legacy?: boolean | null
+          management_token_ciphertext?: string | null
+          management_token_hash?: string | null
           state_hash?: string
         }
         Relationships: [
@@ -4292,6 +4304,21 @@ export type Database = {
           event_row_id: string
         }[]
       }
+      authorize_patient_google_calendar_event: {
+        Args: {
+          p_attempt_id: string
+          p_google_subject: string
+          p_granted_scopes: string[]
+          p_legacy: boolean
+          p_oauth_client_key: string
+          p_refresh_token_ciphertext: string
+          p_token: string
+        }
+        Returns: {
+          connection_row_id: string
+          event_row_id: string
+        }[]
+      }
       begin_patient_export: {
         Args: {
           p_actor_user_id: string
@@ -4301,6 +4328,17 @@ export type Database = {
           p_scope: string
         }
         Returns: Json
+      }
+      begin_patient_google_calendar_authorization: {
+        Args: {
+          p_force_consent: boolean
+          p_legacy: boolean
+          p_management_ciphertext: string
+          p_state_hash: string
+          p_token: string
+          p_verifier_ciphertext: string
+        }
+        Returns: string
       }
       begin_patient_push_test: {
         Args: {
@@ -4669,6 +4707,16 @@ export type Database = {
       }
       consume_google_calendar_oauth_attempt: {
         Args: { p_now?: string; p_state_hash: string }
+        Returns: {
+          appointment_id: string
+          attempt_id: string
+          business_id: string
+          code_verifier_ciphertext: string
+          force_consent: boolean
+        }[]
+      }
+      consume_patient_google_calendar_authorization: {
+        Args: { p_legacy: boolean; p_state_hash: string; p_token: string }
         Returns: {
           appointment_id: string
           attempt_id: string
