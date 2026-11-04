@@ -21,7 +21,7 @@ const fixture = () => ({
  calendar_action_status: 'not_offered', calendar_action_at: null, calendar_action_count: 0, calendar_sequence: 0, calendar_update_required_at: null,
  deposit: null, deposit_transfer_details: null, financial_terms: null,
  financial_summary: { applied_amount: '0', forfeited_amount: '0', unresolved_amount: '0' },
- can_cancel: true, can_confirm: true, can_reschedule: true, is_past: false, new_booking_allowed: false, reschedule_unavailable_reason: null,
+ can_cancel: true, can_confirm: true, can_reschedule: true, can_add_information: true, can_manage_reminders: true, is_past: false, new_booking_allowed: false, reschedule_unavailable_reason: null,
  business: { id: id(4), name: 'Consultorio', slug: 'consultorio', timezone: 'America/Argentina/Cordoba', phone: null,
   address: 'Dirección', address_instructions: 'Timbre', maps_url: null, logo_url: null, is_active: true,
   public_booking_enabled: true, cancellation_policy: null, whatsapp_contact_phone: null }
@@ -126,9 +126,18 @@ describe('patient management snapshot boundary', () => {
  });
  it('retains only the narrow cancellation permission when public booking is off', () => {
   const row = fixture();
-  const view = parsePatientManagementView({ ...row, can_reschedule: false, can_confirm: false,
+  const view = parsePatientManagementView({ ...row, can_reschedule: false, can_confirm: false, can_add_information: false, can_manage_reminders: false,
    business: { ...row.business, is_active: false, public_booking_enabled: false } });
   expect(view.appointment.can_cancel).toBe(true); expect(view.appointment.can_request_reschedule).toBe(false);
+ });
+ it('keeps reminders independent of moving slots and requires explicit auxiliary flags', () => {
+  const row=fixture(); const view=parsePatientManagementView({...row,can_reschedule:false,can_add_information:false});
+  expect(view.canManageReminders).toBe(true); expect(view.canAddInformation).toBe(false);
+  for(const key of ['can_add_information','can_manage_reminders']) {
+   const incomplete={...row}; delete incomplete[key as keyof typeof incomplete];
+   expect(()=>parsePatientManagementView(incomplete)).toThrow();
+  }
+  expect(()=>parsePatientManagementView({...row,can_manage_reminders:false})).toThrow();
  });
  it('does not trust contradictory closed/past action permissions', () => {
   expect(() => parsePatientManagementView({ ...fixture(), status: 'cancelled' })).toThrow();

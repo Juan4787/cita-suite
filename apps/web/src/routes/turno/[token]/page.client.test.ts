@@ -66,6 +66,7 @@ const pageData = {
   date: '2026-08-02', slots: [], selectedStart: null, availabilityRevision: null, integrationRevision: null, durationMinutes: 30,
   financialTerms: null, financialSummary: {appliedAmount:'0',forfeitedAmount:'0',unresolvedAmount:'0'}, unavailableMessage: null
  } satisfies PatientManagementPanelData,
+ remindersEnabled: true,
 	message: '',
 	created: false,
 	suggestedAction: '',
@@ -89,6 +90,7 @@ const pageData = {
 	},
 	rebookUrl: null as string | null
 };
+
 
 type DeliveryState = 'accepted' | 'displayed' | 'clicked' | 'missing' | 'confirmed' | 'failed';
 const delivery = (state: DeliveryState, id: string) => ({
@@ -227,6 +229,16 @@ const installNotificationEnvironment = (options: {
 };
 
 describe('activación de notificaciones en el teléfono', () => {
+describe('contextual auxiliary availability', () => {
+ it('does not configure notifications or show a dead clinical link in minimum cancellation scope', async () => {
+  const environment=installNotificationEnvironment({initialPermission:'granted'});
+  render(Page,{data:{...pageData,remindersEnabled:false,bookingInformationEnabled:false}});
+  expect(screen.queryByRole('button',{name:/Activar.*notificacion/i})).not.toBeInTheDocument();
+  expect(screen.queryByRole('link',{name:/Completar.*informaci/i})).not.toBeInTheDocument();
+  await Promise.resolve(); expect(environment.postRequests()).toBe(0); expect(environment.requestPermission).not.toHaveBeenCalled();
+ });
+});
+
 	beforeEach(() => {
 		window.history.replaceState({}, '', '/turno/public-token');
 		sessionStorage.clear();

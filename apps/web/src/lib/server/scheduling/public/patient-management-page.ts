@@ -135,6 +135,7 @@ const load = async (event: RequestEvent) => {
   return { management,
 			appointment,
 			bookingInformationEnabled: bookingInformationEnabled(),
+   remindersEnabled: true,
 			message: getPublicAppointmentMessage(appointment),
 			created,
 			...buildTurnWhatsAppNotices(appointment, { created }),
@@ -158,10 +159,12 @@ const load = async (event: RequestEvent) => {
 		await managementReadLimit(supabase, event);
   const screen = await loadPatientManagementScreen(supabase, access, url);
   const appointment = screen?.view.appointment ?? null;
+  const remindersEnabled = screen?.view.canManageReminders === true;
 		let googleCalendar = unavailableGoogleCalendarState();
 		if (appointment) {
 			try {
 				googleCalendar = await loadGoogleCalendarUiState(supabase, appointment, now);
+    if (!remindersEnabled) googleCalendar = { ...googleCalendar, available: false };
 			} catch (calendarError) {
 				// La reserva sigue siendo util aunque el estado auxiliar no pueda cargarse.
 				// La opcion administrada se oculta para no prometer una accion incierta.
@@ -176,7 +179,7 @@ const load = async (event: RequestEvent) => {
 		}
 		if (
 			appointment &&
-			appointment.calendar_action_status === 'not_offered' &&
+			remindersEnabled && appointment.calendar_action_status === 'not_offered' &&
 			!appointment.is_past &&
 			appointment.status !== 'cancelled' &&
 			!isLikelyBotUserAgent(userAgent)
@@ -197,7 +200,8 @@ const load = async (event: RequestEvent) => {
 		return {
    management: screen?.panel ?? null,
 			appointment,
-			bookingInformationEnabled: bookingInformationEnabled(),
+			bookingInformationEnabled: bookingInformationEnabled() && screen?.view.canAddInformation === true,
+   remindersEnabled,
 			message: appointment ? (appointment.status === 'cancelled' ? 'Este turno ya fue cancelado.' : appointment.is_past ? 'Este turno ya no admite cambios online.' : appointment.status === 'confirmed' ? 'Tu turno está confirmado.' : appointment.status === 'reschedule_requested' ? 'Este turno tiene un pedido de reprogramación pendiente.' : 'Tu turno está reservado.') : 'El enlace no es válido o ya no está disponible.',
 			created,
 			...(appointment ? buildTurnWhatsAppNotices(appointment, { created }) : { depositWhatsApp: null, practiceWhatsApp: null }),
@@ -209,7 +213,7 @@ const load = async (event: RequestEvent) => {
 			vapidPublicKey,
 			publicSiteUrl,
 			notificationBrowser,
-			androidCalendarIntent: androidCalendarIntentFor(appointment, device, userAgent, url),
+			androidCalendarIntent: remindersEnabled ? androidCalendarIntentFor(appointment, device, userAgent, url) : null,
 			googleCalendar,
 			calendarMessage: getGoogleCalendarPublicMessage(url.searchParams.get('calendar'))
 		};
@@ -219,6 +223,7 @@ const load = async (event: RequestEvent) => {
 			appointment: null,
    management: null,
 			bookingInformationEnabled: false,
+   remindersEnabled: false,
 			message: 'El enlace no es válido o no está disponible.',
 			created: false,
 			depositWhatsApp: null,

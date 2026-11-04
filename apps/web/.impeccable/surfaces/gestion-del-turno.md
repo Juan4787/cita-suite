@@ -14,3 +14,5 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
 ## Estado
 
 Estado al 4 de noviembre: prioridad/foco del panel principal comprobados en browser 41708652093; personal en 41757455635 conserva su alcance propio. Extensión clínica reutiliza BookingAppearance/ux-bk y comparte formulario/uploader entre canal de capacidad y legado. Fast 41791538890 aprobado (1822 servidor/280 cliente, cero errores/un aviso DOM corregido después). Browser **41793557725 aprobado** para dos marcas, cinco anchos/ambos modos, formulario nativo y recuperación de respuesta ilegible/Storage aislado/revocación, sin reproducir el aviso; límites exactos en E1.70. No es cierre de E, revisión visual integral final ni publicación. No hay raster nuevo; P2 global sigue pospuesta.
+
+Disponibilidad auxiliar (E1.75, sin publicar): información requiere contexto clínico propio y los recordatorios tienen permiso independiente de reprogramar/reserva online. Acceso mínimo no muestra esos CTA ni inicia activación automática. Dirigidas 41 servidor/55 cliente aprobadas; browser ampliado pendiente. No cambia el diseño visual ni inicia P2.
