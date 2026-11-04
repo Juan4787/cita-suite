@@ -32,6 +32,7 @@ update public.clinical_storage_budget set uploads_enabled='$previous_uploads'::b
 update private.deposit_automation set enabled='$previous_deposit'::boolean;
 update private.appointment_management_runtime set reschedule_enabled='${previous_runtime%|*}'::boolean,email_producer_enabled='${previous_runtime#*|}'::boolean;
 drop schema if exists patient_management_race cascade;
+delete from public.patient_radiographs f using public.businesses b where f.business_id=b.id and b.id='$business_id' and b.slug='$slug';
 delete from public.appointments a using public.businesses b where a.business_id=b.id and b.id='$business_id' and b.slug='$slug';
 delete from public.businesses where id='$business_id' and slug='$slug';
 delete from auth.users where id='$owner_id' and email='patient-management-race@example.test';
