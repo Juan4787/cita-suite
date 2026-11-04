@@ -132,6 +132,7 @@ M	supabase/tests/patient_change_history_atomic.sql
 M	supabase/tests/patient_identity_atomicity.sql
 A	supabase/tests/patient_management_document_access.sql
 A	supabase/tests/patient_management_information_access.sql
+A	supabase/tests/patient_management_push_access.sql
 M	supabase/tests/run_deposit_expiry_concurrency.sh
 M	supabase/tests/run_patient_identity_idempotency_concurrency.sh
 A	supabase/tests/run_patient_management_concurrency.sh
