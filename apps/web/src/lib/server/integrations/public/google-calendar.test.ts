@@ -470,7 +470,7 @@ describe('sincronización programada por lotes', () => {
 			})).rejects.toThrow();
 			expect(service.requests).toHaveLength(0);
 			expect(database.completions()).toHaveLength(1);
-			expect(database.completions()[0].args).toMatchObject({ p_results: [], p_finish: true });
+			expect(database.completions()[0].args).toMatchObject({ p_results: [{ event_row_id: 'event-1', outcome: 'released' }], p_finish: false });
 		}
 	);
 
@@ -608,7 +608,7 @@ describe('sincronización programada por lotes', () => {
 			claimed: [claimedEvent(1, { sync_status: 'pending_update', event_id: 'evt-1', attempt_count: 2 })],
 			appointments: [appointmentRow('apt-1')]
 		});
-		const service = google(database.timeline, (request) => (request.method === 'PATCH' ? new Response('{}', { status: 503 }) : undefined));
+		const service = google(database.timeline, (request) => (request.method === 'PATCH' ? new Response('{}', { status: 429 }) : undefined));
 
 		const summary = await processGoogleCalendarSyncBatch({ supabase: database.supabase, budget: createJobBudget('free'), providerFetch: service.fetchFn, now });
 
@@ -619,11 +619,48 @@ describe('sincronización programada por lotes', () => {
 				outcome: 'failed',
 				failure_category: 'transient',
 				error_code: 'calendar_service_busy',
+    observed_sequence: 3, observed_sync_status: 'pending_update',
 				next_attempt_at: new Date(now.getTime() + (8 * 60 + 51) * 1000).toISOString()
 			}
 		]);
 		expect(summary.retrying).toBe(1);
 	});
+
+ it.each(['network', 'server', 'unreadable'])('keeps a possibly applied calendar mutation uncertain: %s', async kind => {
+  const database = calendarDatabase({ claimed: [claimedEvent(1)], appointments: [appointmentRow('apt-1')] });
+  const service = google(database.timeline, request => {
+   if (request.url === 'https://oauth2.googleapis.com/token') return undefined;
+   if (kind === 'network') throw new TypeError('synthetic lost remote reply');
+   return kind === 'server' ? new Response('{}', { status: 503 }) : new Response('unreadable', { status: 200 });
+  });
+  const summary = await processGoogleCalendarSyncBatch({ supabase: database.supabase, budget: createJobBudget('free'), providerFetch: service.fetchFn, now });
+  expect(database.completions()[0].args.p_results).toEqual([expect.objectContaining({ event_row_id: 'event-1', outcome: 'uncertain',
+   observed_sequence: 3, observed_sync_status: 'pending_create' })]);
+  expect(service.requests).toHaveLength(2);
+  expect(summary).toMatchObject({ active: 0, retrying: 1, attention: 0 });
+ });
+
+ it.each(['lost', 'unreadable'])('never releases a started chunk after its completion reply is %s', async kind => {
+  const database = calendarDatabase({ claimed: [1,2,3,4,5,6].map(index => claimedEvent(index)), appointments: [1,2,3,4,5,6].map(index => appointmentRow(`apt-${index}`)) });
+  const original = database.supabase.rpc;
+  let completions = 0;
+  database.supabase.rpc = async (name: string, args: Record<string, unknown>) => {
+   const reply = await original(name, args);
+   if (name === 'complete_google_calendar_sync_batch' && completions++ === 0) {
+    return kind === 'lost' ? { data: null, error: new Error('synthetic lost committed reply') } : { data: { results: [], released: 0 }, error: null };
+   }
+   return reply;
+  };
+  const service = google(database.timeline);
+  await expect(processGoogleCalendarSyncBatch({ supabase: database.supabase, budget: createJobBudget('free'), providerFetch: service.fetchFn, now })).rejects.toThrow();
+  const calls = database.completions();
+  expect(calls).toHaveLength(2);
+  expect(calls[0].args.p_results).toHaveLength(4);
+  expect(calls[1].args).toMatchObject({ p_finish: false, p_results: [
+   { event_row_id: 'event-5', outcome: 'released' }, { event_row_id: 'event-6', outcome: 'released' }
+  ] });
+  expect(service.requests.filter(request => request.method === 'POST' && !request.url.includes('/token'))).toHaveLength(4);
+ });
 
 	it('revoca la autorización recién después de confirmar el borrado de su último evento', async () => {
 		const database = calendarDatabase({

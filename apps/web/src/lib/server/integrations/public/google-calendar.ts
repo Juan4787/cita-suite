@@ -25,6 +25,8 @@ import { alarmsForProximity } from '$lib/server/integrations/public/ics';
 import { getPublicSiteUrl } from '$lib/server/integrations/public/messaging';
 import {
 	MAX_CONCURRENT_EXTERNAL_CALLS,
+ JobBudgetExhaustedError,
+ WORK_DEADLINE_MS,
 	type ScheduledJobRun
 } from '$lib/server/integrations/internal/job-budget';
 import { isAppointmentStatus } from '$lib/server/scheduling/public/appointments';
@@ -128,6 +130,7 @@ type EventLinkRow = {
 	synced_sequence: number;
 	attempt_count: number;
 	claimed_at: string | null;
+ claim_token: string | null;
 };
 
 type ConnectionRow = {
@@ -149,7 +152,8 @@ class GoogleCalendarRemoteError extends Error {
 	constructor(
 		readonly category: GoogleCalendarFailureCategory | 'conflict',
 		readonly safeCode: string,
-		readonly httpStatus?: number
+		readonly httpStatus?: number,
+  readonly outcomeUncertain = false
 	) {
 		super(safeCode);
 		this.name = 'GoogleCalendarRemoteError';
@@ -400,7 +404,7 @@ const postGoogleToken = async (
       ...(body.expires_in === undefined ? {} : { expires_in: readFiniteNumber(body.expires_in, 'googleToken.expiresIn') })
     };
 	} catch (error) {
-		if (error instanceof GoogleCalendarRemoteError) throw error;
+		if (error instanceof GoogleCalendarRemoteError || error instanceof JobBudgetExhaustedError) throw error;
 		throw new GoogleCalendarRemoteError('transient', 'oauth_network');
 	} finally {
 		timer.clear();
@@ -600,11 +604,15 @@ const googleCalendarRequest = async (
 			signal: timer.signal
 		});
 		const body = response.status === 204 ? null : await safeJson(response);
-		if (!response.ok) throw classifyGoogleApiError(response, body);
+		if (!response.ok) {
+   const error = classifyGoogleApiError(response, body);
+   throw new GoogleCalendarRemoteError(error.category, error.safeCode, error.httpStatus,
+    options.method !== undefined && options.method !== 'GET' && response.status >= 500);
+  }
 		return body;
 	} catch (error) {
-		if (error instanceof GoogleCalendarRemoteError) throw error;
-		throw new GoogleCalendarRemoteError('transient', 'calendar_network');
+		if (error instanceof GoogleCalendarRemoteError || error instanceof JobBudgetExhaustedError) throw error;
+		throw new GoogleCalendarRemoteError('transient', 'calendar_network', undefined, options.method !== undefined && options.method !== 'GET');
 	} finally {
 		timer.clear();
 	}
@@ -649,7 +657,7 @@ const loadEventLink = async (
 	const { data: event, error: eventError } = await supabase
 		.from('appointment_google_calendar_events')
 		.select(
-			'id, business_id, appointment_id, connection_id, calendar_id, event_id, sync_status, synced_sequence, attempt_count, claimed_at'
+			'id, business_id, appointment_id, connection_id, calendar_id, event_id, sync_status, synced_sequence, attempt_count, claimed_at, claim_token'
 		)
 		.eq('id', eventRowId)
 		.maybeSingle();
@@ -692,7 +700,8 @@ const loadEventLink = async (
 			sync_status: readChoice(event.sync_status, GOOGLE_CALENDAR_SYNC_STATUSES, 'googleCalendar.syncStatus'),
 			synced_sequence: Number(event.synced_sequence),
 			attempt_count: Number(event.attempt_count ?? 0),
-			claimed_at: event.claimed_at ? String(event.claimed_at) : null
+			claimed_at: event.claimed_at ? String(event.claimed_at) : null,
+   claim_token: readNullableText(event.claim_token, 'googleCalendar.lease.owner')
 		},
 		connection: {
 			id: String(connection.id),
@@ -722,38 +731,6 @@ const syncFailure = (error: unknown, attemptCount: number, now: Date) => {
 		category: remote.category === 'conflict' ? 'permanent' : remote.category,
 		nextAttemptAt: nextRetryAt(attemptCount + 1, now).toISOString()
 	};
-};
-
-const markSyncFailure = async (
-	supabase: CitaSupabaseClient,
-	eventRowId: string,
-	error: GoogleCalendarRemoteError,
-	attemptCount: number,
-	now: Date
-) => {
-	const failure = syncFailure(error, attemptCount, now);
-	const { data, error: rpcError } = await supabase.rpc('fail_google_calendar_event_sync', {
-		p_event_row_id: eventRowId,
-		p_failure_category: failure.category,
-		p_error_code: failure.remote.safeCode,
-		p_next_attempt_at: failure.nextAttemptAt,
-		p_now: now.toISOString()
-	});
-	if (rpcError) throw rpcError;
-	return String(data ?? 'failed');
-};
-
-const completeDelete = async (
-	supabase: CitaSupabaseClient,
-	eventRowId: string,
-	now: Date
-): Promise<string | null> => {
-	const { data, error } = await supabase.rpc('complete_google_calendar_event_delete', {
-		p_event_row_id: eventRowId,
-		p_now: now.toISOString()
-	});
-	if (error) throw error;
-	return data ? String(data) : null;
 };
 
 const revokeGoogleRefreshToken = async (
@@ -842,7 +819,7 @@ const applyGoogleCalendarChange = async (
 				fetchFn,
 				{ method: 'POST', body: { ...resource, id: deterministicId } }
 			);
-			if (!isRecord(created) || typeof created.id !== 'string' || !created.id) throw new GoogleCalendarRemoteError('transient', 'calendar_response_invalid');
+			if (!isRecord(created) || typeof created.id !== 'string' || !created.id) throw new GoogleCalendarRemoteError('transient', 'calendar_response_invalid', undefined, true);
 			googleEventId = created.id;
 		} catch (error) {
 			if (!(error instanceof GoogleCalendarRemoteError) || error.category !== 'conflict') {
@@ -869,88 +846,68 @@ const applyGoogleCalendarChange = async (
 	return { outcome: 'synced', googleEventId, syncedSequence: appointment.calendar_sequence };
 };
 
+/** The same durable owner/result protocol as the scheduler, before any provider work. */
 export const processGoogleCalendarEvent = async (
-	supabase: CitaSupabaseClient,
-	eventRowId: string,
-	fetchFn: typeof fetch,
-	options: { accessToken?: string; now?: Date } = {}
+ supabase: CitaSupabaseClient,
+ eventRowId: string,
+ fetchFn: typeof fetch,
+ options: { accessToken?: string; now?: Date } = {}
 ): Promise<{ status: string; errorCode?: string }> => {
-	const now = options.now ?? new Date();
-	let loaded: Awaited<ReturnType<typeof loadEventLink>>;
-	try {
-		loaded = await loadEventLink(supabase, eventRowId);
-	} catch (error) {
-		logServerFailure('Error cargando trabajo Google Calendar', { eventRowId, error });
-		throw error;
-	}
-	const { event, connection, appointment } = loaded;
-
-	if (!isPendingGoogleCalendarStatus(event.sync_status)) {
-		return { status: event.sync_status };
-	}
-
-	let accessToken = options.accessToken;
-	try {
-		const change = await applyGoogleCalendarChange(
-			event,
-			appointment,
-			async () => (accessToken ??= await refreshGoogleAccessToken(connection, fetchFn)),
-			fetchFn,
-			now
-		);
-		if (change.outcome === 'deleted') {
-			const removedConnectionId = await completeDelete(supabase, event.id, now);
-			if (removedConnectionId === connection.id) {
-				await revokeGoogleRefreshToken(connection, fetchFn);
-			}
-			return { status: 'deleted' };
-		}
-		if (change.outcome === 'delete_requested') {
-			const { error } = await supabase.rpc('request_google_calendar_event_deletion', {
-				p_appointment_id: appointment.id,
-				p_now: now.toISOString()
-			});
-			if (error) throw error;
-			return { status: 'pending_delete' };
-		}
-		const { data, error } = await supabase.rpc('complete_google_calendar_event_sync', {
-			p_event_row_id: event.id,
-			p_google_event_id: change.googleEventId,
-			p_synced_sequence: change.syncedSequence,
-			p_now: now.toISOString()
-		});
-		if (error) throw error;
-		return { status: String(data ?? 'active') };
-	} catch (error) {
-		const remoteError =
-			error instanceof GoogleCalendarRemoteError
-				? error
-				: new GoogleCalendarRemoteError('transient', 'calendar_sync_unexpected');
-		try {
-			const status = await markSyncFailure(
-				supabase,
-				event.id,
-				remoteError,
-				event.attempt_count,
-				now
-			);
-			logServerFailure('Google Calendar no pudo sincronizar el evento', {
-				eventRowId: event.id,
-				appointmentId: event.appointment_id,
-				category: remoteError.category,
-				code: remoteError.safeCode,
-				httpStatus: remoteError.httpStatus ?? null
-			});
-			return { status, errorCode: remoteError.safeCode };
-		} catch (recordError) {
-			logServerFailure('Error registrando fallo Google Calendar', {
-				eventRowId: event.id,
-				code: remoteError.safeCode,
-				error: recordError
-			});
-			throw recordError;
-		}
-	}
+ if (!isGoogleCalendarConfigured()) return { status: 'not_configured' };
+ const startedAt = performance.now();
+ const now = options.now ?? new Date();
+ // Generated inside this invocation. SQL transport retries can recover this
+ // claim, but another invocation never inherits its authority to dispatch.
+ const claimToken = crypto.randomUUID();
+ const { data, error } = await supabase.rpc('claim_google_calendar_event_sync', {
+  p_event_row_id: eventRowId, p_claim_token: claimToken
+ });
+ if (error) throw error;
+ if (data === null) {
+  const { data: current, error: readError } = await supabase.from('appointment_google_calendar_events')
+   .select('sync_status').eq('id', eventRowId).maybeSingle();
+  if (readError) throw readError;
+  return { status: current ? readChoice(current.sync_status, GOOGLE_CALENDAR_SYNC_STATUSES, 'googleCalendar.currentStatus') : 'not_connected' };
+ }
+ const claim = readClaimedCalendarEvent(data);
+ const rawClaim = readRecord(data, 'googleCalendar.lease');
+ readBoolean(rawClaim.claim_recovered, 'googleCalendar.lease.recovered');
+ const loaded = await loadEventLink(supabase, eventRowId);
+ const { event, connection, appointment } = loaded;
+ if (claim.event.id !== eventRowId || event.id !== eventRowId || event.claim_token !== claimToken
+  || event.appointment_id !== claim.event.appointment_id || appointment.id !== event.appointment_id
+  || event.connection_id !== claim.connection.id || connection.id !== claim.connection.id
+  || event.business_id !== readText(rawClaim.business_id, 'googleCalendar.lease.business')
+  || !isPendingGoogleCalendarStatus(event.sync_status)) {
+  throw new InvalidDataContractError('googleCalendar.lease.context');
+ }
+ const boundedFetch: typeof fetch = (input, init) => {
+  const remaining = WORK_DEADLINE_MS - (performance.now() - startedAt);
+  if (remaining <= 0) throw new JobBudgetExhaustedError('time');
+  const deadline = AbortSignal.timeout(Math.max(1, Math.ceil(remaining)));
+  return fetchFn(input, { ...init, signal: init?.signal ? AbortSignal.any([init.signal, deadline]) : deadline });
+ };
+ let result: CalendarBatchResult;
+ let errorCode: string | undefined;
+ let accessToken = options.accessToken;
+ try {
+  const change = await applyGoogleCalendarChange(event, appointment,
+   async () => (accessToken ??= await refreshGoogleAccessToken(connection, boundedFetch)), boundedFetch, now);
+  result = calendarChangeResult(event.id, change);
+ } catch (providerError) {
+  result = calendarFailureResult(event, appointment, providerError, now);
+  if ('error_code' in result) errorCode = result.error_code;
+ }
+ // A missing SQL reply may follow a real commit. Never turn it into a second
+ // unowned fail_* call or release work whose external effect may have happened.
+ const { data: completionData, error: completionError } = await supabase.rpc('complete_google_calendar_sync_batch', {
+  p_claim_token: claimToken, p_now: now.toISOString(), p_results: [result], p_finish: false
+ });
+ if (completionError) throw completionError;
+ const completion = readCalendarCompletion(completionData, [event.id]);
+ const completed = completion.results[0];
+ if (completed.removedConnectionId === connection.id) await revokeGoogleRefreshToken(connection, boundedFetch);
+ return { status: completed.status, ...(errorCode ? { errorCode } : {}) };
 };
 
 // Sincronización programada ----------------------------------------------------------
@@ -998,7 +955,7 @@ const readClaimedCalendarEvent = (value: unknown): ClaimedCalendarEvent => {
 			appointment_id: readText(item.appointment_id, 'calendarBatch.claim.appointment'),
 			calendar_id: readText(item.calendar_id, 'calendarBatch.claim.calendar'),
 			event_id: readNullableText(item.event_id, 'calendarBatch.claim.googleEvent'),
-			sync_status: readChoice(item.sync_status, GOOGLE_CALENDAR_SYNC_STATUSES, 'calendarBatch.claim.status'),
+			sync_status: readChoice(item.sync_status, GOOGLE_CALENDAR_PENDING_STATUSES, 'calendarBatch.claim.status'),
 			attempt_count: readFiniteNumber(item.attempt_count, 'calendarBatch.claim.attempts')
 		},
 		connection: {
@@ -1009,19 +966,26 @@ const readClaimedCalendarEvent = (value: unknown): ClaimedCalendarEvent => {
 	};
 };
 
-const readCalendarCompletion = (value: unknown) => {
+const readCalendarCompletion = (value: unknown, expectedIds: string[] = []) => {
 	const record = readRecord(value, 'calendarBatch.completion');
-	return {
+	const completion = {
 		released: readFiniteNumber(record.released, 'calendarBatch.completion.released'),
 		results: readArray(record.results, 'calendarBatch.completion.results').map((entry) => {
 			const result = readRecord(entry, 'calendarBatch.result');
 			return {
 				eventRowId: readText(result.event_row_id, 'calendarBatch.result.event'),
-				status: readText(result.status, 'calendarBatch.result.status'),
+				status: readChoice(result.status, [...GOOGLE_CALENDAR_SYNC_STATUSES, 'stale'] as const, 'calendarBatch.result.status'),
 				removedConnectionId: readNullableText(result.removed_connection_id, 'calendarBatch.result.removed')
 			};
 		})
 	};
+ if (!Number.isInteger(completion.released) || completion.released < 0
+  || completion.results.length !== expectedIds.length
+  || new Set(completion.results.map(result => result.eventRowId)).size !== expectedIds.length
+  || completion.results.some(result => !expectedIds.includes(result.eventRowId))) {
+  throw new InvalidDataContractError('calendarBatch.completion.events');
+ }
+ return completion;
 };
 
 const CALENDAR_APPOINTMENT_SELECT =
@@ -1088,16 +1052,27 @@ const loadCalendarAppointments = async (
 	return appointments;
 };
 
+type CalendarFailureContext = { observed_sequence: number; observed_sync_status: GoogleCalendarSyncStatus };
 type CalendarBatchResult =
-	| { event_row_id: string; outcome: 'synced'; google_event_id: string; synced_sequence: number }
-	| { event_row_id: string; outcome: 'deleted' | 'delete_requested' }
-	| {
-			event_row_id: string;
-			outcome: 'failed';
-			failure_category: string;
-			error_code: string;
-			next_attempt_at: string;
-	  };
+ | { event_row_id: string; outcome: 'synced'; google_event_id: string; synced_sequence: number }
+ | { event_row_id: string; outcome: 'deleted' | 'delete_requested' | 'released' }
+ | ({ event_row_id: string; outcome: 'uncertain'; error_code: string; next_attempt_at: string } & Partial<CalendarFailureContext>)
+ | ({ event_row_id: string; outcome: 'failed'; failure_category: string; error_code: string; next_attempt_at: string } & Partial<CalendarFailureContext>);
+
+const calendarChangeResult = (eventRowId: string, change: GoogleCalendarChange): CalendarBatchResult =>
+ change.outcome === 'synced'
+  ? { event_row_id: eventRowId, outcome: 'synced', google_event_id: change.googleEventId, synced_sequence: change.syncedSequence }
+  : { event_row_id: eventRowId, outcome: change.outcome };
+
+const calendarFailureResult = (event: ClaimedCalendarEvent['event'], appointment: CalendarEventAppointment | undefined,
+ error: unknown, now: Date): CalendarBatchResult => {
+ if (error instanceof JobBudgetExhaustedError) return { event_row_id: event.id, outcome: 'released' };
+ const failure = syncFailure(error, event.attempt_count, now);
+ const context = appointment ? { observed_sequence: appointment.calendar_sequence, observed_sync_status: event.sync_status } : {};
+ const result = { event_row_id: event.id, error_code: failure.remote.safeCode, next_attempt_at: failure.nextAttemptAt, ...context };
+ return failure.remote.outcomeUncertain ? { ...result, outcome: 'uncertain' }
+  : { ...result, outcome: 'failed', failure_category: failure.category };
+};
 
 /**
  * One scheduled calendar run. The claim shares the queue between practices and
@@ -1131,30 +1106,24 @@ export const processGoogleCalendarSyncBatch = async (job: ScheduledJobRun) => {
 		return token;
 	};
 	let finished = false;
+ let undispatched: ClaimedCalendarEvent[] = [];
 	try {
 		while (queue.length && job.budget.admits({ calls: calendarChunkCalls(Math.min(CALENDAR_CHUNK_SIZE, queue.length)) }, 1)) {
 			const chunk = queue.splice(0, CALENDAR_CHUNK_SIZE);
+   undispatched = chunk;
 			const appointments = await loadCalendarAppointments(job.supabase, chunk.map((item) => item.event.appointment_id));
-			const results = await Promise.all(
+			undispatched = [];
+   const results = await Promise.all(
 				chunk.map(async ({ event, connection }): Promise<CalendarBatchResult> => {
-					try {
-						const appointment = appointments.get(event.appointment_id);
-						if (!appointment) throw new GoogleCalendarRemoteError('transient', 'calendar_appointment_unavailable');
-						const change = await applyGoogleCalendarChange(event, appointment, () => accessTokenFor(connection), job.providerFetch, job.now);
-						return change.outcome === 'synced'
-							? { event_row_id: event.id, outcome: 'synced', google_event_id: change.googleEventId, synced_sequence: change.syncedSequence }
-							: { event_row_id: event.id, outcome: change.outcome };
-					} catch (error) {
-						const failure = syncFailure(error, event.attempt_count, job.now);
-						return {
-							event_row_id: event.id,
-							outcome: 'failed',
-							failure_category: failure.category,
-							error_code: failure.remote.safeCode,
-							next_attempt_at: failure.nextAttemptAt
-						};
-					}
-				})
+     const appointment = appointments.get(event.appointment_id);
+     try {
+      if (!appointment) throw new GoogleCalendarRemoteError('transient', 'calendar_appointment_unavailable');
+      const change = await applyGoogleCalendarChange(event, appointment, () => accessTokenFor(connection), job.providerFetch, job.now);
+      return calendarChangeResult(event.id, change);
+     } catch (error) {
+      return calendarFailureResult(event, appointment, error, job.now);
+     }
+    })
 			);
 			finished = queue.length === 0;
 			const { data, error } = await job.supabase.rpc('complete_google_calendar_sync_batch', {
@@ -1164,7 +1133,7 @@ export const processGoogleCalendarSyncBatch = async (job: ScheduledJobRun) => {
 				p_finish: finished
 			});
 			if (error) throw error;
-			const completion = readCalendarCompletion(data);
+			const completion = readCalendarCompletion(data, chunk.map(item => item.event.id));
 			summary.released += completion.released;
 			for (const result of completion.results) {
 				if (result.status === 'active') summary.active += 1;
@@ -1190,19 +1159,19 @@ export const processGoogleCalendarSyncBatch = async (job: ScheduledJobRun) => {
 		}
 		return summary;
 	} catch (error) {
-		// Abandoned claims expire on their own; releasing them now only saves the wait.
-		try {
-			job.budget.enterFinalization();
-			const { error: releaseError } = await job.supabase.rpc('complete_google_calendar_sync_batch', {
-				p_claim_token: claimToken,
-				p_now: now,
-				p_results: [],
-				p_finish: true
-			});
-			if (releaseError) throw releaseError;
-		} catch (releaseError) {
-			logServerFailure('Error cerrando el lote de Google Calendar', releaseError);
-		}
+  // Only these events are known not to have started provider work. The current
+  // chunk may already be committed despite a lost/unreadable SQL reply.
+  const unstarted = [...undispatched, ...queue];
+  if (unstarted.length) try {
+   job.budget.enterFinalization();
+   const { error: releaseError } = await job.supabase.rpc('complete_google_calendar_sync_batch', {
+    p_claim_token: claimToken, p_now: now,
+    p_results: unstarted.map(item => ({ event_row_id: item.event.id, outcome: 'released' })), p_finish: false
+   });
+   if (releaseError) throw releaseError;
+  } catch (releaseError) {
+   logServerFailure('Error liberando trabajo no iniciado de Google Calendar', releaseError);
+  }
 		throw error;
 	}
 };
@@ -1223,11 +1192,7 @@ export const processAppointmentGoogleCalendarSync = async (
 	if (!data || !isPendingGoogleCalendarStatus(String(data.sync_status))) {
 		return { status: data?.sync_status ? String(data.sync_status) : 'not_connected' };
 	}
-	const claimedAt = data.claimed_at ? new Date(String(data.claimed_at)).getTime() : Number.NaN;
 	const now = options.now ?? new Date();
-	if (Number.isFinite(claimedAt) && claimedAt > now.getTime() - 10 * 60 * 1000) {
-		return { status: String(data.sync_status) };
-	}
 	return processGoogleCalendarEvent(supabase, String(data.id), fetchFn, { ...options, now });
 };
 
