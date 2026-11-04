@@ -17,17 +17,9 @@ vi.mock('$lib/server/integrations/public/google-calendar', () => ({
 
 const { GET } = await import('./+server');
 
-const supabase = {
-	from: () => {
-		const chain: any = {};
-		for (const method of ['select', 'eq']) chain[method] = () => chain;
-		chain.maybeSingle = async () => ({
-			data: { confirmation_token: 'appointment-token' },
-			error: null
-		});
-		return chain;
-	}
-};
+const token='a'.repeat(64);
+const access={token,legacy:false};
+const supabase={from:vi.fn(()=>{throw new Error('Calendar identity lookup must not recreate management access');})};
 
 const callGet = (query: string) =>
 	GET({
@@ -39,7 +31,7 @@ beforeEach(() => {
 	vi.clearAllMocks();
 	mocks.createSupabaseAdminClient.mockResolvedValue(supabase);
 	mocks.consumeGoogleCalendarOAuthAttempt.mockResolvedValue({
-		attemptId: 'attempt',
+		attemptId: 'attempt', access,
 		businessId: 'business',
 		appointmentId: 'appointment',
 		codeVerifier: 'verifier',
@@ -57,8 +49,9 @@ describe('callback OAuth Google Calendar', () => {
 	it('consume state antes de intercambiar el código y vuelve sin credenciales en la URL', async () => {
 		const response = await callGet('state=opaque-state&code=authorization-code');
 		expect(response.status).toBe(303);
+  expect(supabase.from).not.toHaveBeenCalled();
 		expect(response.headers.get('location')).toBe(
-			'/turno/appointment-token?calendar=connected'
+			`/gestion/${token}?calendar=connected`
 		);
 		expect(response.headers.get('location')).not.toContain('authorization-code');
 		expect(response.headers.get('location')).not.toContain('opaque-state');
@@ -83,7 +76,7 @@ describe('callback OAuth Google Calendar', () => {
 	it('una negativa del usuario no crea ni modifica eventos', async () => {
 		const response = await callGet('state=opaque-state&error=access_denied');
 		expect(response.headers.get('location')).toBe(
-			'/turno/appointment-token?calendar=cancelled'
+			`/gestion/${token}?calendar=cancelled`
 		);
 		expect(mocks.authorizeGoogleCalendarAppointment).not.toHaveBeenCalled();
 		expect(mocks.processGoogleCalendarEvent).not.toHaveBeenCalled();
@@ -93,7 +86,7 @@ describe('callback OAuth Google Calendar', () => {
 		mocks.processGoogleCalendarEvent.mockResolvedValue({ status: 'pending_create' });
 		const response = await callGet('state=opaque-state&code=authorization-code');
 		expect(response.headers.get('location')).toBe(
-			'/turno/appointment-token?calendar=preparing'
+			`/gestion/${token}?calendar=preparing`
 		);
 	});
 
@@ -111,4 +104,17 @@ describe('callback OAuth Google Calendar', () => {
 			consoleError.mockRestore();
 		}
 	});
+ it('returns to the original legacy channel only for an originally legacy attempt',async()=>{
+  mocks.consumeGoogleCalendarOAuthAttempt.mockResolvedValueOnce({access:{token,legacy:true},appointmentId:'appointment'});
+  const response=await callGet('state=opaque-state&error=access_denied');
+  expect(response.headers.get('location')).toBe(`/turno/${token}?calendar=cancelled`);
+  expect(supabase.from).not.toHaveBeenCalled();
+ });
+ it('does not send an external event when SQL revokes authority during the code exchange',async()=>{
+  mocks.authorizeGoogleCalendarAppointment.mockRejectedValueOnce({message:'APPOINTMENT_LINK_UNAVAILABLE'});
+  const response=await callGet('state=opaque-state&code=authorization-code');
+  expect(response.headers.get('location')).toBe(`/gestion/${token}?calendar=unavailable`);
+  expect(mocks.processGoogleCalendarEvent).not.toHaveBeenCalled();
+ });
+
 });

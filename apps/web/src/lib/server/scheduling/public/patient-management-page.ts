@@ -215,7 +215,7 @@ const load = async (event: RequestEvent) => {
 			notificationBrowser,
 			androidCalendarIntent: remindersEnabled ? androidCalendarIntentFor(appointment, device, userAgent, url) : null,
 			googleCalendar,
-			calendarMessage: getGoogleCalendarPublicMessage(url.searchParams.get('calendar'))
+			calendarMessage: getGoogleCalendarPublicMessage(url.searchParams.get('calendar'), googleCalendar)
 		};
 	} catch (error) {
 		logServerFailure('Error cargando turno publico', error);

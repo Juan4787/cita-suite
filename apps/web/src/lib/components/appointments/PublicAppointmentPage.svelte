@@ -1602,7 +1602,7 @@
 				<p class={form.success ? 'ux-alert ux-alert-success mt-5' : 'ux-alert mt-5'}>{form.message}</p>
 			{/if}
 			{#if data.calendarMessage}
-				<p class="ux-alert ux-alert-success mt-5">{data.calendarMessage}</p>
+				<p class="ux-alert mt-5">{data.calendarMessage}</p>
 			{/if}
 		</section>
 
