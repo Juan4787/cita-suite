@@ -11,7 +11,7 @@ const event = (legacy: boolean, form?: URLSearchParams) => ({ params: { token },
  getClientAddress: () => '127.0.0.1', request: new Request(`https://example.test/${legacy ? 'turno' : 'gestion'}/${token}/informacion`,
   form ? { method: 'POST', body: form } : undefined) }) as unknown as RequestEvent;
 beforeEach(() => {
- mocks.rpc.mockReset().mockImplementation(async (name: string) => ({ data: name === 'consume_booking_integration_read_limit' ? true : information, error: null }));
+ mocks.rpc.mockReset().mockImplementation(async (name: string) => ({ data: name === 'consume_booking_integration_read_limit' ? true : name === 'submit_public_booking_information' ? '50000000-0000-4000-8000-000000000003' : information, error: null }));
 });
 describe('Clinical information explicit access channel', () => {
  for (const legacy of [true, false]) {
@@ -39,6 +39,12 @@ describe('Clinical information explicit access channel', () => {
   const result = await createPublicInformationPage(false).actions.save(event(false, form));
   expect(result).toMatchObject({ status: 400, data: { saved: false, submitted: { answers: { coverage: 'Keep my answer' },
    requestKey: form.get('request_key'), schemaHash: information.schema_hash, version: 'initial', comment: 'Keep my comment' } } });
+ });
+ it('does not announce a committed submission when the RPC has no valid result, and preserves its request for recovery', async () => {
+  mocks.rpc.mockImplementation(async (name: string) => ({ data: name === 'consume_booking_integration_read_limit' ? true : name === 'submit_public_booking_information' ? null : information, error: null }));
+  const form = new URLSearchParams({ request_key: '50000000-0000-4000-8000-000000000001', schema_hash: information.schema_hash, version: 'initial', intake_coverage: 'Keep uncertain answer' });
+  const result = await createPublicInformationPage(false).actions.save(event(false, form));
+  expect(result).toMatchObject({ status: 400, data: { saved: false, message: expect.stringContaining('No pudimos comprobar el envío'), submitted: { requestKey: form.get('request_key'), answers: { coverage: 'Keep uncertain answer' } } } });
  });
  it('does not submit after SQL rejects the clinical read scope and shows no raw SQL details', async () => {
   mocks.rpc.mockImplementation(async (name: string) => name === 'get_public_booking_information'

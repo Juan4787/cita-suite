@@ -114,6 +114,7 @@ export const clinicalFileError = (
 	}
 
 	const message = errorText(error);
+ if(message.includes('CLINICAL_DOCUMENT_RESULT_UNCERTAIN'))return new ClinicalFileHttpError(503,'No pudimos comprobar si el documento quedó guardado. Volvé a intentar confirmarlo; tu turno se conserva.',{code:'OPERATION_FAILED'});
  if(message.includes('BOOKING_INFORMATION_UNAVAILABLE'))return new ClinicalFileHttpError(404,'El enlace del turno ya no permite esta carga. Contactá al consultorio.',{code:'FILE_UNAVAILABLE'});
  if(message.includes('RADIOGRAPH_UPLOAD_INVALID'))return new ClinicalFileHttpError(400,'Revisá el nombre, el formato y el tamaño del archivo.',{code:'INVALID_METADATA'});
     if(message.includes('CLINICAL_STORAGE_QUOTA'))return new ClinicalFileHttpError(409,'El consultorio no tiene espacio disponible para nuevas cargas. Tu turno y los archivos anteriores se conservan.',{code:'UPLOAD_LIMIT_REACHED'});

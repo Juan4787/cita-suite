@@ -53,6 +53,7 @@ A	apps/web/src/lib/server/patients/public/booking-documents.ts
 A	apps/web/src/lib/server/patients/public/booking-information-page.test.ts
 A	apps/web/src/lib/server/patients/public/booking-information-page.ts
 M	apps/web/src/lib/server/patients/public/booking-information.ts
+M	apps/web/src/lib/server/patients/public/clinical-files.ts
 A	apps/web/src/lib/server/scheduling/internal/management-contract.ts
 M	apps/web/src/lib/server/scheduling/public/appointments.test.ts
 M	apps/web/src/lib/server/scheduling/public/appointments.ts

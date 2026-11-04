@@ -46,6 +46,12 @@ describe('Patient document provider/SQL boundary',()=>{
   const body=await response.json();expect(body.ready).toBeUndefined();expect(body.message).toContain('Contactá al consultorio');
   expect(JSON.stringify(body)).not.toContain('BOOKING_INFORMATION_UNAVAILABLE');
  });
+ it('does not announce Ready for an empty completion response after valid provider verification',async()=>{
+  mocks.rpc.mockImplementation(async(name:string)=>({data:name==='get_public_patient_document_upload'?file:null,error:null}));
+  const response=await createPublicPatientDocumentCompletion(false)(event());
+  expect(response.status).toBe(503);
+  const body=await response.json();expect(body.ready).toBeUndefined();expect(body.message).toContain('Volvé a intentar confirmarlo');
+ });
  it('does not call completion when provider content differs from the declared image',async()=>{
   vi.mocked(globalThis.fetch).mockResolvedValueOnce(new Response(new Uint8Array(32)));
   const response=await createPublicPatientDocumentCompletion(false)(event());

@@ -28,6 +28,7 @@ export async function informationContext(event: RequestEvent) {
 
 export function informationErrorMessage(cause: unknown) {
   const message = cause instanceof Error ? cause.message : isRecord(cause) ? String(cause.message ?? '') : '';
+  if (message.includes('BOOKING_INFORMATION_RESULT_UNCERTAIN')) return 'No pudimos comprobar el envío. Conservamos tus datos. Volvé a intentar para comprobar si se guardó.';
   if (message.includes('BOOKING_INFORMATION_CHANGED')) return 'Las preguntas o las respuestas cambiaron. Recargá la página y revisá tus datos antes de continuar.';
   if (message.includes('BOOKING_INFORMATION_REQUEST_CONFLICT')) return 'Este envío ya se usó con otros datos. Revisá lo que quedó guardado antes de iniciar otro.';
   if (message.includes('BOOKING_PROFILE_DATA_INVALID')) return 'Revisá la edad o fecha de nacimiento ingresada antes de confirmar.';
