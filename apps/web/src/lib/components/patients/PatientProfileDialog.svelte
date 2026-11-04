@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import { onDestroy, untrack } from 'svelte';
+	import { onDestroy, tick, untrack } from 'svelte';
 	import type { SubmitFunction } from '@sveltejs/kit';
 	import type {
 		PatientDetailViewData,
@@ -15,6 +15,7 @@
 		permissions,
 		scope,
 		form,
+		focusEmail = false,
 		onCommitted
 	}: {
 		open: boolean;
@@ -22,6 +23,7 @@
 		permissions: PatientPermissions;
 		scope: string;
 		form?: PatientFormState | null;
+		focusEmail?: boolean;
 		onCommitted: () => void;
 	} = $props();
 	let editorPatient = $state(untrack(() => ({ ...patient })));
@@ -33,6 +35,9 @@
 		activeScope = untrack(() => scope);
 	let destroyed = false;
 	const currentYear = new Date().getFullYear();
+	function focusEmailField(node: HTMLInputElement) {
+		if (focusEmail) void tick().then(() => { if (node.isConnected) node.focus(); });
+	}
 	const revisionConflict = $derived(
 		Boolean(
 			form &&
@@ -165,6 +170,7 @@
 				<input
 					id="email"
 					name="email"
+					use:focusEmailField
 					type="email"
 					class="w-full rounded-xl border px-3 py-2 text-sm shadow-sm outline-none transition focus:border-info-primary-500 focus:ring-2 focus:ring-focus-info-primary-100 border-line-strong bg-surface text-fg placeholder:text-copy-subtle"
 					value={editorPatient.email ?? ''}

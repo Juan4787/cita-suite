@@ -6,7 +6,9 @@ import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async (event) => {
     const { params, setHeaders, url } = event;
-    setHeaders({ 'cache-control': 'no-store', 'referrer-policy': 'no-referrer', 'x-robots-tag': 'noindex, nofollow, noarchive' });
+    // The parent embed layout owns Referrer-Policy for every child route.
+    // SvelteKit rejects duplicate headers across nested load functions.
+    setHeaders({ 'cache-control': 'no-store', 'x-robots-tag': 'noindex, nofollow, noarchive' });
     if (!/^[a-f0-9]{64}$/.test(params.token)) error(404, 'No encontramos ese turno. Revisá el enlace que recibiste.');
     const { integration, embed } = await resolveBookingIntegrationRequest(event);
     const supabase = await createSupabaseAdminClient('odonto', event.fetch);

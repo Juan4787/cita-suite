@@ -12,7 +12,7 @@
 	} from '$lib/patients/history-contract';
 	import { page } from '$app/stores';
 	import { invalidate, replaceState } from '$app/navigation';
-	import { onDestroy, untrack } from 'svelte';
+	import { onDestroy, onMount, untrack } from 'svelte';
 	import Modal from '$lib/components/Modal.svelte';
 	import FollowUpComposer from '$lib/components/seguimientos/FollowUpComposer.svelte';
 	import RadiographsPanel from '$lib/components/patients/RadiographsPanel.svelte';
@@ -141,6 +141,9 @@
 	const openEditPatient = () => {
 		showEditModal = true;
 	};
+	onMount(() => {
+		if ($page.url.searchParams.get('editar') === 'correo' && permissions.canEditPatient) showEditModal = true;
+	});
 	const isArchived = $derived(
 		Boolean(isProfessional ? data.patient.professional_archived_at : data.patient.archived_at)
 	);
@@ -565,5 +568,6 @@
 
 
 <PatientProfileDialog bind:open={showEditModal} patient={data.patient} {permissions} {form}
+    focusEmail={$page.url.searchParams.get('editar') === 'correo'}
     scope={`${data.currentUserId ?? 'session'}:${data.role ?? ''}:${permissions.canEditPatient}:${permissions.canEditClinicalProfile}:${permissions.canReadClinicalProfile}`}
     onCommitted={markPatientRevisionUnverified} />

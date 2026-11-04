@@ -18,7 +18,7 @@ produccion_repositorio: github-secundaria:Juan4787/cita-suite-verificacion.git
 
 ## Etapa E — ejecución al 4 de noviembre
 
-E conserva autorización íntegra de implementación/pruebas/publicación: [plan 12.18–12.26](plans/propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada), [especificación](plans/etapa-e-correo-autogestion.md) y [registro activo](plans/ejecucion-etapa-e-20261103.md). E1/E2 sin publicar ni SQL E productivo. Veintiuna aprobada en SQL 41875359541: 15 grupos de observación, 18 de lease, 48 carreras/dos contraejemplos FK, doce esperas y regresiones/limpieza; tipos oficiales/digest cotejados e importados. Consumidores de calendario/retiro/métricas/PDF con 103 dirigidas de ocho suites aprobadas. Fast integrado 41876511206 aprobado: 1896 servidor/281 cliente, cero errores/avisos, arquitectura sin violaciones. Browser ampliado 41877197500 aprobado (dos marcas, descarga PDF real/autoridad/UID/métricas y clínica/Storage). SQL veintidós 41881667166 aprobada con fixture válida y tipos cotejados. Recuperación/lectores embed-detalle actualizado ahora usan gestión, 112 dirigidas aprobadas; fast anterior falló en dos anotaciones props, corregidas; preferencias E3 con 15 unidades/14 grupos SQL aprobados y tipos oficiales de veintitrés importados. Fast 41884508894 falló en inferencia del formulario, corregida; browser 41884513802 falló en dos contratos del arnés, corregidos. Obligación pública (veinticuatro) y 30 dirigidas servidor, SQL/client/browser nuevos pendientes; reinicio con archivos conservados y cliente local interrumpido. El browser anterior 41827075064 y fast 41827070902 conservan sólo sus revisiones/alcances. Seguir verificación integrada y retención OAuth/lectores/distribución/contacto/correo/E3–E6. Checkpoint E3.3. Producción V12b, ningún envío nuevo ni cierre E. P1/P2/P3 pospuestas por 12.26: no iniciarlas al cerrar E; avisar y entregar documentación detallada. Zoho OAuth administrativo persiste; envío/webhook/recepción/integración siguen pendientes.
+E conserva autorización íntegra de implementación/pruebas/publicación: [plan 12.18–12.26](plans/propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada), [especificación](plans/etapa-e-correo-autogestion.md) y [registro activo](plans/ejecucion-etapa-e-20261103.md). E1/E2/E3 sin publicar ni SQL E productivo. Veinticuatro migraciones aprobadas en SQL 41887356962: once grupos de email público requerido, catorce de preferencias y regresiones anteriores, 48 carreras/dos contraejemplos FK y doce esperas; tipos/digest oficiales cotejados. Fast integrado 41887362821 aprobado: 1920 servidor/282 cliente, cero errores/avisos, arquitectura sin violaciones. Browser 41922591151: preferencias aprobadas (Auth/SQL, conflicto, nativo y cinco anchos/dos modos); integración pasó la negativa HTTP de email y recuperación, pero falló al abrir el comprobante virtual. Se reprodujo una duplicación de Referrer-Policy entre layout/página; corregida con regresión roja/verde en ambos órdenes y apertura directa añadida al browser. Aviso de recepción/editor existente implementados, 15 dirigidas servidor aprobadas junto con navegación; cliente/browser nuevos pendientes. Evidencia anterior válida sólo para sus revisiones/alcances. Seguir recomprobación focalizada y contacto/distribución/altas informadas/SN14/correo/E3–E6. Checkpoint E3.5. Producción V12b, ningún envío nuevo ni cierre E. P1/P2/P3 pospuestas por 12.26: no iniciarlas al cerrar E; avisar y entregar documentación detallada. Zoho OAuth administrativo persiste; envío/webhook/recepción/integración siguen pendientes.
 
 ## Código que difiere de producción
 
@@ -32,6 +32,7 @@ A	apps/web/e2e/email-preferences.spec.ts
 M	apps/web/e2e/helpers/owned-appointment-fixture.ts
 A	apps/web/e2e/patient-management-clinical.spec.ts
 A	apps/web/e2e/patient-management.spec.ts
+A	apps/web/e2e/reception-email.spec.ts
 A	apps/web/e2e/staff-management.spec.ts
 M	apps/web/src/hooks.server.test.ts
 M	apps/web/src/hooks.server.ts
@@ -41,10 +42,13 @@ M	apps/web/src/lib/booking/PatientDocumentUpload.svelte
 M	apps/web/src/lib/booking/PublicBookingConfirmation.svelte
 M	apps/web/src/lib/booking/PublicBookingFlow.client.test.ts
 A	apps/web/src/lib/booking/PublicInformationPage.svelte
+M	apps/web/src/lib/components/agenda/ManualAppointmentWizard.client.test.ts
+M	apps/web/src/lib/components/agenda/ManualAppointmentWizard.svelte
 A	apps/web/src/lib/components/appointments/PatientManagementPanel.client.test.ts
 A	apps/web/src/lib/components/appointments/PatientManagementPanel.svelte
 A	apps/web/src/lib/components/appointments/PublicAppointmentPage.svelte
 A	apps/web/src/lib/components/appointments/RescheduleNoticePage.svelte
+M	apps/web/src/lib/components/patients/PatientProfileDialog.svelte
 A	apps/web/src/lib/patients/public-booking-information.ts
 M	apps/web/src/lib/scheduling/booking-view.ts
 A	apps/web/src/lib/scheduling/email-policy.ts
@@ -124,10 +128,13 @@ A	apps/web/src/routes/gestion/[token]/reprogramado/+page.svelte
 M	apps/web/src/routes/oauth/google-calendar/callback/+server.ts
 M	apps/web/src/routes/oauth/google-calendar/callback/callback.server.test.ts
 M	apps/web/src/routes/odonto/agenda/+page.server.ts
+M	apps/web/src/routes/odonto/agenda/+page.svelte
 M	apps/web/src/routes/odonto/agenda/agenda-day.server.test.ts
+A	apps/web/src/routes/odonto/agenda/agenda-email-warning.server.test.ts
 M	apps/web/src/routes/odonto/configuracion/+page.svelte
 A	apps/web/src/routes/odonto/configuracion/correo/+page.server.ts
 A	apps/web/src/routes/odonto/configuracion/correo/+page.svelte
+M	apps/web/src/routes/odonto/pacientes/[id]/+page.svelte
 M	apps/web/src/routes/odonto/turnos/[appointmentId]/+page.server.ts
 M	apps/web/src/routes/odonto/turnos/[appointmentId]/+page.svelte
 M	apps/web/src/routes/odonto/turnos/[appointmentId]/appointment-detail.server.test.ts

@@ -23,7 +23,7 @@ type WizardPatient = {
 
 const renderWizard = (
 	phone: string,
-	options: { patients?: WizardPatient[]; initialPatientId?: string; availability?: unknown } = {}
+	options: { patients?: WizardPatient[]; initialPatientId?: string; availability?: unknown; emailWarning?: boolean } = {}
 ) => {
 	vi.stubGlobal(
 		'fetch',
@@ -72,6 +72,7 @@ const renderWizard = (
 		appointmentRequestId: 'a1000000-0000-4000-8000-000000000001',
 		canOperate: true,
 		form: {
+			emailWarning: options.emailWarning,
 			values: {
 				service_id: 'service-1',
 				professional_id: 'professional-1',
@@ -90,6 +91,19 @@ beforeEach(() => {
 	) {
 		this.dispatchEvent(new SubmitEvent('submit', { bubbles: true, cancelable: true }));
 	});
+});
+
+it('keeps the attempt while reception explicitly continues without email', async () => {
+ const user = userEvent.setup();
+ const { container } = renderWizard('3425048209', { emailWarning: true });
+ expect(screen.getByText(/Si no se registra el email/)).toBeInTheDocument();
+ const edit = screen.getByRole('link', { name: 'Agregar email', exact: true });
+ expect(edit).toHaveAttribute('href', '/odonto/pacientes/patient-1?editar=correo');
+ expect(edit).toHaveAttribute('target', '_blank');
+ await user.click(screen.getByRole('button', { name: 'Continuar sin email', exact: true }));
+ await waitFor(() => expect(new FormData(container.querySelector('form')!).get('email_warning_acknowledged')).toBe('true'));
+ expect(new FormData(container.querySelector('form')!).get('idempotency_key')).toBe('a1000000-0000-4000-8000-000000000001');
+ expect(HTMLFormElement.prototype.requestSubmit).toHaveBeenCalledOnce();
 });
 
 afterEach(() => {

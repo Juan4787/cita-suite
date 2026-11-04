@@ -317,6 +317,7 @@ test.describe('isolated booking integration', () => {
 		await virtual.getByLabel('Obra social y plan').fill('Particular');
 		await virtual.getByLabel('Edad', { exact: true }).fill('40');
 		await virtual.getByLabel('Obra social del perfil').fill('Particular');
+		const virtualAttempt = await virtual.locator('[name="idempotency_key"]').inputValue();
 		const phoneFrame = phone
 			.frames()
 			.find((item) => item.url().startsWith(fixture.appOrigin + '/embed/'))!;
@@ -332,6 +333,16 @@ test.describe('isolated booking integration', () => {
 		});
 		await virtual.getByRole('button', { name: 'Confirmar reserva', exact: true }).click();
 		await expect(virtual.getByRole('heading', { name: 'Tu turno quedó reservado' })).toBeVisible();
+		const virtualSaved = await db.from('appointments').select('id,status').eq('business_id', fixture.businessId).eq('creation_request_key', virtualAttempt);
+		expect(virtualSaved.error).toBeNull(); expect(virtualSaved.data).toHaveLength(1);
+		expect(virtualSaved.data![0].status).toBe('reserved');
+		// A direct GET executes the nested layout/page together, unlike a client
+		// navigation that may reuse its layout. Both must serve a private receipt.
+		const directVirtualReceipt = await request.get(phoneFrame.url());
+		expect(directVirtualReceipt.status()).toBe(200);
+		expect(directVirtualReceipt.headers()['referrer-policy']).toBe('no-referrer');
+		expect(directVirtualReceipt.headers()['cache-control']).toContain('no-store');
+		expect(directVirtualReceipt.headers()['x-robots-tag']).toBe('noindex, nofollow, noarchive');
 		await expect(
 			virtual.getByText('Instrucciones virtuales sintéticas: se coordina el acceso.')
 		).toBeVisible();
