@@ -102,6 +102,16 @@ begin
 		true
 	);
 	set local role authenticated;
+	-- The Data API grant is now closed for every staff role. Keep a separate
+	-- privileged write below to exercise the original row-trigger role guard.
+	begin
+		update public.appointments set status = 'confirmed' where id = v_appointment;
+		raise exception 'TEST_PROFESSIONAL_DIRECT_APPOINTMENT_UPDATE_ALLOWED';
+	exception when insufficient_privilege then
+		null;
+	end;
+	reset role;
+	set local role service_role;
 	begin
 		update public.appointments set status = 'confirmed' where id = v_appointment;
 		get diagnostics v_rows = row_count;
