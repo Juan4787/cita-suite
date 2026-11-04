@@ -85,16 +85,23 @@ for (const brand of ['cita-suite', 'natalia'] as const) {
    expect(f.sql(`select insurance from public.patients where id='${patient}';`)).toBe('Native coverage');
    phase='uncertain_form_response';
    await page.goto(`${path}/informacion`);
-   await page.getByLabel('Cobertura (opcional)',{exact:true}).fill('Uncertain response coverage');
+   const coverage=page.getByLabel('Cobertura (opcional)',{exact:true});
+   // Native behavior is checked above. This case deliberately exercises the
+   // enhanced handler: removal of SSR value is evidence that binding hydrated.
+   await expect(coverage).not.toHaveAttribute('value');
+   await coverage.fill('Uncertain response coverage');
+   await expect(coverage).toHaveValue('Uncertain response coverage');
    const key=await page.locator('input[name=request_key]').inputValue();
    let consumed=false;
-   await page.route(`**${path}/informacion*`,async route=>{
+   await page.route(url=>url.pathname===`${path}/informacion`,async route=>{
     if(route.request().method()!=='POST'||consumed) return route.continue();
+    expect(route.request().headers()['x-sveltekit-action']).toBe('true');
     consumed=true;
     const committed=await route.fetch();expect(committed.status()).toBe(200);
     await route.fulfill({status:200,contentType:'application/json',body:'unreadable committed action response'});
    });
    await page.getByRole('button',{name:'Guardar información',exact:true}).click();
+   await expect.poll(()=>consumed,{message:'The actual enhanced POST must be intercepted after committing'}).toBe(true);
    await expect(page.getByRole('alert')).toContainText('No pudimos comprobar el envío');
    await expect(page.getByRole('alert')).toBeFocused();
    await expect(page.locator('input[name=request_key]')).toHaveValue(key);
