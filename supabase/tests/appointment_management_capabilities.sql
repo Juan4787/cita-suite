@@ -1,6 +1,6 @@
 -- E1: revocable management, independent from calendar identity. No real email.
 begin;
-select extensions.plan(20);
+select extensions.plan(27);
 create temporary table management_access_fixture(label text primary key,value text not null);
 create function pg_temp.access_value(p_label text) returns text language sql as $$
  select value from management_access_fixture where label=p_label
@@ -173,5 +173,71 @@ select extensions.ok(not has_table_privilege('anon','private.appointment_managem
  '19. No Data API role reads/writes capability digests or operation receipts directly');
 select extensions.is((select generation from public.appointment_management_states where business_id=pg_temp.access_id('business')
  and appointment_id=pg_temp.access_id('appointment')),2::bigint,'20. All rejected/failed operations leave the one successful revocation intact');
+-- Email is a delivery address, not patient identity. Changing it revokes every
+-- older management link, including legacy and A -> B -> A, without altering the
+-- calendar token or invalidating another patient sharing that family address.
+do $$ declare a public.appointments; fresh uuid; sibling uuid; sibling_appointment uuid; begin
+ select * into strict a from public.appointments where id=pg_temp.access_id('appointment');
+ insert into public.appointments(business_id,patient_id,professional_id,service_id,starts_at,ends_at,blocking_starts_at,blocking_ends_at,
+  status,source,service_name_snapshot,professional_name_snapshot,duration_minutes_snapshot)
+ values(a.business_id,a.patient_id,a.professional_id,a.service_id,a.starts_at+interval '2 days',a.ends_at+interval '2 days',
+  a.blocking_starts_at+interval '2 days',a.blocking_ends_at+interval '2 days','reserved','manual','Contact service','Contact professional',60)
+ returning id,confirmation_token into fresh,a.confirmation_token;
+ insert into management_access_fixture values('contact_appointment',fresh::text),('contact_legacy',a.confirmation_token),
+  ('contact_before',public.issue_appointment_management_capability(a.business_id,fresh,1));
+ insert into public.patients(owner_id,business_id,full_name,email)
+ values(pg_temp.access_id('owner'),a.business_id,'Separate family patient','family-a@example.test') returning id into sibling;
+ insert into public.appointments(business_id,patient_id,professional_id,service_id,starts_at,ends_at,blocking_starts_at,blocking_ends_at,
+  status,source,service_name_snapshot,professional_name_snapshot,duration_minutes_snapshot)
+ values(a.business_id,sibling,a.professional_id,a.service_id,a.starts_at+interval '3 days',a.ends_at+interval '3 days',
+  a.blocking_starts_at+interval '3 days',a.blocking_ends_at+interval '3 days','reserved','manual','Contact service','Contact professional',60)
+ returning id into sibling_appointment;
+ insert into management_access_fixture values('family_capability',public.issue_appointment_management_capability(a.business_id,sibling_appointment,1));
+ update public.patients set email='family-a@example.test' where business_id=a.business_id and id=a.patient_id;
+end $$;
+select extensions.throws_ok($q$select pg_temp.access_resolve('contact_before')$q$,'P0001','APPOINTMENT_LINK_UNAVAILABLE',
+ '21. Adding or correcting email revokes previously issued management capabilities');
+select extensions.throws_ok($q$select pg_temp.access_resolve('contact_legacy',true)$q$,'P0001','APPOINTMENT_LINK_UNAVAILABLE',
+ '22. Email correction also closes the original legacy management token');
+insert into management_access_fixture values('contact_a',public.issue_appointment_management_capability(
+ pg_temp.access_id('business'),pg_temp.access_id('contact_appointment'),1));
+update public.patients set email='  FAMILY-A@example.test  ',activity_at=clock_timestamp()
+ where id=(select patient_id from public.appointments where id=pg_temp.access_id('contact_appointment'));
+select extensions.is(pg_temp.access_resolve('contact_a')->>'appointment_id',pg_temp.access_value('contact_appointment'),
+ '23. Case/outer spaces and unrelated activity do not revoke a still identical delivery address');
+update public.patients set email='family-b@example.test'
+ where id=(select patient_id from public.appointments where id=pg_temp.access_id('contact_appointment'));
+insert into management_access_fixture values('contact_b',public.issue_appointment_management_capability(
+ pg_temp.access_id('business'),pg_temp.access_id('contact_appointment'),1));
+update public.patients set email='family-a@example.test'
+ where id=(select patient_id from public.appointments where id=pg_temp.access_id('contact_appointment'));
+do $$ declare label text; begin
+ foreach label in array array['contact_before','contact_legacy','contact_a','contact_b','failure_capability'] loop
+  begin
+   perform pg_temp.access_resolve(label,label='contact_legacy');
+   raise exception 'E1_EMAIL_ABA_RESTORED_OLD_ACCESS';
+  exception when others then if sqlerrm is distinct from 'APPOINTMENT_LINK_UNAVAILABLE' then raise; end if; end;
+ end loop;
+end $$;
+select extensions.pass('24. A -> B -> A never revives older links, including another appointment of the same patient');
+select extensions.ok(pg_temp.access_resolve('family_capability')->>'appointment_id' is not null
+ and (select confirmation_token from public.appointments where id=pg_temp.access_id('contact_appointment'))=pg_temp.access_value('contact_legacy'),
+ '25. Shared family addresses stay separate identities and stable calendar tokens do not rotate');
+insert into management_access_fixture values('contact_current',public.issue_appointment_management_capability(
+ pg_temp.access_id('business'),pg_temp.access_id('contact_appointment'),1));
+do $$ declare patient uuid; begin
+ select patient_id into strict patient from public.appointments where id=pg_temp.access_id('contact_appointment');
+ begin
+  update public.patients set email='rolled-back@example.test' where id=patient;
+  raise exception 'E1_PROVOKED_CONTACT_ROLLBACK';
+ exception when others then if sqlerrm is distinct from 'E1_PROVOKED_CONTACT_ROLLBACK' then raise; end if; end;
+ end;
+end $$;
+select extensions.is(pg_temp.access_resolve('contact_current')->>'appointment_id',pg_temp.access_value('contact_appointment'),
+ '26. A rolled back patient edit does not revoke current access or leave a partial generation');
+update public.patients set email=null
+ where id=(select patient_id from public.appointments where id=pg_temp.access_id('contact_appointment'));
+select extensions.throws_ok($q$select pg_temp.access_resolve('contact_current')$q$,'P0001','APPOINTMENT_LINK_UNAVAILABLE',
+ '27. Removing an email also revokes the previously delivered management credential');
 select * from extensions.finish();
 rollback;
