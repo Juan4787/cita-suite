@@ -107,6 +107,7 @@ A	supabase/tests/migrations/20261103010000_appointment_management_foundation.sql
 A	supabase/tests/patient_appointment_management_commands.sql
 A	supabase/tests/patient_appointment_management_recovery.sql
 A	supabase/tests/patient_appointment_management_view.sql
+M	supabase/tests/patient_change_history_atomic.sql
 M	supabase/tests/patient_identity_atomicity.sql
 M	supabase/tests/run_deposit_expiry_concurrency.sh
 M	supabase/tests/run_patient_identity_idempotency_concurrency.sh
