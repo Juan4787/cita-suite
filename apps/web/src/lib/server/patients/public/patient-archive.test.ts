@@ -86,4 +86,12 @@ describe('patient archive operation with typed SDK and simulated HTTP', () => {
 		});
 		expect(calls).toHaveLength(1);
 	});
+	it('keeps an atomic contact conflict distinct from uncertain failure', async () => {
+		vi.spyOn(console, 'error').mockImplementation(() => {});
+		const { supabase, calls } = clientFor(Response.json({ code: 'P0001', message: 'PATIENT_UPDATE_CONFLICT' }, { status: 400 }));
+		await expect(setPatientArchived({ supabase, context: patientContext(), patientId, archived: true })).rejects.toMatchObject({
+			kind: 'conflict', message: 'La ficha está siendo actualizada. Revisá su estado y volvé a intentar.'
+		});
+		expect(calls).toHaveLength(1);
+	});
 });
