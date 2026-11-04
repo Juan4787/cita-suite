@@ -4,8 +4,33 @@
   import PatientDocumentUpload from "$lib/booking/PatientDocumentUpload.svelte";
   import BookingAppearance from "$lib/booking/BookingAppearance.svelte";
   import { enhance } from "$app/forms";
+  import { tick } from "svelte";
+  import type { SubmitFunction } from "@sveltejs/kit";
   let { data, form }: { data: PublicInformationPageData; form?: PublicInformationFeedback | null } = $props();
   let busy = $state(false);
+  let transportMessage = $state("");
+  let feedback: HTMLParagraphElement | undefined;
+  const feedbackText = $derived(transportMessage || form?.message || "");
+  const feedbackSaved = $derived(!transportMessage && form?.saved === true);
+  const submitInformation: SubmitFunction = () => {
+    busy = true;
+    transportMessage = "";
+    return async ({ update, result }) => {
+      try {
+        if (result.type === "error") {
+          // The action may already have committed. Keep the same request key,
+          // accepted version and answers so retry recovers that exact submission.
+          transportMessage = "No pudimos comprobar el envío. Conservamos tus datos. Volvé a intentar para comprobar si se guardó.";
+        } else {
+          await update({ reset: false, invalidateAll: result.type === "success" });
+        }
+        await tick();
+        feedback?.focus();
+      } finally {
+        busy = false;
+      }
+    };
+  };
   const initialAnswers = () =>
     Object.fromEntries(
       data.info.schema.map((field: { id: string }) => [
@@ -38,8 +63,8 @@
 <main class="mx-auto max-w-2xl space-y-6 px-5 py-8">
   <a class="ux-btn-secondary" href={data.managementUrl}>Volver a mi turno</a>
   <div><h1 class="ux-title">Información para tu consulta</h1><p class="mt-3 text-fg-65 bk-muted">Tu turno ya está reservado. Podés ampliar los datos para la profesional. Los campos configurados se guardan automáticamente en tu perfil y los envíos anteriores se conservan.</p></div>
-  {#if form?.message}<p class={form.saved ? 'ux-success' : 'ux-error'} role={form.saved ? 'status' : 'alert'}>{form.message}</p>{/if}
-  <form method="POST" action="?/save" use:enhance={() => { busy = true; return async ({ update,result }) => { try{await update({ reset: false,invalidateAll:result.type==='success' });}finally{busy = false;} }; }} class="ux-soft-card space-y-4 p-5">
+  {#if feedbackText}<p bind:this={feedback} tabindex="-1" class={feedbackSaved ? 'ux-success' : 'ux-error'} role={feedbackSaved ? 'status' : 'alert'}>{feedbackText}</p>{/if}
+  <form method="POST" action="?/save" use:enhance={submitInformation} class="ux-soft-card space-y-4 p-5">
     <fieldset disabled={busy} class="space-y-4">
     <input type="hidden" name="request_key" value={form?.submitted?.requestKey ?? data.requestKey} /><input type="hidden" name="schema_hash" value={form?.submitted?.schemaHash ?? data.info.schema_hash} /><input type="hidden" name="version" value={form?.submitted?.version ?? data.info.version} />
     {#each data.info.schema as field (field.id)}

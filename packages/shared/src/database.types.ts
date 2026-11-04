@@ -4324,54 +4324,104 @@ export type Database = {
           thumbnail_path: string
         }[]
       }
-      begin_public_patient_document_upload: {
-        Args: {
-          p_bytes: number
-          p_filename: string
-          p_mime: string
-          p_note?: string
-          p_request_id: string
-          p_sha256: string
-          p_token: string
-        }
-        Returns: {
-          appointment_id: string | null
-          business_id: string
-          bytes: number | null
-          client_request_id: string | null
-          created_at: string
-          created_by: string | null
-          deleted_at: string | null
-          deleted_by: string | null
-          drive_file_id: string | null
-          failure_code: string | null
-          id: string
-          integrity_status: string
-          mime_type: string | null
-          note: string | null
-          original_filename: string | null
-          owner_id: string | null
-          patient_id: string
-          ready_at: string | null
-          restored_at: string | null
-          restored_by: string | null
-          sha256: string | null
-          source: string
-          status: string
-          storage_bucket: string | null
-          storage_path: string | null
-          storage_provider: string
-          taken_at: string | null
-          thumbnail_path: string | null
-          uploaded_by: string | null
-        }
-        SetofOptions: {
-          from: "*"
-          to: "patient_radiographs"
-          isOneToOne: true
-          isSetofReturn: false
-        }
-      }
+      begin_public_patient_document_upload:
+        | {
+            Args: {
+              p_bytes: number
+              p_filename: string
+              p_mime: string
+              p_note?: string
+              p_request_id: string
+              p_sha256: string
+              p_token: string
+            }
+            Returns: {
+              appointment_id: string | null
+              business_id: string
+              bytes: number | null
+              client_request_id: string | null
+              created_at: string
+              created_by: string | null
+              deleted_at: string | null
+              deleted_by: string | null
+              drive_file_id: string | null
+              failure_code: string | null
+              id: string
+              integrity_status: string
+              mime_type: string | null
+              note: string | null
+              original_filename: string | null
+              owner_id: string | null
+              patient_id: string
+              ready_at: string | null
+              restored_at: string | null
+              restored_by: string | null
+              sha256: string | null
+              source: string
+              status: string
+              storage_bucket: string | null
+              storage_path: string | null
+              storage_provider: string
+              taken_at: string | null
+              thumbnail_path: string | null
+              uploaded_by: string | null
+            }
+            SetofOptions: {
+              from: "*"
+              to: "patient_radiographs"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+        | {
+            Args: {
+              p_bytes: number
+              p_filename: string
+              p_legacy: boolean
+              p_mime: string
+              p_note: string
+              p_request_id: string
+              p_sha256: string
+              p_token: string
+            }
+            Returns: {
+              appointment_id: string | null
+              business_id: string
+              bytes: number | null
+              client_request_id: string | null
+              created_at: string
+              created_by: string | null
+              deleted_at: string | null
+              deleted_by: string | null
+              drive_file_id: string | null
+              failure_code: string | null
+              id: string
+              integrity_status: string
+              mime_type: string | null
+              note: string | null
+              original_filename: string | null
+              owner_id: string | null
+              patient_id: string
+              ready_at: string | null
+              restored_at: string | null
+              restored_by: string | null
+              sha256: string | null
+              source: string
+              status: string
+              storage_bucket: string | null
+              storage_path: string | null
+              storage_provider: string
+              taken_at: string | null
+              thumbnail_path: string | null
+              uploaded_by: string | null
+            }
+            SetofOptions: {
+              from: "*"
+              to: "patient_radiographs"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
       business_allows_operation: {
         Args: { target_business_id: string }
         Returns: boolean
@@ -4567,15 +4617,26 @@ export type Database = {
         }
         Returns: string
       }
-      complete_public_patient_document_upload: {
-        Args: {
-          p_bytes: number
-          p_file_id: string
-          p_mime: string
-          p_token: string
-        }
-        Returns: string
-      }
+      complete_public_patient_document_upload:
+        | {
+            Args: {
+              p_bytes: number
+              p_file_id: string
+              p_mime: string
+              p_token: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_bytes: number
+              p_file_id: string
+              p_legacy: boolean
+              p_mime: string
+              p_token: string
+            }
+            Returns: string
+          }
       compute_business_subscription_status: {
         Args: {
           p_archived_at: string
@@ -5142,46 +5203,87 @@ export type Database = {
         }
         Returns: Json
       }
-      get_public_patient_document_upload: {
-        Args: { p_file_id: string; p_token: string }
-        Returns: {
-          appointment_id: string | null
-          business_id: string
-          bytes: number | null
-          client_request_id: string | null
-          created_at: string
-          created_by: string | null
-          deleted_at: string | null
-          deleted_by: string | null
-          drive_file_id: string | null
-          failure_code: string | null
-          id: string
-          integrity_status: string
-          mime_type: string | null
-          note: string | null
-          original_filename: string | null
-          owner_id: string | null
-          patient_id: string
-          ready_at: string | null
-          restored_at: string | null
-          restored_by: string | null
-          sha256: string | null
-          source: string
-          status: string
-          storage_bucket: string | null
-          storage_path: string | null
-          storage_provider: string
-          taken_at: string | null
-          thumbnail_path: string | null
-          uploaded_by: string | null
-        }
-        SetofOptions: {
-          from: "*"
-          to: "patient_radiographs"
-          isOneToOne: true
-          isSetofReturn: false
-        }
-      }
+      get_public_patient_document_upload:
+        | {
+            Args: { p_file_id: string; p_token: string }
+            Returns: {
+              appointment_id: string | null
+              business_id: string
+              bytes: number | null
+              client_request_id: string | null
+              created_at: string
+              created_by: string | null
+              deleted_at: string | null
+              deleted_by: string | null
+              drive_file_id: string | null
+              failure_code: string | null
+              id: string
+              integrity_status: string
+              mime_type: string | null
+              note: string | null
+              original_filename: string | null
+              owner_id: string | null
+              patient_id: string
+              ready_at: string | null
+              restored_at: string | null
+              restored_by: string | null
+              sha256: string | null
+              source: string
+              status: string
+              storage_bucket: string | null
+              storage_path: string | null
+              storage_provider: string
+              taken_at: string | null
+              thumbnail_path: string | null
+              uploaded_by: string | null
+            }
+            SetofOptions: {
+              from: "*"
+              to: "patient_radiographs"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+        | {
+            Args: { p_file_id: string; p_legacy: boolean; p_token: string }
+            Returns: {
+              appointment_id: string | null
+              business_id: string
+              bytes: number | null
+              client_request_id: string | null
+              created_at: string
+              created_by: string | null
+              deleted_at: string | null
+              deleted_by: string | null
+              drive_file_id: string | null
+              failure_code: string | null
+              id: string
+              integrity_status: string
+              mime_type: string | null
+              note: string | null
+              original_filename: string | null
+              owner_id: string | null
+              patient_id: string
+              ready_at: string | null
+              restored_at: string | null
+              restored_by: string | null
+              sha256: string | null
+              source: string
+              status: string
+              storage_bucket: string | null
+              storage_path: string | null
+              storage_provider: string
+              taken_at: string | null
+              thumbnail_path: string | null
+              uploaded_by: string | null
+            }
+            SetofOptions: {
+              from: "*"
+              to: "patient_radiographs"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
       get_public_practice_contact: { Args: { p_key: string }; Returns: Json }
       get_public_service_price_labels: {
         Args: {

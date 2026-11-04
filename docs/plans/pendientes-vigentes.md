@@ -2,7 +2,7 @@
 
 **Para qué existe:** Juan pidió el 31 de octubre de 2026 que no se pierda nada de lo que queda pendiente (plan de señas y avisos, sección 12.15). Esta es la lista única. Cada punto remite a su documento de origen, que conserva el detalle. Al cerrar un punto, se lo marca como hecho acá con la fecha y la evidencia, y se actualiza su documento de origen.
 
-**Última revisión:** 3 de noviembre de 2026, autorización íntegra de E (plan 12.20), preparación y regla de continuidad. Las otras entradas conservan sus fechas y evidencias. E1 tiene fundamentos en implementación/verificación, sin aceptación integral ni publicación; P1/P2/P3 pospuestas por el pedido posterior de plan 12.26, sin iniciarlas al cerrar E.
+**Última revisión:** 4 de noviembre de 2026, autorización íntegra de E (plan 12.20), preparación y regla de continuidad. Las otras entradas conservan sus fechas y evidencias. E1 tiene fundamentos en implementación/verificación, sin aceptación integral ni publicación; P1/P2/P3 pospuestas por el pedido posterior de plan 12.26, sin iniciarlas al cerrar E.
 
 ## 1. Lo que sigue para la entrega a Natalia
 
@@ -52,7 +52,7 @@ Fuente: `docs/clientes/natalia-frutos/informacion-20261029.md`, secciones 4 y 5,
    - **Economía:** aceptado gasto controlado de correo con un consultorio. KYC/compras de créditos a cargo de Juan, sin recarga automática ni cambios de infraestructura/Auth.
    - **Continúa pendiente de la clienta:** condiciones de devolución al cancelar y datos de la seña del punto 2.5. La pérdida acordada al reprogramar no define esas devoluciones.
    - **Conexión local terminada el 3 de noviembre:** Juan pidió acceso por terminal y conservarlo al reiniciar ([12.19](propuesta-senas-avisos-natalia.md#zoho-terminal-vigente)). OAuth, consultas y renovación comprobados; herramienta versionada y credenciales privadas persistentes. [Guía y comandos](../architecture/zoho-cpaas-terminal.md). No necesita una terminal abierta.
-   - **Ahora:** revisar arquitectura/invariantes y causas antes de ampliar E, según [12.24](propuesta-senas-avisos-natalia.md#calidad-ingenieria-e) y conclusiones del [registro activo](ejecucion-etapa-e-20261103.md); continuar E1–E6 por cuenta propia, con autorización de publicación/pruebas productivas [12.20](propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada). No pedir otra instrucción de inicio ni cuenta/cliente/credenciales si funcionan.
+   - **Ahora:** aplicar la revisión aceptada de ingeniería (sin repetir otra auditoría general), según [12.24](propuesta-senas-avisos-natalia.md#calidad-ingenieria-e) y conclusiones del [registro activo](ejecucion-etapa-e-20261103.md); quince migraciones aprobadas en SQL 41790517400, consumidores clínicos pendientes de fast/browser, luego auxiliares y E3–E6. Continuar E1–E6 por cuenta propia, con autorización de publicación/pruebas productivas [12.20](propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada). No pedir otra instrucción de inicio ni cuenta/cliente/credenciales si funcionan.
 
 ## 4. Lanzamiento y operación general
 

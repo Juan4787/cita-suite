@@ -2,7 +2,7 @@
 
 **Este es el registro único de qué historia y qué cambios están vigentes.** Se actualiza en el mismo paso de trabajo que cambia cualquiera de estos datos, nunca después. Eso incluye publicar, cambiar de rama, integrar, o dejar código distinto de producción. `node scripts/check-repo-sync.mjs`, desde la raíz, lo compara con Git, con GitHub y con la revisión que sirve producción, y falla ante cualquier diferencia.
 
-Última actualización: 3 de noviembre de 2026, autorización de ejecución íntegra de E y regla de continuidad. Decisiones iniciales resueltas; E1 en implementación y verificación SQL; producción y código servido sin cambios.
+Última actualización: 4 de noviembre de 2026. E sigue en implementación/verificación, sin publicación ni SQL productivo; autorización íntegra y regla de continuidad vigentes.
 
 ## Datos verificables
 
@@ -16,9 +16,9 @@ produccion_repositorio: github-secundaria:Juan4787/cita-suite-verificacion.git
 - **Producción** sirve V12b en `https://app.cita-suite.com.ar` y en `app.cita-suite.workers.dev`: el modo claro con el fondo `#f6f5f3`.
 - **La revisión publicada es antecesora de `main`.** Todo lo que corre en producción está en la historia de `main`.
 
-## Actualización documental de E — 2 de noviembre
+## Etapa E — ejecución al 4 de noviembre
 
-Se revisó E contra el código de main 45ad4dad3259386b445d3306ca66bb16bf51f285 y se incorporó al [plan 12.18](plans/propuesta-senas-avisos-natalia.md#etapa-e-vigente) su [especificación](plans/etapa-e-correo-autogestion.md), con Zoho y autogestión. Sólo documentación: no cambia el código distinto de producción listado abajo, la revisión servida ni su recuperación. El 3 de noviembre Juan indicó conectar Zoho desde la terminal y guardar el acceso para reinicios: [plan 12.19](plans/propuesta-senas-avisos-natalia.md#zoho-terminal-vigente) y [guía de operación](architecture/zoho-cpaas-terminal.md). OAuth local, consultas y renovación comprobados; herramienta guardada en Git y credenciales privadas persistentes fuera del repositorio. Juan autorizó después implementar/auditar/probar/publicar E íntegra: [plan 12.20](plans/propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada). El [registro activo](plans/ejecucion-etapa-e-20261103.md) contiene continuidad y los 97 casos; decisiones iniciales resueltas (subdominio por consultorio, correo activo por defecto y acciones contextuales), contrato de contexto E1 implementado y probado localmente, con integración inicial de rutas en fast 41710295801 (1783 servidor/277 cliente) y browser 41708652093 (dos recorridos, día elegido, prioridad/foco). La revisión metodológica posterior 12.24 precede a nuevas funciones; corrección de respuesta inválida comprobada en 50/50 dirigidos y fast general 41710295801. Ocho migraciones y .080 de permisos aprobadas en 41705610343 (773 pgTAP/18 scripts); tipos oficiales/digest cotejados. Sin envíos ni otra espera de autorización. La D celular quedó reemplazada por avisos internos; P1/P2/P3 están pospuestas por el pedido posterior 12.26, sin iniciarlas al cerrar E; [cola separada](plans/tareas-posteriores-a-e-20261103.md).
+E conserva autorización íntegra de implementación/pruebas/publicación: [plan 12.18–12.26](plans/propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada), [especificación](plans/etapa-e-correo-autogestion.md) y [registro activo](plans/ejecucion-etapa-e-20261103.md). Quince migraciones aprobadas en SQL **41790517400** (información/documentos, 29 carreras y doce esperas), tipos oficiales/digest cotejados; consumidores clínicos y recuperación de respuesta web incierta escritos, fast/navegador nuevos aún pendientes (E1.65). Fast integrado previo 41762158350 y browser personal 41757455635 conservan su alcance anterior. No hay implementación E publicada, migraciones E productivas ni correo nuevo. Zoho OAuth administrativo persiste localmente; envío/webhook/recepción/integración pendientes. P1/P2/P3 pospuestas por 12.26, sin iniciarlas al cerrar E; D celular está reemplazada por futura P3 interna. No hay otra espera de permiso.
 
 ## Código que difiere de producción
 
@@ -28,6 +28,7 @@ El chequeo compara esta lista con `git diff --name-status <produccion_revision> 
 A	apps/web/.impeccable/surfaces/gestion-del-turno.md
 M	apps/web/DESIGN.md
 M	apps/web/e2e/helpers/owned-appointment-fixture.ts
+A	apps/web/e2e/patient-management-clinical.spec.ts
 A	apps/web/e2e/patient-management.spec.ts
 A	apps/web/e2e/staff-management.spec.ts
 M	apps/web/src/hooks.server.test.ts
