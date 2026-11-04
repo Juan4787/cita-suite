@@ -47,6 +47,8 @@ A	apps/web/src/lib/scheduling/public-appointment.ts
 A	apps/web/src/lib/scheduling/reschedule-terms.test.ts
 A	apps/web/src/lib/scheduling/reschedule-terms.ts
 A	apps/web/src/lib/scheduling/staff-management.ts
+A	apps/web/src/lib/server/patients/public/booking-documents.test.ts
+A	apps/web/src/lib/server/patients/public/booking-documents.ts
 A	apps/web/src/lib/server/patients/public/booking-information-page.test.ts
 A	apps/web/src/lib/server/patients/public/booking-information-page.ts
 M	apps/web/src/lib/server/patients/public/booking-information.ts
@@ -69,6 +71,8 @@ A	apps/web/src/lib/server/scheduling/public/staff-management.test.ts
 A	apps/web/src/lib/server/scheduling/public/staff-management.ts
 A	apps/web/src/routes/gestion/[token]/+page.server.ts
 A	apps/web/src/routes/gestion/[token]/+page.svelte
+A	apps/web/src/routes/gestion/[token]/documentos/+server.ts
+A	apps/web/src/routes/gestion/[token]/documentos/[fileId]/complete/+server.ts
 A	apps/web/src/routes/gestion/[token]/informacion/+page.server.ts
 A	apps/web/src/routes/gestion/[token]/informacion/+page.svelte
 M	apps/web/src/routes/odonto/agenda/+page.server.ts
@@ -81,6 +85,8 @@ M	apps/web/src/routes/odonto/turnos/[appointmentId]/reschedule.server.test.ts
 M	apps/web/src/routes/odonto/turnos/[appointmentId]/slots/+server.ts
 M	apps/web/src/routes/turno/[token]/+page.server.ts
 M	apps/web/src/routes/turno/[token]/+page.svelte
+M	apps/web/src/routes/turno/[token]/documentos/+server.ts
+M	apps/web/src/routes/turno/[token]/documentos/[fileId]/complete/+server.ts
 M	apps/web/src/routes/turno/[token]/informacion/+page.server.ts
 M	apps/web/src/routes/turno/[token]/informacion/+page.svelte
 M	apps/web/src/routes/turno/[token]/page.client.test.ts
@@ -105,6 +111,7 @@ A	supabase/migrations/20261103110000_staff_creation_and_identity_authorization.s
 A	supabase/migrations/20261103120000_patient_email_contact_authority.sql
 A	supabase/migrations/20261103130000_patient_contact_editor_authority.sql
 A	supabase/migrations/20261104010000_patient_management_information_access.sql
+A	supabase/migrations/20261104020000_patient_management_document_access.sql
 M	supabase/templates/recovery.html
 M	supabase/tests/appointment_actor_revalidation.sql
 M	supabase/tests/appointment_deposits.sql
