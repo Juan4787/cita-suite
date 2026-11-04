@@ -1,7 +1,7 @@
 -- AC09: clinical information retains its own active/future/commercial scope.
 -- A stable calendar token is not replacement management authority.
 begin;
-select extensions.plan(14);
+select extensions.plan(15);
 create temporary table information_access_fixture(label text primary key,value text not null);
 create function pg_temp.iv(p_label text) returns text language sql as $$
  select value from information_access_fixture where label=p_label
@@ -81,6 +81,38 @@ select extensions.throws_ok($q$select public.get_public_patient_document_upload(
 update public.appointments set starts_at=now()+interval '20 days',ends_at=now()+interval '20 days 1 hour' where id=pg_temp.iid('appointment');
 insert into information_access_fixture select 'contact_pending', (public.begin_public_patient_document_upload(
  pg_temp.iv('capability'),gen_random_uuid(),'contact.pdf','application/pdf',100,repeat('c',64),null,false)).id::text;
+create function pg_temp.expire_document_during_audit() returns trigger language plpgsql as $$
+begin
+ if new.entity_id=pg_temp.iid('contact_pending') and new.action='clinical_document.patient_upload_completed' then
+  perform pg_sleep_until((select expires_at+interval '25 milliseconds' from private.appointment_management_capabilities
+   where token_hash=encode(extensions.digest(pg_temp.iv('capability'),'sha256'),'hex')));
+ end if;
+ return new;
+end $$;
+create trigger expire_document_during_audit before insert on public.audit_logs for each row execute function pg_temp.expire_document_during_audit();
+update private.appointment_management_capabilities set expires_at=clock_timestamp()+interval '1 second'
+ where token_hash=encode(extensions.digest(pg_temp.iv('capability'),'sha256'),'hex');
+do $$ declare before_file jsonb; before_patient jsonb; before_slots jsonb; before_budget jsonb; audit_count bigint; begin
+ select to_jsonb(f) into before_file from public.patient_radiographs f where id=pg_temp.iid('contact_pending');
+ select to_jsonb(p) into before_patient from public.patients p where id=pg_temp.iid('patient');
+ select jsonb_agg(to_jsonb(s)) into before_slots from public.clinical_upload_slots s where file_id=pg_temp.iid('contact_pending');
+ select to_jsonb(b) into before_budget from public.clinical_storage_budget b where singleton;
+ select count(*) into audit_count from public.audit_logs where entity_id=pg_temp.iid('contact_pending');
+ begin
+  perform public.complete_public_patient_document_upload(pg_temp.iv('capability'),pg_temp.iid('contact_pending'),100,'application/pdf',false);
+  raise exception 'EXPIRED_DOCUMENT_COMPLETION_COMMITTED';
+ exception when others then if sqlerrm is distinct from 'BOOKING_INFORMATION_UNAVAILABLE' then raise; end if; end;
+ if (select to_jsonb(f) from public.patient_radiographs f where id=pg_temp.iid('contact_pending')) is distinct from before_file
+  or (select to_jsonb(p) from public.patients p where id=pg_temp.iid('patient')) is distinct from before_patient
+  or (select jsonb_agg(to_jsonb(s)) from public.clinical_upload_slots s where file_id=pg_temp.iid('contact_pending')) is distinct from before_slots
+  or (select to_jsonb(b) from public.clinical_storage_budget b where singleton) is distinct from before_budget
+  or (select count(*) from public.audit_logs where entity_id=pg_temp.iid('contact_pending'))<>audit_count then
+  raise exception 'EXPIRED_DOCUMENT_COMPLETION_PARTIAL_EFFECTS'; end if;
+end $$;
+drop trigger expire_document_during_audit on public.audit_logs;
+select extensions.pass('Expiry during completion audit rolls back Ready, patient activity, upload lease, budget and audit');
+update private.appointment_management_capabilities set expires_at=clock_timestamp()+interval '1 day'
+ where token_hash=encode(extensions.digest(pg_temp.iv('capability'),'sha256'),'hex');
 update public.patients set email='changed-document@example.test' where id=pg_temp.iid('patient');
 select extensions.throws_ok($q$select public.get_public_patient_document_upload(pg_temp.iv('capability'),pg_temp.iid('current_file'),false)$q$,
  'P0001','BOOKING_INFORMATION_UNAVAILABLE','An old capability loses ready/pending document access on contact correction');

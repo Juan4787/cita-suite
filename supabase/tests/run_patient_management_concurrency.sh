@@ -18,6 +18,7 @@ holder_pid=''
 # to append a diagnostic log to itself; preserve the original caller's stderr.
 export PGOPTIONS='-c lock_timeout=7000 -c statement_timeout=12000'
 psql_command=(psql "$database_url" -X -v ON_ERROR_STOP=1 -qAt)
+previous_uploads=$("${psql_command[@]}" -c 'select uploads_enabled from public.clinical_storage_budget where singleton;')
 previous_deposit=$("${psql_command[@]}" -c 'select enabled from private.deposit_automation where singleton;')
 previous_runtime=$("${psql_command[@]}" -c "select reschedule_enabled||'|'||email_producer_enabled from private.appointment_management_runtime where singleton;")
 [[ "$previous_deposit" =~ ^[tf]$ && "$previous_runtime" =~ ^(true|false)\|(true|false)$ ]]
@@ -27,6 +28,7 @@ cleanup() {
  echo "Patient management cleanup begins, status $status." >&2
  if [[ -n "$holder_pid" ]]; then kill "$holder_pid" 2>/dev/null || true; wait "$holder_pid" 2>/dev/null || true; fi
  if ! "${psql_command[@]}" <<SQL
+update public.clinical_storage_budget set uploads_enabled='$previous_uploads'::boolean where singleton;
 update private.deposit_automation set enabled='$previous_deposit'::boolean;
 update private.appointment_management_runtime set reschedule_enabled='${previous_runtime%|*}'::boolean,email_producer_enabled='${previous_runtime#*|}'::boolean;
 drop schema if exists patient_management_race cascade;
@@ -370,6 +372,116 @@ do $$ declare a public.appointments; begin
 end $$;
 SQL
 
+# Two actual appointments of one patient must serialize BEFORE child FK key
+# shares. A pauses after its INSERT; B then waits on A. With the old late
+# patient lock, B also holds KEY SHARE and A's later UPDATE deadlocks.
+"${psql_command[@]}" <<'SQL'
+select patient_management_race.prepare_information('shared_patient_a');
+do $$ declare a public.appointments; second_id uuid; b uuid:='e3100000-0000-4000-8000-000000000001'; begin
+ select ap.* into strict a from public.appointments ap join patient_management_race.requests r on r.appointment_id=ap.id where r.label='shared_patient_a';
+ insert into public.appointments(business_id,patient_id,professional_id,service_id,starts_at,ends_at,status,source,
+  service_name_snapshot,professional_name_snapshot,duration_minutes_snapshot)
+ values(b,a.patient_id,a.professional_id,a.service_id,a.starts_at+interval '1 day',a.ends_at+interval '1 day','reserved','manual',
+  a.service_name_snapshot,a.professional_name_snapshot,a.duration_minutes_snapshot) returning id into second_id;
+ insert into public.appointment_patient_information_contexts(business_id,appointment_id,patient_id_snapshot,schema_snapshot)
+  select b,second_id,a.patient_id,schema_snapshot from public.appointment_patient_information_contexts where appointment_id=a.id;
+ insert into patient_management_race.requests(label,appointment_id,token,operation_id)
+  values('shared_patient_b',second_id,public.issue_appointment_management_capability(b,second_id,1),gen_random_uuid());
+ insert into patient_management_race.contact_snapshots select 'shared_patient_a',patient_management_race.domain_state('shared_patient_a');
+ insert into patient_management_race.contact_snapshots select 'shared_patient_b',patient_management_race.domain_state('shared_patient_b');
+end $$;
+create function patient_management_race.pause_first_information_after_fk() returns trigger language plpgsql as $$
+begin
+ if new.appointment_id=(select appointment_id from patient_management_race.requests where label='shared_patient_a') then
+  perform pg_advisory_xact_lock(34123,950);
+  for attempt in 1..240 loop
+   perform pg_stat_clear_snapshot();
+   if exists(select 1 from pg_stat_activity a where a.application_name='patient-management-other' and a.wait_event_type='Lock'
+    and pg_backend_pid()=any(pg_blocking_pids(a.pid))) then return new; end if;
+   perform pg_sleep(0.025);
+  end loop;
+  raise exception 'CLINICAL_INFORMATION_COMPETITOR_DID_NOT_WAIT';
+ end if;
+ return new;
+end $$;
+create trigger zz_information_after_fk after insert on public.appointment_intake_submissions
+ for each row execute function patient_management_race.pause_first_information_after_fk();
+SQL
+PGAPPNAME=clinical-information-first "${psql_command[@]}" >"$task_directory/holder.log" 2>&1 -c "select patient_management_race.submit_information('shared_patient_a');" &
+holder_pid=$!
+"${psql_command[@]}" <<'SQL'
+do $$ begin
+ for attempt in 1..240 loop
+  perform pg_stat_clear_snapshot();
+  if exists(select 1 from pg_locks where locktype='advisory' and classid=34123 and objid=950 and granted) then return; end if;
+  perform pg_sleep(0.025);
+ end loop;
+ raise exception 'CLINICAL_INFORMATION_FIRST_DID_NOT_REACH_CHILD_INSERT';
+end $$;
+SQL
+PGAPPNAME=patient-management-other "${psql_command[@]}" >"$task_directory/other.log" 2>&1 -c "select patient_management_race.submit_information('shared_patient_b');"
+wait "$holder_pid"; holder_pid=''
+"${psql_command[@]}" <<'SQL'
+drop trigger zz_information_after_fk on public.appointment_intake_submissions;
+do $$ declare a public.appointments; begin
+ select ap.* into strict a from public.appointments ap join patient_management_race.requests r on r.appointment_id=ap.id where r.label='shared_patient_a';
+ if (select count(*) from public.appointment_intake_submissions where patient_id=a.patient_id)<>2
+  or (select insurance from public.patients where id=a.patient_id) is distinct from 'shared_patient_b'
+  or exists(select 1 from patient_management_race.contact_snapshots s where s.label in ('shared_patient_a','shared_patient_b')
+   and s.value is distinct from patient_management_race.domain_state(s.label)) then
+  raise exception 'SHARED_PATIENT_CLINICAL_INFORMATION_PARTIAL_STATE'; end if;
+end $$;
+SQL
+echo 'PASS: two appointments of the same patient serialize before child FK insertion; both persist without deadlock.'
+
+# Completion after provider verification still decides authority in SQL, not
+# in a preceding HTTP read. Contact changes serialize at the actual patient row.
+"${psql_command[@]}" <<'SQL'
+update public.clinical_storage_budget set uploads_enabled=true where singleton;
+update public.clinical_business_storage_budget set uploads_enabled=true where business_id='e3100000-0000-4000-8000-000000000001';
+update public.businesses set patient_documents_enabled=true where id='e3100000-0000-4000-8000-000000000001';
+create table patient_management_race.document_requests(label text primary key,file_id uuid not null);
+create function patient_management_race.prepare_document(p_label text) returns void language plpgsql as $$
+declare r patient_management_race.requests; file public.patient_radiographs; begin
+ perform patient_management_race.prepare_information(p_label);
+ select * into strict r from patient_management_race.requests where label=p_label;
+ perform set_config('request.jwt.claim.role','service_role',true);
+ file:=public.begin_public_patient_document_upload(r.token,r.operation_id,'synthetic.pdf','application/pdf',100,repeat('a',64),null,false);
+ insert into patient_management_race.document_requests values(p_label,file.id);
+end $$;
+create function patient_management_race.complete_document(p_label text) returns uuid language plpgsql as $$
+declare r patient_management_race.requests; begin
+ select * into strict r from patient_management_race.requests where label=p_label;
+ perform set_config('request.jwt.claim.role','service_role',true);
+ return public.complete_public_patient_document_upload(r.token,(select file_id from patient_management_race.document_requests where label=p_label),100,'application/pdf',false);
+end $$;
+select patient_management_race.prepare_document('contact_before_document');
+SQL
+race contact_correction_before_document_completion \
+ "update public.patients set email='race-corrected@example.test' where id=(select a.patient_id from public.appointments a join patient_management_race.requests r on r.appointment_id=a.id where r.label='contact_before_document');" \
+ "select patient_management_race.complete_document('contact_before_document');" BOOKING_INFORMATION_UNAVAILABLE
+"${psql_command[@]}" <<'SQL'
+select patient_management_race.assert_corrected_contact('contact_before_document');
+do $$ declare f uuid:=(select file_id from patient_management_race.document_requests where label='contact_before_document'); begin
+ if (select status from public.patient_radiographs where id=f) is distinct from 'uploading'
+  or exists(select 1 from public.audit_logs where entity_id=f and action='clinical_document.patient_upload_completed')
+  or not exists(select 1 from public.clinical_upload_slots where file_id=f and expires_at>clock_timestamp()) then
+  raise exception 'CONTACT_DOCUMENT_COMPLETION_PARTIAL_STATE'; end if;
+end $$;
+select patient_management_race.prepare_document('document_before_contact');
+SQL
+race document_completion_before_contact_correction \
+ "select patient_management_race.complete_document('document_before_contact');" \
+ "update public.patients set email='race-corrected@example.test' where id=(select a.patient_id from public.appointments a join patient_management_race.requests r on r.appointment_id=a.id where r.label='document_before_contact');"
+"${psql_command[@]}" <<'SQL'
+select patient_management_race.assert_corrected_contact('document_before_contact');
+do $$ declare f uuid:=(select file_id from patient_management_race.document_requests where label='document_before_contact'); begin
+ if (select status from public.patient_radiographs where id=f) is distinct from 'ready'
+  or (select count(*) from public.audit_logs where entity_id=f and action='clinical_document.patient_upload_completed')<>1 then
+  raise exception 'AUTHORIZED_DOCUMENT_COMPLETION_NOT_PRESERVED'; end if;
+end $$;
+SQL
+
 deadlocks_after=$("${psql_command[@]}" -c 'select deadlocks from pg_stat_database where datname=current_database();')
 [[ "$deadlocks_before" == "$deadlocks_after" ]]
-echo 'PASS: thirteen patient, eight staff/cross-origin and five contact/clinical controlled races; no PostgreSQL deadlock.'
+echo 'PASS: twenty-nine controlled management/contact/clinical races; no PostgreSQL deadlock.'
