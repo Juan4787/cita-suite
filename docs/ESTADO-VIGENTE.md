@@ -42,6 +42,7 @@ A	apps/web/src/lib/components/appointments/PatientManagementPanel.svelte
 A	apps/web/src/lib/components/appointments/PublicAppointmentPage.svelte
 A	apps/web/src/lib/components/appointments/RescheduleNoticePage.svelte
 A	apps/web/src/lib/patients/public-booking-information.ts
+A	apps/web/src/lib/scheduling/email-policy.ts
 A	apps/web/src/lib/scheduling/patient-action-context.test.ts
 A	apps/web/src/lib/scheduling/patient-action-context.ts
 A	apps/web/src/lib/scheduling/patient-management-page.ts
@@ -74,6 +75,8 @@ M	apps/web/src/lib/server/scheduling/public/appointments.test.ts
 M	apps/web/src/lib/server/scheduling/public/appointments.ts
 M	apps/web/src/lib/server/scheduling/public/availability.test.ts
 M	apps/web/src/lib/server/scheduling/public/availability.ts
+A	apps/web/src/lib/server/scheduling/public/email-policy.test.ts
+A	apps/web/src/lib/server/scheduling/public/email-policy.ts
 A	apps/web/src/lib/server/scheduling/public/patient-management-flow.test.ts
 A	apps/web/src/lib/server/scheduling/public/patient-management-flow.ts
 A	apps/web/src/lib/server/scheduling/public/patient-management-page.test.ts
@@ -114,6 +117,9 @@ M	apps/web/src/routes/oauth/google-calendar/callback/+server.ts
 M	apps/web/src/routes/oauth/google-calendar/callback/callback.server.test.ts
 M	apps/web/src/routes/odonto/agenda/+page.server.ts
 M	apps/web/src/routes/odonto/agenda/agenda-day.server.test.ts
+M	apps/web/src/routes/odonto/configuracion/+page.svelte
+A	apps/web/src/routes/odonto/configuracion/correo/+page.server.ts
+A	apps/web/src/routes/odonto/configuracion/correo/+page.svelte
 M	apps/web/src/routes/odonto/turnos/[appointmentId]/+page.server.ts
 M	apps/web/src/routes/odonto/turnos/[appointmentId]/+page.svelte
 M	apps/web/src/routes/odonto/turnos/[appointmentId]/appointment-detail.server.test.ts
@@ -170,9 +176,11 @@ A	supabase/migrations/20261104060000_calendar_sync_lock_order.sql
 A	supabase/migrations/20261104070000_calendar_sync_leases.sql
 A	supabase/migrations/20261104080000_patient_calendar_observations.sql
 A	supabase/migrations/20261104090000_calendar_oauth_retention.sql
+A	supabase/migrations/20261104100000_appointment_email_policy_settings.sql
 M	supabase/templates/recovery.html
 M	supabase/tests/appointment_actor_revalidation.sql
 M	supabase/tests/appointment_deposits.sql
+A	supabase/tests/appointment_email_policy_settings.sql
 A	supabase/tests/appointment_management_capabilities.sql
 A	supabase/tests/appointment_management_foundation.sql
 A	supabase/tests/appointment_management_staff_authorization.sql
@@ -317,3 +325,5 @@ Lo ignora `.gitignore` y no se publica nunca: el repositorio es público.
 - E1.58: SQL 41761097542 aprobó doce migraciones, capacidades 33/comandos 40 y 24 carreras; tipos oficiales importados con digest cotejado. Roja del editor de contacto 41761295231 reproducida; .130 y nueve grupos/doce esperas escritos, trece migraciones pendientes. Producción intacta, sin correo nuevo.
 
 - E1.59: SQL 41762069407 aprobó trece migraciones, nueve grupos del editor/historia y doce esperas; tipos/digest cotejados. Fast 41762158350 aprobado (1808 servidor/280 cliente, sin errores/avisos). Nuevo contrato clínico auxiliar escrito, sin ejecutar; producción V12b, sin SQL aplicado ni envío nuevo.
+
+Preferencias E3 en desarrollo (4 de noviembre, E3.1): guardado transaccional y pantalla; 15 unidades del adaptador, sin SQL/tipos/fast/browser nuevos todavía. No acredita obligación efectiva de email, avisos, remitente listo ni envíos. Retención SQL veintidós aprobada en 41881667166 sobre 8b93846; producción sigue V12b sin SQL E.

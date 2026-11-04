@@ -30,6 +30,11 @@
       description: "Compartir la agenda y definir cómo pueden reservar",
     },
     {
+      href: "correo",
+      title: "Correo y autogestión",
+      description: "Comprobantes, recordatorios y condiciones para reprogramar",
+    },
+    {
       href: "documentos",
       title: "Archivos de pacientes",
       description: "Permisos de carga y espacio para archivos",
