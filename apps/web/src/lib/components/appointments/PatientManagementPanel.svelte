@@ -57,7 +57,7 @@
   {#if outcome.retrySameOperation && outcome.action}
    <form method="POST" action={`?/${outcome.action}`} class="mt-4" use:enhance={progressive}>
     {@render hiddenFields(outcome.submitted)}
-    <button class="ux-btn-primary w-full" disabled={busy}>{busy ? 'Comprobando…' : 'Volver a comprobar la misma acción'}</button>
+    <button class="ux-btn-primary w-full" disabled={busy}>{busy ? 'Reintentando…' : 'Reintentar la misma acción'}</button>
    </form>
   {/if}
  {:else if mode === 'cancel' && context.canCancel}
