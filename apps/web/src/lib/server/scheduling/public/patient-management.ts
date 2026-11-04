@@ -18,7 +18,8 @@ import { managementId as uuid, managementRevision as token, managementCounter as
 export { sameManagementInstant } from '../internal/management-contract';
 const nullableInstant = (value: unknown): string | null => value === null ? null : instant(value);
 
-export type PatientManagementAccess = { token: string; legacy: boolean };
+import type { PatientManagementAccess } from '$lib/scheduling/public-appointment';
+export type { PatientManagementAccess } from '$lib/scheduling/public-appointment';
 const invalid = (): never => { throw new InvalidDataContractError('appointment.management'); };
 const money = (value: unknown): string => typeof value === 'string' && /^(0|[1-9]\d{0,127})$/.test(value) ? value : invalid();
 

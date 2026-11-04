@@ -258,104 +258,37 @@ describe('identificadores y vencimiento de push', () => {
 });
 
 describe('persistencia de la suscripción', () => {
-	const appointment = {
-		id: 'apt-1',
-		business: { id: 'biz-1' }
-	} as any;
-	const payload = {
-		endpoint: 'https://push.example/ep',
-		keys: validSubscriptionKeys
-	};
-
-	it('conserva la verificación al recargar la misma suscripción sana', async () => {
-		const verifiedAt = '2026-06-11T11:00:00.000Z';
-		const { supabase, rpcCalls } = createSupabaseMock({}, {
-			data: {
-				subscription_id: 'sub-1',
-				endpoint: payload.endpoint,
-				verification_confirmed_at: verifiedAt,
-				provider_gone: false
-			},
-			error: null
-		});
-
-		const saved = await saveAppointmentPushSubscription(supabase, appointment, payload, 'Android');
-		expect(rpcCalls[0]).toMatchObject({
-			name: 'save_appointment_push_subscription',
-			args: {
-				target_business_id: 'biz-1',
-				target_appointment_id: 'apt-1',
-				target_endpoint: payload.endpoint,
-				target_p256dh: payload.keys.p256dh,
-				target_auth: payload.keys.auth,
-				target_user_agent: 'Android'
-			}
-		});
-		expect(saved.verifiedAt).toBe(verifiedAt);
-	});
-
-	it('devuelve una comprobación pendiente sin marcar muerto el dispositivo', async () => {
-		const { supabase } = createSupabaseMock({}, {
-			data: {
-				subscription_id: 'sub-1',
-				endpoint: payload.endpoint,
-				verification_confirmed_at: null,
-				provider_gone: false
-			},
-			error: null
-		});
-
-		const saved = await saveAppointmentPushSubscription(
-			supabase,
-			appointment,
-			payload,
-			'Android'
-		);
-		expect(saved).toMatchObject({ verifiedAt: null, providerGone: false });
-	});
-
-	it('reutiliza la confirmación del mismo dispositivo al asociarlo con otro turno', async () => {
-		const newAppointment = {
-			id: 'apt-2',
-			business: { id: 'biz-1' }
-		} as any;
-		const verifiedAt = '2026-06-11T11:00:00.000Z';
-		const { supabase, rpcCalls } = createSupabaseMock({}, {
-			data: {
-				subscription_id: 'sub-2',
-				endpoint: payload.endpoint,
-				verification_confirmed_at: verifiedAt,
-				provider_gone: false
-			},
-			error: null
-		});
-
-		const saved = await saveAppointmentPushSubscription(
-			supabase,
-			newAppointment,
-			payload,
-			'Android'
-		);
-
-		expect(rpcCalls[0].args?.target_appointment_id).toBe('apt-2');
-		expect(saved).toMatchObject({ id: 'sub-2', verifiedAt, providerGone: false });
-	});
-
-	it('conserva como muerto solamente un endpoint rechazado explícitamente por el proveedor', async () => {
-		const { supabase } = createSupabaseMock({}, {
-			data: {
-				subscription_id: 'sub-1',
-				endpoint: payload.endpoint,
-				verification_confirmed_at: null,
-				provider_gone: true
-			},
-			error: null
-		});
-
-		await expect(
-			saveAppointmentPushSubscription(supabase, appointment, payload, 'Android')
-		).resolves.toMatchObject({ providerGone: true, verifiedAt: null });
-	});
+ const access={token:'a'.repeat(64),legacy:false};
+ const id='71000000-0000-4000-8000-000000000001';
+ const payload={endpoint:'https://push.example/ep',keys:validSubscriptionKeys};
+ it('conserva la verificación al recargar la misma suscripción sana',async()=>{
+  const verifiedAt='2026-06-11T11:00:00.000Z';
+  const {supabase,rpcCalls,inserts}=createSupabaseMock({}, {data:{subscription_id:id,endpoint:payload.endpoint,verification_confirmed_at:verifiedAt,provider_gone:false},error:null});
+  const saved=await saveAppointmentPushSubscription(supabase,access,payload,'Android');
+  expect(rpcCalls).toEqual([{name:'save_patient_appointment_push_subscription',args:{p_token:access.token,p_legacy:false,
+   p_endpoint:payload.endpoint,p_p256dh:payload.keys.p256dh,p_auth:payload.keys.auth,p_user_agent:'Android'}}]);
+  expect(saved).toMatchObject({id,verifiedAt,providerGone:false});expect(inserts).toEqual([]);
+ });
+ it('devuelve una comprobación pendiente sin marcar muerto el dispositivo',async()=>{
+  const {supabase}=createSupabaseMock({}, {data:{subscription_id:id,endpoint:payload.endpoint,verification_confirmed_at:null,provider_gone:false},error:null});
+  expect(await saveAppointmentPushSubscription(supabase,access,payload,'Android')).toMatchObject({verifiedAt:null,providerGone:false});
+ });
+ it('reutiliza la confirmación del dispositivo mediante la autoridad del otro turno, sin enviar un ID elegido',async()=>{
+  const verifiedAt='2026-06-11T11:00:00.000Z';const otherAccess={token:'b'.repeat(64),legacy:false};
+  const {supabase,rpcCalls}=createSupabaseMock({}, {data:{subscription_id:id,endpoint:payload.endpoint,verification_confirmed_at:verifiedAt,provider_gone:false},error:null});
+  expect(await saveAppointmentPushSubscription(supabase,otherAccess,payload,'Android')).toMatchObject({id,verifiedAt,providerGone:false});
+  expect(rpcCalls[0].args).toMatchObject({p_token:otherAccess.token,p_legacy:false});
+  expect(rpcCalls[0].args).not.toHaveProperty('target_appointment_id');
+ });
+ it('conserva como muerto solamente un endpoint rechazado explícitamente por el proveedor',async()=>{
+  const {supabase}=createSupabaseMock({}, {data:{subscription_id:id,endpoint:payload.endpoint,verification_confirmed_at:null,provider_gone:true},error:null});
+  expect(await saveAppointmentPushSubscription(supabase,access,payload,'Android')).toMatchObject({providerGone:true,verifiedAt:null});
+ });
+ it('trata una respuesta vacía como incierta sin inventar una asociación guardada',async()=>{
+  const {supabase,inserts}=createSupabaseMock({}, {data:null,error:null});
+  await expect(saveAppointmentPushSubscription(supabase,access,payload,'Android')).rejects.toBeInstanceOf(InvalidDataContractError);
+  expect(inserts).toEqual([]);
+ });
 });
 
 describe('telemetría de entrega', () => {
@@ -528,20 +461,16 @@ describe('telemetría de entrega', () => {
 		const { supabase, rpcCalls, updates } = createSupabaseMock({}, { data: true, error: null });
 		expect(
 			await recordPushTestFeedback(supabase, {
-				appointmentId: 'apt-1',
+				access:{token:'a'.repeat(64),legacy:false},
 				deliveryId,
-				visible: true,
-				now
+				visible: true
 			})
 		).toBe(true);
 		expect(rpcCalls).toEqual([
 			{
-				name: 'record_push_test_feedback',
+				name: 'record_patient_push_test_feedback',
 				args: {
-					target_appointment_id: 'apt-1',
-					target_delivery_id: deliveryId,
-					feedback_visible: true,
-					feedback_time: now.toISOString()
+					p_token:'a'.repeat(64),p_legacy:false,p_delivery_id:deliveryId,p_visible:true
 				}
 			}
 		]);
@@ -553,201 +482,75 @@ describe('telemetría de entrega', () => {
 
 		expect(
 			await recordPushTestFeedback(supabase, {
-				appointmentId: 'apt-1',
+				access:{token:'a'.repeat(64),legacy:false},
 				deliveryId,
-				visible: false,
-				now
+				visible: false
 			})
 		).toBe(true);
 		expect(rpcCalls[0]).toEqual({
-			name: 'record_push_test_feedback',
+			name: 'record_patient_push_test_feedback',
 			args: {
-				target_appointment_id: 'apt-1',
-				target_delivery_id: deliveryId,
-				feedback_visible: false,
-				feedback_time: now.toISOString()
+				p_token:'a'.repeat(64),p_legacy:false,p_delivery_id:deliveryId,p_visible:false
 			}
 		});
 		expect(updates).toEqual([]);
 	});
 });
 
-describe('sendTestPushNotification', () => {
-	const appointment = {
-		id: 'apt-1',
-		token: 'tok-1',
-		business: { id: 'biz-1', name: 'Clínica Sabrina' }
-	} as any;
-	const subscription = {
-		id: 'sub-1',
-		endpoint: 'https://push.example/ep-1',
-		p256dh: 'p256dh-key',
-		auth: 'auth-key'
-	};
-
-	it('envía una prueba rastreable sin guardar el secreto de recibo en claro', async () => {
-		const deliveryId = '8ccf23d7-5ae3-4b87-9268-d40a05d9a475';
-		const { supabase, inserts } = createSupabaseMock(
-			{
-				push_delivery_attempts: [
-					{ data: null, error: null },
-					{ data: { id: deliveryId }, error: null },
-					{ data: null, error: null }
-				]
-			},
-			{ data: null, error: null }
-		);
-		const service = pushService();
-
-		const requestKey = 'push:session-1234567890:initial';
-		const result = await sendTestPushNotification(supabase, service.fetchFn, {
-			appointment,
-			requestKey,
-			subscription,
-			now
-		});
-
-		expect(result).toMatchObject({ accepted: true, deliveryId });
-		expect(service.requests).toHaveLength(1);
-		expect(service.requests[0].url).toBe('https://push.example/ep-1');
-		expect(vi.mocked(webpush.generateRequestDetails).mock.calls[0][2]).toMatchObject({
-			TTL: 300,
-			urgency: 'high',
-			topic: pushTopicForAppointment('apt-1', 'test')
-		});
-		// fetch sets the body length itself; the VAPID header travels as computed.
-		expect(service.requests[0].headers.get('content-length')).toBeNull();
-		expect(service.requests[0].headers.get('authorization')).toBe('vapid t=jwt-for-https://push.example, k=test-public-key');
-		const payload = await payloadOf(service.requests[0]);
-		expect(payload.delivery.id).toBe(deliveryId);
-		expect(payload.delivery.receiptUrl).toContain('/turno/tok-1/push/receipt');
-		expect(inserts[0].payload.receipt_token_hash).toBe(
-			crypto.createHash('sha256').update(payload.delivery.token).digest('hex')
-		);
-		expect(inserts[0].payload.receipt_token_hash).not.toBe(payload.delivery.token);
-		expect(inserts[0].payload.request_key_hash).toBe(
-			crypto.createHash('sha256').update(requestKey).digest('hex')
-		);
-	});
-
-	it('recupera la misma prueba ante una clave repetida y no vuelve a enviarla', async () => {
-		const deliveryId = '8ccf23d7-5ae3-4b87-9268-d40a05d9a475';
-		const { supabase } = createSupabaseMock(
-			{
-				push_delivery_attempts: [
-					{ data: null, error: null },
-					{ data: null, error: { code: '23505' } },
-					{ data: { id: deliveryId, push_service_status: 201 }, error: null }
-				]
-			},
-			{ data: null, error: null }
-		);
-		const service = pushService();
-
-		const result = await sendTestPushNotification(supabase, service.fetchFn, {
-			appointment,
-			requestKey: 'push:session-1234567890:recovery',
-			subscription,
-			now
-		});
-
-		expect(result).toMatchObject({ accepted: true, deliveryId });
-		expect(service.requests).toHaveLength(0);
-	});
-
-	it('reutiliza una prueba reciente aunque otra pestaña llegue con otra clave', async () => {
-		const deliveryId = '8ccf23d7-5ae3-4b87-9268-d40a05d9a475';
-		const { supabase, inserts } = createSupabaseMock(
-			{
-				push_delivery_attempts: [
-					{
-						data: {
-							id: deliveryId,
-							kind: 'test',
-							accepted_at: now.toISOString(),
-							received_at: null,
-							displayed_at: null,
-							user_confirmed_at: null,
-							user_reported_missing_at: null,
-							superseded_at: null,
-							failed_at: null,
-							expires_at: new Date(now.getTime() + 60_000).toISOString(),
-							created_at: new Date(now.getTime() - 2_000).toISOString()
-						},
-						error: null
-					}
-				]
-			},
-			{ data: null, error: null }
-		);
-		const service = pushService();
-
-		const result = await sendTestPushNotification(supabase, service.fetchFn, {
-			appointment,
-			requestKey: 'push:other-tab-1234567890:initial',
-			subscription,
-			now
-		});
-
-		expect(result).toMatchObject({ accepted: true, deliveryId });
-		expect(inserts).toHaveLength(0);
-		expect(service.requests).toHaveLength(0);
-	});
-
-	it('no presenta como aceptada una prueba idempotente que ya había fallado', async () => {
-		const deliveryId = '8ccf23d7-5ae3-4b87-9268-d40a05d9a475';
-		const { supabase } = createSupabaseMock(
-			{
-				push_delivery_attempts: [
-					{ data: null, error: null },
-					{ data: null, error: { code: '23505' } },
-					{
-						data: {
-							id: deliveryId,
-							push_service_status: 503,
-							failed_at: now.toISOString(),
-							failure_kind: 'transient'
-						},
-						error: null
-					}
-				]
-			},
-			{ data: null, error: null }
-		);
-		const service = pushService();
-
-		const result = await sendTestPushNotification(supabase, service.fetchFn, {
-			appointment,
-			requestKey: 'push:session-1234567890:initial',
-			subscription,
-			now
-		});
-
-		expect(result).toMatchObject({ accepted: false, deliveryId, gone: false });
-		expect(service.requests).toHaveLength(0);
-	});
-
-	it('marca muerto el dispositivo que el proveedor rechaza con 410', async () => {
-		const { supabase, rpcCalls } = createSupabaseMock(
-			{
-				push_delivery_attempts: [
-					{ data: null, error: null },
-					{ data: { id: '8ccf23d7-5ae3-4b87-9268-d40a05d9a475' }, error: null },
-					{ data: null, error: null }
-				]
-			},
-			{ data: null, error: null }
-		);
-		const service = pushService(() => new Response(null, { status: 410 }));
-
-		const result = await sendTestPushNotification(supabase, service.fetchFn, { appointment, subscription, now });
-
-		expect(result).toMatchObject({ accepted: false, gone: true });
-		expect(rpcCalls).toContainEqual({
-			name: 'mark_push_device_gone',
-			args: { target_endpoint: subscription.endpoint, gone_time: now.toISOString() }
-		});
-	});
+describe('sendTestPushNotification',()=>{
+ const access={token:'a'.repeat(64),legacy:false};
+ const appointment={id:'apt-1',token:'tok-1',business:{id:'biz-1',name:'Clínica Sabrina'}} as any;
+ const subscription={id:'71000000-0000-4000-8000-000000000001',endpoint:'https://push.example/ep-1',p256dh:'p256dh-key',auth:'auth-key'};
+ const deliveryId='8ccf23d7-5ae3-4b87-9268-d40a05d9a475';
+ const prepared={delivery_id:deliveryId,reused:false,push_service_status:null,failure_kind:null};
+ it('envía solamente la preparación autorizada y no guarda su secreto de recibo en claro',async()=>{
+  const {supabase,rpcCalls,inserts}=createSupabaseMock({push_delivery_attempts:[{data:null,error:null}]},{data:prepared,error:null});
+  const service=pushService();const requestKey='push:session-1234567890:initial';
+  const result=await sendTestPushNotification(supabase,service.fetchFn,{access,appointment,requestKey,subscription,now});
+  expect(result).toMatchObject({accepted:true,deliveryId});expect(service.requests).toHaveLength(1);expect(inserts).toEqual([]);
+  expect(service.requests[0].url).toBe(subscription.endpoint);
+  expect(vi.mocked(webpush.generateRequestDetails).mock.calls[0][2]).toMatchObject({TTL:300,urgency:'high',topic:pushTopicForAppointment('apt-1','test')});
+  expect(service.requests[0].headers.get('content-length')).toBeNull();
+  expect(service.requests[0].headers.get('authorization')).toBe('vapid t=jwt-for-https://push.example, k=test-public-key');
+  const payload=await payloadOf(service.requests[0]);expect(payload.delivery.id).toBe(deliveryId);
+  expect(payload.url).toBe('/gestion/'+access.token);expect(payload.delivery.receiptUrl).toBe('/turno/tok-1/push/receipt');
+  expect(rpcCalls[0]).toEqual({name:'begin_patient_push_test',args:{p_token:access.token,p_legacy:false,p_subscription_id:subscription.id,
+   p_receipt_token_hash:crypto.createHash('sha256').update(payload.delivery.token).digest('hex'),p_request_key_hash:crypto.createHash('sha256').update(requestKey).digest('hex')}});
+  expect(rpcCalls[0].args?.p_receipt_token_hash).not.toBe(payload.delivery.token);
+ });
+ for(const label of ['clave repetida','otra pestaña reciente'])it(`recupera ${label} sin repetir la llamada al proveedor`,async()=>{
+  const {supabase,inserts}=createSupabaseMock({}, {data:{...prepared,reused:true,push_service_status:201},error:null});
+  const service=pushService();const result=await sendTestPushNotification(supabase,service.fetchFn,{access,appointment,subscription,requestKey:'push:other-tab-1234567890:initial',now});
+  expect(result).toMatchObject({accepted:true,deliveryId});expect(inserts).toEqual([]);expect(service.requests).toHaveLength(0);
+ });
+ it('no presenta como aceptada una prueba idempotente que ya había fallado',async()=>{
+  const {supabase}=createSupabaseMock({}, {data:{...prepared,reused:true,push_service_status:503,failure_kind:'transient'},error:null});
+  const service=pushService();
+  expect(await sendTestPushNotification(supabase,service.fetchFn,{access,appointment,subscription,now})).toMatchObject({accepted:false,deliveryId,gone:false});
+  expect(service.requests).toHaveLength(0);
+ });
+ it('respeta una interacción real que SQL resolvió por encima de un timeout tardío',async()=>{
+  const {supabase}=createSupabaseMock({}, {data:{...prepared,reused:true,push_service_status:503},error:null});
+  const service=pushService();
+  expect(await sendTestPushNotification(supabase,service.fetchFn,{access,appointment,subscription,now})).toMatchObject({accepted:true,deliveryId});
+  expect(service.requests).toHaveLength(0);
+ });
+ it('no llama al proveedor si la autorización venció después de cargar la página',async()=>{
+  const cause={message:'APPOINTMENT_LINK_UNAVAILABLE'};const {supabase}=createSupabaseMock({}, {data:null,error:cause});const service=pushService();
+  await expect(sendTestPushNotification(supabase,service.fetchFn,{access,appointment,subscription,now})).rejects.toEqual(cause);
+  expect(service.requests).toHaveLength(0);
+ });
+ it('no llama al proveedor cuando falta el resultado durable de la preparación',async()=>{
+  const {supabase}=createSupabaseMock({}, {data:null,error:null});const service=pushService();
+  await expect(sendTestPushNotification(supabase,service.fetchFn,{access,appointment,subscription,now})).rejects.toBeInstanceOf(InvalidDataContractError);
+  expect(service.requests).toHaveLength(0);
+ });
+ it('marca muerto el dispositivo que el proveedor rechaza con 410',async()=>{
+  const {supabase,rpcCalls}=createSupabaseMock({push_delivery_attempts:[{data:null,error:null}]},{data:prepared,error:null});
+  const service=pushService(()=>new Response(null,{status:410}));
+  expect(await sendTestPushNotification(supabase,service.fetchFn,{access,appointment,subscription,now})).toMatchObject({accepted:false,gone:true});
+  expect(rpcCalls).toContainEqual({name:'mark_push_device_gone',args:{target_endpoint:subscription.endpoint,gone_time:now.toISOString()}});
+ });
 });
 
 describe('sendPushReminderBatch', () => {
