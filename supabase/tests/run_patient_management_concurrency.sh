@@ -744,6 +744,32 @@ do $$ begin
 end $$;
 SQL
 
+# Completion is an appointment writer through telemetry/activity triggers. It
+# must not retain the child while waiting for its parent against a new grant.
+"${psql_command[@]}" <<'SQL'
+select patient_management_race.prepare_calendar('oauth_during_worker_completion');
+select patient_management_race.consume_calendar('oauth_during_worker_completion');
+select patient_management_race.authorize_calendar('oauth_during_worker_completion');
+do $$ declare r patient_management_race.requests; state text:=repeat('f',64); id uuid; begin
+ select * into strict r from patient_management_race.requests where label='oauth_during_worker_completion';
+ id:=public.begin_patient_google_calendar_authorization(r.token,false,state,repeat('v',32),repeat('e',40),false);
+ update patient_management_race.calendar_requests set attempt_id=id,state_hash=state where label=r.label;
+ perform public.consume_patient_google_calendar_authorization(state,r.token,false);
+end $$;
+SQL
+race oauth_final_grant_against_actual_sync_completion \
+ "select private.lock_patient_push_management(r.token,false,true) from patient_management_race.requests r where r.label='oauth_during_worker_completion';" \
+ "select public.complete_google_calendar_event_sync(e.id,'synthetic-current-event',a.calendar_sequence,clock_timestamp()) from public.appointment_google_calendar_events e join public.appointments a on a.id=e.appointment_id join patient_management_race.requests r on r.appointment_id=a.id where r.label='oauth_during_worker_completion';" \
+ "" "select patient_management_race.authorize_calendar('oauth_during_worker_completion');"
+"${psql_command[@]}" <<'SQL'
+do $$ declare r patient_management_race.requests; begin
+ select * into strict r from patient_management_race.requests where label='oauth_during_worker_completion';
+ if (select count(*) from public.audit_logs where entity_id=r.appointment_id and action='appointment.google_calendar_authorized')<>2
+  or not exists(select 1 from public.appointment_google_calendar_events where appointment_id=r.appointment_id and sync_status='active'
+   and event_id='synthetic-current-event') then raise exception 'CALENDAR_GRANT_SYNC_COMPLETION_PARTIAL_STATE'; end if;
+end $$;
+SQL
+
 deadlocks_after=$("${psql_command[@]}" -c 'select deadlocks from pg_stat_database where datname=current_database();')
 [[ "$deadlocks_before" == "$deadlocks_after" ]]
-echo 'PASS: forty-one controlled management/contact/clinical/OAuth races plus two FK lock counterexamples; no PostgreSQL deadlock.'
+echo 'PASS: forty-two controlled management/contact/clinical/OAuth races plus two FK lock counterexamples; no PostgreSQL deadlock.'
