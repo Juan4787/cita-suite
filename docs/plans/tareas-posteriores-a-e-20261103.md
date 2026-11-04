@@ -1,17 +1,17 @@
-# Tareas posteriores a E, separadas y en orden
+# Tareas posteriores a E, pospuestas
 
-**Encargo de Juan del 3 de noviembre de 2026.** Autorizado para ejecución autónoma después de terminar, publicar y auditar E. E continúa siendo la tarea activa; no se inicia ninguna de estas implementaciones en paralelo ni se usa esta lista para declarar E terminada. Literal y precedencia en [plan 12.23](propuesta-senas-avisos-natalia.md#tareas-posteriores-a-e). Estado de producción en el [registro único](../ESTADO-VIGENTE.md).
+**Estado vigente por pedido posterior de Juan del 3 de noviembre de 2026:** P1, P2 y P3 **pospuestas; no iniciarlas al cerrar E**. E continúa siendo la única tarea activa hasta completarla, publicarla, verificarla y entregar su documentación. Precedencia y literal en [plan 12.26](propuesta-senas-avisos-natalia.md#posteriores-a-e-pospuestas); el encargo anterior de ejecución automática de [12.23](propuesta-senas-avisos-natalia.md#tareas-posteriores-a-e) queda sustituido en ese punto. Estado de producción en el [registro único](../ESTADO-VIGENTE.md).
 
 ## Orden obligatorio y seguimiento
 
 | Orden | Trabajo | Estado | Condición de avance |
 |---|---|---|---|
 | Previo | E completa: correo, autogestión, señas y sus 97 casos | En implementación E1 | [Registro de E](ejecucion-etapa-e-20261103.md): cierre por evidencia, publicación y auditoría pendientes |
-| P1 | Habilitar cancelar turnos desde recepción | Pendiente; no iniciado | Iniciar después de cerrar E |
-| P2 | Estilar todos los controles/superficies de la app, en claro y oscuro | Pendiente; no iniciado | Iniciar después de cerrar P1 |
-| P3 / nueva D | Avisos internos generales para horarios liberados, con patrón similar a Seguimientos | Pendiente; no iniciado | Iniciar después de cerrar P2 |
+| P1 | Habilitar cancelar turnos desde recepción | Pospuesta; no iniciada | Reanudación expresa de Juan después de E |
+| P2 | Estilar todos los controles/superficies de la app, en claro y oscuro | Pospuesta; no iniciada | Reanudación expresa de Juan; orden previsto después de P1 |
+| P3 / nueva D | Avisos internos generales para horarios liberados, con patrón similar a Seguimientos | Pospuesta; no iniciada | Reanudación expresa de Juan; orden previsto después de P2 |
 
-Cada tarea tiene cambios, reproducción/contraste, pruebas, auditoría, publicación y documentación propios. Al terminar una, informar el resultado y continuar la siguiente sin pedir de nuevo una autorización ya concedida. Conservar sus límites e incidencias, y no atribuirles evidencia de otra revisión.
+Si Juan las reanuda, cada tarea conservará cambios, reproducción/contraste, pruebas, auditoría, publicación y documentación propios. Conservar sus límites e incidencias, y no atribuirles evidencia de otra revisión. El cierre de E no es una instrucción para reanudarlas.
 
 ## P1: cancelación desde recepción
 
@@ -31,4 +31,4 @@ Contrastar y reutilizar el registro/alerta C de horarios liberados para evitar d
 
 ## Continuidad
 
-Después de una compactación: leer AGENTS, estado vigente, plan completo/ajustes, registro de la tarea activa y esta cola. Hasta cerrar E, continuar desde su checkpoint; no saltar a P1/P2/P3 por ser el mensaje más reciente. Registrar aquí el inicio y cierre de cada tarea, revisión/corridas/evidencia y el siguiente paso concreto. La lista general de pendientes enlaza este documento y no duplica su seguimiento.
+Después de una compactación: leer AGENTS, estado vigente, plan completo/ajustes, registro de la tarea activa y esta cola. Continuar E desde su checkpoint; P1/P2/P3 siguen pospuestas incluso después de cerrar E. Registrar aquí una eventual reanudación expresa, inicio y cierre de cada tarea, revisión/corridas/evidencia y el siguiente paso concreto. La lista general de pendientes enlaza este documento y no duplica su seguimiento.

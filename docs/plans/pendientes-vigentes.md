@@ -2,7 +2,7 @@
 
 **Para qué existe:** Juan pidió el 31 de octubre de 2026 que no se pierda nada de lo que queda pendiente (plan de señas y avisos, sección 12.15). Esta es la lista única. Cada punto remite a su documento de origen, que conserva el detalle. Al cerrar un punto, se lo marca como hecho acá con la fecha y la evidencia, y se actualiza su documento de origen.
 
-**Última revisión:** 3 de noviembre de 2026, autorización íntegra de E (plan 12.20), preparación y regla de continuidad. Las otras entradas conservan sus fechas y evidencias. E1 tiene fundamentos en implementación/verificación, sin aceptación integral ni publicación; tareas posteriores autorizadas y separadas en plan 12.23.
+**Última revisión:** 3 de noviembre de 2026, autorización íntegra de E (plan 12.20), preparación y regla de continuidad. Las otras entradas conservan sus fechas y evidencias. E1 tiene fundamentos en implementación/verificación, sin aceptación integral ni publicación; P1/P2/P3 pospuestas por el pedido posterior de plan 12.26, sin iniciarlas al cerrar E.
 
 ## 1. Lo que sigue para la entrega a Natalia
 
@@ -39,7 +39,7 @@ Fuente: `docs/clientes/natalia-frutos/informacion-20261029.md`, secciones 4 y 5,
 
 ## 3. Etapas D y E: alcance actual
 
-1. **D celular reemplazada, sin implementar:** avisos internos generales de horarios liberados, con patrón similar a Seguimientos. Es P3 de las [tareas posteriores a E](tareas-posteriores-a-e-20261103.md), después de cerrar E, P1 cancelación desde recepción y P2 estilos completos claro/oscuro. No retomar push al personal ni pedir tipos de teléfono para esta D. Las tres tareas están autorizadas, separadas y todavía no iniciadas.
+1. **D celular reemplazada, sin implementar:** avisos internos generales de horarios liberados, con patrón similar a Seguimientos. Es P3 de las [tareas posteriores a E](tareas-posteriores-a-e-20261103.md), después de cerrar E, P1 cancelación desde recepción y P2 estilos completos claro/oscuro. No retomar push al personal ni pedir tipos de teléfono para esta D. Las tres tareas están pospuestas y no iniciadas por pedido posterior de Juan (plan 12.26); no avanzar al cerrar E.
 
 <a id="etapa-e-pendientes"></a>
 

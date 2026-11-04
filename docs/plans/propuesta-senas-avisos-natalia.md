@@ -1,6 +1,6 @@
 # Propuesta: señas, avisos por WhatsApp y horarios liberados para el consultorio de Natalia Frutos
 
-**Estado:** **aprobada íntegramente por Juan el 29 de octubre de 2026**, con la revisión 2. Es la fuente de verdad de la campaña. **Actualización vigente del 3 de noviembre:** E conserva su definición revisada en [12.18](#etapa-e-vigente) y su [especificación](etapa-e-correo-autogestion.md). Juan pidió conectar Zoho por terminal y conservar el acceso tras reinicios: [12.19](#zoho-terminal-vigente), conexión local comprobada. **E quedó autorizada íntegramente para implementación, auditoría, pruebas y publicación el 3 de noviembre, en [12.20](#ejecucion-e-autorizada).** Decisiones iniciales resueltas en 12.21/12.22 y E1 en implementación/verificación; [registro de ejecución](ejecucion-etapa-e-20261103.md). D celular fue reemplazada por la futura P3 interna posterior a E/P1/P2 (12.23). Las pausas y Resend anteriores son historia en lo que estos ajustes reemplazan.
+**Estado:** **aprobada íntegramente por Juan el 29 de octubre de 2026**, con la revisión 2. Es la fuente de verdad de la campaña. **Actualización vigente del 3 de noviembre:** E conserva su definición revisada en [12.18](#etapa-e-vigente) y su [especificación](etapa-e-correo-autogestion.md). Juan pidió conectar Zoho por terminal y conservar el acceso tras reinicios: [12.19](#zoho-terminal-vigente), conexión local comprobada. **E quedó autorizada íntegramente para implementación, auditoría, pruebas y publicación el 3 de noviembre, en [12.20](#ejecucion-e-autorizada).** Decisiones iniciales resueltas en 12.21/12.22 y E1 en implementación/verificación; [registro de ejecución](ejecucion-etapa-e-20261103.md). D celular fue reemplazada por la futura P3 interna (12.23); P1/P2/P3 quedan pospuestas por el pedido posterior 12.26 y no se iniciarán al cerrar E. Las pausas y Resend anteriores son historia en lo que estos ajustes reemplazan.
 - La aprobación literal y los ajustes posteriores están en la sección 12, que sólo crece hacia el final.
 - El texto aprobado está guardado tal cual en `.verification/senas-avisos-20261029/plan-aprobado-20261029.md`, con SHA-256 `24abe324…4d3c43`.
 - Después de la aprobación cambiaron sólo esta línea de estado y la sección 12; el registro deja la comprobación.
@@ -1318,3 +1318,13 @@ Juan indicó: «priorices la calidad de ingeniería por encima de la velocidad d
 ### 12.25 Revisión aceptada y continuación de implementación (3 de noviembre)
 
 Juan aceptó la revisión como punto de partida y pidió «Ahora continuá la fase E aplicando esas conclusiones directamente sobre la implementación» y «Continuá autónomamente hasta completar la fase E». Primero corregir los escritores del personal que necesiten atomicidad/auditoría/concurrencia; conservar operaciones con responsabilidades/autorizaciones distintas, sin unificación obligatoria. Diseñar sus garantías, corregir categorías de problemas, verificar persistencia/carreras/recuperación y distinguir producto/arnés/infraestructura/contratos incompletos. No repetir diagnóstico general ni verificaciones costosas aún válidas. Después completar vías auxiliares, contacto, correo y E según el plan, con verificación integrada de la revisión exacta antes de publicar; autorización productiva ya concedida y tareas P1/P2/P3 separadas. No cambia ninguna regla funcional ni autoriza ampliar alcance o contratar.
+
+<a id="posteriores-a-e-pospuestas"></a>
+
+### 12.26 Completar E y posponer las tres tareas posteriores (3 de noviembre)
+
+Pedido literal posterior de Juan:
+
+> cuando termines la fase E con el rigor extremo y exigencia extrema que te pido, avisame y dejame la documentacion para ver todo a detalle. No avances en los siguientes 3 puntos, esos los vamos a posponer
+
+**Aplicación y precedencia:** continuar autónomamente sólo E, con sus requisitos, verificación integral y autorización de publicación vigentes. Al completarla, avisar y entregar acceso a la documentación detallada de implementación, revisiones, pruebas, evidencia y límites. **P1, P2 y P3 quedan pospuestas y no deben iniciarse al cerrar E.** Sustituye la continuación automática de 12.23 y de los puntos de entrada que la indicaban; no elimina esos pendientes ni revierte el reemplazo de D celular por la futura notificación interna. El seguimiento separado conserva sus alcances para una reanudación posterior de Juan.
