@@ -5531,6 +5531,10 @@ export type Database = {
         Args: { p_access_id: string; p_business_id: string; p_name: string }
         Returns: string
       }
+      mark_patient_calendar_offered: {
+        Args: { p_legacy: boolean; p_token: string }
+        Returns: boolean
+      }
       mark_push_device_gone: {
         Args: { gone_time?: string; target_endpoint: string }
         Returns: number
@@ -5651,6 +5655,24 @@ export type Database = {
           review_url: string
         }[]
       }
+      record_patient_calendar_action: {
+        Args: {
+          p_action: string
+          p_legacy: boolean
+          p_source?: string
+          p_token: string
+        }
+        Returns: boolean
+      }
+      record_patient_calendar_metric: {
+        Args: {
+          p_kind: string
+          p_legacy: boolean
+          p_token: string
+          p_variant?: string
+        }
+        Returns: boolean
+      }
       record_patient_push_test_feedback: {
         Args: {
           p_delivery_id: string
@@ -5761,6 +5783,10 @@ export type Database = {
       request_google_calendar_event_deletion: {
         Args: { p_appointment_id: string; p_now?: string }
         Returns: string
+      }
+      request_patient_google_calendar_deletion: {
+        Args: { p_legacy: boolean; p_token: string }
+        Returns: Json
       }
       resolve_appointment_management_access: {
         Args: { p_legacy?: boolean; p_token: string }

@@ -168,8 +168,8 @@
 	);
 	const calendarHandoffRetryHref = $derived(
 		calendarHandoffProvider === 'iphone'
-			? `${base}/calendario.ics?p=phone`
-			: `${base}/ir/google`
+			? `${managementBase}/calendario.ics?p=phone`
+			: `${managementBase}/ir/google`
 	);
 	const calendarHandoffStorageKey = () =>
 		appointment
@@ -1082,14 +1082,14 @@
 		if (!appointment) return [];
 		if (device === 'desktop') {
 			return [
-				{ label: 'Google Calendar', href: `${base}/ir/google`, hint: 'Recomendado' },
-				{ label: 'Outlook', href: `${base}/ir/outlook` },
-				{ label: 'Descargar calendario', href: `${base}/calendario-descargar.ics` }
+				{ label: 'Google Calendar', href: `${managementBase}/ir/google`, hint: 'Recomendado' },
+				{ label: 'Outlook', href: `${managementBase}/ir/outlook` },
+				{ label: 'Descargar calendario', href: `${managementBase}/calendario-descargar.ics` }
 			];
 		}
 		return [
-			{ label: 'Agregar al calendario', href: `${base}/calendario.ics`, hint: 'Recomendado' },
-			{ label: 'Google Calendar', href: `${base}/ir/google` }
+			{ label: 'Agregar al calendario', href: `${managementBase}/calendario.ics`, hint: 'Recomendado' },
+			{ label: 'Google Calendar', href: `${managementBase}/ir/google` }
 		];
 	});
 
@@ -1362,7 +1362,7 @@
 
 			{#if !data.notificationBrowser.samsungExclusive}
 				<a
-					href={`${base}/ir/google`}
+					href={`${managementBase}/ir/google`}
 					onclick={() => beginCalendarHandoff('google')}
 					class="flex min-h-[5.75rem] items-center justify-between gap-4 rounded-2xl border border-accent-300-30 bg-accent-400-10 px-5 py-4 shadow-[0_12px_30px_rgba(76,29,149,0.12)] transition hover:border-accent-300-45 hover:bg-accent-400-10 bk-notice-fill bk-notice-line"
 				>
@@ -1492,7 +1492,7 @@
 			<p class="mt-2 text-sm text-fg-70 bk-muted">{current.business.address_instructions}</p>
 		{/if}
 		{#if current.business.maps_link}
-			<a href={`${base}/ir/maps`} target="_blank" rel="noreferrer" class="ux-btn-primary mt-5 block w-full text-center">
+			<a href={`${managementBase}/ir/maps`} target="_blank" rel="noreferrer" class="ux-btn-primary mt-5 block w-full text-center">
 				Cómo llegar
 			</a>
 		{/if}
@@ -1516,7 +1516,7 @@
 		{:else if device === 'ios'}
 			{#if calendarHandoffStage === 'idle'}
 				<a
-					href={`${base}/calendario.ics?p=phone`}
+					href={`${managementBase}/calendario.ics?p=phone`}
 					onclick={() => beginCalendarHandoff('iphone')}
 					class="ux-btn-primary ux-btn-cta mt-5 flex w-full px-3 text-center text-cta font-bold"
 				>
@@ -1676,7 +1676,7 @@
 				{/if}
 
 				<a
-					href={`${base}/comprobante.pdf`}
+					href={`${managementBase}/comprobante.pdf`}
 					download="comprobante-turno.pdf"
 					class="ux-btn-secondary mt-6 w-full px-3 sm:px-5"
 				>
@@ -1723,7 +1723,7 @@
 							Si lo guardaste con otra aplicación de calendario, podés eliminar esa copia desde allí.
 						</p>
 						<p class="mt-3 text-xs text-copy-subtle bk-muted">
-							<a href={`${base}/calendario.ics`} class="underline">Abrir actualización de calendario</a>
+							<a href={`${managementBase}/calendario.ics`} class="underline">Abrir actualización de calendario</a>
 							para calendarios compatibles.
 						</p>
 					{/if}

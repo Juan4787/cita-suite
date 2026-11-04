@@ -29,7 +29,6 @@ import {
 	calendarLocationFor,
 	calendarSummaryFor
 } from '$lib/server/integrations/public/calendar-content';
-import { publicAppointmentUrl } from '$lib/server/integrations/public/messaging';
 import {
 	classifyUserAgent,
 	isLikelyBotUserAgent,
@@ -86,7 +85,8 @@ const androidCalendarIntentFor = (
 	appointment: PublicAppointmentView | null,
 	device: DeviceClass,
 	userAgent: string | null,
-	url: URL
+	url: URL,
+ access: PatientManagementAccess
 ): AndroidCalendarIntent | null => {
 	if (!appointment || device !== 'android') return null;
 	if (!canRegisterCalendarAction(appointment)) return null;
@@ -103,7 +103,7 @@ const androidCalendarIntentFor = (
 			endsAt: new Date(appointment.ends_at),
 			// Fallback propio: si el intent no resuelve, Chrome navega acá y el
 			// tracking de Google queda registrado server-side con su origen.
-			fallbackUrl: `${publicAppointmentUrl(appointment.token)}/ir/google?source=android_native_fallback`
+			fallbackUrl: `${getPublicSiteUrl()}/${access.legacy ? 'turno' : 'gestion'}/${encodeURIComponent(access.token)}/ir/google?source=android_native_fallback`
 		})
 	};
 };
@@ -147,7 +147,7 @@ const load = async (event: RequestEvent) => {
 			vapidPublicKey,
 			publicSiteUrl,
 			notificationBrowser,
-			androidCalendarIntent: androidCalendarIntentFor(appointment, device, userAgent, url),
+			androidCalendarIntent: androidCalendarIntentFor(appointment, device, userAgent, url, access),
 			googleCalendar: unavailableGoogleCalendarState(),
 			calendarMessage: getGoogleCalendarPublicMessage(url.searchParams.get('calendar'))
 		};
@@ -185,7 +185,7 @@ const load = async (event: RequestEvent) => {
 			!isLikelyBotUserAgent(userAgent)
 		) {
 			// Best-effort: los previews de WhatsApp/Telegram quedan filtrados por UA.
-			await markCalendarOffered(supabase, appointment, now);
+			await markCalendarOffered(supabase, access);
 		}
 		const created = url.searchParams.has('creado');
 		let rebookUrl: string | null = null;
@@ -213,7 +213,7 @@ const load = async (event: RequestEvent) => {
 			vapidPublicKey,
 			publicSiteUrl,
 			notificationBrowser,
-			androidCalendarIntent: remindersEnabled ? androidCalendarIntentFor(appointment, device, userAgent, url) : null,
+			androidCalendarIntent: remindersEnabled ? androidCalendarIntentFor(appointment, device, userAgent, url, access) : null,
 			googleCalendar,
 			calendarMessage: getGoogleCalendarPublicMessage(url.searchParams.get('calendar'), googleCalendar)
 		};
@@ -273,9 +273,10 @@ const actions: Actions = {
 			}
 			const result = await requestGoogleCalendarEventDeletion(
 				supabase,
-				appointment.id,
+    { token, legacy },
 				fetch
 			);
+			if (result.status === 'not_connected') return { success: true, message: 'Este turno ya no tiene un calendario conectado.' };
 			if (result.status === 'deleted') {
 				return { success: true, message: 'El turno se quitó de tu cuenta Google.' };
 			}

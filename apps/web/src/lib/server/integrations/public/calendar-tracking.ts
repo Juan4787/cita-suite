@@ -1,8 +1,8 @@
 import { logServerFailure } from '$lib/server/platform/logging';
 // Tracking honesto de acciones de calendario. La app registra que el paciente TOCÓ
 // una opción ("acción de calendario registrada"), nunca certeza de guardado.
-// La transición corre en la RPC record_calendar_action (un solo UPDATE atómico:
-// dos clicks concurrentes no se pisan y el contador no pierde incrementos).
+// La transición y auditoría usan record_patient_calendar_action con autoridad
+// actual: dos clics concurrentes no pierden incrementos ni omiten la revocación.
 
 import type { CitaSupabaseClient } from '$lib/types/database';
 import { InvalidDataContractError, readBoolean } from '$lib/contracts/json';

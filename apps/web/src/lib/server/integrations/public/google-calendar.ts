@@ -1186,23 +1186,24 @@ export const loadGoogleCalendarUiState = async (
 	return { available, state: 'failed', current: false, reminderLabel };
 };
 
+/** Local removal intent is atomic and naturally recoverable; provider work owns a lease. */
 export const requestGoogleCalendarEventDeletion = async (
-	supabase: CitaSupabaseClient,
-	appointmentId: string,
-	fetchFn: typeof fetch
+ supabase: CitaSupabaseClient, access: PatientManagementAccess, fetchFn: typeof fetch
 ) => {
-	// El código administrado se conserva, pero el interruptor debe bloquear también
-	// acciones residuales enviadas a mano o desde una pestaña antigua. No mutar la
-	// cola mientras la función está deshabilitada.
-	if (!isGoogleCalendarConfigured()) return { status: 'not_configured' };
-	const now = new Date();
-	const { data, error } = await supabase.rpc('request_google_calendar_event_deletion', {
-		p_appointment_id: appointmentId,
-		p_now: now.toISOString()
-	});
-	if (error) throw error;
-	if (!data) throw new Error('GOOGLE_CALENDAR_EVENT_LINK_NOT_FOUND');
-	return processAppointmentGoogleCalendarSync(supabase, appointmentId, fetchFn, { now });
+ if (!isGoogleCalendarConfigured()) return { status: 'not_configured' };
+ const { data, error } = await supabase.rpc('request_patient_google_calendar_deletion', {
+  p_token: access.token, p_legacy: access.legacy
+ });
+ if (error) throw error;
+ const result = readRecord(data, 'googleCalendar.removal');
+ const appointmentId = readText(result.appointment_id, 'googleCalendar.removal.appointment');
+ const status = readChoice(result.status, ['pending_delete', 'not_connected'] as const, 'googleCalendar.removal.status');
+ const eventRowId = readNullableText(result.event_row_id, 'googleCalendar.removal.event');
+ if (!isUuid(appointmentId) || (status === 'not_connected' ? eventRowId !== null : !eventRowId || !isUuid(eventRowId))) {
+  throw new InvalidDataContractError('googleCalendar.removal.identity');
+ }
+ if (status === 'not_connected' || !eventRowId) return { status };
+ return processGoogleCalendarEvent(supabase, eventRowId, fetchFn);
 };
 
 export const getGoogleCalendarPublicMessage = (code: string | null, state?: GoogleCalendarUiState): string | null => {

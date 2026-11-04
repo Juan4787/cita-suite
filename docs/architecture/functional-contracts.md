@@ -120,3 +120,9 @@ E1.89, 4 de noviembre, todavía sin publicar: veinte añade reclamación dirigid
 
 
 E1.91: veinte aprobada íntegramente en SQL 41842452349 (18 grupos propios, 45 carreras/dos contraejemplos FK y doce esperas), tipos oficiales importados con digest cotejado. Consumidores y retiro de revocación global del plan 12.27 tienen 65 pruebas modeladas; fast integrado posterior pendiente. Esto actualiza el estado parcial de E1.89 sin atribuir nuevas llamadas reales a Google ni publicación. Tracking/borrado público/retención/distribución/contacto/correo conservan pendientes.
+
+
+E1.94, sin publicar: consumidores de tracking/ofrecido/retiro/métricas ahora pasan token/canal a comandos propios; transacción SQL de observación incluye contador/actividad/audit y bloqueo final del paciente UPDATE. Métricas Android/Maps conservan audit sin cobertura; lectura mínima ICS estable se preserva. 99 pruebas modeladas aprobadas, veintiuna/48 carreras en SQL 41875359541 todavía pendientes, tipos nuevos/fast/navegador/proveedor sin recibo. No se atribuye protección integral a PDF/distribución/contacto/correo.
+
+
+E1.95 actualiza lo anterior: SQL 41875359541 aprobado con veintiuna, 15 grupos de observación/18 de lease, 48 carreras/dos contraejemplos FK y doce esperas; tipos oficiales importados con digest cotejado. PDF ampliado usa gestión vigente por su propio canal y conserva renderer/lectura independiente de ICS. 103 pruebas modeladas aprobadas; fast/navegador de esta revisión, proveedor real, retención/distribución/contacto/correo y publicación siguen pendientes.
