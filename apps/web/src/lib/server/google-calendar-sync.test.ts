@@ -90,6 +90,7 @@ const makeSupabase = (
 		synced_sequence: -1,
 		attempt_count: 0,
 		claimed_at: null,
+  claim_token: null as string | null,
 		...eventOverrides
 	};
 	const rows: Record<string, unknown> = {
@@ -111,10 +112,19 @@ const makeSupabase = (
 	return {
 		client: {
 			from: (table: string) => chainFor(table),
-			rpc: vi.fn(async (name: string, input: Record<string, unknown>) => ({
-				data: rpcResult(name, input),
-				error: null
-			}))
+			rpc: vi.fn(async (name: string, input: Record<string, unknown>) => {
+    rpcResult(name, input);
+    if (name === 'claim_google_calendar_event_sync') {
+     event.claim_token = String(input.p_claim_token);
+     return { data: { ...event, event_row_id: event.id, claim_recovered: false,
+      refresh_token_ciphertext: connectionOverrides.refresh_token_ciphertext ?? null, connection_revoked_at: connectionOverrides.revoked_at ?? null }, error: null };
+    }
+    if (name !== 'complete_google_calendar_sync_batch') throw new Error(`Unowned write: ${name}`);
+    const result = (input.p_results as any[])[0];
+    return { data: { released: 0, results: [{ event_row_id: event.id,
+     status: result.outcome === 'synced' ? 'active' : result.outcome === 'deleted' ? 'deleted' : 'pending_create',
+     removed_connection_id: result.outcome === 'deleted' ? event.connection_id : null }] }, error: null };
+   })
 		} as any,
 		event
 	};
@@ -147,7 +157,7 @@ describe('ejecutor de sincronización Google Calendar', () => {
 			});
 		}) as unknown as typeof fetch;
 
-		const result = await processGoogleCalendarEvent(client, 'event-row', fetchFn, {
+		const result = await processGoogleCalendarEvent(client, '33333333-3333-4333-8333-333333333333', fetchFn, {
 			accessToken: 'access-token',
 			now: new Date('2026-08-08T12:00:00.000Z')
 		});
@@ -157,13 +167,13 @@ describe('ejecutor de sincronización Google Calendar', () => {
 		expect(requestBody.visibility).toBe('private');
 		expect(requestBody.reminders.overrides).toHaveLength(2);
 		expect(rpcInputs).toContainEqual({
-			name: 'complete_google_calendar_event_sync',
-			input: {
-				p_event_row_id: '33333333-3333-4333-8333-333333333333',
-				p_google_event_id: deterministicGoogleCalendarEventId(testState.appointment.id),
-				p_synced_sequence: 4,
-				p_now: '2026-08-08T12:00:00.000Z'
-			}
+			name: 'complete_google_calendar_sync_batch',
+   input: {
+    p_claim_token: expect.any(String), p_finish: false,
+    p_results: [{ event_row_id: '33333333-3333-4333-8333-333333333333', outcome: 'synced',
+     google_event_id: deterministicGoogleCalendarEventId(testState.appointment.id), synced_sequence: 4 }],
+    p_now: '2026-08-08T12:00:00.000Z'
+   }
 		});
 	});
 
@@ -187,7 +197,7 @@ describe('ejecutor de sincronización Google Calendar', () => {
 		}) as unknown as typeof fetch;
 
 		await expect(
-			processGoogleCalendarEvent(client, 'event-row', fetchFn, { accessToken: 'access-token' })
+			processGoogleCalendarEvent(client, '33333333-3333-4333-8333-333333333333', fetchFn, { accessToken: 'access-token' })
 		).resolves.toEqual({ status: 'active' });
 		expect(fetchFn).toHaveBeenCalledTimes(2);
 		expect(String(vi.mocked(fetchFn).mock.calls[1][0])).toContain(
@@ -208,28 +218,24 @@ describe('ejecutor de sincronización Google Calendar', () => {
 		const fetchFn = vi.fn(async () => new Response(null, { status: 204 })) as unknown as typeof fetch;
 
 		await expect(
-			processGoogleCalendarEvent(client, 'event-row', fetchFn, { accessToken: 'access-token' })
+			processGoogleCalendarEvent(client, '33333333-3333-4333-8333-333333333333', fetchFn, { accessToken: 'access-token' })
 		).resolves.toEqual({ status: 'deleted' });
 		expect(fetchFn).toHaveBeenCalledOnce();
 		expect(vi.mocked(fetchFn).mock.calls[0][1]).toMatchObject({ method: 'DELETE' });
-		expect(rpcNames).toContain('complete_google_calendar_event_delete');
+		expect(rpcNames).toEqual(['claim_google_calendar_event_sync', 'complete_google_calendar_sync_batch']);
 	});
 
-	it('si la creación todavía no salió, cancela sin pedir un token ni llamar a Google', async () => {
-		testState.appointment = appointment({ status: 'cancelled' });
-		const { client } = makeSupabase(
-			{ event_id: null, sync_status: 'pending_delete' },
-			() => null
-		);
-		const fetchFn = vi.fn() as unknown as typeof fetch;
+ it('intenta borrar por ID determinista aunque la respuesta de creación no haya quedado registrada', async () => {
+  testState.appointment = appointment({ status: 'cancelled' });
+  const { client } = makeSupabase({ event_id: null, sync_status: 'pending_delete' }, () => null);
+  const fetchFn = vi.fn(async () => new Response(null, { status: 404 })) as unknown as typeof fetch;
+  await expect(processGoogleCalendarEvent(client, '33333333-3333-4333-8333-333333333333', fetchFn, { accessToken: 'access-token' })).resolves.toEqual({ status: 'deleted' });
+  expect(fetchFn).toHaveBeenCalledOnce();
+  expect(String(vi.mocked(fetchFn).mock.calls[0][0])).toContain(deterministicGoogleCalendarEventId(testState.appointment.id));
+  expect(vi.mocked(fetchFn).mock.calls[0][1]).toMatchObject({ method: 'DELETE' });
+ });
 
-		await expect(processGoogleCalendarEvent(client, 'event-row', fetchFn)).resolves.toEqual({
-			status: 'deleted'
-		});
-		expect(fetchFn).not.toHaveBeenCalled();
-	});
-
-	it('revoca el refresh token cuando se elimina el último vínculo', async () => {
+	it('retira el último vínculo sin invocar la revocación global del proyecto', async () => {
 		testState.appointment = appointment({ status: 'cancelled' });
 		const key = Buffer.alloc(32, 3);
 		const connectionId = '44444444-4444-4444-8444-444444444444';
@@ -245,15 +251,10 @@ describe('ejecutor de sincronización Google Calendar', () => {
 		}) as unknown as typeof fetch;
 
 		await expect(
-			processGoogleCalendarEvent(client, 'event-row', fetchFn, { accessToken: 'access-token' })
+			processGoogleCalendarEvent(client, '33333333-3333-4333-8333-333333333333', fetchFn, { accessToken: 'access-token' })
 		).resolves.toEqual({ status: 'deleted' });
-		expect(fetchFn).toHaveBeenCalledTimes(2);
-		expect(String(vi.mocked(fetchFn).mock.calls[1][0])).toBe(
-			'https://oauth2.googleapis.com/revoke'
-		);
-		expect(String(vi.mocked(fetchFn).mock.calls[1][1]?.body)).toContain(
-			'token=refresh-token'
-		);
+		expect(fetchFn).toHaveBeenCalledOnce();
+  expect(String(vi.mocked(fetchFn).mock.calls[0][0])).not.toContain('/revoke');
 	});
 
 	it('un cliente OAuth inválido no se confunde con una revocación del usuario', async () => {
@@ -262,7 +263,7 @@ describe('ejecutor de sincronización Google Calendar', () => {
 		const { client } = makeSupabase(
 			{},
 			(name, input) => {
-				if (name === 'fail_google_calendar_event_sync') failureInput = input;
+				if (name === 'complete_google_calendar_sync_batch') failureInput = (input.p_results as Record<string, unknown>[])[0];
 				return 'pending_create';
 			},
 			{ refresh_token_ciphertext: encryptGoogleCalendarSecret('refresh-token', key) }
@@ -275,18 +276,18 @@ describe('ejecutor de sincronización Google Calendar', () => {
 				})
 		) as unknown as typeof fetch;
 
-		await expect(processGoogleCalendarEvent(client, 'event-row', fetchFn)).resolves.toEqual({
+		await expect(processGoogleCalendarEvent(client, '33333333-3333-4333-8333-333333333333', fetchFn)).resolves.toEqual({
 			status: 'pending_create',
 			errorCode: 'oauth_client_unavailable'
 		});
-		expect(failureInput!.p_failure_category).toBe('transient');
-		expect(failureInput!.p_error_code).toBe('oauth_client_unavailable');
+		expect(failureInput!.failure_category).toBe('transient');
+		expect(failureInput!.error_code).toBe('oauth_client_unavailable');
 	});
 
-	it('clasifica un 503 como transitorio sin persistir el cuerpo recibido', async () => {
+	it('conserva un 503 de mutación como incierto sin persistir el cuerpo recibido', async () => {
 		let failureInput: Record<string, unknown> | null = null;
 		const { client } = makeSupabase({}, (name, input) => {
-			if (name === 'fail_google_calendar_event_sync') failureInput = input;
+			if (name === 'complete_google_calendar_sync_batch') failureInput = (input.p_results as Record<string, unknown>[])[0];
 			return 'pending_create';
 		});
 		const fetchFn = vi.fn(
@@ -298,10 +299,11 @@ describe('ejecutor de sincronización Google Calendar', () => {
 		) as unknown as typeof fetch;
 
 		await expect(
-			processGoogleCalendarEvent(client, 'event-row', fetchFn, { accessToken: 'access-token' })
+			processGoogleCalendarEvent(client, '33333333-3333-4333-8333-333333333333', fetchFn, { accessToken: 'access-token' })
 		).resolves.toEqual({ status: 'pending_create', errorCode: 'calendar_service_busy' });
-		expect(failureInput!.p_failure_category).toBe('transient');
-		expect(failureInput!.p_error_code).toBe('calendar_service_busy');
+		expect(failureInput!.outcome).toBe('uncertain');
+  expect(failureInput!.failure_category).toBeUndefined();
+		expect(failureInput!.error_code).toBe('calendar_service_busy');
 		expect(JSON.stringify(failureInput)).not.toContain('detalle sensible remoto');
 	});
 });

@@ -662,7 +662,28 @@ describe('sincronización programada por lotes', () => {
   expect(service.requests.filter(request => request.method === 'POST' && !request.url.includes('/token'))).toHaveLength(4);
  });
 
-	it('revoca la autorización recién después de confirmar el borrado de su último evento', async () => {
+ it('removing a previous event cannot revoke a fresh grant committed immediately afterward', async () => {
+  const database = calendarDatabase({ claimed: [claimedEvent(1, { sync_status: 'pending_delete', event_id: 'evt-1' })],
+   appointments: [appointmentRow('apt-1')], removedConnection: 'connection-1' });
+  // Real Google revocation is project-wide for this user. This model schedules
+  // a legitimate new grant just after the old deletion's SQL commit.
+  let freshGrantUsable = false;
+  const original = database.supabase.rpc;
+  database.supabase.rpc = async (name: string, args: Record<string, unknown>) => {
+   const reply = await original(name, args);
+   if (name === 'complete_google_calendar_sync_batch') freshGrantUsable = true;
+   return reply;
+  };
+  const service = google(database.timeline, request => {
+   if (request.url === 'https://oauth2.googleapis.com/revoke') freshGrantUsable = false;
+   return undefined;
+  });
+  await processGoogleCalendarSyncBatch({ supabase: database.supabase, budget: createJobBudget('free'), providerFetch: service.fetchFn, now });
+  expect(freshGrantUsable).toBe(true);
+  expect(service.requests.some(request => request.url.endsWith('/revoke'))).toBe(false);
+ });
+
+	it('confirma el borrado del último vínculo sin revocar permisos globales de Google', async () => {
 		const database = calendarDatabase({
 			claimed: [claimedEvent(1, { sync_status: 'pending_delete', event_id: 'evt-1' })],
 			appointments: [appointmentRow('apt-1')],
@@ -677,8 +698,7 @@ describe('sincronización programada por lotes', () => {
 			'read:appointments',
 			'POST /token',
 			'DELETE /calendar/v3/calendars/primary/events/evt-1',
-			'complete_google_calendar_sync_batch',
-			'POST /revoke'
+			'complete_google_calendar_sync_batch'
 		]);
 	});
 

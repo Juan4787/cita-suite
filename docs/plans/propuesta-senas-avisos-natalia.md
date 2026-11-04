@@ -1328,3 +1328,10 @@ Pedido literal posterior de Juan:
 > cuando termines la fase E con el rigor extremo y exigencia extrema que te pido, avisame y dejame la documentacion para ver todo a detalle. No avances en los siguientes 3 puntos, esos los vamos a posponer
 
 **Aplicación y precedencia:** continuar autónomamente sólo E, con sus requisitos, verificación integral y autorización de publicación vigentes. Al completarla, avisar y entregar acceso a la documentación detallada de implementación, revisiones, pruebas, evidencia y límites. **P1, P2 y P3 quedan pospuestas y no deben iniciarse al cerrar E.** Sustituye la continuación automática de 12.23 y de los puntos de entrada que la indicaban; no elimina esos pendientes ni revierte el reemplazo de D celular por la futura notificación interna. El seguimiento separado conserva sus alcances para una reanudación posterior de Juan.
+
+
+### 12.27 Alcance de quitar un turno del calendario (4 de noviembre)
+
+Ajuste técnico bajo la autonomía de 12.20/12.25: quitar un evento borra ese evento y, si no quedan vínculos, elimina su credencial local. No revoca automáticamente todos los permisos de Google del usuario. Google documenta que revocar un token invalida permisos/tokens de todos los clientes del proyecto para esa persona; entre el borrado SQL y esa salida puede haber una nueva autorización legítima. Un modelo mutable reprodujo su invalidación por la revocación vieja. Una lectura adicional no cierra esa carrera externa.
+
+Se retira ese efecto global del camino de borrado inmediato/programado, sin crear otra cola ni conservar credenciales innecesarias. El usuario puede retirar todos los permisos desde su cuenta Google; volver a conectar puede requerir consentimiento renovado por el flujo existente. Reemplaza sólo la revocación automática tras el último vínculo descrita en la guía de tareas; conserva UID, borrado del evento, autoridad de gestión y recuperación. Implementación/pruebas y sus límites en E1.90 del registro. No modifica permisos ni configuración reales durante el desarrollo. Fuente primaria: [revocación OAuth de Google](https://developers.google.com/identity/protocols/oauth2/web-server#tokenrevoke).
