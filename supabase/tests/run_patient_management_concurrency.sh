@@ -44,6 +44,9 @@ delete from public.push_subscriptions s using public.businesses b where s.busine
 delete from public.push_devices d where d.endpoint like 'https://fcm.googleapis.com/management-race/$business_id/%'
  and not exists(select 1 from public.push_subscriptions s where s.device_id=d.id);
 delete from public.appointments a using public.businesses b where a.business_id=b.id and b.id='$business_id' and b.slug='$slug';
+delete from public.google_calendar_connections c where c.oauth_client_key=repeat('c',64)
+ and c.google_subject like 'calendar-race/$business_id/%'
+ and not exists(select 1 from public.appointment_google_calendar_events e where e.connection_id=c.id);
 delete from public.businesses where id='$business_id' and slug='$slug';
 delete from auth.users where id='$owner_id' and email='patient-management-race@example.test';
 commit;
@@ -666,6 +669,81 @@ end $$;
 SQL
 echo 'PASS: actual delivery child foreign keys finish while enrollment holds parent/device before association upsert.'
 
+# OAuth decisions must remain bound across the external-exchange gap.
+"${psql_command[@]}" <<'SQL'
+create table patient_management_race.calendar_requests(label text primary key,attempt_id uuid not null,state_hash text not null);
+create function patient_management_race.prepare_calendar(p_label text) returns void language plpgsql as $$
+declare r patient_management_race.requests; state text; attempt uuid; begin
+ perform patient_management_race.prepare(p_label);
+ select * into strict r from patient_management_race.requests where label=p_label;
+ state:=encode(extensions.digest('calendar-race/'||r.appointment_id,'sha256'),'hex');
+ attempt:=public.begin_patient_google_calendar_authorization(r.token,false,state,repeat('v',32),repeat('e',40),false);
+ insert into patient_management_race.calendar_requests values(p_label,attempt,state);
+end $$;
+create function patient_management_race.consume_calendar(p_label text) returns uuid language sql as $$
+ select result.attempt_id from patient_management_race.requests r join patient_management_race.calendar_requests c using(label),
+ lateral public.consume_patient_google_calendar_authorization(c.state_hash,r.token,false) result where label=p_label
+$$;
+create function patient_management_race.authorize_calendar(p_label text,p_other_attempt boolean default false) returns uuid language sql as $$
+ select event_row_id from patient_management_race.requests r join patient_management_race.calendar_requests c using(label),
+ lateral public.authorize_patient_google_calendar_event(r.token,false,
+  case when p_other_attempt then (select attempt_id from patient_management_race.calendar_requests where label=p_label||'_other') else c.attempt_id end,
+  repeat('c',64),'calendar-race/e3100000-0000-4000-8000-000000000001/'||p_label||case when p_other_attempt then '/other' else '' end,
+  repeat('r',40),array['https://www.googleapis.com/auth/calendar.events.owned']) result where label=p_label
+$$;
+create function patient_management_race.assert_calendar(p_label text,p_consumed boolean,p_authorized boolean) returns void language plpgsql as $$
+declare r patient_management_race.requests; attempt public.google_calendar_oauth_attempts; begin
+ select * into strict r from patient_management_race.requests where label=p_label;
+ select * into strict attempt from public.google_calendar_oauth_attempts where id=(select attempt_id from patient_management_race.calendar_requests where label=p_label);
+ if (attempt.consumed_at is not null) is distinct from p_consumed or (attempt.authorized_at is not null) is distinct from p_authorized
+  or (select count(*) from public.appointment_google_calendar_events where appointment_id=r.appointment_id)<>p_authorized::int
+  or (select count(*) from public.audit_logs where entity_id=r.appointment_id and action='appointment.google_calendar_authorized')<>p_authorized::int
+  or exists(select 1 from public.appointments a where a.id=r.appointment_id and (a.status<>'reserved' or a.starts_at=r.target))
+  then raise exception 'CALENDAR_AUTHORIZATION_PARTIAL_STATE_%',p_label; end if;
+end $$;
+select patient_management_race.prepare_calendar('contact_before_oauth_consume');
+SQL
+race contact_correction_before_oauth_consume \
+ "update public.patients set email='race-corrected@example.test' where id=(select a.patient_id from public.appointments a join patient_management_race.requests r on r.appointment_id=a.id where r.label='contact_before_oauth_consume');" \
+ "select patient_management_race.consume_calendar('contact_before_oauth_consume');" APPOINTMENT_LINK_UNAVAILABLE
+"${psql_command[@]}" -c "select patient_management_race.assert_calendar('contact_before_oauth_consume',false,false); select patient_management_race.prepare_calendar('oauth_consume_before_contact');"
+race oauth_consume_before_contact_correction \
+ "select patient_management_race.consume_calendar('oauth_consume_before_contact');" \
+ "update public.patients set email='race-corrected@example.test' where id=(select a.patient_id from public.appointments a join patient_management_race.requests r on r.appointment_id=a.id where r.label='oauth_consume_before_contact');"
+"${psql_command[@]}" -c "select patient_management_race.assert_calendar('oauth_consume_before_contact',true,false); select patient_management_race.prepare_calendar('contact_before_oauth_grant'); select patient_management_race.consume_calendar('contact_before_oauth_grant');"
+race contact_correction_before_oauth_final_grant \
+ "update public.patients set email='race-corrected@example.test' where id=(select a.patient_id from public.appointments a join patient_management_race.requests r on r.appointment_id=a.id where r.label='contact_before_oauth_grant');" \
+ "select patient_management_race.authorize_calendar('contact_before_oauth_grant');" APPOINTMENT_LINK_UNAVAILABLE
+"${psql_command[@]}" -c "select patient_management_race.assert_calendar('contact_before_oauth_grant',true,false); select patient_management_race.prepare_calendar('oauth_grant_before_contact'); select patient_management_race.consume_calendar('oauth_grant_before_contact');"
+race oauth_final_grant_before_contact_correction \
+ "select patient_management_race.authorize_calendar('oauth_grant_before_contact');" \
+ "update public.patients set email='race-corrected@example.test' where id=(select a.patient_id from public.appointments a join patient_management_race.requests r on r.appointment_id=a.id where r.label='oauth_grant_before_contact');"
+"${psql_command[@]}" -c "select patient_management_race.assert_calendar('oauth_grant_before_contact',true,true); select patient_management_race.prepare_calendar('oauth_duplicate_grant'); select patient_management_race.consume_calendar('oauth_duplicate_grant');"
+race same_nonce_finalized_concurrently \
+ "select patient_management_race.authorize_calendar('oauth_duplicate_grant');" \
+ "select patient_management_race.authorize_calendar('oauth_duplicate_grant');" GOOGLE_CALENDAR_OAUTH_ALREADY_AUTHORIZED
+"${psql_command[@]}" <<'SQL'
+select patient_management_race.assert_calendar('oauth_duplicate_grant',true,true);
+select patient_management_race.prepare_calendar('oauth_competing_accounts');
+select patient_management_race.consume_calendar('oauth_competing_accounts');
+do $$ declare r patient_management_race.requests; state text:=repeat('e',64); id uuid; begin
+ select * into strict r from patient_management_race.requests where label='oauth_competing_accounts';
+ id:=public.begin_patient_google_calendar_authorization(r.token,false,state,repeat('v',32),repeat('e',40),false);
+ insert into patient_management_race.calendar_requests values('oauth_competing_accounts_other',id,state);
+ perform public.consume_patient_google_calendar_authorization(state,r.token,false);
+end $$;
+SQL
+race competing_accounts_before_event_creation \
+ "select patient_management_race.authorize_calendar('oauth_competing_accounts');" \
+ "select patient_management_race.authorize_calendar('oauth_competing_accounts',true);" GOOGLE_CALENDAR_ALREADY_CONNECTED
+"${psql_command[@]}" <<'SQL'
+select patient_management_race.assert_calendar('oauth_competing_accounts',true,true);
+do $$ begin
+ if exists(select 1 from public.google_calendar_connections where google_subject='calendar-race/e3100000-0000-4000-8000-000000000001/oauth_competing_accounts/other')
+ then raise exception 'COMPETING_OAUTH_ACCOUNT_LEFT_CONNECTION'; end if;
+end $$;
+SQL
+
 deadlocks_after=$("${psql_command[@]}" -c 'select deadlocks from pg_stat_database where datname=current_database();')
 [[ "$deadlocks_before" == "$deadlocks_after" ]]
-echo 'PASS: thirty-five controlled management/contact/clinical races plus two FK lock counterexamples; no PostgreSQL deadlock.'
+echo 'PASS: forty-one controlled management/contact/clinical/OAuth races plus two FK lock counterexamples; no PostgreSQL deadlock.'
