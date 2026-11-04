@@ -48,6 +48,7 @@ A	apps/web/src/lib/scheduling/public-appointment.ts
 A	apps/web/src/lib/scheduling/reschedule-terms.test.ts
 A	apps/web/src/lib/scheduling/reschedule-terms.ts
 A	apps/web/src/lib/scheduling/staff-management.ts
+M	apps/web/src/lib/server/google-calendar-sync.test.ts
 A	apps/web/src/lib/server/integrations/public/google-calendar-leases.test.ts
 M	apps/web/src/lib/server/integrations/public/google-calendar.test.ts
 M	apps/web/src/lib/server/integrations/public/google-calendar.ts
