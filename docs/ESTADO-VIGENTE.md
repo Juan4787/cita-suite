@@ -18,7 +18,7 @@ produccion_repositorio: github-secundaria:Juan4787/cita-suite-verificacion.git
 
 ## Etapa E — ejecución al 4 de noviembre
 
-E conserva autorización íntegra de implementación/pruebas/publicación: [plan 12.18–12.26](plans/propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada), [especificación](plans/etapa-e-correo-autogestion.md) y [registro activo](plans/ejecucion-etapa-e-20261103.md). E1/E2 sin publicar ni SQL E productivo. Veintiuna aprobada en SQL 41875359541: 15 grupos de observación, 18 de lease, 48 carreras/dos contraejemplos FK, doce esperas y regresiones/limpieza; tipos oficiales/digest cotejados e importados. Consumidores de calendario/retiro/métricas/PDF con 103 dirigidas de ocho suites aprobadas. Fast integrado 41876511206 aprobado: 1896 servidor/281 cliente, cero errores/avisos, arquitectura sin violaciones. Browser ampliado 41877197500 en ejecución y SQL veintidós/retención 41878548413 en cola, sin resultado. Recuperación inicial ahora revalida gestión, 106 dirigidas aprobadas; fast posterior pendiente. El browser anterior 41827075064 y fast 41827070902 conservan sólo sus revisiones/alcances. Seguir verificación integrada y retención OAuth/lectores/distribución/contacto/correo/E3–E6. Checkpoint E1.99. Producción V12b, ningún envío nuevo ni cierre E. P1/P2/P3 pospuestas por 12.26: no iniciarlas al cerrar E; avisar y entregar documentación detallada. Zoho OAuth administrativo persiste; envío/webhook/recepción/integración siguen pendientes.
+E conserva autorización íntegra de implementación/pruebas/publicación: [plan 12.18–12.26](plans/propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada), [especificación](plans/etapa-e-correo-autogestion.md) y [registro activo](plans/ejecucion-etapa-e-20261103.md). E1/E2 sin publicar ni SQL E productivo. Veintiuna aprobada en SQL 41875359541: 15 grupos de observación, 18 de lease, 48 carreras/dos contraejemplos FK, doce esperas y regresiones/limpieza; tipos oficiales/digest cotejados e importados. Consumidores de calendario/retiro/métricas/PDF con 103 dirigidas de ocho suites aprobadas. Fast integrado 41876511206 aprobado: 1896 servidor/281 cliente, cero errores/avisos, arquitectura sin violaciones. Browser ampliado 41877197500 aprobado (dos marcas, descarga PDF real/autoridad/UID/métricas y clínica/Storage). SQL veintidós 41878548413 falló por fixture permanente inválida, corregida sin cambiar producto; recomprobación pendiente. Recuperación/lectores embed-detalle actualizado ahora usan gestión, 112 dirigidas aprobadas; fast/navegador posteriores pendientes. El browser anterior 41827075064 y fast 41827070902 conservan sólo sus revisiones/alcances. Seguir verificación integrada y retención OAuth/lectores/distribución/contacto/correo/E3–E6. Checkpoint E1.100. Producción V12b, ningún envío nuevo ni cierre E. P1/P2/P3 pospuestas por 12.26: no iniciarlas al cerrar E; avisar y entregar documentación detallada. Zoho OAuth administrativo persiste; envío/webhook/recepción/integración siguen pendientes.
 
 ## Código que difiere de producción
 
@@ -40,6 +40,7 @@ A	apps/web/src/lib/booking/PublicInformationPage.svelte
 A	apps/web/src/lib/components/appointments/PatientManagementPanel.client.test.ts
 A	apps/web/src/lib/components/appointments/PatientManagementPanel.svelte
 A	apps/web/src/lib/components/appointments/PublicAppointmentPage.svelte
+A	apps/web/src/lib/components/appointments/RescheduleNoticePage.svelte
 A	apps/web/src/lib/patients/public-booking-information.ts
 A	apps/web/src/lib/scheduling/patient-action-context.test.ts
 A	apps/web/src/lib/scheduling/patient-action-context.ts
@@ -66,6 +67,7 @@ A	apps/web/src/lib/server/patients/public/booking-information-page.ts
 M	apps/web/src/lib/server/patients/public/booking-information.ts
 M	apps/web/src/lib/server/patients/public/clinical-files.ts
 A	apps/web/src/lib/server/scheduling/internal/management-contract.ts
+A	apps/web/src/lib/server/scheduling/public/appointment-reader-authority.test.ts
 A	apps/web/src/lib/server/scheduling/public/appointment-token.test.ts
 M	apps/web/src/lib/server/scheduling/public/appointment-token.ts
 M	apps/web/src/lib/server/scheduling/public/appointments.test.ts
@@ -84,10 +86,13 @@ M	apps/web/src/lib/server/scheduling/public/public-booking-page.ts
 A	apps/web/src/lib/server/scheduling/public/public-booking-recovery.test.ts
 A	apps/web/src/lib/server/scheduling/public/receipt-pdf-handler.test.ts
 A	apps/web/src/lib/server/scheduling/public/receipt-pdf-handler.ts
+A	apps/web/src/lib/server/scheduling/public/reschedule-notice-page.ts
 A	apps/web/src/lib/server/scheduling/public/staff-management-flow.test.ts
 A	apps/web/src/lib/server/scheduling/public/staff-management-flow.ts
 A	apps/web/src/lib/server/scheduling/public/staff-management.test.ts
 A	apps/web/src/lib/server/scheduling/public/staff-management.ts
+M	apps/web/src/routes/embed/v1/[integrationKey]/turno/[token]/+page.server.ts
+M	apps/web/src/routes/embed/v1/[integrationKey]/turno/[token]/+page.svelte
 A	apps/web/src/routes/gestion/[token]/+page.server.ts
 A	apps/web/src/routes/gestion/[token]/+page.svelte
 A	apps/web/src/routes/gestion/[token]/calendario-descargar.ics/+server.ts
@@ -103,6 +108,8 @@ A	apps/web/src/routes/gestion/[token]/ir/google/+server.ts
 A	apps/web/src/routes/gestion/[token]/ir/maps/+server.ts
 A	apps/web/src/routes/gestion/[token]/ir/outlook/+server.ts
 A	apps/web/src/routes/gestion/[token]/push/+server.ts
+A	apps/web/src/routes/gestion/[token]/reprogramado/+page.server.ts
+A	apps/web/src/routes/gestion/[token]/reprogramado/+page.svelte
 M	apps/web/src/routes/oauth/google-calendar/callback/+server.ts
 M	apps/web/src/routes/oauth/google-calendar/callback/callback.server.test.ts
 M	apps/web/src/routes/odonto/agenda/+page.server.ts
@@ -132,6 +139,8 @@ M	apps/web/src/routes/turno/[token]/ir/outlook/+server.ts
 M	apps/web/src/routes/turno/[token]/page.client.test.ts
 M	apps/web/src/routes/turno/[token]/push/+server.ts
 M	apps/web/src/routes/turno/[token]/push/push.server.test.ts
+M	apps/web/src/routes/turno/[token]/reprogramado/+page.server.ts
+M	apps/web/src/routes/turno/[token]/reprogramado/+page.svelte
 M	packages/shared/src/database.types.ts
 A	scripts/check-repo-sync.mjs
 M	scripts/package-verification-evidence.py

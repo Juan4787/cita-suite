@@ -6,7 +6,7 @@ create temporary table calendar_retention_fixture(label text primary key,value t
 do $$ declare b uuid:=gen_random_uuid(); u uuid:=gen_random_uuid(); professional uuid:=gen_random_uuid(); service uuid:=gen_random_uuid(); patient uuid; a uuid; connection uuid; begin
  insert into auth.users(id,email) values(u,'calendar-retention-'||u||'@example.test');
  insert into public.businesses(id,name,slug,industry,timezone) values(b,'Synthetic OAuth retention',b::text,'other','UTC');
- update public.business_subscriptions set commercial_access_enabled=true,is_permanent=true,subscription_status='active',archived_at=null where business_id=b;
+ update public.business_subscriptions set commercial_access_enabled=true,is_permanent=true,subscription_status='active',paid_until=null,grace_until=null,restricted_until=null,archived_at=null where business_id=b;
  insert into public.business_users(business_id,user_id,role,status,accepted_at) values(b,u,'owner','active',now());
  insert into public.professionals(id,business_id,name) values(professional,b,'Synthetic retention professional');
  insert into public.services(id,business_id,name,duration_minutes) values(service,b,'Synthetic retention service',60);
