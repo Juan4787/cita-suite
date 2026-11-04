@@ -96,6 +96,9 @@ describe('appointment error messages', () => {
 		expect(getHumanAppointmentErrorMessage(new Error('APPOINTMENT_CREATOR_INVALID'))).toContain(
 			'Recargá la agenda'
 		);
+		const contactConflict = new Error('PATIENT_UPDATE_CONFLICT');
+		expect(getAppointmentCreationErrorStatus(contactConflict)).toBe(409);
+		expect(getHumanAppointmentErrorMessage(contactConflict)).toBe('La ficha está siendo actualizada. Revisá los datos del paciente y volvé a confirmar el turno.');
 	});
 });
 

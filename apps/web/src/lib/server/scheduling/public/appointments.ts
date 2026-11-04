@@ -119,6 +119,7 @@ export const assertCanTransitionAppointment = (input: {
 export const getAppointmentCreationErrorStatus = (error: unknown): number => {
 	if (!isRecord(error)) return 500;
 	if (error.code === '23P01') return 409;
+	if (typeof error.message === 'string' && error.message.includes('PATIENT_UPDATE_CONFLICT')) return 409;
 	if (typeof error.message === 'string' &&
 		(error.message.includes('APPOINTMENT_CREATOR_INVALID') || error.message.includes('PATIENT_OWNER_INVALID'))) return 403;
 	return 500;
@@ -127,6 +128,8 @@ export const getAppointmentCreationErrorStatus = (error: unknown): number => {
 export const getHumanAppointmentErrorMessage = (error: unknown) => {
 	const candidate = isRecord(error) ? error : {};
 	const raw = `${typeof candidate.message === 'string' ? candidate.message : ''} ${typeof candidate.details === 'string' ? candidate.details : ''}`;
+	if (raw.includes('PATIENT_UPDATE_CONFLICT'))
+		return 'La ficha está siendo actualizada. Revisá los datos del paciente y volvé a confirmar el turno.';
 
  if (raw.includes('APPOINTMENT_MANAGEMENT_CHANGED') || raw.includes('APPOINTMENT_OPERATION_CONFLICT'))
   return 'Este turno cambió desde que lo abriste. Revisá su estado actual antes de volver a confirmar.';

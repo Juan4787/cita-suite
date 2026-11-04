@@ -18,7 +18,7 @@ produccion_repositorio: github-secundaria:Juan4787/cita-suite-verificacion.git
 
 ## Etapa E — ejecución al 4 de noviembre
 
-E conserva autorización íntegra de implementación/pruebas/publicación: [plan 12.18–12.26](plans/propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada), [especificación](plans/etapa-e-correo-autogestion.md) y [registro activo](plans/ejecucion-etapa-e-20261103.md). E1/E2/E3 sin publicar ni SQL E productivo. Veinticuatro migraciones aprobadas en SQL 41887356962 y fast 41887362821 (1920 servidor/282 cliente, cero errores/avisos). Browser 41925050114 aprobó integración completa: email requerido, respuesta perdida, comprobante virtual/GET privado y revocación de lectores; recepción falló por pérdida de teléfono alternativo al editar sólo email. Lector corregido con roja/verde dirigida, 24 servidor aprobadas. Fast 41925044989 falló en dos opciones incompatibles del test cliente (Testing Library/Playwright), corregidas. Contacto por reserva añadido en veinticinco y catorce grupos SQL escritos; nueva contraprueba de contención edición/alta pendiente, sin atribuir todavía un deadlock al producto. Siguiente: SQL/fast de esta revisión y clasificar la carrera antes de navegador; después contacto/outbox/distribución/altas informadas/SN14/correo/E3–E6. Checkpoint E3.7. Producción V12b, ningún envío nuevo ni cierre E; P1/P2/P3 pospuestas. Zoho OAuth administrativo persiste; envío/webhook/recepción/integración siguen pendientes.
+E conserva autorización íntegra de implementación/pruebas/publicación: [plan 12.18–12.26](plans/propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada), [especificación](plans/etapa-e-correo-autogestion.md) y [registro activo](plans/ejecucion-etapa-e-20261103.md). E1/E2/E3 sin publicar ni SQL E productivo. Veinticuatro plenamente aprobadas en SQL 41887356962. Veinticinco instaló y pasó sus catorce grupos/SQL anteriores en 41926786859, pero la nueva carrera reprodujo deadlock FK/ficha/advisory; corrida fallida, sin tipos ni aprobación integral. Fast 41926791242 aprobado sobre d19c35a: 1931 servidor/283 cliente, cero errores/avisos. Browser de recepción nuevo pendiente; integración/virtual/lectores sí aprobados en 41925050114. Veintiséis corrige el disparador compartido sin adelantar fila al núcleo público: evita advisory innecesario para email y usa adquisición no bloqueante para identidad/elegibilidad; cinco escenarios de contención y adaptadores humanos preparados, 37 dirigidas servidor aprobadas. Siguiente: SQL/tipos de veintiséis y browser de recepción; después contacto/outbox/distribución/altas informadas/SN14/Zoho/correo/E3–E6. Checkpoint E3.8. Producción V12b, ningún envío nuevo ni cierre E; P1/P2/P3 pospuestas.
 
 ## Código que difiere de producción
 
@@ -76,6 +76,8 @@ A	apps/web/src/lib/server/patients/public/booking-information-page.test.ts
 A	apps/web/src/lib/server/patients/public/booking-information-page.ts
 M	apps/web/src/lib/server/patients/public/booking-information.ts
 M	apps/web/src/lib/server/patients/public/clinical-files.ts
+M	apps/web/src/lib/server/patients/public/patient-archive.test.ts
+M	apps/web/src/lib/server/patients/public/patient-archive.ts
 M	apps/web/src/lib/server/patients/public/patient-detail.test.ts
 M	apps/web/src/lib/server/patients/public/patient-detail.ts
 M	apps/web/src/lib/server/public-booking-navigation.test.ts
@@ -196,6 +198,7 @@ A	supabase/migrations/20261104090000_calendar_oauth_retention.sql
 A	supabase/migrations/20261104100000_appointment_email_policy_settings.sql
 A	supabase/migrations/20261104110000_public_booking_email_requirement.sql
 A	supabase/migrations/20261104120000_public_booking_email_contact_scope.sql
+A	supabase/migrations/20261104130000_patient_contact_lock_order.sql
 M	supabase/templates/recovery.html
 M	supabase/tests/appointment_actor_revalidation.sql
 M	supabase/tests/appointment_deposits.sql

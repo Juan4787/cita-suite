@@ -31,6 +31,8 @@ export async function setPatientArchived({
 	});
 	if (!error) return;
 	logServerFailure('patient.archive.failed', error);
+	if (error.message.includes('PATIENT_UPDATE_CONFLICT'))
+		throw new PatientOperationError('conflict', 'La ficha está siendo actualizada. Revisá su estado y volvé a intentar.');
 	if (error.message.includes('BUSINESS_ACCESS_RESTRICTED'))
 		throw new PatientOperationError('forbidden', COMMERCIAL_RESTRICTED_MESSAGE);
 	if (error.message.includes('PROFESSIONAL_PATIENT_LINK_REQUIRED'))
