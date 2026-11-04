@@ -20,18 +20,26 @@ alter table public.appointment_google_calendar_events add constraint calendar_cl
 
 create function private.claim_calendar_sync_event_at(p_event_row_id uuid,p_claim_token uuid,p_now timestamptz)
 returns jsonb language plpgsql security definer set search_path=pg_catalog,pg_temp as $$
-declare e public.appointment_google_calendar_events; c public.google_calendar_connections;
+declare e public.appointment_google_calendar_events; c public.google_calendar_connections; v_recovered boolean:=false;
 begin
  -- Claiming changes only this child and never waits for its appointment. The
  -- current parent/identity is checked again by the result transaction/consumer.
- perform 1 from public.appointment_google_calendar_events where id=p_event_row_id for update skip locked;
+ select * into e from public.appointment_google_calendar_events where id=p_event_row_id for update skip locked;
  if not found then return null; end if;
- update public.appointment_google_calendar_events set claimed_at=p_now,claim_token=p_claim_token,last_attempt_at=p_now,updated_at=p_now
- where id=p_event_row_id and sync_status in ('pending_create','pending_update','pending_delete') and next_attempt_at<=p_now
-  and (claimed_at is null or claimed_at<p_now-interval '10 minutes') returning * into e;
- if not found then return null; end if;
+ if e.claim_token=p_claim_token then
+  -- Only the owning executor may recover its unanswered SQL claim. Never
+  -- extend the lease, renew an expired owner or create another logical attempt.
+  if e.claimed_at is null or e.claimed_at<p_now-interval '10 minutes'
+   or e.sync_status not in ('pending_create','pending_update','pending_delete') then return null; end if;
+  v_recovered:=true;
+ else
+  update public.appointment_google_calendar_events set claimed_at=p_now,claim_token=p_claim_token,last_attempt_at=p_now,updated_at=p_now
+  where id=p_event_row_id and sync_status in ('pending_create','pending_update','pending_delete') and next_attempt_at<=p_now
+   and (claimed_at is null or claimed_at<p_now-interval '10 minutes') returning * into e;
+  if not found then return null; end if;
+ end if;
  select * into c from public.google_calendar_connections where id=e.connection_id;
- return jsonb_build_object('event_row_id',e.id,'business_id',e.business_id,'appointment_id',e.appointment_id,
+ return jsonb_build_object('claim_recovered',v_recovered,'event_row_id',e.id,'business_id',e.business_id,'appointment_id',e.appointment_id,
   'connection_id',e.connection_id,'calendar_id',e.calendar_id,'event_id',e.event_id,'sync_status',e.sync_status,
   'synced_sequence',e.synced_sequence,'attempt_count',e.attempt_count,'refresh_token_ciphertext',c.refresh_token_ciphertext,
   'connection_revoked_at',c.revoked_at);
@@ -45,7 +53,9 @@ begin
  if p_event_row_id is null or p_claim_token is null then raise exception 'GOOGLE_CALENDAR_EVENT_CLAIM_INVALID'; end if;
  result:=private.claim_calendar_sync_event_at(p_event_row_id,p_claim_token,v_now);
  if result is not null then
-  perform private.record_job_queue_turns('calendar',array[(result->>'business_id')::uuid],v_now);
+  if not (result->>'claim_recovered')::boolean then
+   perform private.record_job_queue_turns('calendar',array[(result->>'business_id')::uuid],v_now);
+  end if;
   result:=result||jsonb_build_object('business_turn',1);
  end if;
  return result;
