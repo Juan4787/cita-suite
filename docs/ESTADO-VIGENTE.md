@@ -110,6 +110,7 @@ A	supabase/tests/patient_appointment_management_recovery.sql
 A	supabase/tests/patient_appointment_management_view.sql
 M	supabase/tests/patient_change_history_atomic.sql
 M	supabase/tests/patient_identity_atomicity.sql
+A	supabase/tests/patient_management_information_access.sql
 M	supabase/tests/run_deposit_expiry_concurrency.sh
 M	supabase/tests/run_patient_identity_idempotency_concurrency.sh
 A	supabase/tests/run_patient_management_concurrency.sh
@@ -232,3 +233,5 @@ Lo ignora `.gitignore` y no se publica nunca: el repositorio es público.
 - E1.56: SQL 41760657679 instaló doce migraciones y aprobó revocación/legado/ABA/familiares; se detuvo en END duplicado de una prueba nueva de rollback, corregido sin cambios del producto. Rerun integral/tipos pendientes.
 
 - E1.58: SQL 41761097542 aprobó doce migraciones, capacidades 33/comandos 40 y 24 carreras; tipos oficiales importados con digest cotejado. Roja del editor de contacto 41761295231 reproducida; .130 y nueve grupos/doce esperas escritos, trece migraciones pendientes. Producción intacta, sin correo nuevo.
+
+- E1.59: SQL 41762069407 aprobó trece migraciones, nueve grupos del editor/historia y doce esperas; tipos/digest cotejados. Fast 41762158350 aprobado (1808 servidor/280 cliente, sin errores/avisos). Nuevo contrato clínico auxiliar escrito, sin ejecutar; producción V12b, sin SQL aplicado ni envío nuevo.

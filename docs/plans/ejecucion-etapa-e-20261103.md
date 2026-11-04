@@ -37,7 +37,7 @@ Fuentes: [plan íntegro y ajustes](propuesta-senas-avisos-natalia.md#ejecucion-e
 
 **Fase:** E0 completo; E1 y primera integración E2 en implementación. Nueve migraciones comprobadas en SQL descartable (41715645324); adaptadores y pantalla compartida escritos, sin publicar ni aplicar SQL en producción. Personal/roles/contacto/cola pendientes. **Publicación de E:** no. **Pruebas integrales E:** no ejecutadas.
 
-**Siguiente acción:** verificar .130 de autoridad del editor de contacto, sus nueve grupos y doce esperas (trece migraciones). SQL de doce migraciones **41761097542 aprobado**, capacidades 33, comandos 40 y 24 carreras paciente/personal/contacto; tipos oficiales importados con digest cotejado. Roja **41761295231** reprodujo una edición por membresía deshabilitada. .130 escrita reutilizando autoridad existente y conservando las dos firmas, alcance profesional y transacción de historia; pendiente CI. Después auxiliares, distribución/contacto/cola y E3–E6. Browser personal 41757455635 aprobado con límites de E1.53. Producción V12b, ningún envío nuevo. P1/P2/P3 pospuestas incluso al cerrar E.
+**Siguiente acción:** ejecutar la roja del nuevo contrato de información clínica auxiliar y cerrar ese acceso por generación/contacto, preservando sus restricciones propias. Trece migraciones **41762069407 aprobadas**, editor/historia nueve grupos y doce esperas; capacidades 33/comandos paciente 40/24 carreras conservadas, tipos oficiales/digest cotejados. Fast integrado **41762158350 aprobado** (1808 servidor/280 cliente, sin errores/avisos). Nuevo contrato auxiliar de diez grupos escrito, sin ejecutar; no hay .140 ni cambios auxiliares implementados todavía. Después documentos/push/OAuth/calendario, distribución/contacto/cola y E3–E6. Producción V12b, ningún envío nuevo. P1/P2/P3 pospuestas incluso al cerrar E.
 
 **Evidencia privada de esta ejecución:** `.verification/etapa-e-20261103/`. Ningún secreto, dirección de paciente, cuerpo de correo recibido o dato personal se incluye en Git ni en documentos públicos. Las rutas de evidencia no equivalen a resultados aprobados.
 
@@ -53,7 +53,7 @@ La regla de cada caso se lee en la especificación; esta tabla registra su acept
 | EM04 | Pendiente | Sin prueba funcional de E. |
 | EM05 | Pendiente | Sin prueba funcional de E. |
 | EM06 | Pendiente | Sin prueba funcional de E. |
-| EM07 | Pendiente | Sin prueba funcional de E. |
+| EM07 | Parcial CI | SQL 41761097542: revocación por contacto, ABA, familiares y carreras; 41762069407: editor autorizado e historia, nueve grupos/doce esperas. Faltan rutas auxiliares, distribución de enlaces y destinatario/cola/envío. E1.58–E1.59. |
 | EM08 | Pendiente | Sin prueba funcional de E. |
 | EM09 | Pendiente | Sin prueba funcional de E. |
 | EM10 | Pendiente | Sin prueba funcional de E. |
@@ -67,7 +67,7 @@ La regla de cada caso se lee en la especificación; esta tabla registra su acept
 | AC06 | Parcial CI | Contrato puro: 44 casos en fast 41578321181 y cuatro mutaciones locales; faltan integración y recorridos reales. Ver E1.1/E1.15. |
 | AC07 | Parcial CI | Comando SQL/trece carreras 41660810130 y repetición HTTP real en browser 41702920488; faltan correo/consumidores y escenarios integrales restantes. |
 | AC08 | Pendiente | Sin prueba funcional de E. |
-| AC09 | Parcial CI | Contrato puro y capacidades SQL 20/20, 41600939474; rutas legadas y corrección de email todavía sin integrar/verificar. E1.15. |
+| AC09 | Parcial CI | Capacidades 33/33 y tres carreras de contacto en 41761097542; 41762069407 conserva regresiones. Legado de gestión revocado, UID estable; clínica/documentos/push/OAuth/calendarios auxiliares y recorrido desde email todavía sin cerrar. E1.58–E1.59. |
 | AC10 | Parcial CI | Cancelación nativa sin JS en browser 41702920488; panel/errores de transporte dirigidos, sin prueba real de desconexión/teclado/lector integral. E2.10–E2.11. |
 | RP01 | Parcial CI | SQL del comando y carreras en 41614887283 (E1.28); faltan integración, UX y restantes condiciones del caso. |
 | RP02 | Parcial CI | SQL del comando y carreras en 41614887283 (E1.28); faltan integración, UX y restantes condiciones del caso. |
@@ -99,7 +99,7 @@ La regla de cada caso se lee en la especificación; esta tabla registra su acept
 | SN15 | Pendiente | Sin prueba funcional de E. |
 | SN16 | Parcial CI | Comando SQL 29/29 en 41609778146; alcance específico E1.22. Faltan carreras completas, consumidores y prueba integral. |
 | SN17 | Parcial CI | Cancelación conserva pago como unresolved en SQL 41600939474; falta comando público/UX/correo y comprobaciones integrales. |
-| SN18 | Pendiente | Falta comprobar el comando y recorrido real del personal en E. La cancelación del paciente no acredita ese origen. |
+| SN18 | Parcial CI | SQL personal, grupo 11 de 25: cancelación conserva pago como unresolved y no forfeited (41759448286, regresión 41762069407). Browser personal 41757455635 cancela sin JS un turno sin pago; falta recorrido integrado con dinero/correo y política de resolución. |
 | SN19 | Parcial CI | Actualización real desde cinco estados anteriores, 8/8 en 41600939474; sin aplicación productiva ni UI de historia. |
 | RM01 | Pendiente | Sin prueba funcional de E. |
 | RM02 | Pendiente | Sin prueba funcional de E. |
@@ -138,7 +138,7 @@ La regla de cada caso se lee en la especificación; esta tabla registra su acept
 | UI07 | Pendiente | Sin prueba funcional de E. |
 | UI08 | Pendiente | Sin prueba funcional de E. |
 | OP01 | Parcial CI | Fallas provocadas de auditoría/evento revierten SQL en 41614887283; falta recuperación de cola/proveedor y UX. |
-| OP02 | Parcial CI | Diez grupos y seis esperas de ayuda aprobados 41705610343; falta agenda atómica del personal, alta con Ayuda y configuración/roles nuevos. E1.44. |
+| OP02 | Parcial CI | SQL 41762069407: agenda/alta/reparación, 18 grupos ayuda y doce esperas, editor/historia con pérdida de alcance de Administración al vencer Ayuda. Configuración nueva, auxiliares y revisión integral siguen pendientes; no hay cambio productivo. E1.59. |
 | OP03 | Parcial CI | Contrato puro: 44 casos en fast 41578321181 y cuatro mutaciones locales; faltan integración y recorridos reales. Ver E1.1/E1.15. |
 | OP04 | Pendiente | Sin prueba funcional de E. |
 | OP05 | Pendiente | Sin prueba funcional de E. |
@@ -762,3 +762,13 @@ Pedido vigente en plan 12.24. Se revisaron los ocho SQL E, sus lectores/comandos
 - .130 escrita: conserva núcleo optimista y wrapper transaccional de historia, ambas firmas/retornos/ACL. Reutiliza business_operation_actor para membresía/Ayuda/comercial, con comprobación final también después de la historia. Compara el rol efectivo con el original: ayuda que vence y vuelve a Profesional no conserva por ser no nulo su alcance anterior de Administración. Autor profesional propio bloqueado, y vínculo profesional/paciente revalidado sin invertir registro: asignación profesional→paciente→vínculo; no se bloquea el vínculo antes del paciente. El token de edición y las reglas clínicas permanecen. No agrega otro comando, contador o identidad de operación.
 - Los cuerpos predecesores se contrastaron íntegros con el catálogo verificado de once migraciones: wrapper SHA-256 `bbd38292c18ba70a13c0bf5730df663b361fa4915bb5b6aa5b1313f659741913`, núcleo `cd75eefb56ace1a6ca043237247d7bb52d47b308c5a4bccd21a1d47d9d1be460`; search_path conserva pg_temp al final. Diff privado `contact-editor-body.diff`. Contrato ampliado 8→9 con ayuda que vence durante historia y vuelve a profesional sin vínculo. Esperas reales 10→12: ficha retenida y tabla de historia retenida; rechazos deben conservar ficha, generación/evento de contacto e historia además del estado previo de agenda/dinero. Sintaxis bash/diff revisadas; trece migraciones pendientes de CI.
 - AC09/EM07 siguen parciales: auxiliares legadas, distribución de enlaces/destinatarios, cola/proveedor y UI final aún pendientes. No aplicado SQL, publicado ni enviado correo nuevo; tareas posteriores pospuestas.
+
+
+### E1.59 — trece migraciones/regresiones aprobadas y continuación auxiliar
+
+- SQL **41762069407 aprobado**, fuente `017b009565beb7f8a3b3645a4cf9e46707f29ff1`, código **3733b45**: trece migraciones, nueve grupos de ficha/historia, doce esperas reales del personal (ficha e INSERT de historia incluidos), 24 carreras previas conservadas. El caso de ayuda que vence y vuelve a profesional sin vínculo rechaza íntegramente la edición después de la historia. Evidencia privada `sql-editor-contacto-verde-41762069407.zip/.log`, colección `sql-editor-contacto-verde-evidence`, cuatro archivos, SHA-256 `cc1d9a4a426187b08f2e3fcd627891521d8d09ebc4deb18770879c90571dbd0b`. Digest de migraciones **db9e3ed9d493fb0031e7ee4983686b2d898398cee1549db99fb1bb35129fef7b**, cotejado contra esa fuente; tipos oficiales reproducibles idénticos a los importados de doce, SHA-256 **d17ecdcbe3d0a364dde7e61135b8d8bdd54d4502bb28c3cb26d9918352bbe147**.
+- Fast **41762158350 aprobado**, misma fuente/código: **1808 servidor/280 cliente**, web sin errores/avisos, tipos e2e y fronteras aprobados (900 módulos/1993 dependencias). Evidencia `fast-contacto-verde-41762158350.zip/.log`, colección `fast-contacto-verde-evidence`, siete archivos, SHA-256 `d028f3310544268819ddc0763f912d24579463d5ff35725f5bb20b7ef8653f88`. No acredita navegador nuevo, artefacto o E integral. Browser real del personal anterior conserva su alcance en E1.53; no se repite por rutina sin cambio de UI.
+- Infraestructura: el primer dispatch de SQL devolvió HTTP 500 de GitHub. Se consultó la rama exacta y no había corrida antes de repetir; un único SQL 41762069407 quedó creado. No se atribuye ese fallo a código ni se confunde respuesta ausente con ejecución inexistente sin consultar.
+- Siguiente contrato escrito: patient_management_information_access.sql, diez grupos antes de implementar auxiliares. Control positivo legado, revocación de lectura/escritura, acceso explícito de capacidad, mapeo clínico atómico y restricciones propias de suspensión/cancelación/inicio, sin trasladar a clínica la excepción mínima de cancelación. No ejecutado ni .140 escrita aún.
+- Diseño de implementación auxiliar: canal explícito token/legacy, nuevas rutas de capacidad y wrappers legados con su contrato restringido; nunca deducir clase por formato ni emitir capacidad por conocer un token de calendario. Lectura clínica en una fotografía; escritura con turno retenido, revalidación después de sus efectos y conservación de historia/optimismo. Documentos deben conservar la gracia de finalizar una carga ya iniciada, sin convertirla en acceso general a formularios pasados, y vincular sólo las cargas pendientes a generación/contacto. Signed URLs ya emitidas no se pueden retirar atómicamente: revalidar al completar antes de Ready, con limpieza existente. Preservar el orden presupuesto→turno→archivo→paciente al introducir el control, sin invertir los locks actuales de carga.
+- OAuth pendiente requiere vincular el intento a generación/contacto y revalidar al autorizar después del intercambio externo; no revocar conexiones legítimas por corregir email. Un retorno al token legado podría dejar al paciente sin página vigente: resolverlo mediante el intento autorizado, nunca mediante un raw token público. Push conserva recibos de entrega/dispositivos legítimos separados de nuevas altas. Estas son decisiones de implementación pendientes, no garantías ejecutadas ni una nueva auditoría general. No se aplicó SQL ni publicó E, no hubo correo nuevo.
