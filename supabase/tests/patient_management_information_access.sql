@@ -1,7 +1,7 @@
 -- AC09: clinical information retains its own active/future/commercial scope.
 -- A stable calendar token is not replacement management authority.
 begin;
-select extensions.plan(10);
+select extensions.plan(13);
 create temporary table information_access_fixture(label text primary key,value text not null);
 create function pg_temp.iv(p_label text) returns text language sql as $$
  select value from information_access_fixture where label=p_label
@@ -62,6 +62,57 @@ do $$ declare submission uuid; begin
   raise exception 'CAPABILITY_INFORMATION_SCOPE_OR_MAPPING'; end if;
 end $$;
 select extensions.pass('5. Capability submission preserves the original clinical/profile atomic contract');
+-- Replays recover the same committed submission; changed input is a conflict.
+do $$ declare request uuid:=gen_random_uuid(); first uuid; second uuid; version text; begin
+ version:=public.get_public_booking_information(pg_temp.iv('capability'),false)->>'version';
+ first:=public.submit_public_booking_information(pg_temp.iv('capability'),request,pg_temp.iv('schema_hash'),version,
+  '{"coverage":"Replay coverage"}','Replay',false);
+ second:=public.submit_public_booking_information(pg_temp.iv('capability'),request,'outdated schema','outdated version',
+  '{"coverage":"Replay coverage"}','Replay',false);
+ if first is distinct from second then raise exception 'INFORMATION_REPLAY_DUPLICATED'; end if;
+ begin
+  perform public.submit_public_booking_information(pg_temp.iv('capability'),request,pg_temp.iv('schema_hash'),version,
+   '{"coverage":"Different payload"}','Replay',false);
+  raise exception 'INFORMATION_REPLAY_PAYLOAD_ACCEPTED';
+ exception when others then if sqlerrm is distinct from 'BOOKING_INFORMATION_REQUEST_CONFLICT' then raise; end if; end;
+end $$;
+select extensions.pass('Committed clinical submission replays once and rejects different answers');
+
+-- Expiry after the actual mapped profile effect must undo submission/profile.
+create function pg_temp.expire_information_after_mapping() returns trigger language plpgsql as $$
+begin
+ if new.appointment_id=pg_temp.iid('appointment') then
+  perform pg_sleep_until((select expires_at+interval '25 milliseconds' from private.appointment_management_capabilities
+   where token_hash=encode(extensions.digest(pg_temp.iv('capability'),'sha256'),'hex')));
+ end if;
+ return new;
+end $$;
+create trigger expire_information_after_mapping after update of profile_changes on public.appointment_intake_submissions
+ for each row execute function pg_temp.expire_information_after_mapping();
+update private.appointment_management_capabilities set expires_at=clock_timestamp()+interval '1 second'
+ where token_hash=encode(extensions.digest(pg_temp.iv('capability'),'sha256'),'hex');
+do $$ declare before_patient jsonb; before_submissions jsonb; version text; begin
+ select to_jsonb(p) into before_patient from public.patients p where id=pg_temp.iid('patient');
+ select jsonb_agg(to_jsonb(s) order by sequence_no) into before_submissions from public.appointment_intake_submissions s
+  where appointment_id=pg_temp.iid('appointment');
+ version:=public.get_public_booking_information(pg_temp.iv('capability'),false)->>'version';
+ begin
+  perform public.submit_public_booking_information(pg_temp.iv('capability'),gen_random_uuid(),pg_temp.iv('schema_hash'),version,
+   '{"coverage":"Expired mapped value"}','Must roll back',false);
+  raise exception 'EXPIRED_INFORMATION_COMMITTED';
+ exception when others then if sqlerrm is distinct from 'BOOKING_INFORMATION_UNAVAILABLE' then raise; end if; end;
+ if (select to_jsonb(p) from public.patients p where id=pg_temp.iid('patient')) is distinct from before_patient
+  or (select jsonb_agg(to_jsonb(s) order by sequence_no) from public.appointment_intake_submissions s
+   where appointment_id=pg_temp.iid('appointment')) is distinct from before_submissions then
+  raise exception 'EXPIRED_INFORMATION_PARTIAL_EFFECTS'; end if;
+end $$;
+drop trigger expire_information_after_mapping on public.appointment_intake_submissions;
+select extensions.pass('Expiry during the mapped profile effect rolls back profile and submission history');
+update private.appointment_management_capabilities set expires_at=clock_timestamp()+interval '1 day'
+ where token_hash=encode(extensions.digest(pg_temp.iv('capability'),'sha256'),'hex');
+select extensions.throws_ok($q$select public.get_public_booking_information(pg_temp.iv('capability'),true)$q$,
+ 'P0001','BOOKING_INFORMATION_UNAVAILABLE','A capability is never implicitly accepted as the stable legacy token');
+
 update public.patients set email='corrected-information@example.test' where id=pg_temp.iid('patient');
 select extensions.throws_ok($q$select public.get_public_booking_information(pg_temp.iv('capability'),false)$q$,
  'P0001','BOOKING_INFORMATION_UNAVAILABLE','6. Correcting email also revokes clinical information access from its former capability');
