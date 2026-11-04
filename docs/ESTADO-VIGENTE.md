@@ -114,6 +114,7 @@ A	supabase/migrations/20261103120000_patient_email_contact_authority.sql
 A	supabase/migrations/20261103130000_patient_contact_editor_authority.sql
 A	supabase/migrations/20261104010000_patient_management_information_access.sql
 A	supabase/migrations/20261104020000_patient_management_document_access.sql
+A	supabase/migrations/20261104030000_patient_management_push_access.sql
 M	supabase/templates/recovery.html
 M	supabase/tests/appointment_actor_revalidation.sql
 M	supabase/tests/appointment_deposits.sql
