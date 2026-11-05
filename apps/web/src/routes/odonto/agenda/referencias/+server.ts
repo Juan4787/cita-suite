@@ -5,6 +5,8 @@ import {
 	loadInternalAvailabilitySnapshot
 } from '$lib/server/scheduling/public/availability-snapshot';
 import { getOdontoContext } from '$lib/server/access/public/odonto-context';
+import { loadManualBookingReschedulePolicy } from '$lib/server/scheduling/public/email-policy';
+import type { ManualBookingReschedulePolicy } from '$lib/scheduling/email-policy';
 import { json, redirect } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
@@ -49,6 +51,7 @@ export const GET: RequestHandler = async ({ url, locals, fetch, cookies, setHead
 	}
 
 	let snapshot;
+	let manualBookingPolicy: ManualBookingReschedulePolicy | null = null;
 	try {
 		const range = defaultInternalAvailabilitySnapshotRange(
 			business.business,
@@ -58,6 +61,7 @@ export const GET: RequestHandler = async ({ url, locals, fetch, cookies, setHead
 			business: business.business,
 			...range
 		});
+		if (business.canOperate && ['owner', 'admin', 'reception'].includes(business.role)) manualBookingPolicy = await loadManualBookingReschedulePolicy(supabase, businessId);
 	} catch (error) {
 		logServerFailure('Error cargando snapshot interno de agenda', error);
 		return json({ message: 'No se pudieron cargar profesionales y servicios.' }, { status: 500 });
@@ -77,6 +81,7 @@ export const GET: RequestHandler = async ({ url, locals, fetch, cookies, setHead
 		patients: [],
 		patients_loaded: false,
 		service_professional_ids: serviceProfessionalIds,
-		availability_snapshot: snapshot
+		availability_snapshot: snapshot,
+		manual_booking_policy: manualBookingPolicy
 	});
 };

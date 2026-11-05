@@ -90,7 +90,7 @@ create function booking_policy_race.counts() returns jsonb language sql as $$sel
  (select count(*) from public.appointment_deposit_requirements where business_id='b9300000-0000-4000-8000-000000000001'),
  (select count(*) from public.appointment_deposit_events where business_id='b9300000-0000-4000-8000-000000000001'),
  (select count(*) from private.appointment_email_events where business_id='b9300000-0000-4000-8000-000000000001'),
- (select count(*) from public.audit_logs where business_id='b9300000-0000-4000-8000-000000000001')))$$;
+ (select count(*) from public.audit_logs where business_id='b9300000-0000-4000-8000-000000000001'))$$;
 grant usage on schema booking_policy_race to authenticated;
 grant select on booking_policy_race.control to authenticated;
 grant execute on function booking_policy_race.save(boolean,text),booking_policy_race.wait_go(text) to authenticated;

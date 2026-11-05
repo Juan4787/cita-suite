@@ -18,7 +18,7 @@ produccion_repositorio: github-secundaria:Juan4787/cita-suite-verificacion.git
 
 ## Etapa E — ejecución al 5 de noviembre
 
-E conserva autorización íntegra de implementación/pruebas/publicación: [plan 12.18–12.26](plans/propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada), [especificación](plans/etapa-e-correo-autogestion.md) y [registro activo](plans/ejecucion-etapa-e-20261103.md). E1/E2/E3 sin publicar ni SQL E productivo. SQL27 (41961486301) y fast 41962197791 (1948/289, cero errores/avisos) conservan su aprobación. Browser 41962871294: recepción aprobada; alta informada detenida antes del primer POST por selector incorrecto de teléfono, corregido. Ajuste de texto público pendiente de navegador. Borrador28 comparte validación económica con declaración expresa del personal, sin inferir información ni cambiar permisos; diez grupos SQL y una espera de vencimiento preparados, 65 dirigidas locales aprobadas. Loader/parser aún sin conectar a la UI. Siguiente: SQL28/tipos antes de fast/browser; luego completar asistente del personal, contacto/outbox/distribución/SN14/Zoho/correo/E5–E6. Zoho conserva clave existente privada, sin crear/desplegar/enviar. Checkpoint E3.16. Producción V12b, ningún envío nuevo ni cierre E; P1/P2/P3 pospuestas.
+E conserva autorización íntegra de implementación/pruebas/publicación: [plan 12.18–12.26](plans/propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada), [especificación](plans/etapa-e-correo-autogestion.md) y [registro activo](plans/ejecucion-etapa-e-20261103.md). E1/E2/E3 sin publicar ni SQL E productivo. SQL27 y fast 41962197791 (1948/289) conservan su aprobación. SQL28 (41964323553): treinta grupos nuevos aprobados, pero corrida detenida por sintaxis del contador del arnés; corregida, aún faltan carreras/tipos. Asistente del personal ya conectado a declaración explícita, sin penalidades inferidas; 72 dirigidas locales aprobadas, cinco pruebas de cliente preparadas sin ejecutar. Browser público corregido y recorrido de personal pendientes; recepción confirmada en 41962871294. Siguiente: SQL28 antes de fast/browser, luego contacto/outbox/distribución/SN14/Zoho/correo/E5–E6. Zoho conserva clave existente privada, sin crear/desplegar/enviar. Checkpoint E3.18. Producción V12b, ningún envío nuevo ni cierre E; P1/P2/P3 pospuestas.
 
 ## Código que difiere de producción
 
@@ -137,6 +137,7 @@ M	apps/web/src/routes/odonto/agenda/+page.server.ts
 M	apps/web/src/routes/odonto/agenda/+page.svelte
 M	apps/web/src/routes/odonto/agenda/agenda-day.server.test.ts
 A	apps/web/src/routes/odonto/agenda/agenda-email-warning.server.test.ts
+M	apps/web/src/routes/odonto/agenda/referencias/+server.ts
 M	apps/web/src/routes/odonto/configuracion/+page.svelte
 A	apps/web/src/routes/odonto/configuracion/correo/+page.server.ts
 A	apps/web/src/routes/odonto/configuracion/correo/+page.svelte
