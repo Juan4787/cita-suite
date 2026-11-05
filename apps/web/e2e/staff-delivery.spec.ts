@@ -92,9 +92,13 @@ test('@candidate-behavior staff delivery: explicit preparation, contact revocati
    await expect(viewer.locator('form[action="?/cancel"]')).toHaveCount(0);
    expect(await viewer.content()).not.toContain('Paciente sintético de entrega');
    const beforeRejected = counts();
-   const rejected = await context.request.post(first.path + '?/cancel', { form: oldCancel, headers: { origin: origin.origin } });
-   expect(rejected.status()).toBe(409); expect(counts()).toBe(beforeRejected);
+   const rejected = await context.request.post(first.path + '?/cancel', { form: oldCancel, headers: { origin: origin.origin, accept: 'application/json' } });
+   expect(counts()).toBe(beforeRejected);
    expect(f.sql(`select status from public.appointments where id='${depositId}';`)).toBe('reserved');
+   expect(rejected.status()).toBe(200);
+   expect(await rejected.json()).toMatchObject({ type: 'failure', status: 409 });
+   const nativeRejected = await context.request.post(first.path + '?/cancel', { form: oldCancel, headers: { origin: origin.origin, accept: 'text/html' } });
+   expect(counts()).toBe(beforeRejected); expect(nativeRejected.status()).toBe(409);
   } finally { await viewer.close(); }
   await page.reload();
   const corrected = await open(page.getByRole('button', { name: 'Enviar enlace de activación', exact: true }));
