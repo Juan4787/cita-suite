@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { parseStaffDelivery, prepareStaffDelivery, markStaffReminderSent } from './staff-delivery';
+import { parseStaffDelivery, prepareStaffDelivery, markStaffReminderSent, staffDeliveryFailure } from './staff-delivery';
 import { ManagementResultUncertainError } from '../internal/management-contract';
 import type { CitaSupabaseClient } from '$lib/types/database';
 
@@ -20,6 +20,13 @@ const clientWith = (response: { data: unknown; error: unknown }) => {
 };
 
 describe('explicit staff delivery', () => {
+ it('keeps arbitrary failure messages human, including inherited object keys', () => {
+  for (const message of ['constructor','__proto__','Unknown SQL error with internal identifiers']) {
+   const failure = staffDeliveryFailure({ message });
+   expect(failure.status).toBe(503); expect(failure.message).toContain('revisar lo registrado');
+   expect(failure.message).not.toContain(message);
+  }
+ });
  it.each(['activation','rescheduled','reminder','deposit'] as const)('uses only the fresh management link for %s', kind => {
   const result = parseStaffDelivery(snapshot(), appointmentId, kind);
   expect(new URL(result.publicUrl).pathname).toBe(`/gestion/${token}${kind === 'rescheduled' ? '/reprogramado' : ''}`);
