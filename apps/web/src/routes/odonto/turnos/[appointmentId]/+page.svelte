@@ -11,6 +11,7 @@
 	import { DEPOSIT_STATUS_LABELS, formatDepositAmount, type AppointmentDepositView } from '$lib/scheduling/deposits';
 	import { formatInTimeZone } from '$lib/utils/format';
 	import type { StaffManagementFeedback } from '$lib/scheduling/staff-management';
+	import { formatDepositMoney } from '$lib/scheduling/reschedule-terms';
 	import type { PageData } from './$types';
 import { BOOKING_MODALITY_LABELS, type BookingModality } from '@cita-suite/shared/booking-integration';
 
@@ -30,6 +31,7 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@cita-suite/share
 			appointment: PageData['appointment'];
    management: PageData['management'];
 			deposit: (AppointmentDepositView & { cancelsItself: boolean | null }) | null;
+   depositFinancials: PageData['depositFinancials'];
 			canRecordDeposit: boolean;
 			auditLogs: AuditLog[] | null;
 			userLabels: Record<string, string>;
@@ -153,6 +155,8 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@cita-suite/share
 		if (log.action === 'appointment.slot_release_hidden') return `${user} ocultó un aviso de horario liberado`;
 		if (log.action === 'appointment.deposit_reminder_opened') return `${user} abrió el pedido de seña por WhatsApp`;
 		if (log.action === 'appointment.deposit_expired') return 'El turno se canceló automáticamente porque no se registró la seña';
+  if (log.action === 'appointment.late_deposit_recorded') return `${user} registró dinero recibido después de cancelar`;
+  if (log.action === 'appointment.late_deposit_corrected') return `${user} corrigió un registro de dinero posterior a la cancelación`;
 		return `${user} registró una actualización del turno`;
 	};
 
@@ -338,7 +342,8 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@cita-suite/share
  const onStaffAction: SubmitFunction = ({ cancel, action, formData }) => {
   if (submitting || (action.search === '?/reschedule' && !selectedSlot && !feedback?.retry)) { cancel(); return; }
   const fields = Object.fromEntries([...formData].map(([key,value]) => [key, String(value)]));
-  const kind = action.search === '?/reschedule' ? 'reschedule' as const : 'update_status' as const;
+  const kind = action.searchParams.has('/late_deposit') ? 'late_deposit' as const :
+   action.searchParams.has('/reschedule') ? 'reschedule' as const : 'update_status' as const;
   submitting = true;
   localFeedback = null;
   return async ({ result, update }) => {
@@ -571,7 +576,9 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@cita-suite/share
 						{formatDepositAmount(data.deposit.amount)} · vence el {formatInTimeZone(data.deposit.due_at, timeZone).full}
 					</p>
 					<p class="mt-2 text-sm text-fg-65">
-						{#if data.deposit.status === 'pending'}
+						{#if isClosed && data.deposit.status === 'pending'}
+        El turno está cancelado. La seña no se había registrado al cancelarlo.
+						{:else if data.deposit.status === 'pending'}
 							{data.deposit.cancelsItself === true
 								? 'Si no se registra antes del vencimiento, el turno se cancela solo.'
 								: data.deposit.cancelsItself === false
@@ -619,8 +626,77 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@cita-suite/share
 							{/if}
 						</div>
 					{/if}
+     {#if isClosed && data.canRecordDeposit && !data.demo && data.management}
+      <details id="late-deposit-record" class="mt-5 border-t border-line pt-4" open={!!feedback?.lateDepositDraft}>
+       <summary class="cursor-pointer text-base font-semibold text-accent">Registrar dinero después de cancelar</summary>
+       <form method="POST" action="?/late_deposit" use:enhance={onStaffAction} class="mt-4">
+        <fieldset class="flex flex-col gap-4" disabled={!canOperate || submitting || !!feedback?.retry}>
+         <p class="text-sm text-fg-65">El turno sigue cancelado. El importe queda registrado por resolver.</p>
+         <input type="hidden" name="operation_id" value={data.management.lateDepositOperationId} />
+         <input type="hidden" name="expected_revision" value={data.management.revision} />
+         <input type="hidden" name="late_action" value="record" />
+         <input type="hidden" name="corrects_event_id" value="" />
+         <label><span class="ux-label">Importe recibido, en pesos</span>
+          <input class="ux-input mt-1" type="text" inputmode="numeric" name="amount" maxlength="30" required value={feedback?.lateDepositDraft?.amount ?? ''} aria-describedby="late-amount-help" />
+         </label>
+         <p id="late-amount-help" class="text-sm text-fg-65">Sin centavos. Por ejemplo, 40.000.</p>
+         <label><span class="ux-label">Nota del registro (opcional)</span>
+          <textarea class="ux-textarea mt-1" name="note" maxlength="300" rows="2" value={feedback?.lateDepositDraft?.note ?? ''}></textarea>
+         </label>
+         <label class="flex items-start gap-3 text-sm text-fg">
+          <input class="mt-1 shrink-0" type="checkbox" name="confirm_late_deposit" value="true" required />
+          <span>Verifiqué el ingreso y que corresponde a este paciente</span>
+         </label>
+         <button class="ux-btn-primary self-start">{submitting ? 'Registrando…' : 'Registrar dinero recibido'}</button>
+        </fieldset>
+       </form>
+      </details>
+     {/if}
 				</section>
 			{/if}
+
+   {#if data.depositFinancials && (data.depositFinancials.appliedAmount !== '0' || data.depositFinancials.forfeitedAmount !== '0' || data.depositFinancials.unresolvedAmount !== '0' || data.depositFinancials.latePayments.length)}
+    <section class="ux-soft-card mt-5 p-5" aria-labelledby="deposit-financials-title">
+     <h2 id="deposit-financials-title" class="ux-section-title">Importes registrados</h2>
+     <dl class="mt-4 grid gap-4 sm:grid-cols-3">
+      <div><dt class="text-sm text-fg-65">A cuenta de la consulta</dt><dd class="mt-1 font-semibold">{formatDepositMoney(data.depositFinancials.appliedAmount)}</dd></div>
+      <div><dt class="text-sm text-fg-65">No aplicables por reprogramación</dt><dd class="mt-1 font-semibold">{formatDepositMoney(data.depositFinancials.forfeitedAmount)}</dd></div>
+      <div><dt class="text-sm text-fg-65">Por resolver con el paciente</dt><dd class="mt-1 font-semibold">{formatDepositMoney(data.depositFinancials.unresolvedAmount)}</dd></div>
+     </dl>
+     <p class="mt-3 text-sm text-fg-65">Son los importes de señas registrados en este turno. No incluyen otros pagos ni registran devoluciones.</p>
+     {#if data.depositFinancials.latePayments.length}
+      <h3 class="mt-6 font-semibold">Ingresos posteriores a la cancelación</h3>
+      <ul class="mt-2 divide-y divide-line">
+       {#each data.depositFinancials.latePayments as payment (payment.id)}
+        <li class="py-4">
+         <p class="font-semibold">{formatDepositMoney(payment.amount)}{payment.corrected ? ' · Registro corregido' : ' · Por resolver'}</p>
+         <p class="mt-1 text-sm text-fg-65">Registrado el {formatInTimeZone(payment.recordedAt,timeZone).full}</p>
+         {#if !payment.corrected && isClosed && data.canRecordDeposit && !data.demo && data.management}
+          <details class="mt-3">
+           <summary class="cursor-pointer text-sm font-semibold text-accent">Corregir un error de carga</summary>
+           <form method="POST" action="?/late_deposit" use:enhance={onStaffAction} class="mt-3">
+            <fieldset class="flex flex-col gap-3" disabled={!canOperate || submitting || !!feedback?.retry}>
+             <input type="hidden" name="operation_id" value={payment.correctionOperationId} />
+             <input type="hidden" name="expected_revision" value={data.management.revision} />
+             <input type="hidden" name="late_action" value="correct" />
+             <input type="hidden" name="corrects_event_id" value={payment.id} />
+             <input type="hidden" name="amount" value="" /><input type="hidden" name="note" value="" />
+             <label class="flex items-start gap-3 text-sm text-fg">
+              <input class="mt-1 shrink-0" type="checkbox" name="confirm_late_deposit" value="true" required />
+              <span>Este ingreso se cargó por error. Corregirlo conserva el historial y no registra una devolución.</span>
+             </label>
+             <button class="ux-btn-secondary self-start">{submitting ? 'Corrigiendo…' : 'Sí, corregir este registro'}</button>
+            </fieldset>
+           </form>
+          </details>
+         {/if}
+        </li>
+       {/each}
+      </ul>
+     {/if}
+     {#if data.depositFinancials.latePaymentsTruncated}<p class="mt-3 text-sm text-fg-65">Se muestran los últimos 50 registros. El total incluye todos.</p>{/if}
+    </section>
+   {/if}
 
 			{#if canShowCancelAction}
 				<div class="mt-7 grid gap-4 md:grid-cols-2 xl:grid-cols-4">

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const mocks = vi.hoisted(() => ({ getOdontoContext: vi.fn(), from: vi.fn(), rpc: vi.fn(), setAppointmentDeposit: vi.fn(), prepareDelivery: vi.fn(), select: vi.fn() }));
+const mocks = vi.hoisted(() => ({ getOdontoContext: vi.fn(), from: vi.fn(), rpc: vi.fn(), setAppointmentDeposit: vi.fn(), prepareDelivery: vi.fn(), submitLate: vi.fn(), select: vi.fn() }));
 
 vi.mock('$env/dynamic/private', () => ({ env: {} }));
 vi.mock('$lib/server/access/public/business', () => ({ demoBusinessContext: vi.fn() }));
@@ -20,6 +20,9 @@ vi.mock('$lib/server/scheduling/public/deposits', async (importOriginal) => ({
 
 vi.mock('$lib/server/scheduling/public/staff-delivery', async importOriginal => ({
  ...(await importOriginal<typeof import('$lib/server/scheduling/public/staff-delivery')>()), prepareStaffDelivery: mocks.prepareDelivery
+}));
+vi.mock('$lib/server/scheduling/public/late-deposits', async importOriginal => ({
+ ...(await importOriginal<typeof import('$lib/server/scheduling/public/late-deposits')>()), submitLateDepositAction: mocks.submitLate
 }));
 
 const { load, actions } = await import('./+page.server');
@@ -41,6 +44,7 @@ const appointmentBase = {
 	id: appointmentId, business_id: 'business-1', patient_id: 'patient-1', professional_id: '00000000-0000-4000-8000-000000000001', status: 'confirmed', source: 'manual',
 	starts_at: '2026-10-28T13:00:00.000Z', ends_at: '2026-10-28T13:30:00.000Z',
 	service_id: '00000000-0000-4000-8000-000000000003', appointment_management_revision: 'a'.repeat(64),
+ appointment_deposit_financials: { applied_amount: '0', forfeited_amount: '0', unresolved_amount: '0', late_payments: [], late_payments_truncated: false },
  professional_name_snapshot: 'Profesional Uno', break_minutes_snapshot: 0, patients: { full_name: 'Paciente', phone_e164: null, blocked: false, archived_at: null }
 };
 // A joint appointment: the colleague is the second professional.
@@ -95,6 +99,8 @@ describe('appointment detail load', () => {
   expect(result.appointment).not.toHaveProperty('confirmation_token');
   expect(mocks.prepareDelivery).not.toHaveBeenCalled();
   expect(mocks.select.mock.calls[0][0]).not.toContain('confirmation_token');
+  expect(mocks.select.mock.calls[0][0]).toContain('appointment_deposit_financials');
+  expect(result.appointment).not.toHaveProperty('appointment_deposit_financials');
 	});
 
 	it('fails explicitly instead of showing a joint appointment as one professional when its team cannot be read', async () => {
@@ -133,6 +139,34 @@ describe('appointment detail load', () => {
 			vi.useRealTimers();
 		}
 	});
+});
+
+describe('late money detail action', () => {
+ const businessId = 'b1000000-0000-4000-8000-000000000001';
+ const post = (role = 'reception', canOperate = true, body: URLSearchParams = new URLSearchParams({ amount: '40000' })) => {
+  mocks.getOdontoContext.mockResolvedValue({ supabase: { from: mocks.from, rpc: mocks.rpc },
+   business: { business: { id: businessId }, role,canOperate }, userId: 'validated-user' });
+  return actions.late_deposit!({ params: { appointmentId },locals: { auth: { access_token: 'test' } },fetch: vi.fn(),cookies: { get: vi.fn() },
+   request: new Request('https://app.test/detail?/late_deposit',{ method: 'POST',body }),setHeaders: vi.fn() } as never);
+ };
+ beforeEach(() => { vi.clearAllMocks(); mocks.submitLate.mockResolvedValue({ success: true,message: 'Guardado' }); });
+ it('delegates to the authenticated reader with the session tenant; never an admin or browser actor', async () => {
+  await expect(post()).resolves.toMatchObject({ success: true });
+  expect(mocks.submitLate).toHaveBeenCalledExactlyOnceWith({ from: mocks.from,rpc: mocks.rpc },{ businessId,appointmentId },expect.any(FormData));
+ });
+ it.each(['readonly','professional'])('does not dispatch for %s', async role => {
+  await expect(post(role)).resolves.toMatchObject({ status: 403 }); expect(mocks.submitLate).not.toHaveBeenCalled();
+ });
+ it('does not dispatch after losing operational access or with repeated fields', async () => {
+  await expect(post('owner',false)).resolves.toMatchObject({ status: 403 });
+  await expect(post('owner',true,new URLSearchParams([['amount','40000'],['amount','1']]))).resolves.toMatchObject({ status: 400 });
+  expect(mocks.submitLate).not.toHaveBeenCalled();
+ });
+ it('returns the exact recoverable feedback for an uncertain committed request', async () => {
+  const feedback = { success: false,message: 'Comprobar el resultado',retry: { action: 'late_deposit',fields: { operation_id: 'same' } } };
+  mocks.submitLate.mockResolvedValue(feedback);
+  await expect(post()).resolves.toMatchObject({ status: 503,data: feedback });
+ });
 });
 
 describe('appointment deposit in the detail', () => {

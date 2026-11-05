@@ -66,7 +66,8 @@ const appointment = {
 type PageData = ComponentProps<typeof Page>['data'];
 const data: PageData = {
 	context: { canOperate: true, role: 'owner' },
- management: { revision: 'a'.repeat(64),statusOperationId: '00000000-0000-4000-8000-000000000001',rescheduleOperationId: '00000000-0000-4000-8000-000000000002' },
+ management: { revision: 'a'.repeat(64),statusOperationId: '00000000-0000-4000-8000-000000000001',rescheduleOperationId: '00000000-0000-4000-8000-000000000002',lateDepositOperationId: '00000000-0000-4000-8000-000000000003' },
+	depositFinancials: { appliedAmount: '0',forfeitedAmount: '0',unresolvedAmount: '0',latePayments: [],latePaymentsTruncated: false },
 	appointment,
 	deposit: null,
 	canRecordDeposit: true,
@@ -89,6 +90,42 @@ afterEach(() => {
 	cleanup();
 	vi.restoreAllMocks();
 	vi.unstubAllGlobals();
+});
+
+describe('money after cancellation', () => {
+ const deposit: NonNullable<PageData['deposit']> = { appointment_id: appointment.id,status: 'expired',amount: 40000,currency: 'ARS',
+  request_from: '2026-08-13T00:00:00Z',due_at: '2026-08-18T15:00:00Z',auto_cancel: true,waived_reason: null,
+  recorded_at: null,reminder_opened_at: null,expired_at: '2026-08-18T15:00:00Z',revision: 2,cancelsItself: true };
+ const cancelled: PageData = { ...data,justCreated: false,appointment: { ...appointment,status: 'cancelled' },deposit };
+ it('uses a distinct reviewed operation and explicit confirmation, without the ordinary paid/waived controls', () => {
+  const { container } = render(Page,{ data: cancelled });
+  container.querySelector<HTMLDetailsElement>('#late-deposit-record')!.open = true;
+  const form = container.querySelector<HTMLFormElement>('form[action="?/late_deposit"]')!;
+  expect(new FormData(form).get('operation_id')).toBe(data.management!.lateDepositOperationId);
+  expect(new FormData(form).get('expected_revision')).toBe(data.management!.revision);
+  expect(new FormData(form).get('late_action')).toBe('record');
+  expect(screen.getByLabelText('Importe recibido, en pesos')).toHaveAttribute('inputmode','numeric');
+  const checkbox = screen.getByRole('checkbox',{ name: 'Verifiqué el ingreso y que corresponde a este paciente' });
+  expect(checkbox).not.toBeChecked(); expect(checkbox).toBeRequired();
+  expect(screen.queryByRole('button',{ name: 'Confirmar seña' })).not.toBeInTheDocument();
+  expect(screen.getByText('El turno sigue cancelado. El importe queda registrado por resolver.')).toBeInTheDocument();
+ });
+ it('preserves an editable rejected draft and hides monetary forms from readonly', async () => {
+  const { rerender } = render(Page,{ data: cancelled,form: { message: 'Revisá el importe',lateDepositDraft: { amount: '1,5',note: 'Conservar esta nota' } } });
+  expect(screen.getByLabelText('Importe recibido, en pesos')).toHaveValue('1,5');
+  expect(screen.getByLabelText('Nota del registro (opcional)')).toHaveValue('Conservar esta nota');
+  await rerender({ data: { ...cancelled,canRecordDeposit: false,context: { ...data.context,role: 'readonly' } } });
+  expect(screen.queryByRole('button',{ name: 'Registrar dinero recibido' })).not.toBeInTheDocument();
+ });
+ it('correction names the original fact, keeps the exact request, and cannot become a status action', () => {
+  const fields = { operation_id: 'original-correction',expected_revision: 'original-revision',late_action: 'correct',amount: '',corrects_event_id: 'original-event',note: '',confirm_late_deposit: 'true' };
+  const { container } = render(Page,{ data: cancelled,form: { message: 'Comprobar el resultado',retry: { action: 'late_deposit',fields } } });
+  const retry = screen.getByRole('button',{ name: 'Reintentar la misma acción' }).closest('form')!;
+  expect(retry).toHaveAttribute('action','?/late_deposit');
+  expect(Object.fromEntries(new FormData(retry))).toEqual(fields);
+  expect(container.querySelector('form[action="?/update_status"]')).toBeNull();
+  expect(container.querySelector('#late-deposit-record button')).toBeDisabled();
+ });
 });
 
 describe('observed staff operation form', () => {
