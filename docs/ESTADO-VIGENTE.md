@@ -18,7 +18,7 @@ produccion_repositorio: github-secundaria:Juan4787/cita-suite-verificacion.git
 
 ## Etapa E — ejecución al 5 de noviembre
 
-E conserva autorización íntegra de implementación/pruebas/publicación: [plan 12.18–12.26](plans/propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada), [especificación](plans/etapa-e-correo-autogestion.md) y [registro activo](plans/ejecucion-etapa-e-20261103.md). E1/E2/E3 sin publicar ni SQL E productivo. SQL 41929889370 aprueba veintiséis migraciones E; browser 41931144923, sobre c85bce8, aprueba recepción real (ficha existente, continuación sin email y paciente nuevo), teléfono conservado y cinco anchos/dos temas, además de integración/recuperación/comprobante virtual. Fast anterior 41926791242 conserva su alcance (1931/283). Borrador veintisiete: condiciones económicas de reprogramación informadas antes de una reserva pública con seña; 41 dirigidas locales aprobadas, SQL/cliente/browser todavía pendientes. Siguiente: pruebas transaccionales y de contención del borrador, después CI SQL antes de sus consumidores; luego altas manuales informadas/contacto/outbox/distribución/SN14/Zoho/correo/E5–E6. Checkpoint E3.11. Producción V12b, ningún envío nuevo ni cierre E; P1/P2/P3 pospuestas.
+E conserva autorización íntegra de implementación/pruebas/publicación: [plan 12.18–12.26](plans/propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada), [especificación](plans/etapa-e-correo-autogestion.md) y [registro activo](plans/ejecucion-etapa-e-20261103.md). E1/E2/E3 sin publicar ni SQL E productivo. SQL26 (41929889370) y browser de recepción/integración (41931144923, c85bce8) conservan su aprobación. Borrador27: veinte grupos SQL de alta pública informada aprobados en 41960959120, pero corrida rechazada por limpieza del nuevo arnés; se corrige el orden turno→consultorio y el diagnóstico, sin cambios del producto. Aún faltan las carreras posteriores/tipos oficiales y fast/browser de este borrador; 64 dirigidas locales aprobadas. Nuevo browser de resumen/cambio de política preparado. Siguiente: repetir SQL27 antes de fast/browser; luego altas manuales informadas/contacto/outbox/distribución/SN14/Zoho/correo/E5–E6. Checkpoint E3.12. Producción V12b, ningún envío nuevo ni cierre E; P1/P2/P3 pospuestas.
 
 ## Código que difiere de producción
 
@@ -28,6 +28,7 @@ El chequeo compara esta lista con `git diff --name-status <produccion_revision> 
 A	apps/web/.impeccable/surfaces/gestion-del-turno.md
 M	apps/web/DESIGN.md
 M	apps/web/e2e/booking-embed.spec.ts
+A	apps/web/e2e/booking-reschedule-policy.spec.ts
 A	apps/web/e2e/email-preferences.spec.ts
 M	apps/web/e2e/helpers/owned-appointment-fixture.ts
 A	apps/web/e2e/patient-management-clinical.spec.ts
