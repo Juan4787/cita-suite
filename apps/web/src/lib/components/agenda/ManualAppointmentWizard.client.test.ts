@@ -101,7 +101,7 @@ const staffPolicy: ManualBookingReschedulePolicy = { policy: { schema_version: 1
 
 it('requires an unchecked explicit staff declaration before sending any policy terms', async () => {
  const { container } = renderWizard('3425048209', { manualBookingPolicy: staffPolicy });
- const confirm = await screen.findByRole('button', { name: 'Confirmar turno', exact: true });
+ const confirm = await screen.findByRole('button', { name: 'Confirmar turno' });
  const declaration = screen.getByRole('checkbox', { name: 'Le informé estas condiciones al paciente' });
  expect(declaration).not.toBeChecked();
  const action = new URL(container.querySelector('form')!.action);
@@ -121,7 +121,7 @@ it('requires an unchecked explicit staff declaration before sending any policy t
 
 it('preserves an attested economic snapshot across presentation changes and clears it for stricter terms', async () => {
  const { container, rerender } = renderWizard('3425048209', { manualBookingPolicy: staffPolicy });
- await screen.findByRole('button', { name: 'Confirmar turno', exact: true });
+ await screen.findByRole('button', { name: 'Confirmar turno' });
  const declaration = screen.getByRole('checkbox', { name: 'Le informé estas condiciones al paciente' });
  await fireEvent.click(declaration);
  await rerender({ manualBookingPolicy: { ...staffPolicy, policy: { ...staffPolicy.policy, policy_revision: 8 } } });
@@ -136,7 +136,7 @@ it('preserves an attested economic snapshot across presentation changes and clea
 it('restores an unchanged declaration after the existing email warning and slot certification', async () => {
  const { container } = renderWizard('3425048209', { emailWarning: true, manualBookingPolicy: staffPolicy,
   values: { reschedule_policy_acknowledged: 'true', reschedule_policy_terms: JSON.stringify(staffPolicy.policy) } });
- await screen.findByRole('button', { name: 'Confirmar turno', exact: true });
+ await screen.findByRole('button', { name: 'Confirmar turno' });
  expect(screen.getByRole('checkbox', { name: 'Le informé estas condiciones al paciente' })).toBeChecked();
  expect(new URL(container.querySelector('form')!.action).searchParams.get('date')).toBe(date);
  expect(JSON.parse(String(new FormData(container.querySelector('form')!).get('reschedule_policy_terms')))).toEqual(staffPolicy.policy);
@@ -145,14 +145,14 @@ it('restores an unchanged declaration after the existing email warning and slot 
 it('does not offer a monetary declaration for an excluded service or submit a stale prior declaration', async () => {
  const { container } = renderWizard('3425048209', { manualBookingPolicy: { ...staffPolicy, excludedServiceIds: ['service-1'] },
   values: { reschedule_policy_acknowledged: 'true', reschedule_policy_terms: JSON.stringify(staffPolicy.policy) } });
- await screen.findByRole('button', { name: 'Confirmar turno', exact: true });
+ await screen.findByRole('button', { name: 'Confirmar turno' });
  expect(screen.queryByRole('checkbox', { name: 'Le informé estas condiciones al paciente' })).toBeNull();
  expect(new FormData(container.querySelector('form')!).get('reschedule_policy_terms')).toBeNull();
 });
 
 it('does not carry the previous patient declaration into another identity', async () => {
  const { container } = renderWizard('3425048209', { manualBookingPolicy: staffPolicy });
- await screen.findByRole('button', { name: 'Confirmar turno', exact: true });
+ await screen.findByRole('button', { name: 'Confirmar turno' });
  const declaration = screen.getByRole('checkbox', { name: 'Le informé estas condiciones al paciente' });
  await fireEvent.click(declaration);
  await fireEvent.click(screen.getByRole('button', { name: /^Nuevo paciente/ }));
