@@ -642,13 +642,13 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@cita-suite/share
          <input type="hidden" name="expected_revision" value={data.management.revision} />
          <input type="hidden" name="late_action" value="record" />
          <input type="hidden" name="corrects_event_id" value="" />
-         <label><span class="ux-label">Importe recibido, en pesos</span>
-          <input class="ux-input mt-1" type="text" inputmode="numeric" name="amount" maxlength="30" required value={feedback?.lateDepositDraft?.amount ?? ''} aria-describedby="late-amount-help" />
-         </label>
+         <div><label for="late-deposit-amount" class="ux-label">Importe recibido, en pesos</label>
+          <input id="late-deposit-amount" class="ux-input mt-1" type="text" inputmode="numeric" name="amount" maxlength="30" required value={feedback?.lateDepositDraft?.amount ?? ''} aria-describedby="late-amount-help" />
+         </div>
          <p id="late-amount-help" class="text-sm text-fg-65">Sin centavos. Por ejemplo, 40.000.</p>
-         <label><span class="ux-label">Nota del registro (opcional)</span>
-          <textarea class="ux-textarea mt-1" name="note" maxlength="300" rows="2" value={feedback?.lateDepositDraft?.note ?? ''}></textarea>
-         </label>
+         <div><label for="late-deposit-note" class="ux-label">Nota del registro (opcional)</label>
+          <textarea id="late-deposit-note" class="ux-textarea mt-1" name="note" maxlength="300" rows="2" value={feedback?.lateDepositDraft?.note ?? ''}></textarea>
+         </div>
          <label class="flex items-start gap-3 text-sm text-fg">
           <input class="mt-1 shrink-0" type="checkbox" name="confirm_late_deposit" value="true" required />
           <span>Verifiqué el ingreso y que corresponde a este paciente</span>
