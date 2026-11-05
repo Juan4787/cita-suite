@@ -295,6 +295,7 @@ export type Database = {
           amount: number
           appointment_id: string
           business_id: string
+          corrects_event_id: string | null
           created_at: string
           event_type: string
           id: string
@@ -307,6 +308,7 @@ export type Database = {
           amount?: number
           appointment_id: string
           business_id: string
+          corrects_event_id?: string | null
           created_at?: string
           event_type: string
           id?: string
@@ -319,6 +321,7 @@ export type Database = {
           amount?: number
           appointment_id?: string
           business_id?: string
+          corrects_event_id?: string | null
           created_at?: string
           event_type?: string
           id?: string
@@ -333,6 +336,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "appointment_deposit_requirements"
             referencedColumns: ["business_id", "appointment_id", "id"]
+          },
+          {
+            foreignKeyName: "appointment_deposit_events_corrects_event_id_fkey"
+            columns: ["corrects_event_id"]
+            isOneToOne: false
+            referencedRelation: "appointment_deposit_events"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -1047,6 +1057,7 @@ export type Database = {
           whatsapp_reminder_marked_sent_by: string | null
           whatsapp_reminder_opened_at: string | null
           whatsapp_reminder_opened_by: string | null
+          appointment_deposit_financials: Json | null
           appointment_management_revision: string | null
         }
         Insert: {
@@ -4267,6 +4278,12 @@ export type Database = {
         }
         Returns: Json
       }
+      appointment_deposit_financials: {
+        Args: { "": Database["public"]["Tables"]["appointments"]["Row"] }
+        Returns: {
+          error: true
+        } & "the function public.appointment_deposit_financials with parameter or with a single unnamed json/jsonb parameter, but no matches were found in the schema cache"
+      }
       appointment_management_revision: {
         Args: { "": Database["public"]["Tables"]["appointments"]["Row"] }
         Returns: {
@@ -5673,6 +5690,19 @@ export type Database = {
         Returns: {
           review_url: string
         }[]
+      }
+      record_late_appointment_deposit: {
+        Args: {
+          p_action: string
+          p_amount?: string
+          p_appointment_id: string
+          p_business_id: string
+          p_corrects_event_id?: string
+          p_expected_revision: string
+          p_note?: string
+          p_operation_id: string
+        }
+        Returns: Json
       }
       record_patient_calendar_action: {
         Args: {
