@@ -2,7 +2,7 @@
 
 **Este es el registro único de qué historia y qué cambios están vigentes.** Se actualiza en el mismo paso de trabajo que cambia cualquiera de estos datos, nunca después. Eso incluye publicar, cambiar de rama, integrar, o dejar código distinto de producción. `node scripts/check-repo-sync.mjs`, desde la raíz, lo compara con Git, con GitHub y con la revisión que sirve producción, y falla ante cualquier diferencia.
 
-Última actualización: 4 de noviembre de 2026. E sigue en implementación/verificación, sin publicación ni SQL productivo; autorización íntegra y regla de continuidad vigentes.
+Última actualización: 5 de noviembre de 2026. E sigue en implementación/verificación, sin publicación ni SQL productivo; autorización íntegra y regla de continuidad vigentes.
 
 ## Datos verificables
 
@@ -16,9 +16,9 @@ produccion_repositorio: github-secundaria:Juan4787/cita-suite-verificacion.git
 - **Producción** sirve V12b en `https://app.cita-suite.com.ar` y en `app.cita-suite.workers.dev`: el modo claro con el fondo `#f6f5f3`.
 - **La revisión publicada es antecesora de `main`.** Todo lo que corre en producción está en la historia de `main`.
 
-## Etapa E — ejecución al 4 de noviembre
+## Etapa E — ejecución al 5 de noviembre
 
-E conserva autorización íntegra de implementación/pruebas/publicación: [plan 12.18–12.26](plans/propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada), [especificación](plans/etapa-e-correo-autogestion.md) y [registro activo](plans/ejecucion-etapa-e-20261103.md). E1/E2/E3 sin publicar ni SQL E productivo. Veintiséis migraciones plenamente aprobadas en SQL 41929889370: catorce grupos de contacto por reserva, cinco escenarios nuevos de contención, 48 carreras/dos contraejemplos FK, doce esperas y regresiones/limpieza; tipos oficiales y digest de 157 migraciones cotejados. Se eliminó la espera circular del disparador conservando los RPC y la resolución endurecida de esquemas. Fast 41926791242 aprobado sobre d19c35a (1931/283, cero errores/avisos); adaptadores posteriores con 37 dirigidas. Integración/virtual/lectores aprobados en browser 41925050114; recepción aún sin recomprobación completa después de corregir el teléfono alternativo. Browser preparado con ambas ramas de email de recepción y cinco anchos/dos temas. Siguiente: navegador de esta revisión; después contacto/outbox/distribución/altas informadas/SN14/Zoho/correo/E3–E6. Checkpoint E3.10. Producción V12b, ningún envío nuevo ni cierre E; P1/P2/P3 pospuestas.
+E conserva autorización íntegra de implementación/pruebas/publicación: [plan 12.18–12.26](plans/propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada), [especificación](plans/etapa-e-correo-autogestion.md) y [registro activo](plans/ejecucion-etapa-e-20261103.md). E1/E2/E3 sin publicar ni SQL E productivo. SQL 41929889370 aprueba veintiséis migraciones E; browser 41931144923, sobre c85bce8, aprueba recepción real (ficha existente, continuación sin email y paciente nuevo), teléfono conservado y cinco anchos/dos temas, además de integración/recuperación/comprobante virtual. Fast anterior 41926791242 conserva su alcance (1931/283). Borrador veintisiete: condiciones económicas de reprogramación informadas antes de una reserva pública con seña; 41 dirigidas locales aprobadas, SQL/cliente/browser todavía pendientes. Siguiente: pruebas transaccionales y de contención del borrador, después CI SQL antes de sus consumidores; luego altas manuales informadas/contacto/outbox/distribución/SN14/Zoho/correo/E5–E6. Checkpoint E3.11. Producción V12b, ningún envío nuevo ni cierre E; P1/P2/P3 pospuestas.
 
 ## Código que difiere de producción
 
@@ -50,6 +50,7 @@ A	apps/web/src/lib/components/appointments/PublicAppointmentPage.svelte
 A	apps/web/src/lib/components/appointments/RescheduleNoticePage.svelte
 M	apps/web/src/lib/components/patients/PatientProfileDialog.svelte
 A	apps/web/src/lib/patients/public-booking-information.ts
+A	apps/web/src/lib/scheduling/booking-reschedule-policy.test.ts
 M	apps/web/src/lib/scheduling/booking-view.ts
 A	apps/web/src/lib/scheduling/email-policy.ts
 A	apps/web/src/lib/scheduling/patient-action-context.test.ts
@@ -199,6 +200,7 @@ A	supabase/migrations/20261104100000_appointment_email_policy_settings.sql
 A	supabase/migrations/20261104110000_public_booking_email_requirement.sql
 A	supabase/migrations/20261104120000_public_booking_email_contact_scope.sql
 A	supabase/migrations/20261104130000_patient_contact_lock_order.sql
+A	supabase/migrations/20261104140000_informed_public_booking_reschedule_policy.sql
 M	supabase/templates/recovery.html
 M	supabase/tests/appointment_actor_revalidation.sql
 M	supabase/tests/appointment_deposits.sql

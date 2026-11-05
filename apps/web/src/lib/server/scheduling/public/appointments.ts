@@ -264,8 +264,8 @@ export type AppointmentPatientSelection =
 
 export type BookingPatientInformationInput = { schemaHash: string; answers: import('@cita-suite/shared/booking-integration').BookingIntakeAnswers; priceQuoteHash?: string };
 
-type DepositBookingInput = { depositTerms?: BookingDepositTerms };
-export type AtomicAppointmentInput = DepositBookingInput & {
+type BookingTermsInput = { depositTerms?: BookingDepositTerms; reschedulePolicyTerms?: import('$lib/scheduling/email-policy').BookingReschedulePolicy };
+export type AtomicAppointmentInput = BookingTermsInput & {
 	businessId: string;
 	ownerId?: string | null;
 	createdByUserId?: string | null;
@@ -397,6 +397,9 @@ const runAtomicAppointmentRpc = async (
 	if (source === 'public_booking' && input.depositTerms !== undefined) {
 		rpc.setHeader('x-cita-deposit-terms', JSON.stringify(input.depositTerms));
 	}
+	if (source === 'public_booking' && input.reschedulePolicyTerms !== undefined) {
+		rpc.setHeader('x-cita-reschedule-policy', JSON.stringify(input.reschedulePolicyTerms));
+	}
 	const { data, error } = replayOnly ? await rpc.maybeSingle() : await rpc.single();
 	if (error) throw error;
 	const appointment = data;
@@ -416,7 +419,7 @@ export const findAppointmentCreationReplay = async (
 
 export const createManualAppointment = async (
 	supabase: CitaSupabaseClient,
-	input: DepositBookingInput & {
+	input: BookingTermsInput & {
 		businessId: string;
 		ownerId?: string | null;
 		createdByUserId?: string | null;
@@ -444,7 +447,7 @@ export const createManualAppointment = async (
 
 export const createJointAppointment = async (
 	supabase: CitaSupabaseClient,
-	input: DepositBookingInput & {
+	input: BookingTermsInput & {
 		businessId: string;
 		ownerId?: string | null;
 		createdByUserId?: string | null;

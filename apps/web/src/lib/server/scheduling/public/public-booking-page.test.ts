@@ -8,7 +8,7 @@ const mocks = vi.hoisted(() => ({
 	createPublicBooking: vi.fn()
 }));
 
-vi.mock('$lib/server/scheduling/public/email-policy', () => ({ loadPublicBookingEmailRequirement: vi.fn(async () => true) }));
+vi.mock('$lib/server/scheduling/public/email-policy', () => ({ loadPublicBookingPolicy: vi.fn(async () => ({ requireEmail: true, reschedulePolicy: null })) }));
 vi.mock('$env/dynamic/private', () => ({ env: { DEMO_MODE: 'false' } }));
 vi.mock('$env/dynamic/public', () => ({ env: {} }));
 vi.mock('$lib/server/platform/logging', () => ({ logServerFailure: mocks.logServerFailure }));

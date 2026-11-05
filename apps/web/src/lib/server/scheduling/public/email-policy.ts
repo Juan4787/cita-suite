@@ -1,13 +1,14 @@
 import type { CitaSupabaseClient } from '$lib/types/database';
 import { readBoolean, readChoice, readFiniteNumber, readRecord } from '$lib/contracts/json';
-import { EMAIL_POLICY_BOOLEAN_KEYS, type AppointmentEmailPreferences } from '$lib/scheduling/email-policy';
+import { EMAIL_POLICY_BOOLEAN_KEYS, type AppointmentEmailPreferences, type BookingReschedulePolicy } from '$lib/scheduling/email-policy';
 
 export type AppointmentEmailPolicy = AppointmentEmailPreferences & { revision: number; sender_verified: boolean };
 
-export const loadPublicBookingEmailRequirement = async (supabase: CitaSupabaseClient, businessId: string): Promise<boolean> => {
- const { data, error } = await supabase.from('appointment_email_policies').select('require_email').eq('business_id', businessId).single();
- if (error) throw error;
- return readBoolean(readRecord(data, 'emailPolicy').require_email, 'emailPolicy.require_email');
+export const loadPublicBookingPolicy = async (supabase: CitaSupabaseClient, businessId: string) => {
+ const policy = await loadAppointmentEmailPolicy(supabase, businessId);
+ const reschedulePolicy: BookingReschedulePolicy = { schema_version: 1, policy_revision: policy.revision,
+  require_deposit_on_reschedule: policy.require_deposit_on_reschedule, previous_deposit_disposition: policy.previous_deposit_disposition };
+ return { requireEmail: policy.require_email, reschedulePolicy };
 };
 
 const revision = (value: unknown) => {

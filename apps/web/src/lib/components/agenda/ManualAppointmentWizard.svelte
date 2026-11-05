@@ -1228,7 +1228,7 @@
 				{/if}
 
 				{#if emailWarning}
-					<div class="ux-alert mt-5" role="alert">
+					<div class="ux-alert ux-alert-warning mt-5" role="alert">
 						<p>Si no se registra el email, este paciente no recibirá recordatorios por ese medio.</p>
 						<div class="mt-4 flex flex-col gap-2 sm:flex-row">
 							{#if patientMode === 'existing' && selectedPatientId}
@@ -1238,7 +1238,7 @@
 							{/if}
 							<button type="button" class="ux-btn-secondary" onclick={confirmWithoutEmail}>Continuar sin email</button>
 						</div>
-						{#if patientMode === 'existing'}<p class="mt-3 text-sm">La ficha se abre en otra pestaña. Después de guardar el email, volvé y confirmá el turno para comprobar el dato actualizado.</p>{/if}
+						{#if patientMode === 'existing'}<p class="mt-3 text-sm font-normal">La ficha se abre en otra pestaña. Después de guardar el email, volvé y confirmá el turno para comprobar el dato actualizado.</p>{/if}
 					</div>
 				{/if}
 				{#if phoneWarning}

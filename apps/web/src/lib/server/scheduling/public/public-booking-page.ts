@@ -24,7 +24,8 @@ import {
 } from '$lib/server/scheduling/public/public-booking';
 import { error as httpError, fail, redirect, isRedirect, isHttpError } from '@sveltejs/kit';
 import { loadPatientManagementView } from './patient-management';
-import { loadPublicBookingEmailRequirement } from './email-policy';
+import { loadPublicBookingPolicy } from './email-policy';
+import { parseBookingReschedulePolicy, type BookingReschedulePolicy } from '$lib/scheduling/email-policy';
 import type { RequestEvent } from '@sveltejs/kit';
 import type { BookingIntegration } from '$lib/server/sites/public/booking-integrations';
 import { assertIntegrationSelection, bookingPresentation, intakeAnswersFromForm, integratedBookingErrorMessage } from '$lib/server/sites/public/booking-integrations';
@@ -213,7 +214,7 @@ export const loadPublicBookingPage = async ({ params, fetch, url, setHeaders }: 
 		}
         return {
             priceQuote,
-            requireEmail: state.business ? await loadPublicBookingEmailRequirement(supabase, state.business.id) : true,
+            ...(state.business ? await loadPublicBookingPolicy(supabase, state.business.id) : { requireEmail: true, reschedulePolicy: null }),
             depositTerms,
             patientFields,
 			state,
@@ -339,6 +340,14 @@ export const submitPublicBookingPage = async ({ request, params, fetch, url, get
 				if (rawTerms.length > 1024) throw new Error('DEPOSIT_TERMS_INVALID');
 				depositTerms = parseBookingDepositTerms(JSON.parse(rawTerms));
 			} catch { throw new Error('DEPOSIT_TERMS_INVALID'); }
+            let reschedulePolicyTerms: BookingReschedulePolicy | undefined;
+            if (form.has('reschedule_policy_terms')) {
+                try {
+                    const raw = form.get('reschedule_policy_terms');
+                    if (form.getAll('reschedule_policy_terms').length !== 1 || typeof raw !== 'string' || raw.length > 1024) throw new Error();
+                    reschedulePolicyTerms = parseBookingReschedulePolicy(JSON.parse(raw));
+                } catch { throw new Error('RESCHEDULE_POLICY_TERMS_INVALID'); }
+            }
 			if ((integration || bookingInformationEnabled()) && (rawPatientName.length > 200 || patientPhone.length > 50 || patientEmail.length > 254 || note.length > 2000 || professionalIds.length > 16)) throw new Error('BOOKING_FORM_INVALID');
 			const modality = String(form.get('modality') ?? '');
 			const selectedModality = integration ? assertIntegrationSelection(integration, { serviceId, professionalIds, modality }) : null;
@@ -378,6 +387,7 @@ export const submitPublicBookingPage = async ({ request, params, fetch, url, get
 				ipHash: publicHash(ip),
 				userAgent,
 				depositTerms,
+                reschedulePolicyTerms,
                 bookingInformation: patientSchema ? { schemaHash: String(form.get('patient_schema_hash') ?? ''), answers: intakeAnswers!, priceQuoteHash: String(form.get('price_quote_hash') ?? '') } : undefined,
 				bookingIntegration: integration && selectedModality ? {
 					integrationId: integration.id, integrationRevision, entryPoint,
@@ -402,7 +412,7 @@ export const submitPublicBookingPage = async ({ request, params, fetch, url, get
 			if (integration) logServerFailure('Error creando reserva integrada', { code: getPublicBookingErrorCode(error) });
 			else logServerFailure('Error creando reserva publica', error);
 			return fail(400, {
-				...(getPublicBookingErrorCode(error) === 'DEPOSIT_TERMS_CHANGED' ? { refreshDepositTerms: true } : {}),
+				...(['DEPOSIT_TERMS_CHANGED', 'RESCHEDULE_POLICY_TERMS_CHANGED'].includes(getPublicBookingErrorCode(error)) ? { refreshDepositTerms: true } : {}),
 				message: publicErrorMessage(error).includes('PRICE_') ? 'El arancel cambió mientras reservabas. Actualizá la página, revisá el precio para tu fecha y confirmá nuevamente.' : /BOOKING_(INFORMATION|PROFILE|INTAKE)/.test(publicErrorMessage(error)) ? informationErrorMessage(error) : integrationMessage ?? getPublicBookingErrorMessage(error),
 				uncertain: Boolean(!/PRICE_|SCHEDULE_SERVICE|SCHEDULE_BLOCKED/.test(publicErrorMessage(error)) && integration && ((!integrationMessage && getPublicBookingErrorCode(error) === 'PUBLIC_BOOKING_UNEXPECTED') || publicErrorMessage(error).includes('APPOINTMENT_IDEMPOTENCY_CONFLICT'))),
 				values: valuesFromForm(form)
