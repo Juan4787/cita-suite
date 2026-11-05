@@ -240,6 +240,15 @@
 	}));
 	const activeAttestation = $derived(attestedPolicy && disclosedPolicy && attestedPolicy.require_deposit_on_reschedule === disclosedPolicy.require_deposit_on_reschedule &&
 		attestedPolicy.previous_deposit_disposition === disclosedPolicy.previous_deposit_disposition ? attestedPolicy : null);
+	// A native validation response reruns the agenda's load at this URL. Keep
+	// its context aligned with the submitted summary instead of returning to today.
+	const createAction = $derived.by(() => {
+		const params = new URLSearchParams({ date: selectedSlot?.date || selectedSlotDate || visibleWeekStart,
+			service_id: selectedServiceId, professional_id: bookingMode === 'individual' ? selectedProfessionalId : '',
+			hora: selectedSlot?.time || pendingInitialTime });
+		if (patientMode === 'existing' && selectedPatientId) params.set('patient_id', selectedPatientId);
+		return '?/create_appointment&' + params.toString();
+	});
 	$effect(() => {
 		const key = attestationContext;
 		if (key !== untrack(() => attestationKey)) { attestedPolicy = null; attestationKey = key; }
@@ -769,7 +778,7 @@
 {/snippet}
 
 
-<form bind:this={appointmentForm} method="POST" action="?/create_appointment" class="mx-auto grid w-full max-w-5xl gap-4" onsubmit={validatePhoneBeforeSubmit}>
+<form bind:this={appointmentForm} method="POST" action={createAction} class="mx-auto grid w-full max-w-5xl gap-4" onsubmit={validatePhoneBeforeSubmit}>
 	<input type="hidden" name="service_id" value={selectedServiceId} />
 	<input type="hidden" name="booking_mode" value={bookingMode} />
 	<input type="hidden" name="patient_mode" value={patientMode} />

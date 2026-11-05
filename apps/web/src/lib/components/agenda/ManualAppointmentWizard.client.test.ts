@@ -104,6 +104,12 @@ it('requires an unchecked explicit staff declaration before sending any policy t
  const confirm = await screen.findByRole('button', { name: 'Confirmar turno', exact: true });
  const declaration = screen.getByRole('checkbox', { name: 'Le informé estas condiciones al paciente' });
  expect(declaration).not.toBeChecked();
+ const action = new URL(container.querySelector('form')!.action);
+ expect(action.searchParams.has('/create_appointment')).toBe(true);
+ expect(action.searchParams.get('date')).toBe(date);
+ expect(action.searchParams.get('service_id')).toBe('service-1');
+ expect(action.searchParams.get('professional_id')).toBe('professional-1');
+ expect(action.searchParams.get('patient_id')).toBe('patient-1');
  const form = () => new FormData(container.querySelector('form')!);
  expect(form().get('reschedule_policy_terms')).toBeNull();
  expect(form().get('reschedule_policy_acknowledged')).toBeNull();
@@ -132,6 +138,7 @@ it('restores an unchanged declaration after the existing email warning and slot 
   values: { reschedule_policy_acknowledged: 'true', reschedule_policy_terms: JSON.stringify(staffPolicy.policy) } });
  await screen.findByRole('button', { name: 'Confirmar turno', exact: true });
  expect(screen.getByRole('checkbox', { name: 'Le informé estas condiciones al paciente' })).toBeChecked();
+ expect(new URL(container.querySelector('form')!.action).searchParams.get('date')).toBe(date);
  expect(JSON.parse(String(new FormData(container.querySelector('form')!).get('reschedule_policy_terms')))).toEqual(staffPolicy.policy);
 });
 
