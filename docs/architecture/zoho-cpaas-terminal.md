@@ -12,7 +12,7 @@ Permisos solicitados, con los nombres que conserva el índice oficial de CPaaS:
 Zeptomail.MailAgents.ALL,Zeptomail.Domains.ALL,Zeptomail.MailTemplates.ALL,Zeptomail.Suppressions.ALL,Zeptomail.email.READ
 ```
 
-OAuth permite usar las APIs de administración de agentes, dominios, plantillas y supresiones, y consultar registros de correo. No habilita facturación, KYC ni otros productos de Zoho. La clave de envío de un agente es otra credencial: todavía no se generó ni desplegó una desde esta conexión. Los permisos no autorizan por sí mismos operaciones destructivas ni envíos a nuevos destinatarios.
+OAuth permite usar las APIs de administración de agentes, dominios, plantillas y supresiones, y consultar registros de correo. No habilita facturación, KYC ni otros productos de Zoho. La clave de envío de un agente es otra credencial: el 5 de noviembre se consultó y guardó privadamente una ya existente; no se generó ni desplegó una clave nueva. Los permisos no autorizan por sí mismos operaciones destructivas ni envíos a nuevos destinatarios.
 
 ## Custodia y comandos
 
@@ -29,9 +29,10 @@ python3 scripts/zoho-cpaas.py status
 python3 scripts/zoho-cpaas.py agents
 python3 scripts/zoho-cpaas.py domains
 python3 scripts/zoho-cpaas.py logs
+python3 scripts/zoho-cpaas.py keys
 ```
 
-`status` sólo comprueba presencia local; las otras consultas comprueban acceso remoto. Los comandos de consulta hacen GET, guardan la respuesta privada y muestran únicamente cantidades. Para otras operaciones de administración se usará la API correspondiente dentro del alcance solicitado, sin asumir que todas las opciones del panel tienen API pública.
+`status` sólo comprueba presencia local; las otras consultas comprueban acceso remoto. Los comandos de consulta hacen GET, guardan la respuesta privada y muestran únicamente cantidades. `keys` exige exactamente un agente activo y un identificador de ruta válido; consulta sus claves sin generarlas, modificarlas ni imprimirlas. Las conserva en `apikeys-latest.json` con permisos privados y procedencia. Si hubiera varios agentes, falla sin elegir uno por posición. Para otras operaciones de administración se usará la API correspondiente dentro del alcance solicitado, sin asumir que todas las opciones del panel tienen API pública.
 
 Si se pierde o revoca el acceso, `connect --dc com` vuelve a abrir la captura local de un código nuevo de Self Client; no suministrar secretos por argumentos ni chat. Para una terminal operada directamente por Juan existe `--terminal`, con entrada oculta. Usar siempre la región real; no seguir redirecciones con credenciales.
 
@@ -41,7 +42,8 @@ Si se pierde o revoca el acceso, `connect --dc com` vuelve a abrir la captura lo
 - Renovación OAuth real y consulta de agentes posterior: correctas.
 - Verificación local: permisos de archivos/directorios, rechazo de credenciales no privadas, renovación conservando refresh token, destino fijo, bloqueo de redirecciones, salida sin secretos y lectura de listas válidas/vacías/inválidas. Estas comprobaciones locales no son pruebas de correo real.
 - Ajuste por respuesta real: los registros vienen en `data.logs`, no en la lista directa usada por agentes/dominios. Se corrigió el lector y se repitió esa consulta real con éxito; un formato inesperado sigue fallando sin declarar un resultado verificado.
-- No hubo nuevos envíos, cambios de dominio/DNS, claves de envío, webhooks, SMTP de Auth, configuración de Natalia, despliegues ni cambios de base. No se ejercitaron escrituras administrativas. KYC, compra/saldo/vencimiento y la integración completa de E conservan sus pendientes.
+- En la conexión inicial del 3 no hubo nuevos envíos, cambios de dominio/DNS, claves de envío, webhooks, SMTP de Auth, configuración de Natalia, despliegues ni cambios de base. No se ejercitaron escrituras administrativas. KYC, compra/saldo/vencimiento y la integración completa de E conservan sus pendientes.
+- **5 de noviembre:** GET real de claves existentes correcto, una credencial sin enmascarar guardada en archivo 600, fuera de Git/chat/argumentos. La API real usa el campo `apikey`, aunque el ejemplo oficial muestra `token`; conservar esa diferencia antes de implementar un lector de envío. Once comprobaciones aisladas de selección/rutas/guardado con credenciales sintéticas, sin red. Recibo sin secretos en `.verification/etapa-e-20261103/zoho-existing-key-read-proof.json`. No se probó esa clave contra la API de envío ni se publicó; esta lectura no prueba recepción, saldo, KYC o capacidad restante.
 
 Para revocar, retirar el acceso del Self Client en Zoho Accounts/API Console. Borrar sólo el archivo local no revoca el refresh token en Zoho. No eliminar clientes ni regenerar claves ajenas por rutina.
 
@@ -49,6 +51,7 @@ Para revocar, retirar el acceso del Self Client en Zoho Accounts/API Console. Bo
 
 - [Grupos de API y autenticación](https://www.zoho.com/cpaas/help/api/api-home.html).
 - [Endpoints y permisos OAuth de CPaaS](https://www.zoho.com/cpaas/help/api/api-index.html).
+- [Lectura de claves de un agente](https://www.zoho.com/cpaas/help/api/list-api-keys.html).
 - [Self Client: código, tokens y renovación](https://www.zoho.com/developer/oauth/self-client/authorization-code-flow.html).
 - [Regiones de CPaaS](https://www.zoho.com/cpaas/help/api/multiple-data-centers.html).
 

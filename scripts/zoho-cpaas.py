@@ -5,6 +5,7 @@ import getpass
 import json
 import os
 from pathlib import Path
+import re
 import stat
 import subprocess
 import tempfile
@@ -137,15 +138,16 @@ def connect(dc, terminal=False):
 
 
 def api_get(path):
+    # Fixed resources and one bounded agent-key route, never an arbitrary URL.
+    is_keys = re.fullmatch(r'mailagents/[A-Za-z0-9_-]{1,128}/apikeys', path) is not None
+    if path not in ('mailagents', 'domains', 'email?limit=10&offset=0') and not is_keys:
+        raise ConnectionError('La consulta solicitada no está habilitada en esta herramienta.')
     config = load_config()
     if time.time() >= config.get('expires_at', 0):
         result = request_json(f"https://accounts.zoho.{config['dc']}/oauth/v2/token", form={
             'client_id': config['client_id'], 'client_secret': config['client_secret'],
             'refresh_token': config['refresh_token'], 'grant_type': 'refresh_token'})
         config = save_tokens(config, result)
-    # Los comandos publicados sólo hacen GET a estos tres recursos documentados.
-    if path not in ('mailagents', 'domains', 'email?limit=10&offset=0'):
-        raise ConnectionError('La consulta solicitada no está habilitada en esta herramienta.')
     result = request_json(f"https://cpaas.zoho.{config['dc']}/v1.1/{path}", headers={
         'Authorization': 'Zoho-oauthtoken ' + config['access_token']})
     data = result.get('data')
@@ -153,14 +155,26 @@ def api_get(path):
         data = data.get('logs')
     if not isinstance(data, list):
         raise ConnectionError('Zoho respondió, pero falta la lista esperada. La consulta no está verificada.')
-    private_write(ROOT / f"{path.split('?')[0]}-latest.json", {
-        'observed_at': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()), 'response': result})
+    resource = 'apikeys' if is_keys else path.split('?')[0]
+    private_write(ROOT / f"{resource}-latest.json", {
+        'observed_at': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()), 'resource': path, 'response': result})
     return data
+
+
+def agent_keys():
+    agents = api_get('mailagents')
+    active = [agent for agent in agents if isinstance(agent, dict) and agent.get('status') == 'active']
+    if len(active) != 1:
+        raise ConnectionError('No hay un único agente activo. La consulta de claves requiere seleccionar su agente de forma explícita.')
+    key = active[0].get('mailagent_key')
+    if not isinstance(key, str) or re.fullmatch(r'[A-Za-z0-9_-]{1,128}', key) is None:
+        raise ConnectionError('Zoho no devolvió una identidad de agente válida para consultar sus claves.')
+    return api_get(f'mailagents/{key}/apikeys')
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=('connect', 'status', 'agents', 'domains', 'logs', 'scopes'))
+    parser.add_argument('command', choices=('connect', 'status', 'agents', 'domains', 'logs', 'keys', 'scopes'))
     parser.add_argument('--dc', choices=REGIONS, default='com')
     parser.add_argument('--terminal', action='store_true', help='Captura oculta en una terminal interactiva')
     args = parser.parse_args()
@@ -171,10 +185,13 @@ def main():
     elif args.command == 'status':
         config = load_config()
         print('Credenciales locales presentes. Región:', config['dc'])
-        print('La conexión remota sólo se verifica ejecutando agents, domains o logs.')
+        print('La conexión remota sólo se verifica ejecutando agents, domains, logs o keys.')
     else:
-        path = {'agents': 'mailagents', 'domains': 'domains', 'logs': 'email?limit=10&offset=0'}[args.command]
-        data = api_get(path)
+        if args.command == 'keys':
+            data = agent_keys()
+        else:
+            path = {'agents': 'mailagents', 'domains': 'domains', 'logs': 'email?limit=10&offset=0'}[args.command]
+            data = api_get(path)
         print(f'Consulta autenticada correcta. Registros recibidos: {len(data)}.')
         print('Respuesta completa en custodia privada; no se imprimieron direcciones ni credenciales.')
 
