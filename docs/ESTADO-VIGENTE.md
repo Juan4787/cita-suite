@@ -232,7 +232,9 @@ M	supabase/tests/price_confirmation_lifecycle.sql
 A	supabase/tests/public_booking_email_contact_scope.sql
 A	supabase/tests/public_booking_email_requirement.sql
 M	supabase/tests/public_booking_patient_policy.sql
+A	supabase/tests/public_booking_reschedule_policy.sql
 A	supabase/tests/run_booking_email_contact_concurrency.sh
+A	supabase/tests/run_booking_reschedule_policy_concurrency.sh
 M	supabase/tests/run_deposit_expiry_concurrency.sh
 M	supabase/tests/run_patient_identity_idempotency_concurrency.sh
 A	supabase/tests/run_patient_management_concurrency.sh

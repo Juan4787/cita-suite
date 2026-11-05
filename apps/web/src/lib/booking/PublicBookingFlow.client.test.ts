@@ -422,3 +422,41 @@ it("shows optional email only when the clinic disables the requirement and prese
   expect(email.closest("fieldset")).toHaveClass("patient-optional-fields");
   expect(email).toHaveValue("Family+Turnos@Example.test");
 });
+
+
+it.each([
+  { required: true, disposition: "forfeit", previous: "no se aplicará", next: "se pedirá una nueva" },
+  { required: true, disposition: "credit", previous: "seguirá a cuenta", next: "se pedirá una nueva" },
+  { required: false, disposition: "credit", previous: "seguirá a cuenta", next: "no se pedirá una nueva" },
+  { required: false, disposition: "forfeit", previous: "no se aplicará", next: "no se pedirá una nueva" },
+])("discloses $required / $disposition before confirming and submits exactly those rules", ({ required, disposition, previous, next }) => {
+  const data = bookingFixture(["in_person"]);
+  const policy = { schema_version: 1, policy_revision: 7, require_deposit_on_reschedule: required, previous_deposit_disposition: disposition };
+  Object.assign(data, { reschedulePolicy: policy });
+  data.depositTerms = { "2026-11-02T09:00:00.000Z": { amount: 40000, dueAt: "2026-10-31T09:00:00.000Z", autoCancel: true } };
+  noticeFor(data);
+  const notice = document.querySelector("[data-reschedule-policy-notice]")!;
+  expect(notice).toHaveTextContent(previous); expect(notice).toHaveTextContent(next);
+  expect(notice).toHaveTextContent("una sola seña pendiente");
+  const confirm = screen.getByRole("button", { name: "Confirmar reserva" });
+  expect(notice.compareDocumentPosition(confirm) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  const header = confirm.closest("form")!.querySelector<HTMLInputElement>('[name="reschedule_policy_terms"]')!;
+  expect(JSON.parse(header.value)).toEqual(policy);
+});
+
+it("discloses conditional rescheduling terms when the deposit quote is unavailable", () => {
+  const data = bookingFixture(["in_person"]);
+  Object.assign(data, { reschedulePolicy: { schema_version: 1, policy_revision: 7, require_deposit_on_reschedule: true, previous_deposit_disposition: "forfeit" } });
+  data.depositTerms = null;
+  noticeFor(data);
+  expect(document.querySelector("[data-reschedule-policy-notice]")).toHaveTextContent("Si este turno requiere seña");
+  expect(document.querySelector('[name="reschedule_policy_terms"]')).not.toBeNull();
+});
+
+it("does not show or submit monetary penalties for a slot without a deposit", () => {
+  const data = bookingFixture(["in_person"]);
+  Object.assign(data, { reschedulePolicy: { schema_version: 1, policy_revision: 7, require_deposit_on_reschedule: true, previous_deposit_disposition: "forfeit" } });
+  noticeFor(data);
+  expect(document.querySelector("[data-reschedule-policy-notice]")).toBeNull();
+  expect(document.querySelector('[name="reschedule_policy_terms"]')).toBeNull();
+});

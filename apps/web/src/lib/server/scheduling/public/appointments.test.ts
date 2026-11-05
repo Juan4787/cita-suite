@@ -145,6 +145,19 @@ const createAtomicAppointmentMock = (options: { replayData?: Record<string, unkn
 };
 
 describe('patient identity during appointment creation', () => {
+	it.each(['direct', 'information', 'integrated'] as const)('transports the disclosed policy in the request for %s creation', async mode => {
+		const { supabase, headers, rpcCalls } = createAtomicAppointmentMock();
+		const policy = { schema_version: 1 as const, policy_revision: 3, require_deposit_on_reschedule: true, previous_deposit_disposition: 'forfeit' as const };
+		await createManualAppointment(supabase, {
+			businessId: 'business-1', patient: { mode: 'public', name: 'Ana Prueba', phone: '3425048209' },
+			serviceId: 'service-1', professionalId: 'professional-1', startsAt: new Date('2026-07-30T13:00:00Z'),
+			source: 'public_booking', idempotencyKey: requestKey, reschedulePolicyTerms: policy,
+			...(mode === 'information' ? { bookingInformation: { schemaHash: 'a'.repeat(64), answers: {} } } : {}),
+			...(mode === 'integrated' ? { bookingIntegration: { integrationId: 'integration-1', integrationRevision: 1, modality: 'in_person' as const, intakeAnswers: {} } } : {})
+		});
+		expect(headers).toEqual([['x-cita-reschedule-policy', JSON.stringify(policy)]]);
+		expect(rpcCalls[0].name).toBe(mode === 'information' ? 'create_public_booking_with_information' : mode === 'integrated' ? 'create_integrated_public_appointment' : 'create_appointment_with_patient_identity');
+	});
 	it('envía las condiciones de seña en la petición atómica, también sin el módulo de cuestionarios', async () => {
 		const { supabase, headers } = createAtomicAppointmentMock();
 		const terms = { amount: 40000, dueAt: '2026-07-28T13:00:00.000Z', autoCancel: true };

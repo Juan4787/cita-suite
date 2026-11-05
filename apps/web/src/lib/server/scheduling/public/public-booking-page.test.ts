@@ -87,6 +87,23 @@ beforeEach(() => {
 });
 
 describe('condiciones de la seña en el turnero', () => {
+	it('preserves disclosed policy and the attempt, and requests a refreshed summary after a stricter policy', async () => {
+		const policy = { schema_version: 1, policy_revision: 2, require_deposit_on_reschedule: false, previous_deposit_disposition: 'credit' };
+		const attempt = '00000000-0000-4000-8000-0000000000a1';
+		const submit = (values: string[]) => {
+			const body = new URLSearchParams({ service_id: SERVICE_ID, professional_id: PROFESSIONAL_ID, slot_starts_at: '2026-11-20T13:00:00.000Z', patient_name: 'Ana Prueba', patient_email: 'Family+Turnos@Example.test', patient_phone: '3425048209', idempotency_key: attempt });
+			values.forEach(value => body.append('reschedule_policy_terms', value));
+			return submitPublicBookingPage({ params: { businessSlug: BUSINESS_ID }, fetch: vi.fn(), url: new URL('http://localhost/reservar/consultorio'), getClientAddress: () => '127.0.0.1', request: new Request('http://localhost/reservar/consultorio?/create_booking', { method: 'POST', body }) } as never);
+		};
+		mocks.createPublicBooking.mockRejectedValueOnce(new Error('RESCHEDULE_POLICY_TERMS_CHANGED'));
+		await expect(submit([JSON.stringify(policy)])).resolves.toMatchObject({ status: 400, data: { refreshDepositTerms: true, values: { idempotency_key: attempt, patient_name: 'Ana Prueba', patient_email: 'Family+Turnos@Example.test' }, message: expect.stringContaining('Actualizá la página') } });
+		expect(mocks.createPublicBooking).toHaveBeenLastCalledWith(expect.anything(), expect.objectContaining({ reschedulePolicyTerms: policy }));
+		mocks.createPublicBooking.mockClear();
+		for (const values of [['{broken'], [JSON.stringify(policy), JSON.stringify(policy)], [JSON.stringify({ ...policy, sender_verified: true })]]) {
+			await expect(submit(values)).resolves.toMatchObject({ status: 400, data: { message: expect.stringContaining('No pudimos leer las condiciones para reprogramar') } });
+		}
+		expect(mocks.createPublicBooking).not.toHaveBeenCalled();
+	});
 	it('envía las condiciones mostradas a la creación y rechaza un formulario de condiciones inválido', async () => {
 		const terms = { amount: 40000, dueAt: '2026-11-18T13:00:00.000Z', autoCancel: true };
 		const submitEvent = (depositTerms: string) => ({
