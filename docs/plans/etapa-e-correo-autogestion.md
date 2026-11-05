@@ -1,5 +1,7 @@
 # Etapa E: correo del consultorio, reprogramación autónoma y señas
 
+**Interrupción posterior, 5 de noviembre:** Juan detuvo la implementación para preservar el estado y traspasarlo a otro agente ([plan 12.31](propuesta-senas-avisos-natalia.md#traspaso-e-documental-20261105), [traspaso técnico exacto](traspaso-etapa-e-20261105.md), checkpoint E3.50). Esta especificación conserva los requisitos de E; las instrucciones de continuación anteriores se interpretan bajo esa interrupción. E sigue incompleta y sin publicar. El pedido actual es exclusivamente documental.
+
 **Definición conversada el 2 de noviembre de 2026; revisión documental cerrada el 3:** el 3 Juan pidió conectar Zoho por terminal y guardar el acceso tras reinicios ([12.19](propuesta-senas-avisos-natalia.md#zoho-terminal-vigente)). Conexión administrativa OAuth local y renovación comprobadas; [guía de operación](../architecture/zoho-cpaas-terminal.md). **Juan autorizó después la ejecución íntegra, pruebas y publicación de E ([12.20](propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada)); Q01/Q02 resueltas y E1 en implementación/verificación.** [Registro y continuidad](ejecucion-etapa-e-20261103.md). Los recorridos integrales de la app/correo todavía no se verificaron; los fundamentos SQL parciales y sus límites están en el registro. La antigua D celular quedó reemplazada por P3 interna, pospuesta junto con P1/P2 por el pedido posterior de 12.26; no iniciarlas al cerrar E; [cola separada](tareas-posteriores-a-e-20261103.md). Producción sigue en V12b; consultar siempre el [estado vigente](../ESTADO-VIGENTE.md).
 
 Esta es la especificación vigente de E, incorporada por la sección 12.18 del [plan aprobado](propuesta-senas-avisos-natalia.md#etapa-e-vigente). Sustituye en este alcance la antigua sección 4.14, su proveedor Resend, la pausa conjunta D/E y las reglas anteriores sobre reprogramación iniciada por el paciente. El texto aprobado anterior se conserva como historia. [Registro](registro-senas-avisos-natalia.md#etapa-e-revision) y [traspaso](traspaso-senas-avisos-natalia.md#etapa-e-punto).
@@ -123,6 +125,8 @@ Cada identificador exige una prueba o comprobación registrada durante la implem
 | RP11 | Varios cambios: secuencia íntegra, regla económica por operación exitosa y límite técnico de abuso sin bloquear una cancelación legítima. No introducir un máximo comercial de cambios no acordado. |
 | RP12 | Respuesta perdida después de guardar: recuperar la operación real y su comprobante; sin otra reserva ni otra consecuencia económica. |
 | RP13 | Pedido «Quiere reprogramar» previo a E: conservarlo y permitir resolverlo; no liberar horarios ni generar señas por migrar o abrirlo. |
+
+<a id="senas-y-dinero"></a>
 
 ### 4.4 Señas y dinero — C06–C08, C13
 
@@ -263,4 +267,4 @@ Las pruebas pesadas son secuenciales y se reutiliza evidencia aplicable. No reno
 
 ## 9. Punto de continuación
 
-Conexión administrativa local de Zoho completada por instrucción posterior de Juan, con persistencia y renovación comprobadas: [guía](../architecture/zoho-cpaas-terminal.md). La instrucción posterior [12.20](propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada) autoriza E1–E6 completas, incluida producción. Q01/Q02 están resueltas; continuar autónomamente según el [registro activo y su regla de continuidad](ejecucion-etapa-e-20261103.md), sin otra espera de autorización. KYC y pago posteriores son de Juan. Al retomar: comprobar sincronización, leer plan 12.18, este documento, registro, traspaso y pendientes. La configuración de la integración y los nuevos comportamientos **no están desplegados ni comprobados de punta a punta**.
+Conexión administrativa local de Zoho completada por instrucción posterior de Juan, con persistencia y renovación comprobadas: [guía](../architecture/zoho-cpaas-terminal.md). La autorización histórica [12.20](propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada) cubre E1–E6, incluida producción; Q01/Q02 están resueltas. El pedido posterior **12.31 detiene implementación para documentación y traspaso**, sin iniciar otra integración ni publicación en ese encargo. [Estado técnico e intención de continuación](traspaso-etapa-e-20261105.md), [registro activo y regla de continuidad](ejecucion-etapa-e-20261103.md). KYC y pago posteriores son de Juan. Al retomar E por un encargo de continuación: comprobar sincronización y recuperar las fuentes y evidencia indicadas. La integración y los nuevos comportamientos **no están desplegados ni comprobados de punta a punta**.

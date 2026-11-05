@@ -2,7 +2,7 @@
 
 **Este es el registro único de qué historia y qué cambios están vigentes.** Se actualiza en el mismo paso de trabajo que cambia cualquiera de estos datos, nunca después. Eso incluye publicar, cambiar de rama, integrar, o dejar código distinto de producción. `node scripts/check-repo-sync.mjs`, desde la raíz, lo compara con Git, con GitHub y con la revisión que sirve producción, y falla ante cualquier diferencia.
 
-Última actualización: 5 de noviembre de 2026. E sigue en implementación/verificación, sin publicación ni SQL productivo; autorización íntegra y regla de continuidad vigentes.
+Última actualización: 5 de noviembre de 2026. Implementación de E detenida por pedido de Juan para el traspaso documental; E incompleta, sin publicación ni SQL productivo. Autorizaciones históricas y regla de continuidad conservadas; encargo actual exclusivamente documental.
 
 ## Datos verificables
 
@@ -18,7 +18,7 @@ produccion_repositorio: github-secundaria:Juan4787/cita-suite-verificacion.git
 
 ## Etapa E — ejecución al 5 de noviembre
 
-E conserva autorización íntegra de implementación/pruebas/publicación: [plan 12.18–12.26](plans/propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada), [especificación](plans/etapa-e-correo-autogestion.md) y [registro activo](plans/ejecucion-etapa-e-20261103.md). E1/E2/E3 sin publicar. SQL30 y fast 42076262537 (2038 servidor/300 cliente) conservan su evidencia. Personal aprobado como caso en browser 42078792126: acciones, cinco anchos/dos temas y salud; corrida completa fallida por SN14. Nativo alcanzó POST 400 e importe conservado; se explicitan for/id para que la nota inicial SSR no forme parte del texto extraído de su etiqueta. Browser 42080552190 en curso, código 79ca40c/fuente 1e9cf678, sólo late deposit:; sin repetir personal/SQL/público. Contacto/outbox/Zoho/correo, limpieza y E5–E6 abiertos. Checkpoint E3.49. Producción V12b; ningún envío ni cierre E; P1/P2/P3 pospuestas.
+E conserva autorización histórica de implementación/pruebas/publicación: [plan 12.18–12.26](plans/propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada), [especificación](plans/etapa-e-correo-autogestion.md) y [registro activo](plans/ejecucion-etapa-e-20261103.md). Implementación detenida por pedido de Juan para el traspaso documental ([12.31](plans/propuesta-senas-avisos-natalia.md#traspaso-e-documental-20261105)), checkpoint E3.50. [Traspaso técnico exacto](plans/traspaso-etapa-e-20261105.md). E1/E2/E3 parciales, sin publicar; SQL30 y fast 42076262537 (2038 servidor/300 cliente) conservan su evidencia. Personal aprobado como caso en 42078792126. Browser 42080552190 terminó fallido: pasó rechazo/borrador/registro nativos de 10.000 y se detuvo en el clic JS previo a probar respuesta ilegible; recuperación y visuales SN14 pendientes. No queda esa corrida en curso. Contacto/outbox/Zoho/correo, limpieza y E5–E6 abiertos. Producción V12b; ningún envío ni cierre E; P1/P2/P3 pospuestas.
 
 ## Código que difiere de producción
 
