@@ -2,6 +2,8 @@
 
 **Todo lo que queda pendiente está en una sola lista:** [pendientes vigentes](plans/pendientes-vigentes.md). Natalia ya tiene su cuenta real y su consultorio. Sus datos todavía faltantes siguen en la lista. Las [tareas posteriores a E](plans/tareas-posteriores-a-e-20261103.md) quedan pospuestas por pedido posterior de Juan (plan 12.26), sin iniciarlas al cerrar E; su P3 sustituye la antigua D del celular por avisos internos. E tiene [definición vigente con Zoho](plans/etapa-e-correo-autogestion.md), revisada contra código; sustituye la elección histórica de Resend. [Zoho por terminal](architecture/zoho-cpaas-terminal.md) quedó conectado el 3 de noviembre, con acceso persistente; Juan autorizó después E completa, incluidas pruebas/publicación; [ejecución, decisiones iniciales y continuidad](plans/ejecucion-etapa-e-20261103.md) en curso; contrato contextual y fundamentos/comando SQL E1 comprobados parcialmente; auditoría de identidad/calendario en curso, sin integración publicada.
 
+**Documentación detallada de E:** [índice de implementación, decisiones, pruebas y operación](plans/indice-etapa-e.md). E sigue en curso; el índice distingue implementación parcial, evidencia y pendientes, sin anunciar cierre ni publicación.
+
 ## Estado operativo y criterio actuales — 2 de noviembre
 
 **Qué historia y qué cambios están vigentes:** [estado vigente](ESTADO-VIGENTE.md), el registro único; lo comprueba `node scripts/check-repo-sync.mjs`.
@@ -22,7 +24,7 @@ Para el consultorio de Natalia Frutos, la primera clienta, rigen estos documento
 - el [plan aprobado](plans/propuesta-senas-avisos-natalia.md), cuya sección 12 tiene la aprobación literal y los ajustes posteriores;
 - el [registro](plans/registro-senas-avisos-natalia.md);
 - el [traspaso](plans/traspaso-senas-avisos-natalia.md);
-- la [especificación de E](plans/etapa-e-correo-autogestion.md), con decisiones de la conversación, contraste C01–C13 y matriz de aceptación todavía sin ejecutar;
+- la [especificación de E](plans/etapa-e-correo-autogestion.md), con decisiones de la conversación, contraste C01–C13 y matriz de aceptación integral pendiente y evidencia parcial en el registro activo;
 - la información que mandó la clienta (documento privado `docs/clientes/natalia-frutos/informacion-20261029.md`, sólo en la computadora de trabajo).
 
 ## Contratos y operación vigentes
