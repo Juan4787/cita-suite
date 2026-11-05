@@ -10,6 +10,8 @@ const money = (value: unknown, bounded = false): string => {
  if (bounded && BigInt(value) > 1_000_000_000_000n) return fail();
  return value;
 };
+/** Shared exact decimal-string boundary for recorded deposits and their totals. */
+export const parseDepositMoney = money;
 const nullableMoney = (value: unknown) => value === null ? null : money(value, true);
 const integer = (value: unknown, minimum: number, maximum: number) => {
  if (value === null) return null;

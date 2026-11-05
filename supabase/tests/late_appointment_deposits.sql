@@ -173,7 +173,10 @@ do $$declare before jsonb:=pg_temp.lstate(); result jsonb; begin
 end $$;
 select extensions.pass('13. New corrections cannot reverse twice or target another correction; the identical retry recovers safely');
 
-insert into late_fixture values('second',pg_temp.lcall(amount=>'25000')::text),('third',pg_temp.lcall(amount=>'15000')::text);
+-- Each observed revision belongs to its own statement. These writes depend on
+-- each other; batching them would deliberately submit the first revision twice.
+insert into late_fixture values('second',pg_temp.lcall(amount=>'25000')::text);
+insert into late_fixture values('third',pg_temp.lcall(amount=>'15000')::text);
 do $$declare before jsonb:=pg_temp.lstate(); begin
  begin perform public.reassign_appointment_patient_safely(pg_temp.lid('business'),pg_temp.lid('appointment'),pg_temp.lid('replacement'),pg_temp.lid('reception'),'Synthetic identity repair'); raise exception 'LATE_MONEY_REASSIGNED';
  exception when others then if sqlerrm<>'APPOINTMENT_DEPOSIT_IDENTITY_CHANGE' then raise; end if; end;

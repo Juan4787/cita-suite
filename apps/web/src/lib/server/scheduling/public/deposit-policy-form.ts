@@ -8,7 +8,7 @@ import type { DepositPolicy } from '$lib/server/scheduling/public/deposits';
 type FieldErrors = Partial<Record<'fixed_amount' | 'percentage' | 'request_days' | 'deadline_hours' | 'min_payment_hours' | 'transfer_details', string>>;
 
 // Pesos as people write them: «40000» or «40.000». Never a decimal: the database refuses rounding.
-const parseAmount = (raw: string) => {
+export const parseWholePesoInput = (raw: string) => {
 	const value = raw.trim();
 	if (!value) return null;
 	if (!/^(\d{1,3}(\.\d{3})+|\d+)$/.test(value)) return Number.NaN;
@@ -26,7 +26,7 @@ const parseWhole = (raw: string) => (/^\d{1,4}$/.test(raw.trim()) ? Number(raw.t
 export const parsePolicyForm = (form: FormData, serviceIds: Set<string>) => {
 	const errors: FieldErrors = {};
 	const amountMode = form.get('amount_mode') === 'percentage' ? 'percentage' : 'fixed';
-	const fixedAmount = parseAmount(String(form.get('fixed_amount') ?? ''));
+	const fixedAmount = parseWholePesoInput(String(form.get('fixed_amount') ?? ''));
 	const percentage = parsePercentage(String(form.get('percentage') ?? ''));
 	const requestDays = parseWhole(String(form.get('request_days') ?? ''));
 	const deadlineHours = parseWhole(String(form.get('deadline_hours') ?? ''));

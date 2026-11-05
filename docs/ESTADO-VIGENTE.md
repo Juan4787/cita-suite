@@ -18,7 +18,7 @@ produccion_repositorio: github-secundaria:Juan4787/cita-suite-verificacion.git
 
 ## Etapa E — ejecución al 5 de noviembre
 
-E conserva autorización íntegra de implementación/pruebas/publicación: [plan 12.18–12.26](plans/propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada), [especificación](plans/etapa-e-correo-autogestion.md) y [registro activo](plans/ejecucion-etapa-e-20261103.md). E1/E2/E3 sin publicar. SQL29 aprobada en 42011723187 y fast 42066399494 (2005 servidor/297 cliente, cero errores/avisos). Público completo aprobado en 42021721105. Personal 42068364845 alcanzó las acciones y negativas persistidas, pero falló en un selector visual ambiguo; ancla acotada a main, cierre de navegador pendiente. Borrador SQL30 de SN14 conservado, sin pruebas/tipos/consumidor y sin aplicar. Siguiente: SQL30/carreras, tipos oficiales, consumidor y navegador; contacto/outbox/Zoho/correo/E5–E6 siguen abiertos. Checkpoint E3.36. Producción V12b; ningún envío ni cierre E; P1/P2/P3 pospuestas.
+E conserva autorización íntegra de implementación/pruebas/publicación: [plan 12.18–12.26](plans/propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada), [especificación](plans/etapa-e-correo-autogestion.md) y [registro activo](plans/ejecucion-etapa-e-20261103.md). E1/E2/E3 sin publicar. SQL29 y fast 42066399494 conservan sus pruebas; público aprobado en 42021721105. Personal 42068364845 alcanzó acciones/negativas, pero no cerró la matriz visual por selector ambiguo ya ajustado. SQL30: primeros trece grupos pasaron en 42070842232; se separaron dos escrituras dependientes del arnés y faltan grupos restantes/carreras/tipos. Consumidor previo a UI: 56 dirigidas aprobadas; integración/tipos pendientes. Siguiente: SQL30, tipos oficiales, consumidor y navegador; contacto/outbox/Zoho/correo/E5–E6 abiertos. Checkpoint E3.38. Producción V12b; ningún envío ni cierre E; P1/P2/P3 pospuestas.
 
 ## Código que difiere de producción
 
@@ -100,10 +100,13 @@ M	apps/web/src/lib/server/scheduling/public/appointments.test.ts
 M	apps/web/src/lib/server/scheduling/public/appointments.ts
 M	apps/web/src/lib/server/scheduling/public/availability.test.ts
 M	apps/web/src/lib/server/scheduling/public/availability.ts
+M	apps/web/src/lib/server/scheduling/public/deposit-policy-form.ts
 M	apps/web/src/lib/server/scheduling/public/deposits.test.ts
 M	apps/web/src/lib/server/scheduling/public/deposits.ts
 A	apps/web/src/lib/server/scheduling/public/email-policy.test.ts
 A	apps/web/src/lib/server/scheduling/public/email-policy.ts
+A	apps/web/src/lib/server/scheduling/public/late-deposits.test.ts
+A	apps/web/src/lib/server/scheduling/public/late-deposits.ts
 A	apps/web/src/lib/server/scheduling/public/patient-management-flow.test.ts
 A	apps/web/src/lib/server/scheduling/public/patient-management-flow.ts
 A	apps/web/src/lib/server/scheduling/public/patient-management-page.test.ts
