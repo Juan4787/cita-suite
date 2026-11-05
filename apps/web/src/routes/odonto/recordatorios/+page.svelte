@@ -62,8 +62,8 @@
 	<div class="ux-soft-card p-5">
 		<div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 			<div class="min-w-0">
-				<p class="text-lg font-bold text-fg">{candidate.time_label} · {candidate.patient_name}</p>
-				<p class="mt-1 text-sm text-fg-55">{candidate.service_name} · {candidate.professional_name}</p>
+				<p class="text-lg font-bold text-fg">{candidate.time_label}&nbsp;·&nbsp;{candidate.patient_name}</p>
+				<p class="mt-1 text-sm text-fg-55">{candidate.service_name}&nbsp;·&nbsp;{candidate.professional_name}</p>
 				<p class="mt-2 flex items-center gap-2 text-sm font-bold {candidate.coverage === 'pendiente_actualizar' ? 'text-warning-300' : candidate.coverage === 'aviso_automatico' ? 'text-success-300' : 'text-fg-70'}">
 					{#if candidate.coverage === 'pendiente_actualizar'}
 						<Icon name="alert" class="h-4 w-4 shrink-0" />Calendario pendiente de actualizar
@@ -126,17 +126,17 @@
 	</div>
 
 	{#if !data.restricted && !data.remindersUnavailable}
-		<div class="ux-soft-card flex flex-col gap-2 p-4 sm:flex-row sm:items-center sm:justify-between">
-			<div>
+		<div class="ux-soft-card flex flex-wrap items-center gap-4 p-4">
+			<div class="min-w-0 flex-[1_1_20rem]">
 				<p class="text-sm font-bold text-fg">Criterio de la lista</p>
 				<p class="mt-1 text-sm text-fg-55">
 					Arriba, los turnos sin un calendario iniciado ni una notificación confirmada. Al final,
 					plegados, los que ya tienen aviso automático: podés mandarles el recordatorio igual.
 				</p>
 			</div>
-			<div class="flex flex-wrap gap-2 text-xs font-bold">
-				<span class="ux-badge">Sin calendario iniciado</span>
-				<span class="ux-badge">Sin notificación confirmada</span>
+			<div class="flex max-w-full shrink-0 flex-wrap gap-2 text-xs font-bold">
+				<span class="ux-badge shrink-0">Sin calendario iniciado</span>
+				<span class="ux-badge shrink-0">Sin notificación confirmada</span>
 			</div>
 		</div>
 	{/if}

@@ -13,6 +13,8 @@ import { contrastViolations, expectRenderedTheme } from './helpers/theme';
 test('@candidate-behavior late deposit: native recording, lost response recovery and contextual correction', async ({ page, context, browser }, info) => {
  test.setTimeout(180_000);
  const f = ownedAppointmentFixture(), appointmentId = randomUUID(), patientId = randomUUID();
+ const origin = new URL(process.env.E2E_BASE_URL!);
+ if (origin.hostname !== '127.0.0.1' || origin.protocol !== 'http:') throw new Error('Owned loopback app required');
  const path = `/odonto/turnos/${appointmentId}`;
  const owner = f.sql(`select user_id from public.business_users where business_id='${f.businessId}' and role='owner' and status='active' limit 1;`);
  expect(owner).toMatch(/^[a-f0-9-]{36}$/);
@@ -89,16 +91,25 @@ test('@candidate-behavior late deposit: native recording, lost response recovery
   const closed = state();
   await loginWithSharedSession(page,{ email: f.email,password: f.password });
   const native = await browser.newContext({ javaScriptEnabled: false,storageState: await context.storageState() });
+  const nativePage = await native.newPage();
+  let nativeSucceeded = false;
+  const nativePosts: number[] = [];
+  nativePage.on('request',request => { if (request.method() === 'POST') nativePosts.push(1); });
   try {
-   const nativePage = await native.newPage();
    await nativePage.goto(path);
+   await info.attach('native-context-before-foreground',{ body: JSON.stringify(await nativePage.evaluate(() => ({
+    visibility: document.visibilityState,readyState: document.readyState,hasFocus: document.hasFocus()
+   }))),contentType: 'application/json' });
+   await nativePage.bringToFront();
    await nativePage.getByText('Registrar dinero después de cancelar',{ exact: true }).click();
    await nativePage.getByLabel('Importe recibido, en pesos',{ exact: true }).fill('1,5');
    await nativePage.getByLabel('Nota del registro (opcional)',{ exact: true }).fill('Nota interna sintética conservada');
    await nativePage.getByRole('checkbox',{ name: 'Verifiqué el ingreso y que corresponde a este paciente' }).check();
-   const rejected = nativePage.waitForResponse(response => response.request().method() === 'POST');
-   await nativePage.getByRole('button',{ name: 'Registrar dinero recibido',exact: true }).click();
-   expect((await rejected).status()).toBe(400);
+   const [rejected] = await Promise.all([
+    nativePage.waitForResponse(response => response.request().method() === 'POST'),
+    nativePage.getByRole('button',{ name: 'Registrar dinero recibido',exact: true }).click()
+   ]);
+   expect(rejected.status()).toBe(400);
    await expect(nativePage.getByRole('alert')).toContainText('pesos sin centavos');
    await expect(nativePage.getByLabel('Importe recibido, en pesos',{ exact: true })).toHaveValue('1,5');
    await expect(nativePage.getByLabel('Nota del registro (opcional)',{ exact: true })).toHaveValue('Nota interna sintética conservada');
@@ -108,7 +119,23 @@ test('@candidate-behavior late deposit: native recording, lost response recovery
    await nativePage.getByRole('button',{ name: 'Registrar dinero recibido',exact: true }).click();
    await expect(nativePage.getByRole('status')).toContainText('El dinero quedó registrado por resolver');
    expect(receipts()).toBe('[1, 0, 1, 1]'); expect(state()).toBe(closed);
-  } finally { await native.close(); }
+   nativeSucceeded = true;
+  } finally {
+   if (!nativeSucceeded && !nativePage.isClosed()) {
+    await nativePage.screenshot({ path: info.outputPath('native-money-failure.jpg'),type: 'jpeg',quality: 70,timeout: 5000 });
+    const state = await nativePage.evaluate(() => {
+     const button = document.querySelector<HTMLButtonElement>('#late-deposit-record button');
+     const style = button ? getComputedStyle(button) : null,rect = button?.getBoundingClientRect();
+     return { visibility: document.visibilityState,hasFocus: document.hasFocus(),readyState: document.readyState,
+      rect: rect ? { x: rect.x,y: rect.y,width: rect.width,height: rect.height } : null,
+      transform: style?.transform,transition: style?.transition,animation: style?.animation,hover: button?.matches(':hover'),
+      disabled: button?.disabled,scrollY,activeElement: document.activeElement?.tagName,
+      activeAnimations: button?.getAnimations().map(animation => ({ playState: animation.playState,currentTime: animation.currentTime })) };
+    });
+    await info.attach('native-money-failure-state',{ body: JSON.stringify({ ...state,postRequests: nativePosts.length }),contentType: 'application/json' });
+   }
+   await native.close();
+  }
   await page.goto(path);
   await page.getByText('Registrar dinero después de cancelar',{ exact: true }).click();
   const recordForm = page.locator('#late-deposit-record form');
