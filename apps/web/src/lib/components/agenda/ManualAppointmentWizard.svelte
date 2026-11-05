@@ -14,6 +14,7 @@
 	import { parseAvailabilitySlots } from '$lib/availability/http';
 	import { classifyCommunicationPhone } from '$lib/utils/communication-phone';
 	import { onDestroy, tick, untrack } from 'svelte';
+	import { bookingReschedulePolicyNotice, parseBookingReschedulePolicy, type BookingReschedulePolicy, type ManualBookingReschedulePolicy } from '$lib/scheduling/email-policy';
 
 	type Service = { id: string; name: string; duration_minutes: number };
 	type Professional = {
@@ -30,6 +31,7 @@
 		professionals,
 		serviceProfessionalIds,
 		availabilitySnapshot = null,
+		manualBookingPolicy = null,
 		patients,
 		patientsLoaded = false,
 		patientsLoading = false,
@@ -46,6 +48,7 @@
 		professionals: Professional[];
 		serviceProfessionalIds: Record<string, string[]>;
 		availabilitySnapshot?: AvailabilitySnapshot | null;
+		manualBookingPolicy?: ManualBookingReschedulePolicy | null;
 		patients: Patient[];
 		patientsLoaded?: boolean;
 		patientsLoading?: boolean;
@@ -226,6 +229,21 @@
 			(selectedRemotePatient?.id === selectedPatientId ? selectedRemotePatient : null)
 	);
 	const canUseExistingPatient = $derived(patientMode === 'existing' && Boolean(selectedPatientId));
+	const disclosedPolicy = $derived(manualBookingPolicy && selectedService && !manualBookingPolicy.excludedServiceIds.includes(selectedService.id) ? manualBookingPolicy.policy : null);
+	const attestationContext = $derived(JSON.stringify([patientMode, patientMode === 'existing' ? selectedPatientId : [patientName.trim(), patientPhone.trim()], selectedService?.id,
+		selectedSlot?.date ?? selectedSlotDate, selectedSlot?.time ?? pendingInitialTime,
+		disclosedPolicy?.require_deposit_on_reschedule, disclosedPolicy?.previous_deposit_disposition]));
+	let attestationKey = $state(untrack(() => attestationContext));
+	let attestedPolicy = $state<BookingReschedulePolicy | null>(untrack(() => {
+		if (value('reschedule_policy_acknowledged') !== 'true') return null;
+		try { return parseBookingReschedulePolicy(JSON.parse(value('reschedule_policy_terms'))); } catch { return null; }
+	}));
+	const activeAttestation = $derived(attestedPolicy && disclosedPolicy && attestedPolicy.require_deposit_on_reschedule === disclosedPolicy.require_deposit_on_reschedule &&
+		attestedPolicy.previous_deposit_disposition === disclosedPolicy.previous_deposit_disposition ? attestedPolicy : null);
+	$effect(() => {
+		const key = attestationContext;
+		if (key !== untrack(() => attestationKey)) { attestedPolicy = null; attestationKey = key; }
+	});
 	const canUseNewPatient = $derived(patientMode === 'new' && patientName.trim().length >= 2);
 	const canCreate = $derived(
 		Boolean(
@@ -767,6 +785,7 @@
 	<input type="hidden" name="patient_phone_changed" value={patientPhoneChanged ? 'true' : 'false'} />
 	<input type="hidden" name="phone_warning_override" value={phoneWarningOverride} />
 	<input type="hidden" name="email_warning_acknowledged" value={emailWarningAcknowledged ? 'true' : ''} />
+	{#if activeAttestation}<input type="hidden" name="reschedule_policy_terms" value={JSON.stringify(activeAttestation)} />{/if}
 
 	<section class="ux-card min-w-0 w-full px-5 py-4 sm:px-6">
 		<div class="flex flex-col items-start gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
@@ -1312,6 +1331,18 @@
 						</p>
 					</div>
 				</div>
+				{#if disclosedPolicy}
+					<section class="mt-5 space-y-3" aria-label="Condiciones para reprogramar">
+						<p class="text-sm font-semibold text-fg">Si este turno requiere seña, informale al paciente</p>
+						<p class="text-sm leading-relaxed text-copy-muted">{bookingReschedulePolicyNotice(disclosedPolicy)}</p>
+						<label class="flex min-h-11 cursor-pointer items-start gap-3 py-2 text-sm text-fg">
+							<input type="checkbox" name="reschedule_policy_acknowledged" value="true" class="mt-0.5 h-5 w-5 shrink-0"
+								checked={Boolean(activeAttestation)} onchange={(event) => { attestedPolicy = event.currentTarget.checked && disclosedPolicy ? { ...disclosedPolicy } : null; attestationKey = attestationContext; }} />
+							<span>Le informé estas condiciones al paciente</span>
+						</label>
+						<p class="text-sm leading-relaxed text-copy-muted">Si no las informaste, dejá la opción sin marcar. Se conserva la seña habitual, sin aplicar condiciones nuevas por reprogramar.</p>
+					</section>
+				{/if}
 				<button
 					type="submit"
 					disabled={!canOperate || !canCreate || Boolean(phoneWarning)}

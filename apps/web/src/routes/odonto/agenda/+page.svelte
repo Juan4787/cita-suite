@@ -4,6 +4,7 @@
 	import type { SlotReleaseListView } from '$lib/scheduling/slot-releases';
 	import { parseAvailabilitySnapshot } from '$lib/availability/http';
 	import { readRecord } from '$lib/contracts/json';
+	import { parseManualBookingReschedulePolicy, type ManualBookingReschedulePolicy } from '$lib/scheduling/email-policy';
 	import { afterNavigate } from '$app/navigation';
 	import DayFilterPicker from '$lib/components/agenda/DayFilterPicker.svelte';
 	import ManualAppointmentWizard from '$lib/components/agenda/ManualAppointmentWizard.svelte';
@@ -73,6 +74,7 @@
 			services: Service[];
 			serviceProfessionalIds: Record<string, string[]>;
 			availabilitySnapshot?: AvailabilitySnapshot | null;
+			manualBookingPolicy?: ManualBookingReschedulePolicy | null;
 			patients: Patient[];
 			patientsLoaded?: boolean;
 			referencesLoaded?: boolean;
@@ -108,6 +110,8 @@
 	let serviceProfessionalIds = $state<Record<string, string[]>>(data.serviceProfessionalIds ?? {});
 	// svelte-ignore state_referenced_locally
 	let availabilitySnapshot = $state<AvailabilitySnapshot | null>(data.availabilitySnapshot ?? null);
+	// svelte-ignore state_referenced_locally
+	let manualBookingPolicy = $state<ManualBookingReschedulePolicy | null>(data.manualBookingPolicy ?? null);
 	// svelte-ignore state_referenced_locally
 	let referencesLoaded = $state(Boolean(data.referencesLoaded));
 	let referencesLoading = $state(false);
@@ -433,6 +437,7 @@
             const snapshot = parseAvailabilitySnapshot(payload.availability_snapshot, {
                 businessId: String(data.context.business?.id ?? ''), date: data.date
             });
+            const bookingPolicy = parseManualBookingReschedulePolicy(payload.manual_booking_policy ?? null);
             // Publish all references together only after the whole snapshot passes.
             professionals = snapshot.professionals;
             services = snapshot.services;
@@ -440,6 +445,7 @@
                 (mapping[row.service_id] ??= []).push(row.professional_id); return mapping;
             }, {});
             availabilitySnapshot = snapshot;
+            manualBookingPolicy = bookingPolicy;
 			referencesLoaded = true;
 		} catch (error) {
 			referencesError =
@@ -511,6 +517,7 @@
 			patients = [];
 			serviceProfessionalIds = {};
 			availabilitySnapshot = null;
+			manualBookingPolicy = null;
 			referencesLoaded = false;
 			referencesError = '';
 			patientsLoaded = false;
@@ -524,6 +531,7 @@
 			patients = data.patients ?? [];
 			serviceProfessionalIds = data.serviceProfessionalIds ?? {};
 			availabilitySnapshot = data.availabilitySnapshot ?? null;
+			manualBookingPolicy = data.manualBookingPolicy ?? null;
 			referencesLoaded = true;
 			patientsLoaded = Boolean(data.patientsLoaded);
 			patientsLoading = false;
@@ -804,6 +812,7 @@
 					{professionals}
 					{serviceProfessionalIds}
 					{availabilitySnapshot}
+					{manualBookingPolicy}
 					{patients}
 					{patientsLoaded}
 					{patientsLoading}

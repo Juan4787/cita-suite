@@ -27,6 +27,25 @@ beforeEach(() => {
  mocks.admin.mockResolvedValue({ from: () => query }); mocks.replay.mockResolvedValue(null); mocks.slots.mockResolvedValue([]);
 });
 describe('reception email warning uses saved contact and preserves the creation attempt', () => {
+ it('transports only an expressly attested financial summary after the replay check', async () => {
+  email = 'Saved+Contact@Example.test';
+  const policy = { schema_version: 1, policy_revision: 7, require_deposit_on_reschedule: true, previous_deposit_disposition: 'forfeit' };
+  mocks.slots.mockResolvedValueOnce([{ starts_at: '2026-12-01T09:00:00.000Z', professional_id: '44444444-4444-4444-8444-444444444444' }]);
+  mocks.create.mockResolvedValueOnce({ id: '55555555-5555-4555-8555-555555555555' });
+  await expect(actions.create_appointment(event({ reschedule_policy_acknowledged: 'true', reschedule_policy_terms: JSON.stringify(policy) }))).rejects.toMatchObject({ status: 303 });
+  expect(mocks.create).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ reschedulePolicyTerms: policy, idempotencyKey: key, createdByUserId: 'operator' }));
+ });
+ it('does not revalidate an old disclosure when recovering a completed creation', async () => {
+  mocks.replay.mockResolvedValueOnce({ id: '55555555-5555-4555-8555-555555555555' });
+  await expect(actions.create_appointment(event({ reschedule_policy_acknowledged: 'true', reschedule_policy_terms: '{broken' }))).rejects.toMatchObject({ status: 303 });
+  expect(mocks.slots).not.toHaveBeenCalled(); expect(mocks.create).not.toHaveBeenCalled();
+ });
+ it('keeps malformed declared rules as a known failure before availability or writes', async () => {
+  email = 'Saved+Contact@Example.test';
+  const result = await actions.create_appointment(event({ reschedule_policy_acknowledged: 'true', reschedule_policy_terms: '{broken' }));
+  expect(result).toMatchObject({ status: 400, data: { values: { idempotency_key: key }, message: expect.stringContaining('No pudimos leer las condiciones informadas') } });
+  expect(mocks.slots).not.toHaveBeenCalled(); expect(mocks.create).not.toHaveBeenCalled();
+ });
  it('warns before creation for an existing patient without email, regardless of a forged hidden address', async () => {
   const result = await actions.create_appointment(event({ patient_email: 'not-the-patient@example.test' }));
   expect(result).toMatchObject({ status: 422, data: { emailWarning: true, values: { patient_id: patientId, idempotency_key: key, email_warning_acknowledged: '' } } });

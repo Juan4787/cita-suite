@@ -5,6 +5,7 @@ import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom/vitest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import ManualAppointmentWizard from './ManualAppointmentWizard.svelte';
+import type { ManualBookingReschedulePolicy } from '$lib/scheduling/email-policy';
 
 const date = '2099-08-25';
 const startsAt = '2099-08-25T13:00:00.000Z';
@@ -23,7 +24,7 @@ type WizardPatient = {
 
 const renderWizard = (
 	phone: string,
-	options: { patients?: WizardPatient[]; initialPatientId?: string; availability?: unknown; emailWarning?: boolean } = {}
+	options: { patients?: WizardPatient[]; initialPatientId?: string; availability?: unknown; emailWarning?: boolean; manualBookingPolicy?: ManualBookingReschedulePolicy; values?: Record<string, string> } = {}
 ) => {
 	vi.stubGlobal(
 		'fetch',
@@ -53,6 +54,7 @@ const renderWizard = (
 			{ id: 'professional-1', name: 'Dra. Prueba', specialty: null, is_active: true }
 		],
 		serviceProfessionalIds: { 'service-1': ['professional-1'] },
+		manualBookingPolicy: options.manualBookingPolicy,
 		patients: options.patients ?? [
 			{
 				id: 'patient-1',
@@ -79,7 +81,8 @@ const renderWizard = (
 				date,
 				time: '10:00',
 				patient_id: initialPatientId,
-				patient_phone: phone
+				patient_phone: phone,
+				...options.values
 			}
 		}
 	});
@@ -91,6 +94,63 @@ beforeEach(() => {
 	) {
 		this.dispatchEvent(new SubmitEvent('submit', { bubbles: true, cancelable: true }));
 	});
+});
+
+const staffPolicy: ManualBookingReschedulePolicy = { policy: { schema_version: 1, policy_revision: 7,
+ require_deposit_on_reschedule: false, previous_deposit_disposition: 'credit' }, excludedServiceIds: [] };
+
+it('requires an unchecked explicit staff declaration before sending any policy terms', async () => {
+ const { container } = renderWizard('3425048209', { manualBookingPolicy: staffPolicy });
+ const confirm = await screen.findByRole('button', { name: 'Confirmar turno', exact: true });
+ const declaration = screen.getByRole('checkbox', { name: 'Le informé estas condiciones al paciente' });
+ expect(declaration).not.toBeChecked();
+ const form = () => new FormData(container.querySelector('form')!);
+ expect(form().get('reschedule_policy_terms')).toBeNull();
+ expect(form().get('reschedule_policy_acknowledged')).toBeNull();
+ expect(declaration.compareDocumentPosition(confirm) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+ await fireEvent.click(declaration);
+ expect(form().get('reschedule_policy_acknowledged')).toBe('true');
+ expect(JSON.parse(String(form().get('reschedule_policy_terms')))).toEqual(staffPolicy.policy);
+});
+
+it('preserves an attested economic snapshot across presentation changes and clears it for stricter terms', async () => {
+ const { container, rerender } = renderWizard('3425048209', { manualBookingPolicy: staffPolicy });
+ await screen.findByRole('button', { name: 'Confirmar turno', exact: true });
+ const declaration = screen.getByRole('checkbox', { name: 'Le informé estas condiciones al paciente' });
+ await fireEvent.click(declaration);
+ await rerender({ manualBookingPolicy: { ...staffPolicy, policy: { ...staffPolicy.policy, policy_revision: 8 } } });
+ expect(declaration).toBeChecked();
+ expect(JSON.parse(String(new FormData(container.querySelector('form')!).get('reschedule_policy_terms'))).policy_revision).toBe(7);
+ await rerender({ manualBookingPolicy: { ...staffPolicy, policy: { ...staffPolicy.policy, policy_revision: 9, require_deposit_on_reschedule: true, previous_deposit_disposition: 'forfeit' } } });
+ expect(declaration).not.toBeChecked();
+ expect(new FormData(container.querySelector('form')!).get('reschedule_policy_terms')).toBeNull();
+ expect(screen.getByText(/Si reprogramás por tu cuenta después de pagar/)).toHaveTextContent('no se aplicará');
+});
+
+it('restores an unchanged declaration after the existing email warning and slot certification', async () => {
+ const { container } = renderWizard('3425048209', { emailWarning: true, manualBookingPolicy: staffPolicy,
+  values: { reschedule_policy_acknowledged: 'true', reschedule_policy_terms: JSON.stringify(staffPolicy.policy) } });
+ await screen.findByRole('button', { name: 'Confirmar turno', exact: true });
+ expect(screen.getByRole('checkbox', { name: 'Le informé estas condiciones al paciente' })).toBeChecked();
+ expect(JSON.parse(String(new FormData(container.querySelector('form')!).get('reschedule_policy_terms')))).toEqual(staffPolicy.policy);
+});
+
+it('does not offer a monetary declaration for an excluded service or submit a stale prior declaration', async () => {
+ const { container } = renderWizard('3425048209', { manualBookingPolicy: { ...staffPolicy, excludedServiceIds: ['service-1'] },
+  values: { reschedule_policy_acknowledged: 'true', reschedule_policy_terms: JSON.stringify(staffPolicy.policy) } });
+ await screen.findByRole('button', { name: 'Confirmar turno', exact: true });
+ expect(screen.queryByRole('checkbox', { name: 'Le informé estas condiciones al paciente' })).toBeNull();
+ expect(new FormData(container.querySelector('form')!).get('reschedule_policy_terms')).toBeNull();
+});
+
+it('does not carry the previous patient declaration into another identity', async () => {
+ const { container } = renderWizard('3425048209', { manualBookingPolicy: staffPolicy });
+ await screen.findByRole('button', { name: 'Confirmar turno', exact: true });
+ const declaration = screen.getByRole('checkbox', { name: 'Le informé estas condiciones al paciente' });
+ await fireEvent.click(declaration);
+ await fireEvent.click(screen.getByRole('button', { name: /^Nuevo paciente/ }));
+ expect(declaration).not.toBeChecked();
+ expect(new FormData(container.querySelector('form')!).get('reschedule_policy_terms')).toBeNull();
 });
 
 it('keeps the attempt while reception explicitly continues without email', async () => {

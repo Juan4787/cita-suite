@@ -5,6 +5,7 @@ const mocks = vi.hoisted(() => ({
 	from: vi.fn(),
 	countTomorrowUncovered: vi.fn(),
 	loadInternalAvailabilitySnapshot: vi.fn(),
+	loadManualBookingReschedulePolicy: vi.fn(),
 	updateAppointmentStatus: vi.fn(),
 	loadDepositList: vi.fn(),
 	loadAppointmentSlotReleases: vi.fn(),
@@ -34,6 +35,9 @@ vi.mock('$lib/server/scheduling/public/deposits', async (importOriginal) => ({
 vi.mock('$lib/server/scheduling/public/availability-snapshot', () => ({
 	defaultInternalAvailabilitySnapshotRange: () => ({ fromDate: '2026-10-21', toDate: '2026-11-04' }),
 	loadInternalAvailabilitySnapshot: mocks.loadInternalAvailabilitySnapshot
+}));
+vi.mock('$lib/server/scheduling/public/email-policy', async original => ({
+ ...(await original<typeof import('$lib/server/scheduling/public/email-policy')>()), loadManualBookingReschedulePolicy: mocks.loadManualBookingReschedulePolicy
 }));
 
 const { load, actions } = await import('./+page.server');
@@ -72,8 +76,23 @@ describe('daily agenda load', () => {
 		});
 		mocks.countTomorrowUncovered.mockResolvedValue(2);
 		mocks.loadInternalAvailabilitySnapshot.mockResolvedValue(snapshot);
+		mocks.loadManualBookingReschedulePolicy.mockResolvedValue(null);
 		mocks.loadDepositList.mockResolvedValue({ items: [], truncated: false });
 		mocks.loadAppointmentSlotReleases.mockResolvedValue({ items: [], truncated: false });
+	});
+	it('loads disclosure only for an operating staff wizard, not the agenda lists or read-only access', async () => {
+		const business = { business: { id: 'business-1', timezone: 'UTC' }, role: 'owner', canOperate: true, access: { canUseBusiness: true } };
+		mocks.getOdontoContext.mockResolvedValue({ supabase: { from: mocks.from }, business, userId: 'user-1' });
+		mocks.from.mockReturnValue(query({ data: [], error: null }));
+		await load(event()); expect(mocks.loadManualBookingReschedulePolicy).not.toHaveBeenCalled();
+		const policy = { policy: { schema_version: 1, policy_revision: 7, require_deposit_on_reschedule: true, previous_deposit_disposition: 'forfeit' }, excludedServiceIds: [] };
+		mocks.loadManualBookingReschedulePolicy.mockResolvedValue(policy);
+		await expect(load(event('?service_id=s1'))).resolves.toMatchObject({ manualBookingPolicy: policy });
+		expect(mocks.loadManualBookingReschedulePolicy).toHaveBeenCalledExactlyOnceWith(expect.anything(), 'business-1');
+		mocks.loadManualBookingReschedulePolicy.mockClear();
+		mocks.getOdontoContext.mockResolvedValue({ supabase: { from: mocks.from }, business: { ...business, role: 'readonly', canOperate: false }, userId: 'user-1' });
+		await expect(load(event('?service_id=s1'))).resolves.toMatchObject({ manualBookingPolicy: null });
+		expect(mocks.loadManualBookingReschedulePolicy).not.toHaveBeenCalled();
 	});
 
 	it('carga la ventana de horarios liberados por lote y distingue falla de lista vacía', async () => {

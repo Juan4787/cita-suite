@@ -20,6 +20,8 @@ import {
 import { getOdontoContext } from '$lib/server/access/public/odonto-context';
 import { countTomorrowUncovered } from '$lib/server/scheduling/public/reminders';
 import { loadDepositList, summarizeDepositAlerts, type DepositAlerts } from '$lib/server/scheduling/public/deposits';
+import { loadManualBookingReschedulePolicy, parseManualBookingRescheduleAttestation } from '$lib/server/scheduling/public/email-policy';
+import type { ManualBookingReschedulePolicy } from '$lib/scheduling/email-policy';
 import { slotReleaseWindow, type SlotReleaseListView } from '$lib/scheduling/slot-releases';
 import { loadAppointmentSlotReleases, hideAppointmentSlotRelease, slotReleaseErrorMessage, slotReleaseErrorStatus } from '$lib/server/scheduling/public/slot-releases';
 import { createSupabaseAdminClient } from '$lib/server/platform/supabase';
@@ -211,6 +213,7 @@ export const load: PageServerLoad = async ({ locals, fetch, cookies, url }) => {
 	let patients: Pick<CitaRow<'patients'>, 'id' | 'full_name' | 'phone' | 'phone_raw' | 'phone_e164' | 'dni' | 'birth_date' | 'activity_at' | 'blocked'>[] = [];
 	let assignments: AvailabilitySnapshot['assignments'] = [];
 	let availabilitySnapshot = null;
+	let manualBookingPolicy: ManualBookingReschedulePolicy | null = null;
 	if (shouldLoadReferences) {
 		try {
 			const range = defaultInternalAvailabilitySnapshotRange(business.business, date);
@@ -221,6 +224,7 @@ export const load: PageServerLoad = async ({ locals, fetch, cookies, url }) => {
 			professionals = availabilitySnapshot.professionals;
 			services = availabilitySnapshot.services;
 			assignments = availabilitySnapshot.assignments;
+			if (business.canOperate && DEPOSIT_ROLES.has(business.role)) manualBookingPolicy = await loadManualBookingReschedulePolicy(supabase, business.business.id);
 		} catch (cause) {
 			unavailable(cause);
 		}
@@ -269,6 +273,7 @@ export const load: PageServerLoad = async ({ locals, fetch, cookies, url }) => {
 		services: services ?? [],
 		serviceProfessionalIds,
 		availabilitySnapshot,
+		manualBookingPolicy,
 		patients,
 		patientsLoaded: false,
 		referencesLoaded: shouldLoadReferences,
@@ -502,6 +507,9 @@ export const actions: Actions = {
 				} });
 			}
 
+			let reschedulePolicyTerms;
+			try { reschedulePolicyTerms = parseManualBookingRescheduleAttestation(form); }
+			catch (cause) { return fail(400, { message: getHumanAppointmentErrorMessage(cause), values }); }
 			let slots;
 		try {
 			slots = await getAvailabilitySlots(supabase, {
@@ -545,10 +553,12 @@ export const actions: Actions = {
 					bookingMode === 'joint'
 						? await createJointAppointment(admin, {
 								...commonInput,
+								reschedulePolicyTerms,
 								professionalIds: commonInput.professionalIds
 							})
 						: await createManualAppointment(admin, {
 								...commonInput,
+								reschedulePolicyTerms,
 								professionalId
 							});
 			throw redirect(303, createdAppointmentDetailUrl(created.id, date));
