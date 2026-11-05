@@ -148,7 +148,7 @@ test('@candidate-behavior staff delivery: explicit preparation, contact revocati
     for (const width of [320,390,768,1280,1600]) {
      await page.setViewportSize({ width, height: 900 });
      issues.push(...await layoutIssues(page,'main a:visible, main button:visible, main input:visible, main textarea:visible','main'));
-     await alignTaskForCapture(label === 'delivery-deposits' ? page.locator(`[data-deposit-row="${depositId}"]`) : label === 'delivery-detail' ? page.locator('#activation-title') : page.getByRole('heading', { level: 1 }));
+     await alignTaskForCapture(label === 'delivery-deposits' ? page.locator(`[data-deposit-row="${depositId}"]`) : label === 'delivery-detail' ? page.locator('#activation-title') : page.getByRole('main').getByRole('heading', { name: 'Turnos para recordar', level: 1, exact: true }));
      await page.screenshot({ path: info.outputPath(`${label}-${theme}-${width}.jpg`), type: 'jpeg', quality: 65 });
     }
    }

@@ -18,7 +18,7 @@ produccion_repositorio: github-secundaria:Juan4787/cita-suite-verificacion.git
 
 ## Etapa E — ejecución al 5 de noviembre
 
-E conserva autorización íntegra de implementación/pruebas/publicación: [plan 12.18–12.26](plans/propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada), [especificación](plans/etapa-e-correo-autogestion.md) y [registro activo](plans/ejecucion-etapa-e-20261103.md). E1/E2/E3 sin publicar. SQL29 aprobada en 42011723187 (160 migraciones/dieciocho esperas). Fast 42066399494 aprobado en 11c8715 (2005 servidor/297 cliente, cero errores/avisos); lectores, aviso de baja y mensaje de plazo pasado incluidos. Browser público completo aprobado en 42021721105. Personal 42067061781 comprobó pantalla revocada sin identidad/formulario, pero se detuvo al esperar HTTP 409 sin distinguir el sobre JSON de SvelteKit. Test ajustado a Accept explícito: estado persistido intacto, JSON failure/409 y HTML 409. Navegador personal por completar; no repetir público aprobado. Contacto/outbox/SN14/Zoho/correo/E5–E6 siguen abiertos. Checkpoint E3.34; índice documental disponible. Producción V12b, ningún envío ni cierre E; P1/P2/P3 pospuestas.
+E conserva autorización íntegra de implementación/pruebas/publicación: [plan 12.18–12.26](plans/propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada), [especificación](plans/etapa-e-correo-autogestion.md) y [registro activo](plans/ejecucion-etapa-e-20261103.md). E1/E2/E3 sin publicar. SQL29 aprobada en 42011723187 y fast 42066399494 (2005 servidor/297 cliente, cero errores/avisos). Público completo aprobado en 42021721105. Personal 42068364845 alcanzó las acciones y negativas persistidas, pero falló en un selector visual ambiguo; ancla acotada a main, cierre de navegador pendiente. Borrador SQL30 de SN14 conservado, sin pruebas/tipos/consumidor y sin aplicar. Siguiente: SQL30/carreras, tipos oficiales, consumidor y navegador; contacto/outbox/Zoho/correo/E5–E6 siguen abiertos. Checkpoint E3.36. Producción V12b; ningún envío ni cierre E; P1/P2/P3 pospuestas.
 
 ## Código que difiere de producción
 
@@ -233,6 +233,7 @@ A	supabase/migrations/20261104130000_patient_contact_lock_order.sql
 A	supabase/migrations/20261104140000_informed_public_booking_reschedule_policy.sql
 A	supabase/migrations/20261105010000_informed_staff_booking_reschedule_policy.sql
 A	supabase/migrations/20261105020000_staff_appointment_delivery.sql
+A	supabase/migrations/20261105030000_late_deposit_records.sql
 M	supabase/templates/recovery.html
 M	supabase/tests/appointment_actor_revalidation.sql
 M	supabase/tests/appointment_deposits.sql
