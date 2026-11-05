@@ -248,6 +248,7 @@ M	supabase/tests/booking_integration_foundation.sql
 M	supabase/tests/booking_patient_information.sql
 A	supabase/tests/calendar_oauth_retention.sql
 M	supabase/tests/clinical_provenance_triggers.sql
+A	supabase/tests/late_appointment_deposits.sql
 A	supabase/tests/migrations/20261103010000_appointment_management_foundation.sql.after.sql
 A	supabase/tests/migrations/20261103010000_appointment_management_foundation.sql.before.sql
 A	supabase/tests/patient_appointment_management_commands.sql
@@ -269,6 +270,7 @@ A	supabase/tests/public_booking_reschedule_policy.sql
 A	supabase/tests/run_booking_email_contact_concurrency.sh
 A	supabase/tests/run_booking_reschedule_policy_concurrency.sh
 M	supabase/tests/run_deposit_expiry_concurrency.sh
+A	supabase/tests/run_late_deposit_concurrency.sh
 M	supabase/tests/run_patient_identity_idempotency_concurrency.sh
 A	supabase/tests/run_patient_management_concurrency.sh
 A	supabase/tests/run_patient_management_view_concurrency.sh
