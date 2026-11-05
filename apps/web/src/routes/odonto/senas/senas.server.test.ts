@@ -83,7 +83,7 @@ const item = (section: string, overrides: Record<string, unknown> = {}) => ({
 		professionalId: 'professional-1',
 		serviceId: 'service-1'
 	},
-	patient: { id: 'patient-1', name: 'Ana Pérez', phoneE164: '+5493421112222' },
+	patient: { id: 'patient-1', name: 'Ana Pérez', phoneE164: '+5493421112222', blocked: false, archivedAt: null },
 	...overrides
 });
 
@@ -99,12 +99,12 @@ beforeEach(() => {
 });
 
 describe('Señas · carga', () => {
-	it('resuelve una página de canceladas en un lote, sin consultas por cada turno', async () => {
+	it('una página de canceladas no prepara mensajes ni destinos de correo o WhatsApp al leer', async () => {
 		const ids = Array.from({ length: 300 }, (_, i) => `00000000-0000-4000-8000-${String(i).padStart(12, '0')}`);
 		mocks.loadDepositList.mockResolvedValue({ items: ids.map(id => item('cancelled', { appointment: { ...item('x').appointment, id } })), truncated: false });
 		await load(event());
 		expect(mocks.loadRebookUrl).not.toHaveBeenCalled();
-		expect(mocks.loadRebookUrls).toHaveBeenCalledExactlyOnceWith(expect.anything(), { id: BUSINESS_ID, slug: 'consultorio' }, ids);
+		expect(mocks.loadRebookUrls).not.toHaveBeenCalled();
 	});
 	it('carga la página pedida y normaliza las páginas inválidas sin consultas ilimitadas', async () => {
 		await expect(load(event(undefined, '?pagina=2'))).resolves.toMatchObject({ page: 2 });
@@ -151,7 +151,7 @@ describe('Señas · carga', () => {
 			items: [item('cancelled', { deposit: deposit({ status: 'expired', expired_at: '2026-11-18T13:05:00.000Z' }), appointment: { ...item('x').appointment, status: 'cancelled' } })],
 			truncated: false
 		});
-		const result = (await load(event())) as { sections: Array<{ id: string; rows: Array<{ cancellation: { rebookHref: string; notice: { whatsappUrl: string } | null } }> }> };
+		const result = (await load(event())) as { sections: Array<{ id: string; rows: Array<{ cancellation: { rebookHref: string; canNotify: boolean } }> }> };
 		const row = result.sections.find((section) => section.id === 'cancelled')!.rows[0];
 		const rebook = new URL(row.cancellation.rebookHref, 'http://localhost');
 		expect(rebook.pathname).toBe('/odonto/agenda');
@@ -162,9 +162,8 @@ describe('Señas · carga', () => {
 			patient_id: 'patient-1',
 			hora: '10:00'
 		});
-		const message = new URL(row.cancellation.notice!.whatsappUrl).searchParams.get('text');
-		expect(message).toContain('se canceló porque no registramos la seña');
-		expect(message).toContain('https://app.test/embed/v1/0123456789abcdef0123456789abcdef');
+  expect(row.cancellation.canNotify).toBe(true);
+  expect(row.cancellation).not.toHaveProperty('notice');
 	});
 
 	it('sin teléfono válido no arma el aviso, y una falla al buscar dónde reservar no lo impide', async () => {
@@ -174,15 +173,16 @@ describe('Señas · carga', () => {
 				item('cancelled', { deposit: deposit({ status: 'expired', expired_at: '2026-11-18T13:05:00.000Z' }) }),
 				item('cancelled', {
 					deposit: deposit({ status: 'expired', expired_at: '2026-11-18T13:05:00.000Z' }),
-					patient: { id: 'patient-2', name: 'Sin Teléfono', phoneE164: null }
+					patient: { id: 'patient-2', name: 'Sin Teléfono', phoneE164: null, blocked: false, archivedAt: null }
 				})
 			],
 			truncated: false
 		});
-		const result = (await load(event())) as { sections: Array<{ id: string; rows: Array<{ hasPhone: boolean; cancellation: { notice: { whatsappUrl: string } | null } }> }> };
+		const result = (await load(event())) as { sections: Array<{ id: string; rows: Array<{ hasPhone: boolean; cancellation: { canNotify: boolean } }> }> };
 		const [withPhone, withoutPhone] = result.sections.find((section) => section.id === 'cancelled')!.rows;
-		expect(new URL(withPhone.cancellation.notice!.whatsappUrl).searchParams.get('text')).not.toContain('reservarlo acá');
-		expect(withoutPhone).toMatchObject({ hasPhone: false, cancellation: { notice: null } });
+		expect(withPhone.cancellation.canNotify).toBe(true);
+  expect(withoutPhone).toMatchObject({ hasPhone: false, cancellation: { canNotify: false } });
+  expect(mocks.loadRebookUrls).not.toHaveBeenCalled();
 	});
 
 	it('si no puede comprobar la revisión automática lo dice, sin ocultar la lista', async () => {

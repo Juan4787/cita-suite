@@ -61,7 +61,7 @@ export const parseStaffDelivery = (value: unknown, appointmentId: string, kind: 
   message = buildDepositRequestMessage({ patientName, startsAt, timezone, businessName, publicUrl,
    amount: deposit.amount, dueAt: deposit.due_at,
    transferDetails: readNullableText(row.transfer_details, 'staff.delivery.transfer'),
-   autoCancel: deposit.auto_cancel && autoCancelEnabled });
+   autoCancel: deposit.auto_cancel && autoCancelEnabled }, new Date());
  }
  return { publicUrl, message, phoneE164: phone,
   whatsappUrl: phone ? buildWaMeUrl(phone, message) : null,

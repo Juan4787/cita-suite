@@ -18,7 +18,7 @@ produccion_repositorio: github-secundaria:Juan4787/cita-suite-verificacion.git
 
 ## Etapa E — ejecución al 5 de noviembre
 
-E conserva autorización íntegra de implementación/pruebas/publicación: [plan 12.18–12.26](plans/propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada), [especificación](plans/etapa-e-correo-autogestion.md) y [registro activo](plans/ejecucion-etapa-e-20261103.md). E1/E2/E3 sin publicar. SQL29 aprobada en 42011723187 (160 migraciones/dieciocho esperas), tipos/digest cotejados. Fast 42020582507 aprobado en ea2cb43 (1993 servidor/296 cliente, cero errores/avisos); Señas pendientes y detalle usan POST/comando actual sin token legado en lecturas. Browser 42018985071 probó recuperación sin JS y contacto/comentario tempranos, detenido por selector de IDs de preguntas ya corregido. Se prepara navegador público y de entrega del personal con Auth/SQL reales, sin enviar a WhatsApp. Aviso simple de baja, mensaje de seña con plazo pasado, contacto/outbox/SN14/Zoho/correo/E5–E6 siguen pendientes. Checkpoint E3.32; índice documental disponible. Producción V12b, ningún envío ni cierre E; P1/P2/P3 pospuestas.
+E conserva autorización íntegra de implementación/pruebas/publicación: [plan 12.18–12.26](plans/propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada), [especificación](plans/etapa-e-correo-autogestion.md) y [registro activo](plans/ejecucion-etapa-e-20261103.md). E1/E2/E3 sin publicar. SQL29 aprobada en 42011723187 (160 migraciones/dieciocho esperas). Fast 42020582507 aprobado por su fuente (1993/296, cero errores/avisos). Browser 42021721105 aprobó el recorrido público completo informado, sin JS/JavaScript demorado, dinero y cancelación; personal detenido por expectativa HTTP 404 que no corresponde a la página de enlace no disponible. Su test ahora exige ocultación y rechazo real de cancelación sin efectos. Se retiran mensajes/lectura de token legado innecesarios de Recordatorios y se corrige pedido con plazo pasado. Aviso de baja por seña usa POST de lectura actual, sin credencial ni escritura; elegibilidad de ficha reflejada en UI. 145 dirigidas locales; fast/cliente/browser de esta revisión pendientes. Contacto/outbox/SN14/Zoho/correo/E5–E6 siguen abiertos. Checkpoint E3.33; índice documental disponible. Producción V12b, ningún envío ni cierre E; P1/P2/P3 pospuestas.
 
 ## Código que difiere de producción
 
@@ -60,6 +60,8 @@ M	apps/web/src/lib/scheduling/agenda-navigation.ts
 A	apps/web/src/lib/scheduling/booking-reschedule-policy.test.ts
 M	apps/web/src/lib/scheduling/booking-view.ts
 M	apps/web/src/lib/scheduling/contracts.ts
+M	apps/web/src/lib/scheduling/deposits.test.ts
+M	apps/web/src/lib/scheduling/deposits.ts
 A	apps/web/src/lib/scheduling/email-policy.ts
 A	apps/web/src/lib/scheduling/patient-action-context.test.ts
 A	apps/web/src/lib/scheduling/patient-action-context.ts
@@ -164,6 +166,8 @@ M	apps/web/src/routes/odonto/senas/+page.server.ts
 M	apps/web/src/routes/odonto/senas/+page.svelte
 M	apps/web/src/routes/odonto/senas/abrir/[appointmentId]/+server.ts
 M	apps/web/src/routes/odonto/senas/abrir/[appointmentId]/abrir.server.test.ts
+A	apps/web/src/routes/odonto/senas/avisar/[appointmentId]/+server.ts
+A	apps/web/src/routes/odonto/senas/avisar/[appointmentId]/avisar.server.test.ts
 M	apps/web/src/routes/odonto/senas/page.client.test.ts
 M	apps/web/src/routes/odonto/senas/senas.server.test.ts
 M	apps/web/src/routes/odonto/turnos/[appointmentId]/+page.server.ts

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Icon from '$lib/components/Icon.svelte';
 	import { page } from '$app/state';
-	import { classifyUserAgent, refineDeviceClass, whatsappHrefFor, type DeviceClass } from '$lib/device';
+	import { classifyUserAgent, refineDeviceClass, type DeviceClass } from '$lib/device';
 	import { formatElapsed } from '$lib/scheduling/deposits';
 	import { onMount } from 'svelte';
 	import type { PageData } from './$types';
@@ -54,6 +54,9 @@
 	<div class="flex shrink-0 flex-col gap-2 sm:items-end">
 		{#if data.demo}
 			<button class="ux-btn-primary px-3 sm:px-5" disabled>Pedir seña por WhatsApp</button>
+  {:else if !row.canPrepareDelivery}
+   <span class="ux-badge ux-badge-warning">Revisar ficha</span>
+   <a href={`/odonto/pacientes/${row.patientId}`} class="ux-btn-secondary">Ver ficha del paciente</a>
 		{:else if !row.hasPhone}
 			<span class="ux-badge ux-badge-warning">Revisar teléfono</span>
 			<p class="max-w-60 text-xs leading-relaxed text-fg-50 sm:text-right">
@@ -92,13 +95,15 @@
 	<div class="flex shrink-0 flex-col gap-2 sm:items-end">
 		{#if data.demo}
 			<button class="ux-btn-primary" disabled>Avisar a la persona</button>
-		{:else if row.cancellation?.notice}
-			<a
-				href={whatsappHrefFor(whatsappDevice ?? 'unknown', row.cancellation.notice.whatsappUrl, row.cancellation.notice.whatsappWebUrl)}
-				target="_blank"
-				rel="noreferrer"
-				class="ux-btn-primary">Avisar a la persona</a
-			>
+  {:else if !row.canPrepareDelivery}
+   <span class="ux-badge ux-badge-warning">Revisar ficha</span>
+   <a href={`/odonto/pacientes/${row.patientId}`} class="ux-btn-secondary">Ver ficha del paciente</a>
+		{:else if row.cancellation?.canNotify}
+   <form method="POST" action={`/odonto/senas/avisar/${row.appointmentId}`} target="_blank" rel="noopener">
+    <input type="hidden" name="expected_revision" value={row.managementRevision} />
+    <input type="hidden" name="device" value={whatsappDevice ?? 'unknown'} />
+    <button class="ux-btn-primary">Avisar a la persona</button>
+   </form>
 		{:else}
 			<span class="ux-badge ux-badge-warning">Revisar teléfono</span>
 			<a href={`/odonto/pacientes/${row.patientId}`} class="ux-btn-secondary">Corregir número</a>

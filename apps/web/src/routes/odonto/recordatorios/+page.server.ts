@@ -37,7 +37,7 @@ const demoCandidates = (day: ReminderDay): ReminderListItem[] => {
 			patient_name: 'Juan Pérez',
 			coverage: 'sin_calendario',
 			phone_e164: '+5493510000001',
-			whatsapp_url: 'https://wa.me/5493510000001?text=Demo',
+
 			whatsapp_opened_at: null,
 			whatsapp_marked_sent_at: null
 		},
@@ -53,7 +53,7 @@ const demoCandidates = (day: ReminderDay): ReminderListItem[] => {
 			patient_name: 'María Gómez',
 			coverage: 'pendiente_actualizar',
 			phone_e164: null,
-			whatsapp_url: null,
+
 			whatsapp_opened_at: null,
 			whatsapp_marked_sent_at: null
 		},
@@ -69,7 +69,7 @@ const demoCandidates = (day: ReminderDay): ReminderListItem[] => {
 			patient_name: 'Laura Díaz',
 			coverage: 'aviso_automatico',
 			phone_e164: '+5493510000003',
-			whatsapp_url: 'https://wa.me/5493510000003?text=Demo',
+
 			whatsapp_opened_at: null,
 			whatsapp_marked_sent_at: null
 		}

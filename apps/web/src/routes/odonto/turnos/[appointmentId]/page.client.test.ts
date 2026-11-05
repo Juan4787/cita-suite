@@ -48,7 +48,7 @@ const appointment = {
 		full_name: 'Paciente de prueba',
 		phone_e164: '+5493511234567',
 		email: null,
-		blocked: false
+		blocked: false, archived_at: null
 	},
 	booking_context: null,
 	booking_intake: null,

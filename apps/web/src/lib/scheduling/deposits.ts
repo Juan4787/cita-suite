@@ -223,17 +223,20 @@ export const buildDepositRequestMessage = (input: {
 	transferDetails: string | null;
 	autoCancel: boolean;
 	publicUrl: string;
-}): string => {
+}, now: Date): string => {
 	const turn = formatInTimeZone(input.startsAt, input.timezone);
 	const due = formatInTimeZone(input.dueAt, input.timezone);
+	const overdue = Date.parse(input.dueAt) <= now.getTime();
 	const lines = [
 		`Hola ${input.patientName}. Te escribimos de ${input.businessName} por tu turno del ${turn.dateLabel} a las ${turn.timeLabel}.`,
-		`Para confirmarlo necesitamos la seña de ${formatDepositAmount(input.amount)} antes del ${due.dateLabel} a las ${due.timeLabel}.`
+		overdue
+   ? `El plazo habitual de la seña ya pasó. Para confirmarlo necesitamos la seña de ${formatDepositAmount(input.amount)}; coordiná el pago con el consultorio.`
+   : `Para confirmarlo necesitamos la seña de ${formatDepositAmount(input.amount)} antes del ${due.dateLabel} a las ${due.timeLabel}.`
 	];
 	const transfer = input.transferDetails?.trim();
 	if (transfer) lines.push(`Datos para transferir: ${transfer}`);
 	// Only a person told about the automatic cancellation is cancelled automatically.
-	if (input.autoCancel) lines.push('Si no la recibimos para esa fecha, el turno se libera automáticamente.');
+	if (input.autoCancel && !overdue) lines.push('Si no la recibimos para esa fecha, el turno se libera automáticamente.');
 	lines.push(
 		'Si ya la transferiste, desestimá este mensaje (si podés, mandanos el comprobante por acá).',
 		`Ver tu turno: ${input.publicUrl}`
