@@ -7,7 +7,7 @@ import { alignTaskForCapture } from './helpers/task-capture';
 
 // Existing sequential hosted Playwright fallback: no approved host browser.
 // Actual public POST/SQL, no provider delivery or real recipients.
-test('@candidate-behavior isolated informed booking: stale policy, atomic retry and responsive disclosure', async ({ page }, info) => {
+test('@candidate-behavior isolated informed booking: stale policy, atomic retry and responsive disclosure', async ({ page, browser }, info) => {
  test.setTimeout(150_000);
  const f = ownedAppointmentFixture();
  const businessId = randomUUID(), ownerId = randomUUID(), serviceId = randomUUID(), professionalId = randomUUID();
@@ -20,6 +20,7 @@ test('@candidate-behavior isolated informed booking: stale policy, atomic retry 
  let pageErrors = 0;
  const formCheckpoints: unknown[] = [];
  const browserEvents: string[] = [];
+ let releaseScripts: () => void = () => {};
  page.on('pageerror', () => { pageErrors++; });
  page.on('framenavigated', frame => { if (frame === page.mainFrame()) browserEvents.push('main-frame-navigation'); });
  page.on('request', request => { if (request.method() === 'POST') browserEvents.push('post'); });
@@ -44,10 +45,66 @@ test('@candidate-behavior isolated informed booking: stale policy, atomic retry 
    commit;`);
   const date = f.sql("select (now() at time zone 'UTC')::date+25;");
   await page.goto(`/reservar/${slug}?service_id=${serviceId}&professional_id=${professionalId}&date=${date}`);
+  const native = await browser.newContext({ javaScriptEnabled: false });
+  try {
+   const nativePage = await native.newPage();
+   await nativePage.goto(page.url());
+   await nativePage.getByRole('link', { name: /^\d{2}:\d{2}$/ }).first().click();
+   const nativeSlot = new URL(nativePage.url()).searchParams.get('slot');
+   const nativeAttempt = await nativePage.locator('[name="idempotency_key"]').inputValue();
+   await nativePage.getByLabel('Nombre y apellido', { exact: true }).fill('Paciente Nativo de Prueba');
+   await nativePage.getByLabel('Teléfono de contacto', { exact: true }).fill('1234');
+   await nativePage.getByLabel('Correo electrónico', { exact: true }).fill('Native+Retry@Example.test');
+   const rejected = nativePage.waitForResponse(response => response.request().method() === 'POST');
+   await nativePage.getByRole('button', { name: 'Confirmar reserva', exact: true }).click();
+   expect((await rejected).status()).toBe(400);
+   await expect(nativePage.getByRole('alert')).toContainText(/teléfono/i);
+   await expect(nativePage.getByLabel('Nombre y apellido', { exact: true })).toHaveValue('Paciente Nativo de Prueba');
+   await expect(nativePage.getByLabel('Correo electrónico', { exact: true })).toHaveValue('Native+Retry@Example.test');
+   await expect(nativePage.locator('[name="idempotency_key"]')).toHaveValue(nativeAttempt);
+   expect(new URL(nativePage.url()).searchParams.get('slot')).toBe(nativeSlot);
+   expect(new URL(nativePage.url()).searchParams.get('date')).toBe(date);
+   expect(f.sql(`select count(*) from public.appointments where business_id='${businessId}';`)).toBe('0');
+  } finally { await native.close(); }
   await page.getByRole('link', { name: /^\d{2}:\d{2}$/ }).first().click();
-  await page.getByLabel('Nombre y apellido', { exact: true }).fill('Paciente Reserva Informada');
+  await expect(page).toHaveURL(/slot=/);
+  // Make early typing deterministic: the native SSR form is usable while its
+  // application scripts are delayed. Observe the standard submit-listener
+  // registration to know when progressive enhancement has actually attached.
+  await page.addInitScript(() => {
+   const descriptor = Object.getOwnPropertyDescriptor(EventTarget.prototype, 'addEventListener');
+   if (!descriptor || typeof descriptor.value !== 'function') throw new Error('Missing native listener descriptor');
+   const original = descriptor.value;
+   Object.defineProperty(EventTarget.prototype, 'addEventListener', { ...descriptor,
+    value: function(this: EventTarget, ...args: Parameters<EventTarget['addEventListener']>) {
+     const result = Reflect.apply(original, this, args);
+     if (this instanceof HTMLFormElement && this.classList.contains('patient-booking-form') && args[0] === 'submit')
+      this.dataset.bookingEnhanced = 'true';
+     return result;
+    }
+   });
+  });
+  const scriptGate = new Promise<void>(resolve => { releaseScripts = resolve; });
+  const delayScripts = async (route: import('@playwright/test').Route) => {
+   if (route.request().resourceType() === 'script') await scriptGate;
+   await route.continue();
+  };
+  await page.route('**/*', delayScripts);
+  await page.goto(page.url(), { waitUntil: 'commit' });
+  await page.getByLabel('Nombre y apellido', { exact: true }).fill('Paciente   Reserva   Informada');
   await page.getByLabel('Teléfono de contacto', { exact: true }).fill('3425048230');
   await page.getByLabel('Correo electrónico', { exact: true }).fill('Informed+Booking@Example.test');
+  await page.getByLabel('Comentario', { exact: true }).fill('Comentario previo al inicio de JavaScript');
+  releaseScripts();
+  await expect(page.locator('.patient-booking-form')).toHaveAttribute('data-booking-enhanced', 'true');
+  await page.unroute('**/*', delayScripts);
+  await expect(page.getByLabel('Nombre y apellido', { exact: true })).toHaveValue('Paciente   Reserva   Informada');
+  await expect(page.getByLabel('Teléfono de contacto', { exact: true })).toHaveValue('3425048230');
+  await expect(page.getByLabel('Correo electrónico', { exact: true })).toHaveValue('Informed+Booking@Example.test');
+  await expect(page.getByLabel('Comentario', { exact: true })).toHaveValue('Comentario previo al inicio de JavaScript');
+  await page.getByLabel('Nombre y apellido', { exact: true }).focus();
+  await page.getByLabel('Correo electrónico', { exact: true }).focus();
+  await expect(page.getByLabel('Nombre y apellido', { exact: true })).toHaveValue('Paciente Reserva Informada');
   const confirm = page.getByRole('button', { name: 'Confirmar reserva', exact: true });
   const attempt = await page.locator('[name="idempotency_key"]').inputValue();
   const notice = page.locator('[data-reschedule-policy-notice]');
@@ -148,11 +205,13 @@ test('@candidate-behavior isolated informed booking: stale policy, atomic retry 
   await expect(page.getByRole('link', { name: 'Reprogramar turno', exact: true })).toHaveCount(0);
   expect(pageErrors).toBe(0); expect(issues).toEqual([]);
   await info.attach('informed-booking-proof', { body: JSON.stringify({ actualPublicPost: true, staleRejectedAtomically: true, attemptAndAliasPreserved: true, freshTermsPersisted: true,
+   noJavaScriptFailureRetainsSelectionAndDraft: true, earlyNativeInputRetained: true, enhancementObservedViaSubmitListener: true,
    paymentRecordedBySqlCommand: true, actualInformedReschedule: true, originalPaymentRetainedAsForfeited: true, oneNewPendingDeposit: true, cancelledHasNeitherAction: true, issues, pageErrors }), contentType: 'application/json' });
  } finally {
+  releaseScripts();
   try {
    await info.attach('informed-booking-form-diagnosis', { body: JSON.stringify({ formCheckpoints, browserEvents,
-    traces: await page.evaluate(() => Reflect.get(window, '__informedBookingTraces') ?? []) }), contentType: 'application/json' });
+   traces: await page.evaluate(() => Reflect.get(window, '__informedBookingTraces') ?? []) }), contentType: 'application/json' });
   } finally {
    f.sql(`begin; delete from public.appointments where business_id='${businessId}'; delete from public.businesses where id='${businessId}'; delete from auth.users where id='${ownerId}';
     update private.deposit_automation set enabled=${original.deposit}; update private.appointment_management_runtime set reschedule_enabled=${original.reschedule}; commit;`);

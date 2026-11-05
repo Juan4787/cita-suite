@@ -18,7 +18,7 @@ produccion_repositorio: github-secundaria:Juan4787/cita-suite-verificacion.git
 
 ## Etapa E — ejecución al 5 de noviembre
 
-E conserva autorización íntegra de implementación/pruebas/publicación: [plan 12.18–12.26](plans/propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada), [especificación](plans/etapa-e-correo-autogestion.md) y [registro activo](plans/ejecucion-etapa-e-20261103.md). E1/E2/E3 sin publicar. SQL29 aprobada en 42011723187: 160 migraciones, dieciséis grupos nuevos y dieciocho esperas de autoridad; tipos oficiales importados/digest cotejado. Recordatorios usa preparación POST y marca transaccional; 71 dirigidas locales aprobadas. Tipos/cliente/browser del consumidor pendientes. Browser de diagnóstico 42012721019 se frenó por snapshot con tipos viejos: ningún diagnóstico de campos atribuible; instrumentación sigue preparada. Siguiente: fast del conjunto actual y luego diagnóstico público; conectar seña/detalle y continuar contacto/outbox/SN14/Zoho/correo/E5–E6. Checkpoint E3.25, índice documental disponible. Producción V12b, ningún envío ni cierre E; P1/P2/P3 pospuestas.
+E conserva autorización íntegra de implementación/pruebas/publicación: [plan 12.18–12.26](plans/propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada), [especificación](plans/etapa-e-correo-autogestion.md) y [registro activo](plans/ejecucion-etapa-e-20261103.md). E1/E2/E3 sin publicar. SQL29 aprobada en 42011723187 (160 migraciones/dieciocho esperas), tipos/digest cotejados. Recordatorios conectado a comandos y POST; 72 dirigidas locales. Fast 42013844219 aprobado en 9ba3c19 (1987/294, cero errores/avisos). Browser 42014448193 confirmó reescritura vacía de controles públicos al montar, no un reset nativo ni POST. Se corrige borrador/bindings, preguntas/fecha y contexto de POST sin JS; cuatro client tests nuevos y navegador controlado preparados, todavía pendientes de fast/browser. Siguiente: fast actual, luego browser público; distribución de Señas/detalle, contacto/outbox/SN14/Zoho/correo/E5–E6 continúan pendientes. Checkpoint E3.28; índice documental disponible. Producción V12b, ningún envío ni cierre E; P1/P2/P3 pospuestas.
 
 ## Código que difiere de producción
 
@@ -39,9 +39,12 @@ M	apps/web/src/hooks.server.test.ts
 M	apps/web/src/hooks.server.ts
 M	apps/web/src/lib/availability/contracts.test.ts
 M	apps/web/src/lib/availability/contracts.ts
+M	apps/web/src/lib/booking/BookingBirthDateInput.svelte
 M	apps/web/src/lib/booking/PatientDocumentUpload.svelte
 M	apps/web/src/lib/booking/PublicBookingConfirmation.svelte
 M	apps/web/src/lib/booking/PublicBookingFlow.client.test.ts
+M	apps/web/src/lib/booking/PublicBookingFlow.svelte
+M	apps/web/src/lib/booking/PublicBookingIntakeField.svelte
 A	apps/web/src/lib/booking/PublicInformationPage.svelte
 M	apps/web/src/lib/components/agenda/ManualAppointmentWizard.client.test.ts
 M	apps/web/src/lib/components/agenda/ManualAppointmentWizard.svelte

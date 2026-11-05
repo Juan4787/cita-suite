@@ -27,7 +27,10 @@
  const informedReschedulePolicy = $derived(depositTerms === 'none' ? null : data.reschedulePolicy ?? null);
  const reschedulePolicyNotice = $derived(informedReschedulePolicy ? bookingReschedulePolicyNotice(informedReschedulePolicy) : null);
  const business = $derived(data.state.business);
- const values = $derived(form?.values ?? localDraft);
+ const values = $derived({ ...form?.values, ...localDraft });
+ const setDraftValue = (key: string, value: unknown) => {
+  localDraft = { ...values, [key]: value == null ? '' : String(value) };
+ };
  const intakeFields = $derived(data.patientFields?.fields ?? data.presentation?.intakeFields ?? []);
  const requiredIntakeFields = $derived(intakeFields.filter((field: BookingIntakeField) => field.required));
  const optionalIntakeFields = $derived(intakeFields.filter((field: BookingIntakeField) => !field.required));
@@ -92,6 +95,7 @@
 	const normalizePatientNameInput = (event: FocusEvent) => {
 		const input = event.currentTarget as HTMLInputElement;
 		input.value = normalizePatientFullName(input.value);
+		setDraftValue('patient_name', input.value);
 		validatePatientNameInput(event);
 	};
 	const onBookingSubmit: SubmitFunction = ({ formData, cancel }) => {
@@ -123,7 +127,7 @@
  <div class="patient-field">
   <label for="patient-email" class="patient-label"><span>Correo electrónico</span><span class={required ? 'patient-required' : 'patient-optional'} aria-hidden="true">{required ? '*' : 'Opcional'}</span></label>
   <input id="patient-email" aria-label="Correo electrónico" name="patient_email" maxlength="254" type="email" autocomplete="email"
-   {required} value={String(values.patient_email ?? '')} class="ux-input patient-control" />
+   {required} bind:value={() => String(values.patient_email ?? ''), (value: string) => setDraftValue('patient_email', value)} class="ux-input patient-control" />
  </div>
 {/snippet}
 
@@ -237,7 +241,7 @@
 				        pattern=".*[^ ] +[^ ].*"
 				        title={PATIENT_FULL_NAME_INVALID_ERROR_MESSAGE}
 				        autocomplete="name"
-				        value={String(values.patient_name ?? "")}
+				        bind:value={() => String(values.patient_name ?? ''), (value: string) => setDraftValue('patient_name', value)}
 				        oninput={validatePatientNameInput}
 				        onblur={normalizePatientNameInput}
 				        class="ux-input patient-control"
@@ -259,7 +263,7 @@
 				        inputmode="tel"
 				        autocomplete="tel"
 				        placeholder="Código de área y número"
-				        value={String(values.patient_phone ?? "")}
+				        bind:value={() => String(values.patient_phone ?? ''), (value: string) => setDraftValue('patient_phone', value)}
 				        class="ux-input patient-control"
 				      />
 				    </div>
@@ -267,7 +271,7 @@
 				    {#each requiredIntakeFields as field (field.id)}<PublicBookingIntakeField
 				        {field}
 				        today={patientToday}
-				        value={String(values["intake_" + field.id] ?? "")}
+				        bind:value={() => String(values['intake_' + field.id] ?? ''), (value: string) => setDraftValue('intake_' + field.id, value)}
 				      />{/each}
 				  </fieldset>
 				  <fieldset class="patient-optional-fields" disabled={bookingSubmitting}>
@@ -275,7 +279,7 @@
 				    {#each optionalIntakeFields as field (field.id)}<PublicBookingIntakeField
 				        {field}
 				        today={patientToday}
-				        value={String(values["intake_" + field.id] ?? "")}
+				        bind:value={() => String(values['intake_' + field.id] ?? ''), (value: string) => setDraftValue('intake_' + field.id, value)}
 				      />{/each}
 				    <div class="patient-field">
 				      <label for="patient-comment" class="patient-label"
@@ -292,8 +296,8 @@
 				        rows="3"
 				        class="ux-textarea patient-control"
 				        placeholder="Podés agregar algo que quieras consultar."
-				        >{String(values.note ?? "")}</textarea
-				      >
+				        bind:value={() => String(values.note ?? ''), (value: string) => setDraftValue('note', value)}
+				      />
 				    </div>
 				    {#if !(data.requireEmail ?? true)}{@render emailField(false)}{/if}
 				  </fieldset>

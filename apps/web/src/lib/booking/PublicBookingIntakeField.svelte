@@ -4,12 +4,20 @@
   import BookingBirthDateInput from "./BookingBirthDateInput.svelte";
   let {
     field,
-    value = "",
+    value = $bindable(""),
     today,
   }: { field: BookingIntakeField; value?: string; today?: string } = $props();
   const name = $derived("intake_" + field.id);
   const inputId = $derived("patient-" + name);
   const helpId = $derived(field.help ? inputId + "-help" : undefined);
+  const patientSelect = (source: HTMLSelectElement, parameter?: string) => {
+    // Select bindings mount after actions and otherwise apply the server value.
+    // Capture a native selection changed before hydration; a fresh client mount
+    // still keeps the prop because its DOM selection equals the native default.
+    const defaultIndex = [...source.options].findIndex(option => option.defaultSelected);
+    if (source.selectedIndex !== Math.max(0, defaultIndex)) value = source.value;
+    return styledSelect(source, parameter);
+  };
 </script>
 
 {#if field.kind === "boolean"}
@@ -35,7 +43,7 @@
             type="radio"
             {name}
             value={option.value}
-            checked={value === option.value}
+            bind:group={value}
             required={field.required}
           /><span>{option.label}</span></label
         >
@@ -54,7 +62,7 @@
     <BookingBirthDateInput
       {name}
       label={field.label}
-      {value}
+      bind:value
       required={field.required}
       {helpId}
       {today}
@@ -78,8 +86,9 @@
         required={field.required}
         maxlength={field.maxLength}
         rows="3"
-        class="ux-textarea patient-control">{value}</textarea
-      >
+        bind:value
+        class="ux-textarea patient-control"
+      />
     {:else if field.kind === "text"}
       <input
         id={inputId}
@@ -91,18 +100,19 @@
         max={field.patientField === "age" ? 130 : undefined}
         required={field.required}
         maxlength={field.maxLength}
-        {value}
+        bind:value={() => field.patientField === 'age' ? value === '' ? undefined : Number(value) : value,
+          (next: string | number | undefined) => value = next == null ? '' : String(next)}
         class="ux-input patient-control"
       />
     {:else}
       <select
-        use:styledSelect={value}
+        use:patientSelect={value}
         id={inputId}
         {name}
         aria-label={field.label}
         aria-describedby={helpId}
         required={field.required}
-        {value}
+        bind:value
         class="ux-select patient-control"
       >
         <option value="">Elegí una opción</option

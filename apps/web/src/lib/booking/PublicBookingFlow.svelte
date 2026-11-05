@@ -172,7 +172,12 @@
 		no_professionals: 'No hay profesionales con horarios disponibles para ese servicio.',
 		no_availability: 'No hay horarios disponibles para los próximos días.'
 	};
-	let localDraft = $state<Record<string, unknown>>({});
+	// A draft belongs to this booking entry point. Preserve edits through local
+	// rerenders, without carrying a patient's data into another clinic's page.
+	const emptyDraft: Record<string, unknown> = {};
+	let draft = $state<{ context: string; values: Record<string, unknown> } | null>(null);
+	const readDraft = () => draft?.context === bookingPath ? draft.values : emptyDraft;
+	const writeDraft = (values: Record<string, unknown>) => { draft = { context: bookingPath, values }; };
 	let uncertainBooking = $state(false);
 	let uncertainRecoveryId = $state('');
 	const requiresRecovery = $derived(uncertainBooking || form?.uncertain === true);
@@ -452,8 +457,8 @@
                         professionalLabel: professionalSelectionLabel,
                         professionalId: selectedProfessional?.id ?? selection.professionalIds[0] ?? '',
                         priceQuote: currentPriceQuote, depositTerms: currentDepositTerms, timezone, modality,
-                        action: data.integration ? queryFor({}) + '&/create_booking' : '?/create_booking' }}
-                    bind:localDraft bind:activeStepCard
+                        action: queryFor({}) + '&/create_booking' }}
+                    bind:localDraft={readDraft, writeDraft} bind:activeStepCard
                     onUncertain={() => { uncertainRecoveryId = data.recoveryCheckId ?? ''; uncertainBooking = true; }} />
 			{/if}
 

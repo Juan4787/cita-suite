@@ -1,6 +1,7 @@
 import "@testing-library/jest-dom/vitest";
 import { afterEach, expect, it, vi } from "vitest";
-import { cleanup, render, screen } from "@testing-library/svelte";
+import { cleanup, fireEvent, render, screen } from "@testing-library/svelte";
+import type { BookingIntakeField } from '@cita-suite/shared/booking-integration';
 const requestId = "10000000-0000-4000-8000-000000000001";
 vi.mock("$app/forms", () => ({ enhance: () => ({ destroy() {} }) }));
 vi.mock("$app/navigation", () => ({ afterNavigate() {}, invalidateAll: vi.fn(async () => {}) }));
@@ -215,6 +216,70 @@ function bookingFixture(modalities: Array<"in_person" | "video">) {
     demo: false,
   };
 }
+
+it.each([true, false])('preserves selection in a native POST action, including integrated=%s', integrated => {
+  const fixture = bookingFixture(['in_person']);
+  const data = { ...fixture, integration: integrated ? fixture.integration : null,
+    presentation: integrated ? fixture.presentation : null };
+  render(PublicBookingFlow, { data });
+  const form = screen.getByRole('button', { name: 'Confirmar reserva' }).closest('form')!;
+  const action = new URL(form.getAttribute('action')!, 'https://booking.example.test/reservar/synthetic?date=2026-11-02');
+  expect(action.searchParams.has('/create_booking')).toBe(true);
+  expect(action.searchParams.get('service_id')).toBe('service');
+  expect(action.searchParams.get('professional_id')).toBe('professional');
+  expect(action.searchParams.get('date')).toBe('2026-11-02');
+  expect(action.searchParams.get('slot')).toBe('2026-11-02T09:00:00.000Z');
+  expect(action.searchParams.has('patient_email')).toBe(false);
+  expect(action.searchParams.has('patient_phone')).toBe(false);
+});
+
+it('keeps edited contact, questions and a valid birth date when the same booking form remounts', async () => {
+  const fields: BookingIntakeField[] = [
+    { id: 'coverage', label: 'Cobertura', kind: 'text', required: false, patientField: 'insurance' },
+    { id: 'age', label: 'Edad', kind: 'text', required: false, patientField: 'age' },
+    { id: 'detail', label: 'Detalle adicional', kind: 'textarea', required: false },
+    { id: 'choice', label: 'Opción preferida', kind: 'choice', required: false, options: ['Primera', 'Segunda'] },
+    { id: 'answer', label: 'Pregunta booleana', kind: 'boolean', required: false },
+    { id: 'birth', label: 'Nacimiento', kind: 'text', required: false, patientField: 'birth_date' }
+  ];
+  const data = { ...bookingFixture(['in_person']), patientFields: { hash: 'c'.repeat(64), fields } };
+  const form = { values: { patient_name: 'Nombre anterior', patient_phone: '3425048200', patient_email: 'Old@Example.test' } };
+  const { container, rerender } = render(PublicBookingFlow, { data, form });
+  await fireEvent.input(screen.getByLabelText('Nombre y apellido'), { target: { value: 'Paciente Reserva Nueva' } });
+  await fireEvent.input(screen.getByLabelText('Teléfono de contacto'), { target: { value: '3425048230' } });
+  await fireEvent.input(screen.getByLabelText('Correo electrónico'), { target: { value: 'Draft+New@Example.test' } });
+  await fireEvent.input(screen.getByLabelText('Comentario'), { target: { value: 'Comentario conservado' } });
+  await fireEvent.input(screen.getByLabelText('Cobertura'), { target: { value: 'Cobertura conservada' } });
+  await fireEvent.input(screen.getByLabelText('Edad'), { target: { value: '36' } });
+  await fireEvent.input(screen.getByLabelText('Detalle adicional'), { target: { value: 'Detalle conservado' } });
+  await fireEvent.change(container.querySelector('select[name="intake_choice"]')!, { target: { value: 'Segunda' } });
+  await fireEvent.click(screen.getByRole('radio', { name: 'Sí' }));
+  await fireEvent.input(screen.getByLabelText('Nacimiento: día'), { target: { value: '02' } });
+  await fireEvent.input(screen.getByLabelText('Nacimiento: mes'), { target: { value: '01' } });
+  await fireEvent.input(screen.getByLabelText('Nacimiento: año'), { target: { value: '1990' } });
+  const payload = () => Object.fromEntries(new FormData(container.querySelector('form')!).entries());
+  const expected = { patient_name: 'Paciente Reserva Nueva', patient_phone: '3425048230', patient_email: 'Draft+New@Example.test',
+    note: 'Comentario conservado', intake_coverage: 'Cobertura conservada', intake_age: '36', intake_detail: 'Detalle conservado',
+    intake_choice: 'Segunda', intake_answer: 'true', intake_birth: '1990-01-02' };
+  expect(payload()).toMatchObject(expected);
+  await rerender({ data: { ...data, state: { ...data.state, slots: [] } } });
+  expect(screen.queryByRole('button', { name: 'Confirmar reserva' })).toBeNull();
+  await rerender({ data });
+  expect(payload()).toMatchObject(expected);
+});
+
+it('does not interpret an echoed local birth date edit as an external reset while incomplete', async () => {
+  const fields: BookingIntakeField[] = [{ id: 'birth', label: 'Nacimiento', kind: 'text', required: false, patientField: 'birth_date' }];
+  const data = { ...bookingFixture(['in_person']), patientFields: { hash: 'c'.repeat(64), fields } };
+  const { container } = render(PublicBookingFlow, { data, form: { values: { intake_birth: '2000-01-02' } } });
+  const month = screen.getByLabelText('Nacimiento: mes');
+  await fireEvent.input(month, { target: { value: '0' } });
+  expect((screen.getByLabelText('Nacimiento: año') as HTMLInputElement).value).toBe('2000');
+  expect((screen.getByLabelText('Nacimiento: día') as HTMLInputElement).value).toBe('02');
+  expect(new FormData(container.querySelector('form')!).get('intake_birth')).toBe('');
+  await fireEvent.input(month, { target: { value: '02' } });
+  expect(new FormData(container.querySelector('form')!).get('intake_birth')).toBe('2000-02-02');
+});
 
 it("places every required question and contact before optional fields without changing schema order", () => {
   const data = bookingFixture(["in_person"]);
