@@ -14,7 +14,7 @@ test('@candidate-behavior staff delivery: explicit preparation, contact revocati
  test.setTimeout(180_000);
  const f = ownedAppointmentFixture(), origin = new URL(process.env.E2E_BASE_URL!);
  if (origin.hostname !== '127.0.0.1' || origin.protocol !== 'http:') throw new Error('Owned loopback app required');
- const reminderId = randomUUID(), depositId = randomUUID(), patientId = randomUUID();
+ const reminderId = randomUUID(), depositId = randomUUID(), cancelledId = randomUUID(), patientId = randomUUID();
  const owner = f.sql(`select user_id from public.business_users where business_id='${f.businessId}' and role='owner' and status='active' limit 1;`);
  expect(owner).toMatch(/^[a-f0-9-]{36}$/);
  const assignment = await must(f.admin.from('professional_services').select('service_id,professional_id').eq('business_id', f.businessId).limit(1).single());
@@ -23,11 +23,11 @@ test('@candidate-behavior staff delivery: explicit preparation, contact revocati
  expect(['true','false']).toContain(automation);
  const health = await observeRenderHealth(page), issues: LayoutIssue[] = [];
  const counts = () => f.sql(`select jsonb_build_array(
-  (select count(*) from private.appointment_management_capabilities where business_id='${f.businessId}' and appointment_id in ('${reminderId}','${depositId}')),
-  (select count(*) from public.audit_logs where business_id='${f.businessId}' and entity_id in ('${reminderId}','${depositId}')),
+  (select count(*) from private.appointment_management_capabilities where business_id='${f.businessId}' and appointment_id in ('${reminderId}','${depositId}','${cancelledId}')),
+  (select count(*) from public.audit_logs where business_id='${f.businessId}' and entity_id in ('${reminderId}','${depositId}','${cancelledId}')),
   (select count(*) from public.appointments where id='${reminderId}' and whatsapp_reminder_opened_at is not null),
   (select count(*) from public.appointment_deposits where appointment_id='${depositId}' and reminder_opened_at is not null));`);
- const open = async (button: Locator) => {
+ const openDraft = async (button: Locator) => {
   const next = context.waitForEvent('page');
   await button.click();
   const popup = await next;
@@ -35,11 +35,15 @@ test('@candidate-behavior staff delivery: explicit preparation, contact revocati
    await popup.waitForURL(/^https:\/\/(?:wa\.me|web\.whatsapp\.com)\//);
    const target = new URL(popup.url()), message = target.searchParams.get('text') ?? '';
    expect(target.searchParams.get('phone') ?? target.pathname.slice(1)).toBe('5493425048271');
-   const token = /\/gestion\/([a-f0-9]{64})/.exec(message)?.[1];
-   expect(token, 'Message must contain a newly prepared management capability').toBeTruthy();
-   expect(message).not.toContain('/turno/');
-   return { path: '/gestion/' + token, message };
+   return { message };
   } finally { await popup.close(); }
+ };
+ const open = async (button: Locator) => {
+  const { message } = await openDraft(button);
+  const token = /\/gestion\/([a-f0-9]{64})/.exec(message)?.[1];
+  expect(token, 'Message must contain a newly prepared management capability').toBeTruthy();
+  expect(message).not.toContain('/turno/');
+  return { path: '/gestion/' + token, message };
  };
  await context.route(/^https:\/\/(?:wa\.me|web\.whatsapp\.com)\//, route => route.fulfill({
   status: 200, contentType: 'text/html', body: '<h1>Preparación comprobada. No se envió ningún mensaje.</h1>'
@@ -57,7 +61,15 @@ test('@candidate-behavior staff delivery: explicit preparation, contact revocati
    insert into public.appointments(id,business_id,patient_id,service_id,professional_id,starts_at,ends_at,status,source,service_name_snapshot,professional_name_snapshot,duration_minutes_snapshot)
     select '${depositId}','${f.businessId}','${patientId}','${assignment.service_id}','${assignment.professional_id}',t.starts,t.starts+make_interval(mins=>s.duration_minutes),'reserved','manual','Consulta sintética','Profesional sintético',s.duration_minutes
     from public.businesses b,public.services s,lateral(select ((now() at time zone b.timezone)::date+5+time '14:00') at time zone b.timezone as starts)t where b.id='${f.businessId}' and s.id='${assignment.service_id}';
-   commit;`);
+   update public.deposit_policies set auto_cancel_enabled=true where business_id='${f.businessId}';
+   insert into public.appointments(id,business_id,patient_id,service_id,professional_id,starts_at,ends_at,status,source,created_at,service_name_snapshot,professional_name_snapshot,duration_minutes_snapshot)
+    select '${cancelledId}','${f.businessId}','${patientId}','${assignment.service_id}','${assignment.professional_id}',t.starts,t.starts+make_interval(mins=>s.duration_minutes),'reserved','manual',now()-interval '7 days','Consulta sintética','Profesional sintético',s.duration_minutes
+    from public.businesses b,public.services s,lateral(select case when extract(hour from now() at time zone b.timezone)<15
+     then ((now() at time zone b.timezone)::date+1+time '16:00') at time zone b.timezone
+     else ((now() at time zone b.timezone)::date+2+time '09:00') at time zone b.timezone end as starts)t where b.id='${f.businessId}' and s.id='${assignment.service_id}';
+   commit;
+   select private.expire_unpaid_deposits();`);
+  expect(f.sql(`select a.status||':'||d.status from public.appointments a join public.appointment_deposits d on d.appointment_id=a.id where a.id='${cancelledId}';`)).toBe('cancelled:expired');
   await loginWithSharedSession(page, { email: f.email, password: f.password });
   const unchanged = counts(), legacy = f.sql(`select confirmation_token from public.appointments where id='${depositId}';`);
   await page.goto(`/odonto/turnos/${depositId}?created=1`);
@@ -69,12 +81,26 @@ test('@candidate-behavior staff delivery: explicit preparation, contact revocati
   }
   expect(counts()).toBe(unchanged);
   const first = await open(page.getByRole('button', { name: 'Enviar enlace de activación', exact: true }));
-  expect((await context.request.get(first.path)).status()).toBe(200);
-  f.sql(`update public.patients set email='delivery-corrected@example.test' where business_id='${f.businessId}' and id='${patientId}';`);
-  expect((await context.request.get(first.path)).status()).toBe(404);
+  const viewer = await context.newPage();
+  try {
+   await viewer.goto(first.path + '?accion=cancelar');
+   const oldCancel = await viewer.locator('form[action="?/cancel"]').evaluate(form =>
+    Object.fromEntries([...new FormData(form as HTMLFormElement)].map(([key,value]) => [key,String(value)])));
+   f.sql(`update public.patients set email='delivery-corrected@example.test' where business_id='${f.businessId}' and id='${patientId}';`);
+   await viewer.reload();
+   await expect(viewer.getByText('No encontramos un turno asociado a este enlace.')).toBeVisible();
+   await expect(viewer.locator('form[action="?/cancel"]')).toHaveCount(0);
+   expect(await viewer.content()).not.toContain('Paciente sintético de entrega');
+   const beforeRejected = counts();
+   const rejected = await context.request.post(first.path + '?/cancel', { form: oldCancel, headers: { origin: origin.origin } });
+   expect(rejected.status()).toBe(409); expect(counts()).toBe(beforeRejected);
+   expect(f.sql(`select status from public.appointments where id='${depositId}';`)).toBe('reserved');
+  } finally { await viewer.close(); }
   await page.reload();
   const corrected = await open(page.getByRole('button', { name: 'Enviar enlace de activación', exact: true }));
-  expect(corrected.path).not.toBe(first.path); expect((await context.request.get(corrected.path)).status()).toBe(200);
+  expect(corrected.path).not.toBe(first.path);
+  const currentView = await context.request.get(corrected.path + '?accion=cancelar');
+  expect(currentView.status()).toBe(200); expect(await currentView.text()).toContain('Sí, cancelar turno');
   expect(f.sql(`select count(*) from public.audit_logs where entity_id='${depositId}' and action='appointment.management_link_prepared' and user_id='${owner}';`)).toBe('2');
 
   await page.goto('/odonto/senas');
@@ -88,6 +114,13 @@ test('@candidate-behavior staff delivery: explicit preparation, contact revocati
   const duplicate = await context.request.post(`/odonto/senas/abrir/${depositId}`, { form: { expected_revision: reviewedDeposit }, headers: { origin: origin.origin }, maxRedirects: 0 });
   expect(duplicate.status()).toBe(303); expect(duplicate.headers().location).toContain('aviso=ya_abierto'); expect(counts()).toBe(afterDeposit);
 
+  await page.reload();
+  const closedRow = page.locator(`[data-deposit-row="${cancelledId}"]`), beforeClosedDraft = counts();
+  const closed = await openDraft(closedRow.getByRole('button', { name: 'Avisar a la persona', exact: true }));
+  expect(closed.message).toContain('se canceló porque no registramos la seña');
+  expect(closed.message).not.toMatch(/\/gestion\/|\/turno\/|reprogramar|confirmar turno/i);
+  expect(counts()).toBe(beforeClosedDraft);
+  await expect(closedRow.getByRole('button', { name: 'Confirmar seña', exact: true })).toHaveCount(0);
   await page.goto('/odonto/recordatorios');
   const reminderForm = page.locator(`form[action*="/recordatorios/abrir/${reminderId}"]`);
   const reminderRow = reminderForm.locator('xpath=ancestor::div[contains(@class,"ux-soft-card")][1]');
@@ -120,13 +153,13 @@ test('@candidate-behavior staff delivery: explicit preparation, contact revocati
   await info.attach('staff-delivery-proof', { body: JSON.stringify({ actualAuthAndSql: true, getDoesNotIssue: true,
    legacyNotSerialized: true, correctedContactRevokesOldCapability: true, explicitNewCapabilityWorks: true,
    pendingDepositPreparedAtomically: true, duplicateNeedsExplicitReview: true, reminderOpeningAndManualAssertionPersisted: true,
-   manualAssertionReplayHasOneAudit: true, issues, externalSend: false }), contentType: 'application/json' });
+   manualAssertionReplayHasOneAudit: true, automaticCancellationNoticeUsesCurrentReadWithoutNewCapability: true, issues, externalSend: false }), contentType: 'application/json' });
  } finally {
-  f.sql(`begin; delete from public.appointments where business_id='${f.businessId}' and id in ('${reminderId}','${depositId}');
+  f.sql(`begin; delete from public.appointments where business_id='${f.businessId}' and id in ('${reminderId}','${depositId}','${cancelledId}');
    delete from public.patients where business_id='${f.businessId}' and id='${patientId}';
    delete from public.deposit_policies where business_id='${f.businessId}';
    update private.deposit_automation set enabled=${automation}; commit;`);
-  expect(f.sql(`select count(*) from public.appointments where id in ('${reminderId}','${depositId}');`)).toBe('0');
+  expect(f.sql(`select count(*) from public.appointments where id in ('${reminderId}','${depositId}','${cancelledId}');`)).toBe('0');
   expect(f.sql(`select count(*) from public.patients where id='${patientId}';`)).toBe('0');
  }
 });

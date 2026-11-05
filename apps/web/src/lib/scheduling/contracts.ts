@@ -25,7 +25,6 @@ export type ReminderCandidate = {
 	patient_name: string;
 	coverage: ReminderCoverage;
 	phone_e164: string | null;
-	whatsapp_url: string | null;
 	whatsapp_opened_at: string | null;
 	whatsapp_marked_sent_at: string | null;
 };

@@ -467,7 +467,9 @@ describe('loadReminderCandidates · exclusión por avisos activados', () => {
 		});
 		expect(candidate.patient_id).toBe('pat-a');
 		expect(candidate.phone_e164).toBe('+5493511234567');
-		expect(candidate.whatsapp_url).toMatch(/^https:\/\/wa\.me\/5493511234567\?text=/);
+		expect(candidate).not.toHaveProperty('whatsapp_url');
+  expect(supabase.calls.filter((call: { table: string; method: string }) => call.table === 'appointments' && call.method === 'select')[0].args[0]).not.toContain('confirmation_token');
+  expect(supabase.calls.some((call: { table: string }) => call.table === 'appointment_booking_contexts')).toBe(false);
 	});
 
 	it('no fabrica un wa.me si falta el código de área argentino', async () => {
@@ -491,7 +493,7 @@ describe('loadReminderCandidates · exclusión por avisos activados', () => {
 		});
 		expect(candidate.patient_id).toBe('pat-a');
 		expect(candidate.phone_e164).toBeNull();
-		expect(candidate.whatsapp_url).toBeNull();
+		expect(candidate).not.toHaveProperty('whatsapp_url');
 	});
 
 	it('abrir WhatsApp desde el panel no cuenta como cobertura del paciente', async () => {
@@ -670,7 +672,7 @@ describe('loadReminderCandidates · exclusión por avisos activados', () => {
 		// Un turno con aviso automático conserva su botón: recepción decide si igual lo manda.
 		const covered = list.find((item) => item.appointment_id === 'google');
 		expect(covered?.phone_e164).toBe('+5493510000001');
-		expect(covered?.whatsapp_url).toMatch(/^https:\/\/wa\.me\/5493510000001\?text=/);
+		expect(covered).not.toHaveProperty('whatsapp_url');
 
 		const candidatesSupabase = makeSupabase(queues());
 		const candidates = await loadReminderCandidates(candidatesSupabase, business, {

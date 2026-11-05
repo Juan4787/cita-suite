@@ -259,7 +259,7 @@ describe('lista de señas', () => {
 		reminder_opened_by: null,
 		expired_at: null,
 		revision: 1,
-		appointments: { id, starts_at: at(120), status: appointmentStatus, appointment_management_revision: 'a'.repeat(64), professional_id: `professional-${id}`, service_id: `service-${id}`, patients: { id: `patient-${id}`, full_name: `Paciente ${id}`, phone_e164: '+5493421112222' } },
+		appointments: { id, starts_at: at(120), status: appointmentStatus, appointment_management_revision: 'a'.repeat(64), professional_id: `professional-${id}`, service_id: `service-${id}`, patients: { id: `patient-${id}`, full_name: `Paciente ${id}`, phone_e164: '+5493421112222', blocked: false, archived_at: null } },
 		...overrides
 	});
 	const listClient = (rows: unknown[]) => {

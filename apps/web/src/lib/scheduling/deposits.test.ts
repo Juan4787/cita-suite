@@ -118,7 +118,7 @@ describe('pedido de seña por WhatsApp', () => {
 		const turn = formatInTimeZone(STARTS_AT, PRACTICE_TIMEZONE);
 		const due = formatInTimeZone(DUE_AT, PRACTICE_TIMEZONE);
 		expect(turn.timeLabel).toBe('10:00');
-		expect(buildDepositRequestMessage(input)).toBe(
+		expect(buildDepositRequestMessage(input, new Date('2026-11-05T12:00:00Z'))).toBe(
 			[
 				`Hola Ana Pérez. Te escribimos de Consultorio Natalia por tu turno del ${turn.dateLabel} a las 10:00.`,
 				`Para confirmarlo necesitamos la seña de ${formatDepositAmount(40000)} antes del ${due.dateLabel} a las 10:00.`,
@@ -131,15 +131,28 @@ describe('pedido de seña por WhatsApp', () => {
 	});
 
 	it('sin baja automática no promete liberar el turno, y sin datos de transferencia no los inventa', () => {
-		const message = buildDepositRequestMessage({ ...input, autoCancel: false, transferDetails: null });
+		const message = buildDepositRequestMessage({ ...input, autoCancel: false, transferDetails: null }, new Date('2026-11-05T12:00:00Z'));
 		expect(message).not.toContain('se libera automáticamente');
 		expect(message).not.toContain('Datos para transferir');
 		expect(message).toContain('Si ya la transferiste, desestimá este mensaje');
 	});
 
 	it('no nombra la prestación ni datos clínicos', () => {
-		expect(buildDepositRequestMessage(input)).not.toMatch(/consulta|primera|seguimiento|diagn/i);
+		expect(buildDepositRequestMessage(input, new Date('2026-11-05T12:00:00Z'))).not.toMatch(/consulta|primera|seguimiento|diagn/i);
 	});
+ it.each([0, 1, 24 * 3_600_000])('con plazo alcanzado o pasado (%s ms) no exige una fecha anterior ni promete una baja por ella', elapsed => {
+  const message = buildDepositRequestMessage(input, new Date(Date.parse(DUE_AT) + elapsed));
+  expect(message).toContain('El plazo habitual de la seña ya pasó.');
+  expect(message).toMatch(/necesitamos la seña de \$\s40\.000/);
+  expect(message).toContain('coordiná el pago con el consultorio');
+  expect(message).not.toContain('antes del'); expect(message).not.toContain('se libera automáticamente');
+  expect(message).toContain('Si ya la transferiste, desestimá este mensaje');
+ });
+ it('un instante antes conserva el vencimiento real y sus condiciones, sin crear un plazo alternativo', () => {
+  const message = buildDepositRequestMessage(input, new Date(Date.parse(DUE_AT) - 1));
+  expect(message).toContain('antes del'); expect(message).toContain('se libera automáticamente');
+  expect(message).not.toContain('ya pasó');
+ });
 });
 
 describe('aviso de turno cancelado por la seña', () => {

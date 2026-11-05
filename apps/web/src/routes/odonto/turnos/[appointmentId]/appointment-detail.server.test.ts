@@ -41,7 +41,7 @@ const appointmentBase = {
 	id: appointmentId, business_id: 'business-1', patient_id: 'patient-1', professional_id: '00000000-0000-4000-8000-000000000001', status: 'confirmed', source: 'manual',
 	starts_at: '2026-10-28T13:00:00.000Z', ends_at: '2026-10-28T13:30:00.000Z',
 	service_id: '00000000-0000-4000-8000-000000000003', appointment_management_revision: 'a'.repeat(64),
- professional_name_snapshot: 'Profesional Uno', break_minutes_snapshot: 0, patients: { full_name: 'Paciente', phone_e164: null }
+ professional_name_snapshot: 'Profesional Uno', break_minutes_snapshot: 0, patients: { full_name: 'Paciente', phone_e164: null, blocked: false, archived_at: null }
 };
 // A joint appointment: the colleague is the second professional.
 const team = [
@@ -107,6 +107,14 @@ describe('appointment detail load', () => {
 		const result = (await load(event())) as Detail;
 		expect(result.auditLogs).toBeNull();
 	});
+
+ it('does not offer a new delivery for a blocked or archived patient', async () => {
+  for (const patient of [{ ...appointment.patients, blocked: true }, { ...appointment.patients, archived_at: '2026-11-05T10:00:00Z' }]) {
+   mocks.getOdontoContext.mockResolvedValue({ supabase: { from: mocks.from, rpc: mocks.rpc }, business: { business: { id: 'business-1', name: 'Consultorio', timezone: 'UTC' }, role: 'owner', canOperate: true, access: { canUseBusiness: true } }, userId: 'user-1' });
+   tables({ appointments: { data: { ...appointment, starts_at: '2035-11-05T10:00:00Z', ends_at: '2035-11-05T10:30:00Z', patients: patient }, error: null } });
+   await expect(load(event('?created=1'))).resolves.toMatchObject({ delivery: { available: false }, justCreated: false });
+  }
+ });
 
 	it('does not read the WhatsApp dispatches the page no longer shows', async () => {
 		tables();

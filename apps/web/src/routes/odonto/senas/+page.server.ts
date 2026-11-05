@@ -7,8 +7,6 @@ import { isUuid } from '@cita-suite/shared/uuid';
 import { createSupabaseServerClient } from '$lib/server/platform/supabase';
 import { resolveActiveBusiness } from '$lib/server/access/public/business';
 import { logServerFailure } from '$lib/server/platform/logging';
-import { getPublicSiteUrl } from '$lib/server/integrations/public/messaging';
-import { loadRebookUrls } from '$lib/server/scheduling/public/public-appointments';
 import {
 	DEPOSIT_ACTIONS,
 	DepositError,
@@ -23,7 +21,6 @@ import {
 } from '$lib/server/scheduling/public/deposits';
 import {
 	DEPOSIT_SECTIONS,
-	buildDepositCancellationMessage,
 	describeDepositAutomation,
 	formatDepositAmount,
 	type DepositAutomationNotice,
@@ -32,7 +29,6 @@ import {
 import { zonedDate } from '$lib/availability/calculate';
 import { formatInTimeZone } from '$lib/utils/format';
 import { normalizeArgentineWhatsAppPhone } from '$lib/utils/phone';
-import { buildWaMeUrl, buildWhatsAppWebUrl } from '$lib/utils/whatsapp';
 import type { Actions, PageServerLoad } from './$types';
 
 type DepositRow = {
@@ -47,10 +43,11 @@ type DepositRow = {
  managementRevision: string;
 	appointmentStatus: string;
 	hasPhone: boolean;
+ canPrepareDelivery: boolean;
 	reminder: { openedAt: string; openedBy: string } | null;
 	// Only for turns cancelled by the deposit: the agenda to give the slot again and, with a valid
 	// phone, the notice to the person.
-	cancellation: { rebookHref: string; notice: { whatsappUrl: string; whatsappWebUrl: string } | null } | null;
+	cancellation: { rebookHref: string; canNotify: boolean } | null;
 };
 
 type SectionView = { id: DepositListSection; title: string; folded: boolean; rows: DepositRow[] };
@@ -72,6 +69,7 @@ const demoRows = (now: Date, timezone: string): DepositRow[] => {
   managementRevision: '0'.repeat(64),
 		appointmentStatus: 'reserved',
 		hasPhone: true,
+  canPrepareDelivery: true,
 		reminder: null,
 		cancellation: null,
 		...overrides
@@ -96,10 +94,7 @@ const demoRows = (now: Date, timezone: string): DepositRow[] => {
 			dueLabel: turn(-8),
 			cancellation: {
 				rebookHref: '/odonto/agenda',
-				notice: {
-					whatsappUrl: 'https://wa.me/5493510000004?text=Demo',
-					whatsappWebUrl: 'https://web.whatsapp.com/send?phone=5493510000004&text=Demo'
-				}
+				canNotify: true
 			}
 		})
 	];
@@ -184,31 +179,10 @@ export const load: PageServerLoad = async ({ locals, fetch, cookies, url }) => {
 		loadTeam()
 	]);
 	const userLabels = new Map(users.map((user) => [String(user.user_id), String(user.email ?? '')]));
-	const siteUrl = getPublicSiteUrl();
-	let bookingPaths = new Map<string, string | null>();
-	const cancelledIds = list.items.filter(item => item.section === 'cancelled').map(item => item.appointment.id);
-	if (cancelledIds.length) {
-		try {
-			bookingPaths = await loadRebookUrls(supabase, { id: business.id, slug: business.slug }, cancelledIds);
-		} catch (rebookError) {
-			// The cancellation notice still works without the optional booking destination.
-			logServerFailure('Error resolviendo dónde volver a reservar', rebookError);
-		}
-	}
-
 	const toRow = (item: DepositListItem): DepositRow => {
 		const phone = normalizeArgentineWhatsAppPhone(item.patient.phoneE164);
 		let cancellation: DepositRow['cancellation'] = null;
 		if (item.section === 'cancelled') {
-			const bookingPath = bookingPaths.get(item.appointment.id);
-			const message = buildDepositCancellationMessage({
-				patientName: item.patient.name,
-				businessName: business.name,
-				startsAt: item.appointment.startsAt,
-				dueAt: item.deposit.due_at,
-				timezone: business.timezone,
-				bookingUrl: bookingPath ? `${siteUrl}${bookingPath}` : null
-			});
 			const query = new URLSearchParams({
 				date: zonedDate(new Date(item.appointment.startsAt), business.timezone),
 				professional_id: item.appointment.professionalId,
@@ -218,7 +192,7 @@ export const load: PageServerLoad = async ({ locals, fetch, cookies, url }) => {
 			});
 			cancellation = {
 				rebookHref: `/odonto/agenda?${query}`,
-				notice: phone ? { whatsappUrl: buildWaMeUrl(phone, message), whatsappWebUrl: buildWhatsAppWebUrl(phone, message) } : null
+				canNotify: Boolean(phone) && !item.patient.blocked && item.patient.archivedAt === null
 			};
 		}
 		const openedAt = item.deposit.reminder_opened_at;
@@ -234,6 +208,7 @@ export const load: PageServerLoad = async ({ locals, fetch, cookies, url }) => {
    managementRevision: item.appointment.managementRevision,
 			appointmentStatus: item.appointment.status,
 			hasPhone: Boolean(phone),
+   canPrepareDelivery: !item.patient.blocked && item.patient.archivedAt === null,
 			reminder: openedAt
 				? { openedAt, openedBy: (item.reminderOpenedBy && userLabels.get(item.reminderOpenedBy)) || 'alguien del equipo' }
 				: null,

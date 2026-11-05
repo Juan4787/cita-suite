@@ -1,4 +1,3 @@
-import { readChoice } from '$lib/contracts/json';
 // Sección Recordatorios: turnos próximos para refuerzo manual por WhatsApp desde
 // recepción. `loadReminderList` trae todos los turnos activos del día con su
 // cobertura; `loadReminderCandidates` y el aviso de la agenda, sólo los que no
@@ -25,12 +24,10 @@ import { readChoice } from '$lib/contracts/json';
 // externa.
 
 import type { CitaSupabaseClient } from '$lib/types/database';
-import { bookingContextsAvailable } from '$lib/server/sites/public/booking-integration-flags';
-import { BOOKING_MODALITIES, type BookingModality } from '@cita-suite/shared/booking-integration';
+import { type BookingModality } from '@cita-suite/shared/booking-integration';
 import { ACTIVE_APPOINTMENT_STATUSES } from '$lib/utils/appointment-visibility';
 import { formatInTimeZone } from '$lib/utils/format';
 import { publicAppointmentUrl } from '$lib/server/integrations/public/messaging';
-import { resolveMapsUrl } from '$lib/sites/location';
 import { normalizeArgentineWhatsAppPhone } from '$lib/utils/phone';
 import { buildWaMeUrl, buildWhatsAppWebUrl } from '$lib/utils/whatsapp';
 import type { Business } from '$lib/server/access/public/business';
@@ -308,14 +305,13 @@ const collectReminderItems = async (
 			status,
 			service_name_snapshot,
 			professional_name_snapshot,
-			confirmation_token,
 			appointment_management_revision,
 			calendar_action_status,
 			calendar_sequence,
 			calendar_update_required_at,
 			whatsapp_reminder_opened_at,
 			whatsapp_reminder_marked_sent_at,
-			patients!inner(id, full_name, phone_e164, blocked)
+			patients!inner(id, full_name, phone_e164, blocked, archived_at)
 		`
 		)
 		.eq('business_id', business.id)
@@ -330,7 +326,7 @@ const collectReminderItems = async (
 	const ids = appointments.map((row) => String(row.id));
 	const managedGoogleCalendarEnabled = isManagedGoogleCalendarEnabled();
 
-	const [pushResult, dispatchResult, googleCalendarResult, bookingContextResult] = await Promise.all([
+	const [pushResult, dispatchResult, googleCalendarResult] = await Promise.all([
 		options.pushSubscriptionsSupabase
 			.from('push_subscriptions')
 			.select(
@@ -353,16 +349,11 @@ const collectReminderItems = async (
 					.select('appointment_id, sync_status, synced_sequence')
 					.eq('business_id', business.id)
 					.in('appointment_id', ids)
-			: Promise.resolve({ data: [], error: null }),
-		bookingContextsAvailable()
-			? supabase.from('appointment_booking_contexts').select('appointment_id, modality').eq('business_id', business.id).in('appointment_id', ids)
 			: Promise.resolve({ data: [], error: null })
 	]);
 	if (pushResult.error) throw pushResult.error;
 	if (dispatchResult.error) throw dispatchResult.error;
 	if (googleCalendarResult.error) throw googleCalendarResult.error;
-	if (bookingContextResult.error) throw bookingContextResult.error;
-	const modalitiesByAppointment = new Map((bookingContextResult.data ?? []).map((row) => [String(row.appointment_id), readChoice(row.modality, BOOKING_MODALITIES, 'reminders.modality')]));
 	const pushRows = pushResult.data;
 	const dispatchRows = dispatchResult.data;
 	const googleCalendarRows = googleCalendarResult.data;
@@ -380,12 +371,11 @@ const collectReminderItems = async (
 	const googleCalendarByAppointment = new Map(
 		(googleCalendarRows ?? []).map((row) => [String(row.appointment_id), row])
 	);
-	const mapsLink = resolveMapsUrl({ address: business.address, maps_url: business.maps_url });
 
 	const items: ReminderListItem[] = [];
 	for (const row of appointments) {
 		const patient = row.patients;
-		if (patient?.blocked) continue;
+		if (patient?.blocked || patient?.archived_at) continue;
 		const googleCalendar = googleCalendarByAppointment.get(String(row.id));
 		const coverage = classifyReminderCoverage({
 			calendar_action_status: String(row.calendar_action_status ?? 'not_offered'),
@@ -406,20 +396,6 @@ const collectReminderItems = async (
 		// locales 0/15 y valores legados; si falta información no se inventa un wa.me.
 		const phone = normalizeArgentineWhatsAppPhone(patient?.phone_e164);
 		const patientName = String(patient?.full_name ?? 'Paciente');
-		const whatsappUrl = phone
-			? buildWaMeUrl(
-					phone,
-					buildReminderWhatsAppMessage({
-						modality: modalitiesByAppointment.get(String(row.id)),						patientName,
-						startsAt: String(row.starts_at),
-						timezone: business.timezone,
-						businessName: business.name,
-						address: business.address,
-						mapsLink,
-						token: String(row.confirmation_token)
-					})
-				)
-			: null;
 
 		items.push({
 			appointment_id: String(row.id),
@@ -433,7 +409,6 @@ const collectReminderItems = async (
 			patient_name: patientName,
 			coverage: coverage ?? 'aviso_automatico',
 			phone_e164: phone,
-			whatsapp_url: whatsappUrl,
 			whatsapp_opened_at: row.whatsapp_reminder_opened_at ?? null,
 			whatsapp_marked_sent_at: row.whatsapp_reminder_marked_sent_at ?? null
 		});

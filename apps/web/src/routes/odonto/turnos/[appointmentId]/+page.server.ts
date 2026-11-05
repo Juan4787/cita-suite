@@ -91,7 +91,7 @@ export const load: PageServerLoad = async ({ params, locals, fetch, cookies, url
 	const { data, error } = await supabase
 		.from('appointments')
 		.select(
-			'id, business_id, patient_id, service_id, professional_id, starts_at, ends_at, blocking_starts_at, blocking_ends_at, status, source, service_name_snapshot, professional_name_snapshot, duration_minutes_snapshot, buffer_before_minutes_snapshot, buffer_after_minutes_snapshot, break_minutes_snapshot, ignore_break, confirmed_at, cancelled_at, cancelled_reason, reschedule_requested_at, internal_note, patient_instructions_snapshot, public_reminder_description_snapshot, price_quote_snapshot, phone_communication_status_at_booking, phone_warning_acknowledged_at, created_by_user_id, updated_by_user_id, cancelled_by_user_id, created_at, updated_at, appointment_management_revision, appointment_professionals(professional_id, position, is_primary, professional_name_snapshot, break_minutes_snapshot), patients(id, full_name, phone_e164, email, blocked), appointment_deposits(appointment_id, status, amount, currency, request_from, due_at, auto_cancel, waived_reason, recorded_at, reminder_opened_at, expired_at, revision)'
+			'id, business_id, patient_id, service_id, professional_id, starts_at, ends_at, blocking_starts_at, blocking_ends_at, status, source, service_name_snapshot, professional_name_snapshot, duration_minutes_snapshot, buffer_before_minutes_snapshot, buffer_after_minutes_snapshot, break_minutes_snapshot, ignore_break, confirmed_at, cancelled_at, cancelled_reason, reschedule_requested_at, internal_note, patient_instructions_snapshot, public_reminder_description_snapshot, price_quote_snapshot, phone_communication_status_at_booking, phone_warning_acknowledged_at, created_by_user_id, updated_by_user_id, cancelled_by_user_id, created_at, updated_at, appointment_management_revision, appointment_professionals(professional_id, position, is_primary, professional_name_snapshot, break_minutes_snapshot), patients(id, full_name, phone_e164, email, blocked, archived_at), appointment_deposits(appointment_id, status, amount, currency, request_from, due_at, auto_cancel, waived_reason, recorded_at, reminder_opened_at, expired_at, revision)'
 		)
 		.eq('business_id', business.business.id)
 		.eq('id', params.appointmentId)
@@ -165,7 +165,8 @@ export const load: PageServerLoad = async ({ params, locals, fetch, cookies, url
 	);
 
  // A load supplies eligibility, never a bearer credential or a prepared message.
- const deliveryAvailable = business.canOperate && DEPOSIT_ROLES.has(business.role) && isUpcomingActiveAppointment(data);
+ const deliveryAvailable = business.canOperate && DEPOSIT_ROLES.has(business.role) && isUpcomingActiveAppointment(data)
+  && Boolean(data.patients && !data.patients.blocked && data.patients.archived_at === null);
  const delivery = { available: deliveryAvailable, hasPhone: Boolean(normalizeArgentineWhatsAppPhone(data.patients?.phone_e164)) };
 
 	const phoneWarningAcknowledged =

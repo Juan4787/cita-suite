@@ -319,7 +319,7 @@ export type DepositListItem = {
 	reminderOpenedBy: string | null;
 	section: DepositListSection;
 	appointment: { id: string; startsAt: string; status: string; managementRevision: string; professionalId: string; serviceId: string };
-	patient: { id: string; name: string; phoneE164: string | null };
+	patient: { id: string; name: string; phoneE164: string | null; blocked: boolean; archivedAt: string | null };
 };
 
 // One practice holds few dozen pending deposits; past this bound the page says the list is
@@ -342,7 +342,7 @@ export const loadDepositList = async (
 	const query = supabase
 		.from('appointment_deposits')
 		.select(
-			'appointment_id, status, amount, currency, request_from, due_at, auto_cancel, waived_reason, recorded_at, reminder_opened_at, reminder_opened_by, expired_at, revision, appointments!inner(id, starts_at, status, appointment_management_revision, professional_id, service_id, patients!inner(id, full_name, phone_e164))'
+			'appointment_id, status, amount, currency, request_from, due_at, auto_cancel, waived_reason, recorded_at, reminder_opened_at, reminder_opened_by, expired_at, revision, appointments!inner(id, starts_at, status, appointment_management_revision, professional_id, service_id, patients!inner(id, full_name, phone_e164, blocked, archived_at))'
 		)
 		.eq('business_id', businessId)
 		.gt('appointments.starts_at', now.toISOString())
@@ -380,7 +380,9 @@ export const loadDepositList = async (
 			patient: {
 				id: readText(patient.id, 'depositList.patient.id'),
 				name: readText(patient.full_name, 'depositList.patient.name'),
-				phoneE164: readNullableText(patient.phone_e164, 'depositList.patient.phone')
+				phoneE164: readNullableText(patient.phone_e164, 'depositList.patient.phone'),
+    blocked: readBoolean(patient.blocked, 'depositList.patient.blocked'),
+    archivedAt: readNullableText(patient.archived_at, 'depositList.patient.archivedAt')
 			}
 		});
 	}

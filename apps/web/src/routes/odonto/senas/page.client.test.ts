@@ -27,6 +27,7 @@ const row = (overrides: Record<string, unknown> = {}) => ({
  managementRevision: 'a'.repeat(64),
 	appointmentStatus: 'reserved',
 	hasPhone: true,
+ canPrepareDelivery: true,
 	reminder: null,
 	cancellation: null,
 	...overrides
@@ -114,6 +115,12 @@ describe('página de señas', () => {
 		expect(screen.getByRole('button', { name: 'Abrir de todos modos' }).closest('form')!.getAttribute('action')).toContain('confirmar=1');
 	});
 
+ it('una ficha que no permite entregar lleva a revisarla sin bloquear un registro de dinero independiente', () => {
+  render(Page, { data: data([row({ canPrepareDelivery: false })]) });
+  expect(screen.queryByRole('button', { name: 'Pedir seña por WhatsApp' })).toBeNull();
+  expect(screen.getByRole('link', { name: 'Ver ficha del paciente' })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Confirmar seña' })).toBeInTheDocument();
+ });
 	it('sin teléfono válido no ofrece WhatsApp y lleva a corregir el número', () => {
 		render(Page, { data: data([row({ hasPhone: false })]) });
 		expect(screen.queryByRole('link', { name: /WhatsApp/ })).toBeNull();
@@ -126,11 +133,14 @@ describe('página de señas', () => {
 				row({
 					section: 'cancelled',
 					appointmentStatus: 'cancelled',
-					cancellation: { rebookHref: '/odonto/agenda?hora=10%3A00', notice: { whatsappUrl: 'https://wa.me/5493421112222?text=hola', whatsappWebUrl: 'https://web.whatsapp.com/send?phone=5493421112222&text=hola' } }
+					cancellation: { rebookHref: '/odonto/agenda?hora=10%3A00', canNotify: true }
 				})
 			])
 		});
-		expect(screen.getByRole('link', { name: 'Avisar a la persona' })).toHaveAttribute('href', 'https://wa.me/5493421112222?text=hola');
+  const notice = screen.getByRole('button', { name: 'Avisar a la persona' }).closest('form')!;
+  expect(notice).toHaveAttribute('method', 'POST');
+  expect(notice).toHaveAttribute('action', '/odonto/senas/avisar/00000000-0000-4000-8000-0000000000a1');
+  expect(new FormData(notice).get('expected_revision')).toBe('a'.repeat(64));
 		expect(screen.getByRole('link', { name: 'Volver a dar este horario' })).toHaveAttribute('href', '/odonto/agenda?hora=10%3A00');
 		expect(screen.queryByRole('button', { name: 'Confirmar seña' })).toBeNull();
 		expect(screen.getByText(/Se canceló porque no se registró la seña de \$ 40\.000/)).toBeInTheDocument();
