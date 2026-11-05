@@ -2,7 +2,7 @@
 	import {formatQuotedPrice} from '$lib/booking/pricing';
 	import BackLink from '$lib/components/BackLink.svelte';
 	import { formatDateTime } from '$lib/utils/format';
-	import { refineDeviceClass, whatsappHrefFor, type DeviceClass } from '$lib/device';
+	import { refineDeviceClass, type DeviceClass } from '$lib/device';
 	import { enhance } from '$app/forms';
 	import { onMount } from 'svelte';
 	import type { SubmitFunction } from '@sveltejs/kit';
@@ -40,14 +40,9 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@cita-suite/share
 			fromDate: string;
 			justRescheduled: boolean;
 			justCreated: boolean;
-			activationWhatsAppUrl: string | null;
-			activationWhatsAppWebUrl: string | null;
-			activationDevice: DeviceClass;
-		activationPublicUrl: string | null;
-		phoneWarningAcknowledged: boolean;
-		rescheduleWhatsAppUrl: string | null;
-		rescheduleWhatsAppWebUrl: string | null;
-		reschedulePublicUrl: string | null;
+   delivery: PageData['delivery'];
+   activationDevice: DeviceClass;
+   phoneWarningAcknowledged: boolean;
 			demo: boolean;
 		};
 		form?: StaffManagementFeedback;
@@ -55,12 +50,6 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@cita-suite/share
 
 	let refinedActivationDevice = $state<DeviceClass | null>(null);
 	const activationDevice = $derived(refinedActivationDevice ?? data.activationDevice);
-	const activationWhatsAppHref = $derived(
-		whatsappHrefFor(activationDevice, data.activationWhatsAppUrl, data.activationWhatsAppWebUrl)
-	);
-	const rescheduleWhatsAppHref = $derived(
-		whatsappHrefFor(activationDevice, data.rescheduleWhatsAppUrl, data.rescheduleWhatsAppWebUrl)
-	);
 
 	onMount(() => {
 		// iPadOS puede identificarse como macOS. Antes del clic refinamos el dato
@@ -389,7 +378,7 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@cita-suite/share
   </form>
  {/if}
 
-	{#if data.justCreated && data.appointment && !data.phoneWarningAcknowledged}
+	{#if data.justCreated && data.appointment && data.delivery.available && !data.phoneWarningAcknowledged}
 		<section
 			aria-labelledby="activation-title"
 			class="relative overflow-hidden rounded-3xl border border-accent-300-35 bg-[linear-gradient(135deg,rgba(124,58,237,0.2),rgba(7,22,38,0.96)_62%)] p-5 shadow-2xl shadow-shade-accent-950-30 sm:p-7"
@@ -402,21 +391,23 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@cita-suite/share
 				<h2 id="activation-title" class="mt-4 text-xl font-bold tracking-tight text-fg sm:text-2xl">
 					Último paso
 				</h2>
-				{#if activationWhatsAppHref}
-					<a
-						href={activationWhatsAppHref}
-						target="_blank"
-						rel="noreferrer"
-						class="group mt-5 flex min-h-[4.5rem] w-full items-center justify-center gap-3 rounded-2xl bg-success-500 px-5 py-4 text-center text-lg font-bold leading-tight text-on-accent shadow-xl shadow-shade-success-950-30 ring-1 ring-focus-success-300-35 transition hover:bg-success-press focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-focus-success-300"
+				{#if data.delivery.hasPhone}
+     <form method="POST" action="?created=1&/prepare_delivery" target="_blank" rel="noopener">
+      <input type="hidden" name="kind" value="activation" />
+      <input type="hidden" name="destination" value="whatsapp" />
+      <input type="hidden" name="expected_revision" value={data.management?.revision} />
+      <input type="hidden" name="device" value={activationDevice} />
+      <button class="group mt-5 flex min-h-[4.5rem] w-full items-center justify-center gap-3 rounded-2xl bg-success-500 px-5 py-4 text-center text-lg font-bold leading-tight text-on-accent shadow-xl shadow-shade-success-950-30 ring-1 ring-focus-success-300-35 transition hover:bg-success-press focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-focus-success-300"
 					>
 						<svg viewBox="0 0 24 24" fill="none" aria-hidden="true" class="h-6 w-6 shrink-0 transition-transform group-hover:scale-105">
 							<path d="M20.4 11.7a8.4 8.4 0 0 1-12.5 7.3L4 20l1.1-3.7a8.4 8.4 0 1 1 15.3-4.6Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
 							<path d="M8.5 8.2c.2 3.4 2.3 5.5 5.7 5.8l1.2-1.3 2 .9c-.3 1.5-1.4 2.4-2.8 2.5-4.7-.2-8.1-3.5-8.2-8.2.1-1.4 1-2.5 2.5-2.8l.9 2-1.3 1.1Z" fill="currentColor" opacity=".9" />
 						</svg>
-						<span>Enviar enlace de activación</span>
-					</a>
+      <span>Enviar enlace de activación</span>
+      </button>
+     </form>
 					<p class="mt-3 text-center text-sm font-semibold leading-relaxed text-fg-65">
-						El paciente recibirá un enlace para activar sus recordatorios.
+						Se abre WhatsApp con el enlace. Revisá el mensaje y envialo para que el paciente pueda activar sus recordatorios.
 					</p>
 				{:else}
 					<div class="mt-5 rounded-2xl border border-warning-300-25 bg-warning-400-07 p-5">
@@ -440,39 +431,32 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@cita-suite/share
 		</section>
 	{/if}
 
-	{#if data.justRescheduled && data.appointment}
+	{#if data.justRescheduled && data.appointment && data.delivery.available}
 		<div class="rounded-3xl border border-success-400-30 bg-success-400-10 p-5">
 			<h2 class="text-lg font-semibold text-success-50">Turno reprogramado</h2>
 			<p class="mt-2 text-sm text-success-100-80">
 				Los avisos del horario anterior se invalidaron y los recordatorios se recalcularon para
 				la nueva fecha. Avisale al paciente del cambio.
 			</p>
-			{#if rescheduleWhatsAppHref}
-				<div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
-					<a
-						href={rescheduleWhatsAppHref}
-						target="_blank"
-						rel="noreferrer"
-						class="inline-flex items-center justify-center gap-2 rounded-2xl bg-success-500 px-5 py-3 text-sm font-bold text-on-accent transition hover:bg-success-press"
-					>
-						Enviar actualización por WhatsApp
-					</a>
-					{#if data.reschedulePublicUrl}
-						<a
-							href={data.reschedulePublicUrl}
-							target="_blank"
-							rel="noreferrer"
-							class="text-sm font-semibold text-success-100-80 underline"
-						>
-							Ver lo que verá el paciente
-						</a>
-					{/if}
-				</div>
-			{:else}
-				<p class="mt-4 text-sm font-semibold text-warning-100">
-					Este paciente no tiene un teléfono válido cargado: avisale del cambio por otro medio.
-				</p>
-			{/if}
+   <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+    {#if data.delivery.hasPhone}
+     <form method="POST" action="?rescheduled=1&/prepare_delivery" target="_blank" rel="noopener">
+      <input type="hidden" name="kind" value="rescheduled" />
+      <input type="hidden" name="destination" value="whatsapp" />
+      <input type="hidden" name="expected_revision" value={data.management?.revision} />
+      <input type="hidden" name="device" value={activationDevice} />
+      <button class="inline-flex items-center justify-center gap-2 rounded-2xl bg-success-500 px-5 py-3 text-sm font-bold text-on-accent transition hover:bg-success-press">Enviar actualización por WhatsApp</button>
+     </form>
+    {:else}
+     <p class="text-sm font-semibold text-warning-100">Este paciente no tiene un teléfono válido cargado: avisale del cambio por otro medio.</p>
+    {/if}
+    <form method="POST" action="?rescheduled=1&/prepare_delivery" target="_blank" rel="noopener">
+     <input type="hidden" name="kind" value="rescheduled" />
+     <input type="hidden" name="destination" value="preview" />
+     <input type="hidden" name="expected_revision" value={data.management?.revision} />
+     <button class="text-sm font-semibold text-success-100-80 underline">Ver lo que verá el paciente</button>
+    </form>
+   </div>
 		</div>
 	{/if}
 

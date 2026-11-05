@@ -259,7 +259,7 @@ describe('lista de señas', () => {
 		reminder_opened_by: null,
 		expired_at: null,
 		revision: 1,
-		appointments: { id, starts_at: at(120), status: appointmentStatus, confirmation_token: `token-${id}`, professional_id: `professional-${id}`, service_id: `service-${id}`, patients: { id: `patient-${id}`, full_name: `Paciente ${id}`, phone_e164: '+5493421112222' } },
+		appointments: { id, starts_at: at(120), status: appointmentStatus, appointment_management_revision: 'a'.repeat(64), professional_id: `professional-${id}`, service_id: `service-${id}`, patients: { id: `patient-${id}`, full_name: `Paciente ${id}`, phone_e164: '+5493421112222' } },
 		...overrides
 	});
 	const listClient = (rows: unknown[]) => {
@@ -289,7 +289,7 @@ describe('lista de señas', () => {
 			['c', 'cancelled']
 		]);
 		expect(result.items[0]).toMatchObject({
-			appointment: { token: 'token-a', status: 'reserved', professionalId: 'professional-a', serviceId: 'service-a' },
+			appointment: { managementRevision: 'a'.repeat(64), status: 'reserved', professionalId: 'professional-a', serviceId: 'service-a' },
 			patient: { name: 'Paciente a', phoneE164: '+5493421112222' }
 		});
 		const filter = calls.find(([method]) => method === 'or')?.[1][0];

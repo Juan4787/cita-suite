@@ -11,11 +11,11 @@ export const shouldOfferCreatedAppointmentActivation = (input: {
 	source: string;
 	status: string;
 	startsAt: string;
-	token: string | null;
+	canPrepareLink: boolean;
 	now?: Date;
 }): boolean =>
 	input.requested &&
 	['manual', 'admin'].includes(input.source) &&
 	['reserved', 'confirmed', 'reschedule_requested'].includes(input.status) &&
-	Boolean(input.token) &&
+	input.canPrepareLink &&
 	new Date(input.startsAt).getTime() > (input.now ?? new Date()).getTime();

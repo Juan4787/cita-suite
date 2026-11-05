@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const mocks = vi.hoisted(() => ({ getOdontoContext: vi.fn(), from: vi.fn(), rpc: vi.fn(), setAppointmentDeposit: vi.fn() }));
+const mocks = vi.hoisted(() => ({ getOdontoContext: vi.fn(), from: vi.fn(), rpc: vi.fn(), setAppointmentDeposit: vi.fn(), prepareDelivery: vi.fn(), select: vi.fn() }));
 
 vi.mock('$env/dynamic/private', () => ({ env: {} }));
 vi.mock('$lib/server/access/public/business', () => ({ demoBusinessContext: vi.fn() }));
@@ -18,6 +18,10 @@ vi.mock('$lib/server/scheduling/public/deposits', async (importOriginal) => ({
 	setAppointmentDeposit: mocks.setAppointmentDeposit
 }));
 
+vi.mock('$lib/server/scheduling/public/staff-delivery', async importOriginal => ({
+ ...(await importOriginal<typeof import('$lib/server/scheduling/public/staff-delivery')>()), prepareStaffDelivery: mocks.prepareDelivery
+}));
+
 const { load, actions } = await import('./+page.server');
 const { DepositError } = await import('$lib/server/scheduling/public/deposits');
 
@@ -27,7 +31,7 @@ const query = (result: unknown) => {
 		get: (_target, key) =>
 			key === 'then'
 				? (resolve: (value: unknown) => unknown, reject: (reason: unknown) => unknown) => Promise.resolve(result).then(resolve, reject)
-				: () => builder
+				: (...args: unknown[]) => { if (key === 'select') mocks.select(...args); return builder; }
 	});
 	return builder;
 };
@@ -35,7 +39,7 @@ const query = (result: unknown) => {
 const appointmentId = '00000000-0000-4000-8000-0000000000a1';
 const appointmentBase = {
 	id: appointmentId, business_id: 'business-1', patient_id: 'patient-1', professional_id: '00000000-0000-4000-8000-000000000001', status: 'confirmed', source: 'manual',
-	starts_at: '2026-10-28T13:00:00.000Z', ends_at: '2026-10-28T13:30:00.000Z', confirmation_token: null,
+	starts_at: '2026-10-28T13:00:00.000Z', ends_at: '2026-10-28T13:30:00.000Z',
 	service_id: '00000000-0000-4000-8000-000000000003', appointment_management_revision: 'a'.repeat(64),
  professional_name_snapshot: 'Profesional Uno', break_minutes_snapshot: 0, patients: { full_name: 'Paciente', phone_e164: null }
 };
@@ -88,6 +92,9 @@ describe('appointment detail load', () => {
 		const result = (await load(event())) as Detail;
 		expect(result.appointment.professionals.map((item) => item.professional_id)).toEqual(team.map(member => member.professional_id));
 		expect(result.auditLogs).toEqual(audit);
+  expect(result.appointment).not.toHaveProperty('confirmation_token');
+  expect(mocks.prepareDelivery).not.toHaveBeenCalled();
+  expect(mocks.select.mock.calls[0][0]).not.toContain('confirmation_token');
 	});
 
 	it('fails explicitly instead of showing a joint appointment as one professional when its team cannot be read', async () => {
@@ -201,3 +208,41 @@ describe('appointment deposit in the detail', () => {
 	});
 });
 
+
+
+describe('explicit detail delivery', () => {
+ const businessId = 'b1000000-0000-4000-8000-000000000001', revision = 'a'.repeat(64);
+ const post = (fields: Record<string,string>, canOperate = true) => {
+  mocks.getOdontoContext.mockResolvedValue({ supabase: { from: mocks.from, rpc: mocks.rpc },
+   business: { business: { id: businessId }, role: 'reception', canOperate }, userId: 'validated-session-user' });
+  return actions.prepare_delivery!({ ...event(), request: new Request('https://app.test/detail?/prepare_delivery',
+   { method: 'POST', body: new URLSearchParams(fields) }), setHeaders: vi.fn() } as never);
+ };
+ beforeEach(() => {
+  vi.clearAllMocks(); mocks.prepareDelivery.mockResolvedValue({ publicUrl: 'https://app.test/gestion/current',
+   whatsappUrl: 'https://wa.me/5493425048209?text=current', whatsappWebUrl: 'https://web.whatsapp.com/send?text=current' });
+ });
+ it.each(['activation','rescheduled'])('prepares %s from the reviewed revision and real session tenant', async kind => {
+  await expect(post({ kind, destination: 'whatsapp', expected_revision: revision, device: 'desktop', actor_id: 'forged' }))
+   .rejects.toMatchObject({ status: 303, location: 'https://web.whatsapp.com/send?text=current' });
+  expect(mocks.prepareDelivery).toHaveBeenCalledExactlyOnceWith(expect.anything(), { businessId, appointmentId, expectedRevision: revision, kind });
+ });
+ it('preview is an explicit POST using the newly prepared public URL', async () => {
+  await expect(post({ kind: 'rescheduled', destination: 'preview', expected_revision: revision }))
+   .rejects.toMatchObject({ status: 303, location: 'https://app.test/gestion/current' });
+ });
+ it('unreviewed, unsupported and readonly requests never mint', async () => {
+  for (const fields of [ {}, { kind: 'reminder', destination: 'whatsapp', expected_revision: revision },
+   { kind: 'activation', destination: 'https://evil.test', expected_revision: revision } ])
+   await expect(post(fields)).resolves.toMatchObject({ status: 400 });
+  await expect(post({ kind: 'activation', destination: 'preview', expected_revision: revision }, false)).resolves.toMatchObject({ status: 403 });
+  expect(mocks.prepareDelivery).not.toHaveBeenCalled();
+ });
+ it('a stale review and an ambiguous result keep their distinct safe responses', async () => {
+  mocks.prepareDelivery.mockRejectedValue(new Error('APPOINTMENT_MANAGEMENT_CHANGED'));
+  await expect(post({ kind: 'activation', destination: 'preview', expected_revision: revision })).resolves.toMatchObject({ status: 409 });
+  mocks.prepareDelivery.mockRejectedValue(new Error('response lost'));
+  const result = await post({ kind: 'activation', destination: 'preview', expected_revision: revision });
+  expect(result).toMatchObject({ status: 503, data: { message: expect.stringContaining('revisar lo registrado') } });
+ });
+});

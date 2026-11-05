@@ -22,6 +22,7 @@ import {
 	type DepositListSection,
 	type DepositSlotTerms
 } from '$lib/scheduling/deposits';
+import { managementRevision } from '../internal/management-contract';
 import { APPOINTMENT_STATUSES } from '$lib/server/scheduling/public/appointments';
 
 export const DEPOSIT_ACTIONS = ['paid', 'waived', 'pending'] as const;
@@ -317,7 +318,7 @@ export type DepositListItem = {
 	/** Who opened the WhatsApp asking for it, to say so in the row (plan, section 4.8). */
 	reminderOpenedBy: string | null;
 	section: DepositListSection;
-	appointment: { id: string; startsAt: string; status: string; token: string; professionalId: string; serviceId: string };
+	appointment: { id: string; startsAt: string; status: string; managementRevision: string; professionalId: string; serviceId: string };
 	patient: { id: string; name: string; phoneE164: string | null };
 };
 
@@ -341,7 +342,7 @@ export const loadDepositList = async (
 	const query = supabase
 		.from('appointment_deposits')
 		.select(
-			'appointment_id, status, amount, currency, request_from, due_at, auto_cancel, waived_reason, recorded_at, reminder_opened_at, reminder_opened_by, expired_at, revision, appointments!inner(id, starts_at, status, confirmation_token, professional_id, service_id, patients!inner(id, full_name, phone_e164))'
+			'appointment_id, status, amount, currency, request_from, due_at, auto_cancel, waived_reason, recorded_at, reminder_opened_at, reminder_opened_by, expired_at, revision, appointments!inner(id, starts_at, status, appointment_management_revision, professional_id, service_id, patients!inner(id, full_name, phone_e164))'
 		)
 		.eq('business_id', businessId)
 		.gt('appointments.starts_at', now.toISOString())
@@ -372,7 +373,7 @@ export const loadDepositList = async (
 				id: readText(appointment.id, 'depositList.appointment.id'),
 				startsAt,
 				status,
-				token: readText(appointment.confirmation_token, 'depositList.appointment.token'),
+				managementRevision: managementRevision(appointment.appointment_management_revision),
 				professionalId: readText(appointment.professional_id, 'depositList.appointment.professionalId'),
 				serviceId: readText(appointment.service_id, 'depositList.appointment.serviceId')
 			},

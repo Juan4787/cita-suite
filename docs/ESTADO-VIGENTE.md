@@ -18,7 +18,7 @@ produccion_repositorio: github-secundaria:Juan4787/cita-suite-verificacion.git
 
 ## Etapa E — ejecución al 5 de noviembre
 
-E conserva autorización íntegra de implementación/pruebas/publicación: [plan 12.18–12.26](plans/propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada), [especificación](plans/etapa-e-correo-autogestion.md) y [registro activo](plans/ejecucion-etapa-e-20261103.md). E1/E2/E3 sin publicar. SQL29 aprobada en 42011723187 (160 migraciones/dieciocho esperas), tipos/digest cotejados. Recordatorios conectado a comandos y POST; 72 dirigidas locales. Fast 42017681596 aprobado en c694b71 (1988 servidor/298 cliente, cero errores y dos avisos de cierre de textarea). Los cuatro casos nuevos de borrador/contexto/fecha aprobaron; se corrigen ambas etiquetas después de esa corrida. Browser público preparado con JavaScript demorado/desactivado y preguntas de opción/fecha; su resultado sigue pendiente. Siguiente: browser público actual, luego distribución de Señas/detalle, contacto/outbox/SN14/Zoho/correo/E5–E6. Checkpoint E3.29; índice documental disponible. Producción V12b, ningún envío ni cierre E; P1/P2/P3 pospuestas.
+E conserva autorización íntegra de implementación/pruebas/publicación: [plan 12.18–12.26](plans/propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada), [especificación](plans/etapa-e-correo-autogestion.md) y [registro activo](plans/ejecucion-etapa-e-20261103.md). E1/E2/E3 sin publicar. SQL29 aprobada en 42011723187 (160 migraciones/dieciocho esperas), tipos/digest cotejados. Fast público 42017681596 (1988/298) aprobado por su capa. Browser 42018985071 probó recuperación sin JS y contacto/comentario tempranos; falló por selector del test que ignoraba IDs compuestos del esquema. Selector corregido para comprobar FormData real, sin cambiar producto. Señas pendientes y entrega del detalle conectadas a POST/comando actual, sin token legado en sus lecturas; 90 dirigidas locales, fast/cliente/browser nuevos pendientes. El aviso simple de baja por seña conserva su camino separado pendiente de revisión. Siguiente: fast actual y browser público; completar distribución/contacto/outbox/SN14/Zoho/correo/E5–E6. Checkpoint E3.30; índice documental disponible. Producción V12b, ningún envío ni cierre E; P1/P2/P3 pospuestas.
 
 ## Código que difiere de producción
 
@@ -54,6 +54,8 @@ A	apps/web/src/lib/components/appointments/PublicAppointmentPage.svelte
 A	apps/web/src/lib/components/appointments/RescheduleNoticePage.svelte
 M	apps/web/src/lib/components/patients/PatientProfileDialog.svelte
 A	apps/web/src/lib/patients/public-booking-information.ts
+M	apps/web/src/lib/scheduling/agenda-navigation.test.ts
+M	apps/web/src/lib/scheduling/agenda-navigation.ts
 A	apps/web/src/lib/scheduling/booking-reschedule-policy.test.ts
 M	apps/web/src/lib/scheduling/booking-view.ts
 M	apps/web/src/lib/scheduling/contracts.ts
@@ -95,6 +97,8 @@ M	apps/web/src/lib/server/scheduling/public/appointments.test.ts
 M	apps/web/src/lib/server/scheduling/public/appointments.ts
 M	apps/web/src/lib/server/scheduling/public/availability.test.ts
 M	apps/web/src/lib/server/scheduling/public/availability.ts
+M	apps/web/src/lib/server/scheduling/public/deposits.test.ts
+M	apps/web/src/lib/server/scheduling/public/deposits.ts
 A	apps/web/src/lib/server/scheduling/public/email-policy.test.ts
 A	apps/web/src/lib/server/scheduling/public/email-policy.ts
 A	apps/web/src/lib/server/scheduling/public/patient-management-flow.test.ts
@@ -155,6 +159,12 @@ M	apps/web/src/routes/odonto/recordatorios/+page.svelte
 M	apps/web/src/routes/odonto/recordatorios/abrir/[appointmentId]/+server.ts
 A	apps/web/src/routes/odonto/recordatorios/abrir/[appointmentId]/abrir.server.test.ts
 M	apps/web/src/routes/odonto/recordatorios/recordatorios.server.test.ts
+M	apps/web/src/routes/odonto/senas/+page.server.ts
+M	apps/web/src/routes/odonto/senas/+page.svelte
+M	apps/web/src/routes/odonto/senas/abrir/[appointmentId]/+server.ts
+M	apps/web/src/routes/odonto/senas/abrir/[appointmentId]/abrir.server.test.ts
+M	apps/web/src/routes/odonto/senas/page.client.test.ts
+M	apps/web/src/routes/odonto/senas/senas.server.test.ts
 M	apps/web/src/routes/odonto/turnos/[appointmentId]/+page.server.ts
 M	apps/web/src/routes/odonto/turnos/[appointmentId]/+page.svelte
 M	apps/web/src/routes/odonto/turnos/[appointmentId]/appointment-detail.server.test.ts

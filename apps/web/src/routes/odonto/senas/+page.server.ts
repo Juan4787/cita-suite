@@ -44,6 +44,7 @@ type DepositRow = {
 	dueLabel: string;
 	section: DepositListSection;
 	revision: number;
+ managementRevision: string;
 	appointmentStatus: string;
 	hasPhone: boolean;
 	reminder: { openedAt: string; openedBy: string } | null;
@@ -68,6 +69,7 @@ const demoRows = (now: Date, timezone: string): DepositRow[] => {
 		amountLabel: formatDepositAmount(40000),
 		dueLabel: turn(72),
 		revision: 1,
+  managementRevision: '0'.repeat(64),
 		appointmentStatus: 'reserved',
 		hasPhone: true,
 		reminder: null,
@@ -229,6 +231,7 @@ export const load: PageServerLoad = async ({ locals, fetch, cookies, url }) => {
 			dueLabel: formatInTimeZone(item.deposit.due_at, business.timezone).full,
 			section: item.section,
 			revision: item.deposit.revision,
+   managementRevision: item.appointment.managementRevision,
 			appointmentStatus: item.appointment.status,
 			hasPhone: Boolean(phone),
 			reminder: openedAt
