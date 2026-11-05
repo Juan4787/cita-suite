@@ -4,12 +4,13 @@ const mocks = vi.hoisted(() => ({
 	resolveActiveBusiness: vi.fn(),
 	writeAuditLog: vi.fn(),
 	loadReminderList: vi.fn(),
-	from: vi.fn()
+	from: vi.fn(),
+	rpc: vi.fn()
 }));
 
 vi.mock('$env/dynamic/private', () => ({ env: {} }));
 vi.mock('$lib/server/platform/supabase', () => ({
-	createSupabaseServerClient: vi.fn(async () => ({ from: mocks.from })),
+	createSupabaseServerClient: vi.fn(async () => ({ from: mocks.from, rpc: mocks.rpc })),
 	createSupabaseAdminClient: vi.fn(async () => ({ admin: true }))
 }));
 vi.mock('$lib/server/access/public/business', () => ({ resolveActiveBusiness: mocks.resolveActiveBusiness }));
@@ -20,23 +21,7 @@ const { load, actions } = await import('./+page.server');
 
 const BUSINESS_ID = '00000000-0000-4000-8000-0000000000b1';
 const APPOINTMENT_ID = '00000000-0000-4000-8000-0000000000a1';
-
-// Records every call of the update chain; awaiting `maybeSingle` gives `result`.
-const updateChain = (result: { data: unknown; error: unknown }) => {
-	const calls: Array<[string, unknown[]]> = [];
-	const builder: Record<string, unknown> = {};
-	for (const method of ['update', 'eq', 'select']) {
-		builder[method] = (...args: unknown[]) => {
-			calls.push([method, args]);
-			return builder;
-		};
-	}
-	builder.maybeSingle = async () => {
-		calls.push(['maybeSingle', []]);
-		return result;
-	};
-	return { builder, calls };
-};
+const REVISION = 'a'.repeat(64);
 
 const event = (form?: Record<string, string>, search = '') =>
 	({
@@ -52,6 +37,7 @@ const event = (form?: Record<string, string>, search = '') =>
 
 beforeEach(() => {
 	vi.clearAllMocks();
+	mocks.rpc.mockResolvedValue({ data: true, error: null });
 	mocks.resolveActiveBusiness.mockResolvedValue({
 		business: { id: BUSINESS_ID, name: 'Consultorio', timezone: 'America/Argentina/Cordoba', address: null, maps_url: null },
 		role: 'owner',
@@ -93,30 +79,51 @@ describe('Recordatorios · marcar como enviado', () => {
 	});
 
 	it('un turno inexistente o de otro consultorio no se marca ni deja una auditoría falsa', async () => {
-		const { builder, calls } = updateChain({ data: null, error: null });
-		mocks.from.mockReturnValue(builder);
-		const result = await actions.mark_sent(event({ appointment_id: APPOINTMENT_ID }));
-		expect(result).toMatchObject({ status: 404 });
-		expect(calls).toContainEqual(['eq', ['business_id', BUSINESS_ID]]);
-		expect(mocks.writeAuditLog).not.toHaveBeenCalled();
-	});
+  mocks.rpc.mockResolvedValue({ data: null, error: { message: 'APPOINTMENT_NOT_FOUND', code: 'P0001' } });
+  const result = await actions.mark_sent(event({ appointment_id: APPOINTMENT_ID, expected_revision: REVISION }));
+  expect(result).toMatchObject({ status: 404 });
+  expect(mocks.rpc).toHaveBeenCalledExactlyOnceWith('mark_appointment_whatsapp_reminder_sent', {
+   p_business_id: BUSINESS_ID, p_appointment_id: APPOINTMENT_ID, p_expected_revision: REVISION
+  });
+  expect(mocks.from).not.toHaveBeenCalled();
+  expect(mocks.writeAuditLog).not.toHaveBeenCalled();
+ });
 
-	it('marca el turno del consultorio y audita una sola vez', async () => {
-		const { builder, calls } = updateChain({ data: { id: APPOINTMENT_ID }, error: null });
-		mocks.from.mockReturnValue(builder);
-		const result = await actions.mark_sent(event({ appointment_id: APPOINTMENT_ID }));
-		expect(result).toEqual({ success: true });
-		expect(mocks.from).toHaveBeenCalledWith('appointments');
-		expect(calls).toContainEqual(['eq', ['id', APPOINTMENT_ID]]);
-		expect(calls).toContainEqual(['eq', ['business_id', BUSINESS_ID]]);
-		expect(calls).toContainEqual(['select', ['id']]);
-		expect(mocks.writeAuditLog).toHaveBeenCalledTimes(1);
-		expect(mocks.writeAuditLog).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
-			businessId: BUSINESS_ID,
-			action: 'reminder.whatsapp_marked_sent',
-			entityId: APPOINTMENT_ID
-		}));
-	});
+ it('marca el turno y delega su auditoría al mismo comando transaccional', async () => {
+  const result = await actions.mark_sent(event({ appointment_id: APPOINTMENT_ID, expected_revision: REVISION }));
+  expect(result).toEqual({ success: true });
+  expect(mocks.rpc).toHaveBeenCalledExactlyOnceWith('mark_appointment_whatsapp_reminder_sent', {
+   p_business_id: BUSINESS_ID, p_appointment_id: APPOINTMENT_ID, p_expected_revision: REVISION
+  });
+  expect(mocks.from).not.toHaveBeenCalled();
+  expect(mocks.writeAuditLog).not.toHaveBeenCalled();
+ });
+
+ it('un reintento ya registrado devuelve éxito sin otra auditoría del servidor', async () => {
+  mocks.rpc.mockResolvedValue({ data: false, error: null });
+  const result = await actions.mark_sent(event({ appointment_id: APPOINTMENT_ID, expected_revision: REVISION }));
+  expect(result).toEqual({ success: true }); expect(mocks.rpc).toHaveBeenCalledTimes(1);
+  expect(mocks.writeAuditLog).not.toHaveBeenCalled();
+ });
+
+ it('exige la revisión mostrada antes de intentar registrar el envío', async () => {
+  const result = await actions.mark_sent(event({ appointment_id: APPOINTMENT_ID }));
+  expect(result).toMatchObject({ status: 400 }); expect(mocks.rpc).not.toHaveBeenCalled();
+ });
+
+ it('un cambio concurrente responde conflicto humano y no éxito', async () => {
+  mocks.rpc.mockResolvedValue({ data: null, error: { message: 'APPOINTMENT_MANAGEMENT_CHANGED', code: 'P0001' } });
+  const result = await actions.mark_sent(event({ appointment_id: APPOINTMENT_ID, expected_revision: REVISION }));
+  expect(result).toMatchObject({ status: 409, data: { message: expect.stringMatching(/cambiaron/) } });
+  expect(JSON.stringify(result)).not.toContain('APPOINTMENT_MANAGEMENT_CHANGED');
+ });
+
+ it('una respuesta ilegible conserva la incertidumbre sin afirmar que no se escribió', async () => {
+  mocks.rpc.mockResolvedValue({ data: null, error: null });
+  const result = await actions.mark_sent(event({ appointment_id: APPOINTMENT_ID, expected_revision: REVISION }));
+  expect(result).toMatchObject({ status: 503, data: { message: expect.stringMatching(/revisar lo registrado/) } });
+  expect(mocks.writeAuditLog).not.toHaveBeenCalled();
+ });
 
 	it('sin permiso para operar no toca la base', async () => {
 		mocks.resolveActiveBusiness.mockResolvedValue({ business: { id: BUSINESS_ID }, canOperate: false });

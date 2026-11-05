@@ -3,7 +3,8 @@ import { env } from '$env/dynamic/private';
 import { error as kitError, fail, redirect } from '@sveltejs/kit';
 import { createSupabaseAdminClient, createSupabaseServerClient } from '$lib/server/platform/supabase';
 import { resolveActiveBusiness } from '$lib/server/access/public/business';
-import { writeAuditLog } from '$lib/server/platform/audit';
+import { readBoundedBookingForm } from '$lib/server/platform/form-data';
+import { markStaffReminderSent, staffDeliveryFailure } from '$lib/server/scheduling/public/staff-delivery';
 import {
 	loadReminderList,
 	type ReminderDay,
@@ -26,6 +27,7 @@ const demoCandidates = (day: ReminderDay): ReminderListItem[] => {
 	return [
 		{
 			appointment_id: 'demo-reminder-1',
+			management_revision: '0'.repeat(64),
 			patient_id: 'demo-patient-1',
 			starts_at: at(15),
 			time_label: '15:30',
@@ -41,6 +43,7 @@ const demoCandidates = (day: ReminderDay): ReminderListItem[] => {
 		},
 		{
 			appointment_id: 'demo-reminder-2',
+			management_revision: '0'.repeat(64),
 			patient_id: 'demo-patient-2',
 			starts_at: at(16),
 			time_label: '16:00',
@@ -56,6 +59,7 @@ const demoCandidates = (day: ReminderDay): ReminderListItem[] => {
 		},
 		{
 			appointment_id: 'demo-reminder-3',
+			management_revision: '0'.repeat(64),
 			patient_id: 'demo-patient-3',
 			starts_at: at(17),
 			time_label: '17:00',
@@ -82,7 +86,8 @@ export const load: PageServerLoad = async ({ locals, fetch, cookies, url }) => {
 			day,
 			candidates: demoCandidates(day),
 			restricted: false,
-			remindersUnavailable: false
+			remindersUnavailable: false,
+			deliveryNotice: null
 		};
 	}
 
@@ -116,7 +121,13 @@ export const load: PageServerLoad = async ({ locals, fetch, cookies, url }) => {
 		}
 	}
 
-	return { demo: false, day, candidates, restricted, remindersUnavailable };
+	const notices: Record<string, string> = {
+		actualizar: 'Usá el botón de la lista actualizada para preparar el recordatorio.',
+		ya_abierto: 'Este recordatorio ya se abrió. Revisá lo registrado antes de abrirlo otra vez.',
+		cambio: 'El turno, el teléfono o los permisos cambiaron. Revisá la lista actualizada antes de seguir.',
+		error: 'No pudimos confirmar la preparación del mensaje. Revisá lo registrado antes de repetir la acción.'
+	};
+	return { demo: false, day, candidates, restricted, remindersUnavailable, deliveryNotice: notices[url.searchParams.get('aviso') ?? ''] ?? null };
 };
 
 export const actions: Actions = {
@@ -134,41 +145,24 @@ export const actions: Actions = {
 			return fail(403, { message: 'No tenés permisos para gestionar recordatorios.' });
 		}
 
-		const form = await request.formData();
+		let form: FormData;
+		try { form = await readBoundedBookingForm(request, []); }
+		catch { return fail(400, { message: 'No pudimos leer la acción. Actualizá la página y volvé a intentar.' }); }
 		const appointmentId = String(form.get('appointment_id') ?? '').trim();
 		// Un identificador mal formado nunca llega a PostgreSQL (respondería 22P02).
 		if (!isUuid(appointmentId)) return fail(404, { message: 'No encontramos ese turno.' });
 
-		const userId = locals.verifiedUser?.id ?? null;
-		const now = new Date().toISOString();
-		const { data: marked, error } = await supabase
-			.from('appointments')
-			.update({
-				whatsapp_reminder_marked_sent_at: now,
-				whatsapp_reminder_marked_sent_by: userId,
-				updated_at: now
-			})
-			.eq('id', appointmentId)
-			.eq('business_id', context.business.id)
-			.select('id')
-			.maybeSingle();
-		if (error) {
-			logServerFailure('Error marcando recordatorio como enviado', error);
-			return fail(500, { message: 'No se pudo marcar el recordatorio.' });
+		const revision = form.get('expected_revision');
+		if (typeof revision !== 'string' || !/^[a-f0-9]{64}$/.test(revision)) {
+			return fail(400, { message: 'Actualizá la página para revisar el turno antes de marcar el mensaje.' });
 		}
-		// Sin fila actualizada (otro consultorio, turno borrado o sin permiso) no hay
-		// nada que confirmar ni que auditar.
-		if (!marked) return fail(404, { message: 'No encontramos ese turno en este consultorio.' });
-
-		await writeAuditLog(supabase, {
-			businessId: context.business.id,
-			userId,
-			action: 'reminder.whatsapp_marked_sent',
-			entityType: 'appointment',
-			entityId: appointmentId,
-			metadata: null
-		});
-
-		return { success: true };
+		try {
+			await markStaffReminderSent(supabase, { businessId: context.business.id, appointmentId, expectedRevision: revision });
+			return { success: true };
+		} catch (error) {
+			const failure = staffDeliveryFailure(error);
+			if (failure.status === 503) logServerFailure('Error registrando el envío manual del recordatorio', error);
+			return fail(failure.status, { message: failure.message });
+		}
 	}
 };

@@ -15,6 +15,7 @@ export type DepositWhatsAppNotices = { paidNow: PracticeWhatsAppNotice; payLater
 
 export type ReminderCandidate = {
 	appointment_id: string;
+	management_revision: string;
 	patient_id: string;
 	starts_at: string;
 	time_label: string;

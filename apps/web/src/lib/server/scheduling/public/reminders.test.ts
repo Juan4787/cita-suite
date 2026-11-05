@@ -319,6 +319,7 @@ describe('loadReminderCandidates · exclusión por avisos activados', () => {
 		service_name_snapshot: 'Consulta',
 		professional_name_snapshot: 'Dra. Lopez',
 		confirmation_token: `tok-${id}`,
+		appointment_management_revision: 'a'.repeat(64),
 		calendar_action_status: 'not_offered',
 		calendar_sequence: 0,
 		calendar_update_required_at: null,

@@ -145,6 +145,9 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@cita-suite/share
 		if (log.action === 'appointment.created') return `${user} creó el turno`;
 		if (log.action === 'appointment.public_created') return 'El paciente reservó el turno online';
 		if (log.action === 'appointment.reschedule_policy_informed') return 'Se informaron las condiciones de reprogramación al reservar';
+		if (log.action === 'appointment.management_link_prepared') return `${user} preparó un enlace para compartir el turno`;
+		if (log.action === 'reminder.whatsapp_opened') return `${user} abrió el recordatorio por WhatsApp`;
+		if (log.action === 'reminder.whatsapp_marked_sent') return `${user} registró que envió el recordatorio por WhatsApp`;
 		if (log.action === 'appointment.public_confirmed') return 'El paciente confirmó el turno desde el enlace';
 		if (log.action === 'appointment.public_cancelled') return 'El paciente canceló el turno desde el enlace';
 		if (log.action === 'appointment.public_reschedule_requested') {
@@ -161,7 +164,7 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@cita-suite/share
 		if (log.action === 'appointment.slot_release_hidden') return `${user} ocultó un aviso de horario liberado`;
 		if (log.action === 'appointment.deposit_reminder_opened') return `${user} abrió el pedido de seña por WhatsApp`;
 		if (log.action === 'appointment.deposit_expired') return 'El turno se canceló automáticamente porque no se registró la seña';
-		return `${user} registró ${log.action}`;
+		return `${user} registró una actualización del turno`;
 	};
 
 	const auditDetail = (log: AuditLog) => {
