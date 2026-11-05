@@ -18,7 +18,7 @@ produccion_repositorio: github-secundaria:Juan4787/cita-suite-verificacion.git
 
 ## Etapa E — ejecución al 5 de noviembre
 
-E conserva autorización íntegra de implementación/pruebas/publicación: [plan 12.18–12.26](plans/propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada), [especificación](plans/etapa-e-correo-autogestion.md) y [registro activo](plans/ejecucion-etapa-e-20261103.md). E1/E2/E3 sin publicar ni SQL E productivo. SQL28 aprobada en 41965713239: 159 migraciones, treinta grupos nuevos, cuatro contenciones de política, cinco de contacto, 48 carreras/dos contraejemplos FK y doce esperas; tipos/digest cotejados. 72 dirigidas locales de agenda aprobadas. Fast 41966747016 se detuvo en cinco opciones de selector no admitidas del test nuevo; arnés corregido, cliente todavía pendiente. Siguiente: fast corregido, después browser público/recepción informada; luego contacto/outbox/distribución/SN14/Zoho/correo/E5–E6. Índice documental creado por pedido de Juan. Checkpoint E3.20. Clave Zoho existente privada, sin crear/desplegar/enviar. Producción V12b, ningún envío nuevo ni cierre E; P1/P2/P3 pospuestas.
+E conserva autorización íntegra de implementación/pruebas/publicación: [plan 12.18–12.26](plans/propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada), [especificación](plans/etapa-e-correo-autogestion.md) y [registro activo](plans/ejecucion-etapa-e-20261103.md). E1/E2/E3 sin publicar ni SQL E productivo. SQL28 aprobada en 41965713239. Fast 41967728128 aprobado (1962 servidor/294 cliente, tipos/guardias); browser 41968223023 aprueba recepción ampliada/declaración/día/actor, pero el recorrido público se detiene con campos vacíos durante la matriz, antes de verificar conflicto: causa todavía en investigación. Borrador SQL29 para preparación explícita de enlaces y marcas manuales atómicas, sin consumidores conectados; dieciséis grupos y seis esperas nuevas preparados, pendientes de SQL/tipos. Siguiente: SQL29; diagnosticar pérdida de valores públicos, integrar distribución y continuar contacto/outbox/SN14/Zoho/correo/E5–E6. Índice documental disponible. Checkpoint E3.22. Clave Zoho privada sin envíos; producción V12b, ningún cierre E; P1/P2/P3 pospuestas.
 
 ## Código que difiere de producción
 
@@ -204,6 +204,7 @@ A	supabase/migrations/20261104120000_public_booking_email_contact_scope.sql
 A	supabase/migrations/20261104130000_patient_contact_lock_order.sql
 A	supabase/migrations/20261104140000_informed_public_booking_reschedule_policy.sql
 A	supabase/migrations/20261105010000_informed_staff_booking_reschedule_policy.sql
+A	supabase/migrations/20261105020000_staff_appointment_delivery.sql
 M	supabase/templates/recovery.html
 M	supabase/tests/appointment_actor_revalidation.sql
 M	supabase/tests/appointment_deposits.sql
@@ -245,6 +246,7 @@ A	supabase/tests/run_patient_management_view_concurrency.sh
 M	supabase/tests/run_public_booking_limit_concurrency.sh
 M	supabase/tests/run_public_patient_resolution_concurrency.sh
 A	supabase/tests/run_staff_authorization_concurrency.sh
+A	supabase/tests/staff_appointment_delivery.sql
 A	supabase/tests/staff_appointment_management.sql
 A	supabase/tests/staff_booking_reschedule_policy.sql
 ```

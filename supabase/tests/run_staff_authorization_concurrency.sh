@@ -51,7 +51,7 @@ SQL
 "${staff_psql[@]}" <<'SQL'
 create function staff_authorization_race.prepare(p_label text) returns void language plpgsql as $$
 declare b uuid:='e3200000-0000-4000-8000-000000000001'; a uuid; patient uuid; starts timestamptz; v_release uuid; begin
- insert into public.patients(business_id,owner_id,full_name) values(b,'e3200000-0000-4000-8000-000000000002','Synthetic '||p_label) returning id into patient;
+ insert into public.patients(business_id,owner_id,full_name,phone_e164) values(b,'e3200000-0000-4000-8000-000000000002','Synthetic '||p_label,'+5493512345678') returning id into patient;
  starts:=date_trunc('hour',clock_timestamp())+make_interval(days=>20+(select count(*)::integer from staff_authorization_race.requests));
  insert into public.appointments(business_id,patient_id,professional_id,service_id,starts_at,ends_at,status,source,
   service_name_snapshot,professional_name_snapshot,duration_minutes_snapshot)
@@ -74,6 +74,12 @@ declare r staff_authorization_race.requests; b uuid:='e3200000-0000-4000-8000-00
  if p_action='revoke' then perform public.revoke_appointment_management_access(b,r.appointment_id,r.operation_id,r.revision);
  elsif p_action='pay' then perform public.set_appointment_deposit(b,r.appointment_id,'paid',1,null);
  elsif p_action='remind' then perform public.open_appointment_deposit_reminder(b,r.appointment_id,false);
+ elsif p_action in ('delivery_link','delivery_after_mint','delivery_reminder','delivery_deposit') then
+  perform public.prepare_staff_appointment_delivery(b,r.appointment_id,r.revision,
+   case p_action when 'delivery_reminder' then 'reminder' when 'delivery_deposit' then 'deposit' else 'activation' end,
+   false,case when p_action in ('delivery_reminder','delivery_deposit') then '+5493512345678' end);
+ elsif p_action in ('reminder_mark','reminder_mark_after_write') then
+  perform public.mark_appointment_whatsapp_reminder_sent(b,r.appointment_id,r.revision);
  elsif p_action='hide' then perform public.hide_appointment_slot_release(b,r.release_id);
  elsif p_action in ('agenda_cancel','agenda_reschedule') then
   -- The real backend delegates the verified actor; it has no patient/staff JWT.
@@ -122,8 +128,10 @@ declare r staff_authorization_race.requests; begin
   or exists(select 1 from public.audit_logs where business_id='e3200000-0000-4000-8000-000000000001' and action='appointment.slot_release_hidden')
   or not exists(select 1 from public.appointment_management_states where appointment_id=r.appointment_id and generation=1 and legacy_management_allowed)
   or exists(select 1 from private.appointment_management_operations where appointment_id=r.appointment_id)
+  or exists(select 1 from private.appointment_management_capabilities where appointment_id=r.appointment_id)
+  or exists(select 1 from public.appointments where id=r.appointment_id and (whatsapp_reminder_opened_at is not null or whatsapp_reminder_marked_sent_at is not null))
   or exists(select 1 from public.appointment_deposit_requirements where appointment_id=r.appointment_id and status='paid')
-  or exists(select 1 from public.audit_logs where entity_id=r.appointment_id and action in ('appointment.management_access_revoked','appointment.deposit_paid','appointment.deposit_reminder_opened'))
+  or exists(select 1 from public.audit_logs where entity_id=r.appointment_id and action in ('appointment.management_access_revoked','appointment.deposit_paid','appointment.deposit_reminder_opened','appointment.management_link_prepared','reminder.whatsapp_opened','reminder.whatsapp_marked_sent'))
   or not exists(select 1 from public.patients p join public.appointments a on a.patient_id=p.id
    where a.id=r.appointment_id and p.full_name='Synthetic '||p_label and p.email is null and p.email_contact_revision=1)
   or exists(select 1 from public.patient_profile_change_events e join public.appointments a on a.patient_id=e.patient_id where a.id=r.appointment_id)
@@ -133,13 +141,14 @@ declare r staff_authorization_race.requests; begin
 end $$;
 SQL
 staff_deadlocks=$("${staff_psql[@]}" -c 'select deadlocks from pg_stat_database where datname=current_database();')
-for staff_action in revoke pay remind policy policy_off hide agenda_cancel agenda_reschedule create repair profile profile_history; do
+for staff_action in revoke pay remind policy policy_off hide agenda_cancel agenda_reschedule create repair profile profile_history delivery_link delivery_reminder delivery_deposit reminder_mark delivery_after_mint reminder_mark_after_write; do
  "${staff_psql[@]}" -c "select staff_authorization_race.prepare('$staff_action');"
  staff_lock="select id from public.appointments where id=(select appointment_id from staff_authorization_race.requests where label='$staff_action') for no key update;"
  [[ "$staff_action" != policy ]] || staff_lock="select business_id from public.deposit_policies where business_id='$staff_business' for no key update;"
  [[ "$staff_action" != create ]] || staff_lock="select id from public.patients where id=(select patient_id from public.appointments where id=(select appointment_id from staff_authorization_race.requests where label='$staff_action')) for update;"
  [[ "$staff_action" != profile ]] || staff_lock="select id from public.patients where id=(select patient_id from public.appointments where id=(select appointment_id from staff_authorization_race.requests where label='$staff_action')) for update;"
  [[ "$staff_action" != profile_history ]] || staff_lock="lock table public.patient_profile_change_events in share mode;"
+ [[ "$staff_action" != delivery_after_mint && "$staff_action" != reminder_mark_after_write ]] || staff_lock="lock table public.audit_logs in share mode;"
  [[ "$staff_action" != hide ]] || staff_lock="select id from public.appointment_slot_releases where id=(select release_id from staff_authorization_race.requests where label='$staff_action') for no key update;"
  "${staff_psql[@]}" >"$staff_directory/holder.log" 2>&1 <<SQL &
 begin;
@@ -177,6 +186,7 @@ SQL
  [[ "$staff_action" != repair ]] || staff_error=APPOINTMENT_REASSIGNMENT_ACTOR_INVALID
  [[ "$staff_action" != profile && "$staff_action" != profile_history ]] || staff_error=PATIENT_UPDATE_DENIED
  [[ "$staff_action" != hide ]] || staff_error=SLOT_RELEASE_FORBIDDEN
+ case "$staff_action" in delivery_*|reminder_mark*) staff_error=APPOINTMENT_MANAGEMENT_FORBIDDEN;; esac
  if [[ "$staff_result" == 0 ]] || ! grep -Fq "$staff_error" "$staff_directory/actor.log"; then
   cat "$staff_directory/actor.log" >&2; echo "FAIL: expired help executed $staff_action after a verified lock wait." >&2; exit 1
  fi
