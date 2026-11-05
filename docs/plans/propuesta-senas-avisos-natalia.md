@@ -1374,3 +1374,11 @@ Precisó registrar el encargo y requisitos originales/vigentes, implementación 
 **Aplicación y precedencia:** se detiene la implementación de E y se preserva para otro agente en el [traspaso técnico exacto](traspaso-etapa-e-20261105.md), checkpoint E3.50 del [registro activo](ejecucion-etapa-e-20261103.md). Sustituye la continuación automática de 12.20/12.25 durante este encargo. No cancela ni da por cumplidos los requisitos pendientes de E, no retira como historia la autorización productiva, no autoriza publicar E como parte de este traspaso y no reanuda P1/P2/P3. La intención de continuación conservada es descriptiva, no una orden obligatoria al agente que retome.
 
 **Persistencia:** recuperar el resultado de la corrida ya iniciada, conservar evidencia privada sin sobrescribir, actualizar los puntos vigentes y subir sólo los documentos propios a main/GitHub, con comprobación de sincronización y producción. Se conserva el inventario de diferencias de código y no se toca código/SQL/configuración del producto ni datos de producción. Los «en curso» de checkpoints históricos conservan su fecha; el punto actual refleja el resultado final. E sigue incompleta y sin publicación.
+
+<a id="mandato-integral-20261105"></a>
+
+### 12.32 Mandato integral de avisos, correo y calendarios (5 de noviembre)
+
+Juan encargó, después de 12.31, dejar completo, integrado, publicado y auditado todo el sistema de notificaciones, comunicaciones, recordatorios y calendarios, cerrando E. [Texto literal](mandato-integral-avisos-20261105.md).
+
+**Aplicación y precedencia:** sustituye la detención de 12.31 y reanuda la implementación con autorización de publicación. No obliga a seguir E0–E6 ni el traspaso: los requisitos aprobados se cumplen íntegros, la evidencia histórica vale dentro de sus límites y las decisiones técnicas registradas pueden reemplazarse con fundamento. Amplía el alcance con el recorrido de Chrome Android, la estrategia de calendarios para Samsung, otros Android y Apple, la entrada visible a Google gestionado y la preparación del video de verificación. Conserva P1/P2/P3 pospuestas, la protección de la configuración de Natalia y la prohibición de compras. [Plan canónico](plan-integral-avisos-20261105.md).

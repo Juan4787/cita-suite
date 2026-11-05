@@ -1,5 +1,7 @@
 # Traspaso técnico de E — interrupción solicitada el 5 de noviembre de 2026
 
+> **Historia.** La detención que describe este documento terminó con el [mandato integral](mandato-integral-avisos-20261105.md) de la misma noche. Lo vigente está en el [plan canónico](plan-integral-avisos-20261105.md). Este traspaso se conserva como evidencia e intención del agente anterior, no como orden.
+
 **Implementación detenida por pedido de Juan. E está incompleta y no está publicada.** Este documento preserva el contexto del agente saliente y su intención de continuación. No es otra especificación, una auditoría nueva ni una orden de ejecutar los pasos propuestos. El pedido posterior de detener y documentar prevalece sobre la continuación autónoma de 12.25; queda registrado en [plan 12.31](propuesta-senas-avisos-natalia.md#traspaso-e-documental-20261105).
 
 El checkpoint de salida es **E3.50** del [registro activo](ejecucion-etapa-e-20261103.md#e350--interrupción-documental-y-resultado-final-del-browser-sn14). Las entradas E3.49 y anteriores son historia de lo observado en sus fechas; su «en curso» no describe una corrida todavía activa. La corrida 42080552190 terminó fallida y su evidencia ya está recuperada. No queda una corrección nueva sin guardar ni una verificación pesada iniciada por este traspaso.

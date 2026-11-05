@@ -1,8 +1,8 @@
 # Ejecución de E: continuidad, decisiones y evidencia
 
-**Punto vigente — 5 de noviembre de 2026, E3.50:** Juan pidió detener implementación y preservar el estado para otro agente, [plan 12.31](propuesta-senas-avisos-natalia.md#traspaso-e-documental-20261105). [Traspaso técnico exacto](traspaso-etapa-e-20261105.md): encargo, decisiones, archivos, evidencia, límites e intención de continuación. E1/E2/E3 siguen parciales, sin cierre ni publicación. Producción sigue en V12b; revisión exacta en el [estado vigente](../ESTADO-VIGENTE.md). La autorización histórica de publicación se conserva, pero no es el trabajo de esta interrupción documental.
+**Punto vigente:** implementación reanudada por el [mandato integral](mandato-integral-avisos-20261105.md). Estrategia y checkpoint en el [plan canónico](plan-integral-avisos-20261105.md); este archivo conserva la matriz de los 97 casos y la cronología de evidencia. Producción: [estado vigente](../ESTADO-VIGENTE.md).
 
-**Tareas posteriores pospuestas:** Juan pospuso P1 cancelación desde recepción, P2 estilos completos y P3 avisos internos. No iniciarlas al cerrar E; avisar y entregar la documentación detallada de E. [Precedencia 12.26](propuesta-senas-avisos-natalia.md#posteriores-a-e-pospuestas), [seguimiento separado](tareas-posteriores-a-e-20261103.md). D celular sigue reemplazada por la futura P3; E está incompleta y su implementación detenida para el traspaso.
+**Tareas posteriores pospuestas:** Juan pospuso P1 cancelación desde recepción, P2 estilos completos y P3 avisos internos. No iniciarlas al cerrar E; avisar y entregar la documentación detallada de E. [Precedencia 12.26](propuesta-senas-avisos-natalia.md#posteriores-a-e-pospuestas), [seguimiento separado](tareas-posteriores-a-e-20261103.md). D celular sigue reemplazada por la futura P3; E está incompleta.
 
 Fuentes: [plan íntegro y ajustes](propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada), [especificación única y 97 casos](etapa-e-correo-autogestion.md), [registro histórico](registro-senas-avisos-natalia.md), [traspaso](traspaso-senas-avisos-natalia.md#etapa-e-punto) y [pendientes generales](pendientes-vigentes.md#etapa-e-pendientes). Este archivo concentra el seguimiento de E; no copia sus reglas funcionales para evitar dos especificaciones divergentes.
 
@@ -35,9 +35,7 @@ Fuentes: [plan íntegro y ajustes](propuesta-senas-avisos-natalia.md#ejecucion-e
 
 ## Checkpoint y siguiente acción
 
-**Fase:** E0 completo; E1/E2/E3 en implementación/verificación parcial, detenida para el traspaso. Treinta migraciones de E/161 totales aprobadas en SQL 42073541134; fast integrado 42076262537 y capas browser con límites indicados abajo. **Publicación E / SQL productivo / aceptación integral:** pendientes. El [traspaso técnico](traspaso-etapa-e-20261105.md) conserva la foto y la intención técnica original de continuación, sin iniciar otra implementación.
-
-**Siguiente acción:** Implementación detenida por pedido de Juan para el traspaso documental (plan 12.31), checkpoint E3.50. E1/E2/E3 parciales, sin publicar; SQL30 y fast 42076262537 (2038 servidor/300 cliente) conservan su evidencia. Personal aprobado como caso en 42078792126. Browser 42080552190 terminó fallido: pasó rechazo/borrador/registro nativos de 10.000 y se detuvo en el clic JS previo a probar respuesta ilegible; recuperación y visuales SN14 pendientes. No queda esa corrida en curso. Contacto/outbox/Zoho/correo, limpieza y E5–E6 abiertos. Producción V12b; ningún envío ni cierre E; P1/P2/P3 pospuestas.
+**Fase y siguiente acción:** únicamente en el [checkpoint del plan canónico](plan-integral-avisos-20261105.md#0-checkpoint-vigente).
 
 **Evidencia privada de esta ejecución:** `.verification/etapa-e-20261103/`. Ningún secreto, dirección de paciente, cuerpo de correo recibido o dato personal se incluye en Git ni en documentos públicos. Las rutas de evidencia no equivalen a resultados aprobados.
 

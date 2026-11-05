@@ -1,6 +1,6 @@
 # Documentación de la fase E
 
-**Estado al 5 de noviembre de 2026: implementación detenida para traspaso por pedido de Juan; E incompleta y sin publicar.** [Traspaso técnico exacto](traspaso-etapa-e-20261105.md): estado local/GitHub/producción, decisiones, investigación, pruebas, pendientes e intención de continuación. Este índice permite revisar el trabajo y encontrar su detalle. No acredita el cierre de E ni sustituye las fuentes enlazadas. El estado exacto de producción y las diferencias de código se mantienen únicamente en el [estado vigente](../ESTADO-VIGENTE.md).
+**Estado: implementación reanudada por el [mandato integral](mandato-integral-avisos-20261105.md); E incompleta y sin publicar.** [Plan canónico y checkpoint](plan-integral-avisos-20261105.md). El [traspaso del 5 de noviembre](traspaso-etapa-e-20261105.md) queda como historia. Este índice permite revisar el trabajo y encontrar su detalle: no acredita el cierre de E ni sustituye las fuentes enlazadas. El estado exacto de producción y las diferencias de código están únicamente en el [estado vigente](../ESTADO-VIGENTE.md).
 
 Juan pidió entregar, al terminar E, la ubicación exacta y enlaces directos desde la interfaz a toda la documentación detallada. Este índice se conserva durante el trabajo y se actualizará para la entrega final. P1, P2 y P3 continúan pospuestas.
 
@@ -11,7 +11,7 @@ Juan pidió entregar, al terminar E, la ubicación exacta y enlaces directos des
 | Qué se acordó y qué instrucciones prevalecen | [Plan aprobado, sección 12](propuesta-senas-avisos-natalia.md#12-aprobación-y-ajustes-posteriores). Conserva las decisiones originales y los ajustes posteriores, incluidos Zoho, identidad del consultorio, valores iniciales, coherencia contextual, autorización y condiciones informadas. |
 | Qué debe hacer el producto | [Especificación de E](etapa-e-correo-autogestion.md). Alcance, reglas transaccionales y 97 casos EM/AC/RP/SN/RM/ZH/UI/OP. La matriz es requisito; sus filas no equivalen a pruebas aprobadas. |
 | Qué se implementó y cómo se comprobó | [Registro activo de ejecución](ejecucion-etapa-e-20261103.md). Cambios, garantías, decisiones, fallas, causas, correcciones, revisiones, corridas y rutas de evidencia. Su matriz distingue aceptación parcial de pendiente. |
-| Contexto para otro agente | [Traspaso técnico del 5 de noviembre](traspaso-etapa-e-20261105.md), [checkpoint E3.50](ejecucion-etapa-e-20261103.md#checkpoint-y-siguiente-acción), [traspaso de campaña](traspaso-senas-avisos-natalia.md#etapa-e-punto) y [pendientes vigentes](pendientes-vigentes.md#etapa-e-pendientes). La secuencia prevista es intención del agente saliente; el encargo actual no autoriza nuevas implementaciones. |
+| Contexto para otro agente | [Plan canónico](plan-integral-avisos-20261105.md), [mandato literal](mandato-integral-avisos-20261105.md), [traspaso histórico del 5 de noviembre](traspaso-etapa-e-20261105.md) y [pendientes vigentes](pendientes-vigentes.md#etapa-e-pendientes). |
 | Qué está publicado realmente | [Estado vigente](../ESTADO-VIGENTE.md). Revisión y versión efectivas de producción, rama e inventario exacto del código que todavía difiere. |
 
 ## Detalle por parte de la implementación

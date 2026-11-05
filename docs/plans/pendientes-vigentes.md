@@ -2,7 +2,7 @@
 
 **Para qué existe:** Juan pidió el 31 de octubre de 2026 que no se pierda nada de lo que queda pendiente (plan de señas y avisos, sección 12.15). Esta es la lista única. Cada punto remite a su documento de origen, que conserva el detalle. Al cerrar un punto, se lo marca como hecho acá con la fecha y la evidencia, y se actualiza su documento de origen.
 
-**Última revisión de E:** 5 de noviembre de 2026, implementación detenida para [traspaso documental](traspaso-etapa-e-20261105.md) por pedido posterior de Juan (plan 12.31). Las otras entradas conservan sus fechas y evidencias. E1/E2/E3 parciales, sin aceptación integral ni publicación; P1/P2/P3 pospuestas por plan 12.26, sin iniciarlas al cerrar E.
+**Última revisión de E:** 5 de noviembre de 2026, noche. Implementación reanudada por el [mandato integral](mandato-integral-avisos-20261105.md), con [plan canónico](plan-integral-avisos-20261105.md). Las otras entradas conservan sus fechas y evidencias. P1/P2/P3 pospuestas por plan 12.26.
 
 ## 1. Lo que sigue para la entrega a Natalia
 
@@ -43,7 +43,7 @@ Fuente: `docs/clientes/natalia-frutos/informacion-20261029.md`, secciones 4 y 5,
 
 <a id="etapa-e-pendientes"></a>
 
-2. **E, correo y autogestión: incompleta; implementación detenida para el traspaso.** [Traspaso técnico exacto](traspaso-etapa-e-20261105.md), [registro activo y continuidad](ejecucion-etapa-e-20261103.md). Autorización histórica de ejecución completa conservada, Q01/Q02 resueltas; E1/E2/E3 parciales, ningún comportamiento nuevo de E publicado. Zoho/Gmail mantienen sus conexiones y límites registrados, no una integración funcional de correo.
+2. **E, correo y autogestión: incompleta, en implementación por el mandato integral.** [Plan canónico](plan-integral-avisos-20261105.md), [registro activo](ejecucion-etapa-e-20261103.md). Ningún comportamiento nuevo de E está publicado.
    - Fuente: [plan 12.18](propuesta-senas-avisos-natalia.md#etapa-e-vigente) y [especificación completa](etapa-e-correo-autogestion.md). La revisión de código/documentación está hecha; ningún comportamiento nuevo de E está publicado.
    - **Ya hecho por Juan:** registro en Zoho y prueba de dos envíos. Informó KYC pendiente y 100 correos gratuitos diarios; pagará al completarlo. No falta crear cuenta Resend ni volver a crear Zoho.
    - **Al iniciar:** comprobar dominio/remitente/región, credenciales fuera de chat/git, cuota/saldo/vencimiento reales, configuración del emisor, webhooks y buzones autorizados. Sus dos mensajes no prueban integración ni recepción/acciones desde Cita Suite.
@@ -52,7 +52,7 @@ Fuente: `docs/clientes/natalia-frutos/informacion-20261029.md`, secciones 4 y 5,
    - **Economía:** aceptado gasto controlado de correo con un consultorio. KYC/compras de créditos a cargo de Juan, sin recarga automática ni cambios de infraestructura/Auth.
    - **Continúa pendiente de la clienta:** condiciones de devolución al cancelar y datos de la seña del punto 2.5. La pérdida acordada al reprogramar no define esas devoluciones.
    - **Conexión local terminada el 3 de noviembre:** Juan pidió acceso por terminal y conservarlo al reiniciar ([12.19](propuesta-senas-avisos-natalia.md#zoho-terminal-vigente)). OAuth, consultas y renovación comprobados; herramienta versionada y credenciales privadas persistentes. [Guía y comandos](../architecture/zoho-cpaas-terminal.md). No necesita una terminal abierta.
-   - **Ahora:** Implementación detenida por pedido de Juan para el traspaso documental (plan 12.31), checkpoint E3.50. E1/E2/E3 parciales, sin publicar; SQL30 y fast 42076262537 (2038 servidor/300 cliente) conservan su evidencia. Personal aprobado como caso en 42078792126. Browser 42080552190 terminó fallido: pasó rechazo/borrador/registro nativos de 10.000 y se detuvo en el clic JS previo a probar respuesta ilegible; recuperación y visuales SN14 pendientes. No queda esa corrida en curso. Contacto/outbox/Zoho/correo, limpieza y E5–E6 abiertos. Producción V12b; ningún envío ni cierre E; P1/P2/P3 pospuestas.
+   - **Ahora:** ver el [checkpoint del plan canónico](plan-integral-avisos-20261105.md#0-checkpoint-vigente).
 
 ## 4. Lanzamiento y operación general
 
