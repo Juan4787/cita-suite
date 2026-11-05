@@ -138,3 +138,6 @@ E3.10, sin publicar, actualiza la verificación del párrafo anterior: SQL 41929
 
 
 **E3.11, 5 de noviembre — borrador, sin publicación:** el alta pública con seña transporta sólo cuatro campos económicos versionados de su resumen. SQL decide sobre condiciones efectivas bajo bloqueo; un endurecimiento exige revisar y una relajación aplica la regla menos exigente. Aceptación y auditoría pertenecen al alta, nunca a su lectura ni a recuperar la clave completada. Sin seña no hay adopción de penalidades; las altas del personal todavía no acreditan información por este mecanismo. Ver [12.29](../plans/propuesta-senas-avisos-natalia.md) y el registro activo para evidencia/pendientes.
+
+
+**E3.16, 5 de noviembre — borrador sin SQL aprobado ni interfaz conectada:** el contrato de declaración inicial del personal comparte comparación económica con el público; cambia sólo la procedencia de información y su actor ya validado. Ausencia de declaración no adopta penalidades; una preferencia activa no acredita información. La autoridad final del creador sigue dentro de la misma transacción. [12.30](../plans/propuesta-senas-avisos-natalia.md), evidencia y pendientes en el registro activo.

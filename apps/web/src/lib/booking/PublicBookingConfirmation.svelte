@@ -317,8 +317,8 @@
 				    Tus datos quedan disponibles para el equipo autorizado del consultorio.
 				  </p>
 				  <p class="patient-next-step">
-				    Al confirmar podés agregar el turno al calendario, pedir un cambio o
-				    cancelarlo.
+				    Después de reservar podés ver tu turno, agregarlo al calendario y consultar
+				    las opciones para reprogramarlo o cancelarlo.
 				  </p>
 
 				  {#if business?.cancellation_policy}

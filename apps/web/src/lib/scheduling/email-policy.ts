@@ -1,4 +1,4 @@
-import { InvalidDataContractError, readBoolean, readChoice, readRecord } from '$lib/contracts/json';
+import { InvalidDataContractError, readArray, readBoolean, readChoice, readRecord, readText } from '$lib/contracts/json';
 
 export const EMAIL_POLICY_BOOLEAN_KEYS = ['email_enabled', 'require_email', 'show_cancel', 'show_reschedule', 'require_deposit_on_reschedule'] as const;
 export type AppointmentEmailPreferences = Record<(typeof EMAIL_POLICY_BOOLEAN_KEYS)[number], boolean> & {
@@ -24,6 +24,14 @@ export const parseBookingReschedulePolicy = (value: unknown): BookingRescheduleP
  return { schema_version: 1, policy_revision: row.policy_revision,
   require_deposit_on_reschedule: readBoolean(row.require_deposit_on_reschedule, 'booking.reschedulePolicy.requireDeposit'),
   previous_deposit_disposition: readChoice(row.previous_deposit_disposition, ['credit', 'forfeit'] as const, 'booking.reschedulePolicy.disposition') };
+};
+
+export type ManualBookingReschedulePolicy = { policy: BookingReschedulePolicy; excludedServiceIds: string[] };
+export const parseManualBookingReschedulePolicy = (value: unknown): ManualBookingReschedulePolicy | null => {
+ if (value === null) return null;
+ const row = readRecord(value, 'manualBooking.reschedulePolicy');
+ return { policy: parseBookingReschedulePolicy(row.policy), excludedServiceIds: readArray(row.excludedServiceIds, 'manualBooking.excludedServices')
+  .map(id => readText(id, 'manualBooking.excludedService')) };
 };
 
 export const bookingReschedulePolicyNotice = (policy: BookingReschedulePolicy): string => {
