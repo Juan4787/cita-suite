@@ -7,8 +7,11 @@ scratch=$(mktemp -d)
 first_pid=''; second_pid=''
 query() { psql "$database_url" -X -v ON_ERROR_STOP=1 -qAt "$@"; }
 cleanup() {
+ local cleanup_status=$?
+ trap - EXIT
  for child in "$first_pid" "$second_pid"; do if [ -n "$child" ]; then kill "$child" 2>/dev/null || true; wait "$child" 2>/dev/null || true; fi; done
- query <<'SQL' >/dev/null 2>&1 || true
+ if ! query <<'SQL' >"$scratch/cleanup.log" 2>&1
+begin;
 do $$begin
  if to_regclass('booking_policy_race.original_runtime') is not null then
   update private.deposit_automation set enabled=(select deposit_enabled from booking_policy_race.original_runtime);
@@ -16,10 +19,16 @@ do $$begin
  end if;
 end$$;
 drop schema if exists booking_policy_race cascade;
+-- Financial history retains its patient FK. Remove the appointments first,
+-- as the existing management/deposit harnesses do; no FK is disabled.
+delete from public.appointments where business_id='b9300000-0000-4000-8000-000000000001';
 delete from public.businesses where id='b9300000-0000-4000-8000-000000000001';
 delete from auth.users where id='b9400000-0000-4000-8000-000000000001';
+commit;
 SQL
+ then cat "$scratch/cleanup.log" >&2; cleanup_status=1; fi
  rm -r -- "$scratch"
+ return "$cleanup_status"
 }
 trap cleanup EXIT
 query <<'SQL'
