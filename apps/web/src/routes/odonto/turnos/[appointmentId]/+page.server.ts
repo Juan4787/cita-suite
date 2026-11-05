@@ -11,17 +11,11 @@ import { createSupabaseAdminClient } from '$lib/server/platform/supabase';
 import { loadAppointmentBookingContext, loadAppointmentIntakeForPatient } from '$lib/server/sites/public/booking-integrations';
 import { processAppointmentGoogleCalendarSync } from '$lib/server/integrations/public/google-calendar';
 import { sendReschedulePushNotice } from '$lib/server/integrations/public/push';
-import {
-	buildAppointmentActivationDelivery,
-	buildArgentineWaMeUrl,
-	buildRescheduleWhatsAppMessage,
-	buildWhatsAppWebUrl
-} from '$lib/server/scheduling/public/reminders';
-import { publicRescheduleUrl } from '$lib/server/integrations/public/messaging';
+import { prepareStaffDelivery, staffDeliveryFailure } from '$lib/server/scheduling/public/staff-delivery';
 import { shouldOfferCreatedAppointmentActivation } from '$lib/scheduling/agenda-navigation';
 import { normalizeArgentineWhatsAppPhone } from '$lib/utils/phone';
-import { classifyUserAgent } from '$lib/device';
-import { isActiveAppointmentStatus } from '$lib/utils/appointment-visibility';
+import { classifyUserAgent, whatsappHrefFor }  from '$lib/device';
+import { isUpcomingActiveAppointment } from '$lib/utils/appointment-visibility';
 import { isAvailabilityDate } from '$lib/availability/windows';
 import { parsePriceQuote } from '$lib/scheduling/price-contracts';
 import { isUuid } from '@cita-suite/shared/uuid';
@@ -82,14 +76,9 @@ export const load: PageServerLoad = async ({ params, locals, fetch, cookies, url
 			fromDate: '',
 			justRescheduled: false,
 			justCreated: false,
-			activationWhatsAppUrl: null,
-			activationWhatsAppWebUrl: null,
-			activationDevice,
-			activationPublicUrl: null,
-		phoneWarningAcknowledged: false,
-		rescheduleWhatsAppUrl: null,
-		rescheduleWhatsAppWebUrl: null,
-		reschedulePublicUrl: null,
+   delivery: { available: false, hasPhone: false },
+   activationDevice,
+   phoneWarningAcknowledged: false,
 			demo: true
 		};
 	}
@@ -102,7 +91,7 @@ export const load: PageServerLoad = async ({ params, locals, fetch, cookies, url
 	const { data, error } = await supabase
 		.from('appointments')
 		.select(
-			'id, business_id, patient_id, service_id, professional_id, starts_at, ends_at, blocking_starts_at, blocking_ends_at, status, source, confirmation_token, service_name_snapshot, professional_name_snapshot, duration_minutes_snapshot, buffer_before_minutes_snapshot, buffer_after_minutes_snapshot, break_minutes_snapshot, ignore_break, confirmed_at, cancelled_at, cancelled_reason, reschedule_requested_at, internal_note, patient_instructions_snapshot, public_reminder_description_snapshot, price_quote_snapshot, phone_communication_status_at_booking, phone_warning_acknowledged_at, created_by_user_id, updated_by_user_id, cancelled_by_user_id, created_at, updated_at, appointment_management_revision, appointment_professionals(professional_id, position, is_primary, professional_name_snapshot, break_minutes_snapshot), patients(id, full_name, phone_e164, email, blocked), appointment_deposits(appointment_id, status, amount, currency, request_from, due_at, auto_cancel, waived_reason, recorded_at, reminder_opened_at, expired_at, revision)'
+			'id, business_id, patient_id, service_id, professional_id, starts_at, ends_at, blocking_starts_at, blocking_ends_at, status, source, service_name_snapshot, professional_name_snapshot, duration_minutes_snapshot, buffer_before_minutes_snapshot, buffer_after_minutes_snapshot, break_minutes_snapshot, ignore_break, confirmed_at, cancelled_at, cancelled_reason, reschedule_requested_at, internal_note, patient_instructions_snapshot, public_reminder_description_snapshot, price_quote_snapshot, phone_communication_status_at_booking, phone_warning_acknowledged_at, created_by_user_id, updated_by_user_id, cancelled_by_user_id, created_at, updated_at, appointment_management_revision, appointment_professionals(professional_id, position, is_primary, professional_name_snapshot, break_minutes_snapshot), patients(id, full_name, phone_e164, email, blocked), appointment_deposits(appointment_id, status, amount, currency, request_from, due_at, auto_cancel, waived_reason, recorded_at, reminder_opened_at, expired_at, revision)'
 		)
 		.eq('business_id', business.business.id)
 		.eq('id', params.appointmentId)
@@ -175,31 +164,9 @@ export const load: PageServerLoad = async ({ params, locals, fetch, cookies, url
 		(usersResult.data ?? []).map((user) => [String(user.user_id), user.email || 'Una persona del equipo'])
 	);
 
-	// Botón "Enviar actualización por WhatsApp": solo si el turno sigue activo, hay un
-	// teléfono E.164 plausible y un token. El enlace privado muestra SOLO el aviso de
-	// reprogramación. El texto va precargado y neutral (sin datos clínicos).
-	const patient = data.patients;
-	const phone = normalizeArgentineWhatsAppPhone(patient?.phone_e164);
-	const token = data.confirmation_token ? String(data.confirmation_token) : null;
-	const canNotifyReschedule = isActiveAppointmentStatus(data.status);
-	let rescheduleWhatsAppUrl: string | null = null;
-	let rescheduleWhatsAppWebUrl: string | null = null;
-	let reschedulePublicUrl: string | null = null;
-	if (canNotifyReschedule && token) {
-		reschedulePublicUrl = publicRescheduleUrl(token);
-		const message = buildRescheduleWhatsAppMessage({
-			patientName: String(patient?.full_name ?? 'Paciente'),
-			startsAt: String(data.starts_at),
-			timezone: business.business.timezone,
-			businessName: business.business.name,
-			rescheduleUrl: reschedulePublicUrl
-		});
-		rescheduleWhatsAppUrl = buildArgentineWaMeUrl(
-			phone,
-			message
-		);
-		rescheduleWhatsAppWebUrl = phone ? buildWhatsAppWebUrl(phone, message) : null;
-	}
+ // A load supplies eligibility, never a bearer credential or a prepared message.
+ const deliveryAvailable = business.canOperate && DEPOSIT_ROLES.has(business.role) && isUpcomingActiveAppointment(data);
+ const delivery = { available: deliveryAvailable, hasPhone: Boolean(normalizeArgentineWhatsAppPhone(data.patients?.phone_e164)) };
 
 	const phoneWarningAcknowledged =
 		['missing', 'invalid'].includes(
@@ -210,11 +177,8 @@ export const load: PageServerLoad = async ({ params, locals, fetch, cookies, url
 		source: String(data.source),
 		status: String(data.status),
 		startsAt: String(data.starts_at),
-		token
+  canPrepareLink: deliveryAvailable
 	});
-	const activation = justCreated && token && !phoneWarningAcknowledged
-		? buildAppointmentActivationDelivery(phone, token)
-		: null;
 
 	return {
 		context: business,canEditInstructions,
@@ -236,21 +200,46 @@ export const load: PageServerLoad = async ({ params, locals, fetch, cookies, url
 		reprogramSlots: [],
 		reprogramSlotsLoaded: false,
 		fromDate,
-		justRescheduled: url.searchParams.get('rescheduled') === '1',
+		justRescheduled: deliveryAvailable && url.searchParams.get('rescheduled') === '1',
 		justCreated,
-		activationWhatsAppUrl: activation?.whatsappUrl ?? null,
-		activationWhatsAppWebUrl: activation?.whatsappWebUrl ?? null,
-		activationDevice,
-		activationPublicUrl: activation?.publicUrl ?? null,
-		phoneWarningAcknowledged,
-		rescheduleWhatsAppUrl,
-		rescheduleWhatsAppWebUrl,
-		reschedulePublicUrl,
+  delivery,
+  activationDevice,
+  phoneWarningAcknowledged,
 		demo: false
 	};
 };
 
 export const actions: Actions = {
+ prepare_delivery: async event => {
+  if (!event.locals.auth) throw redirect(303, '/login');
+  if (env.DEMO_MODE === 'true') return fail(400, { message: 'No disponible en modo demo.' });
+  if (!isUuid(event.params.appointmentId)) return fail(404, { message: 'No encontramos ese turno.' });
+  event.setHeaders({ 'cache-control': 'no-store', 'referrer-policy': 'no-referrer' });
+  let form: FormData;
+  try { form = await readBoundedBookingForm(event.request, []); }
+  catch { return fail(400, { message: 'No pudimos leer esta acción. Actualizá el turno antes de seguir.' }); }
+  const kind = form.get('kind'), destination = form.get('destination'), revision = form.get('expected_revision');
+  if ((kind !== 'activation' && kind !== 'rescheduled') || (destination !== 'whatsapp' && destination !== 'preview') ||
+   typeof revision !== 'string' || !/^[a-f0-9]{64}$/.test(revision))
+   return fail(400, { message: 'Actualizá el turno y volvé a preparar el enlace desde su botón.' });
+  const { supabase, business } = await getOdontoContext(event);
+  if (!business.canOperate) return fail(403, { message: 'Ya no tenés permiso para preparar este enlace. Revisá tu acceso.' });
+  let delivery;
+  try { delivery = await prepareStaffDelivery(supabase, { businessId: business.business.id,
+   appointmentId: event.params.appointmentId, expectedRevision: revision, kind }); }
+  catch (error) {
+   const failure = staffDeliveryFailure(error);
+   if (failure.status === 503) logServerFailure('Error preparando el enlace del turno', error);
+   return fail(failure.status, { message: failure.message });
+  }
+  if (destination === 'preview') throw redirect(303, delivery.publicUrl);
+  const device = form.get('device');
+  const selected = device === 'desktop' || device === 'android' || device === 'ios' || device === 'unknown'
+   ? device : classifyUserAgent(event.request.headers.get('user-agent'));
+  const location = whatsappHrefFor(selected, delivery.whatsappUrl, delivery.whatsappWebUrl);
+  if (!location) return fail(409, { message: 'Falta un teléfono válido. Revisá la ficha del paciente antes de preparar otro mensaje.' });
+  throw redirect(303, location);
+ },
  save_instructions:async event=>{
   if(!event.locals.auth)throw redirect(303,'/login');if(env.DEMO_MODE==='true')return fail(400,{message:'No disponible en modo demo.'});
   const {supabase,business}=await getOdontoContext(event);const form=await readBoundedBookingForm(event.request);

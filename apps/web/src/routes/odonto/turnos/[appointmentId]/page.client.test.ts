@@ -20,7 +20,6 @@ const appointment = {
 	blocking_ends_at: '2026-08-20T15:30:00.000Z',
 	status: 'reserved',
 	source: 'manual',
-	confirmation_token: 'token-1',
 	service_name_snapshot: 'Consulta',
 	professional_name_snapshot: 'Dra. Ramírez',
 	duration_minutes_snapshot: 30,
@@ -80,16 +79,9 @@ const data: PageData = {
 	fromDate: '2026-08-20',
 	justRescheduled: false,
 	justCreated: true,
-	activationWhatsAppUrl:
-		'https://wa.me/5493511234567?text=Tu%20turno%20qued%C3%B3%20reservado.',
-	activationWhatsAppWebUrl:
-		'https://web.whatsapp.com/send?phone=5493511234567&text=Tu%20turno%20qued%C3%B3%20reservado.',
-	activationDevice: 'desktop' as const,
-	activationPublicUrl: 'https://cita-suite.test/turno/token-1?creado=1',
-	phoneWarningAcknowledged: false,
-	rescheduleWhatsAppUrl: null,
-	rescheduleWhatsAppWebUrl: null,
-	reschedulePublicUrl: null,
+ delivery: { available: true, hasPhone: true },
+ activationDevice: 'desktop',
+ phoneWarningAcknowledged: false,
 	demo: false
 };
 
@@ -134,129 +126,60 @@ describe('observed staff operation form', () => {
  });
 });
 
-describe('último paso después de crear un turno desde Agenda', () => {
-	it('en PC abre WhatsApp Web directo con destinatario y mensaje precargados', () => {
-		render(Page, { data });
-
-		expect(screen.getByRole('heading', { name: 'Último paso' })).toBeInTheDocument();
-		const action = screen.getByRole('link', { name: 'Enviar enlace de activación' });
-		expect(action).toHaveAttribute('href', data.activationWhatsAppWebUrl);
-		expect(action).toHaveAttribute('target', '_blank');
-		expect(action.className).toContain('bg-success-500');
-		expect(action.className).toContain('min-h-[4.5rem]');
-		expect(
-			screen.getByText('El paciente recibirá un enlace para activar sus recordatorios.')
-		).toBeInTheDocument();
-	});
-
-	it.each(['android', 'ios'] as const)(
-		'en teléfono o tablet %s entrega el enlace mediante wa.me',
-		(activationDevice) => {
-			render(Page, { data: { ...data, activationDevice } });
-
-			expect(screen.getByRole('link', { name: 'Enviar enlace de activación' })).toHaveAttribute(
-				'href',
-				data.activationWhatsAppUrl
-			);
-		}
-	);
-
-	it('reconoce un iPad que se identifica como Mac y conserva wa.me', async () => {
-		vi.stubGlobal('navigator', {
-			maxTouchPoints: 5,
-			platform: 'MacIntel',
-			userAgent:
-				'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15) AppleWebKit/605.1.15 Version/17.0 Safari/605.1.15'
-		});
-		render(Page, { data: { ...data, activationDevice: 'desktop' } });
-
-		await waitFor(() =>
-			expect(screen.getByRole('link', { name: 'Enviar enlace de activación' })).toHaveAttribute(
-				'href',
-				data.activationWhatsAppUrl
-			)
-		);
-	});
-
-	it('en PC abre WhatsApp Web directo al avisar una reprogramación', () => {
-		const rescheduleWhatsAppUrl = 'https://wa.me/5493511234567?text=Tu%20turno%20cambi%C3%B3.';
-		const rescheduleWhatsAppWebUrl =
-			'https://web.whatsapp.com/send?phone=5493511234567&text=Tu%20turno%20cambi%C3%B3.';
-		render(Page, {
-			data: {
-				...data,
-				justCreated: false,
-				justRescheduled: true,
-				rescheduleWhatsAppUrl,
-				rescheduleWhatsAppWebUrl
-			}
-		});
-
-		expect(screen.getByRole('link', { name: 'Enviar actualización por WhatsApp' })).toHaveAttribute(
-			'href',
-			rescheduleWhatsAppWebUrl
-		);
-	});
-
-	it.each(['android', 'ios'] as const)(
-		'en teléfono o tablet %s usa wa.me al avisar una reprogramación',
-		(activationDevice) => {
-			const rescheduleWhatsAppUrl = 'https://wa.me/5493511234567?text=Tu%20turno%20cambi%C3%B3.';
-			render(Page, {
-				data: {
-					...data,
-					activationDevice,
-					justCreated: false,
-					justRescheduled: true,
-					rescheduleWhatsAppUrl,
-					rescheduleWhatsAppWebUrl:
-						'https://web.whatsapp.com/send?phone=5493511234567&text=Tu%20turno%20cambi%C3%B3.'
-				}
-			});
-
-			expect(screen.getByRole('link', { name: 'Enviar actualización por WhatsApp' })).toHaveAttribute(
-				'href',
-				rescheduleWhatsAppUrl
-			);
-		}
-	);
-
-	it('si el número no es utilizable ofrece corregir la ficha en vez de generar un wa.me roto', () => {
-		render(Page, {
-			data: { ...data, activationWhatsAppUrl: null, activationWhatsAppWebUrl: null }
-		});
-
-		expect(screen.queryByRole('link', { name: 'Enviar enlace de activación' })).not.toBeInTheDocument();
-		expect(screen.getByText('Falta completar el teléfono del paciente')).toBeInTheDocument();
-		expect(screen.getByRole('heading', { name: 'Último paso' })).toBeInTheDocument();
-	});
-
-	it('no vuelve a advertir después de que el usuario confirmó sin un número utilizable', () => {
-		render(Page, {
-			data: { ...data, phoneWarningAcknowledged: true }
-		});
-
-		expect(screen.queryByRole('link', { name: 'Enviar enlace de activación' })).not.toBeInTheDocument();
-		expect(screen.queryByText('Falta completar el teléfono del paciente')).not.toBeInTheDocument();
-		expect(screen.queryByRole('heading', { name: 'Último paso' })).not.toBeInTheDocument();
-	});
-
-	it('mantiene el fallback para un turno legado creado sin decisión previa', () => {
-		render(Page, {
-			data: { ...data, activationWhatsAppUrl: null, activationWhatsAppWebUrl: null }
-		});
-
-		expect(screen.getByText('Falta completar el teléfono del paciente')).toBeInTheDocument();
-	});
-
-	it('no agrega el bloque a una visita normal del detalle', () => {
-		render(Page, {
-			data: { ...data, justCreated: false }
-		});
-
-		expect(screen.queryByRole('heading', { name: 'Último paso' })).not.toBeInTheDocument();
-		expect(screen.queryByRole('link', { name: 'Enviar enlace de activación' })).not.toBeInTheDocument();
-	});
+describe('entrega explícita desde el detalle', () => {
+ const preparedForm = (label: string) => screen.getByRole('button', { name: label }).closest('form')!;
+ it('solicita el enlace en un POST nuevo con revisión y dispositivo; no expone credenciales al leer', () => {
+  const { container } = render(Page, { data });
+  const action = screen.getByRole('button', { name: 'Enviar enlace de activación' }), form = action.closest('form')!;
+  expect(form).toHaveAttribute('method', 'POST'); expect(form).toHaveAttribute('target', '_blank');
+  expect(form).toHaveAttribute('rel', 'noopener'); expect(form).toHaveAttribute('action', '?created=1&/prepare_delivery');
+  expect(Object.fromEntries(new FormData(form))).toEqual({ kind: 'activation', destination: 'whatsapp', expected_revision: data.management!.revision, device: 'desktop' });
+  expect(action.className).toContain('bg-success-500'); expect(action.className).toContain('min-h-[4.5rem]');
+  expect(container.querySelector('a[href*="wa.me"],a[href*="whatsapp.com"],a[href*="/gestion/"],a[href*="/turno/"]')).toBeNull();
+  expect(screen.getByText(/Revisá el mensaje y envialo/)).toBeInTheDocument();
+ });
+ it.each(['android','ios'] as const)('transporta %s para que el servidor abra la aplicación apropiada', activationDevice => {
+  render(Page, { data: { ...data, activationDevice } });
+  expect(new FormData(preparedForm('Enviar enlace de activación')).get('device')).toBe(activationDevice);
+ });
+ it('reconoce un iPad que se identifica como Mac antes de preparar el mensaje', async () => {
+  vi.stubGlobal('navigator', { maxTouchPoints: 5, platform: 'MacIntel', userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15) AppleWebKit/605.1.15 Version/17.0 Safari/605.1.15' });
+  render(Page, { data: { ...data, activationDevice: 'desktop' } });
+  await waitFor(() => expect(new FormData(preparedForm('Enviar enlace de activación')).get('device')).toBe('ios'));
+ });
+ it('la actualización y la vista previa preparan enlaces por separado, sólo al solicitarlos', () => {
+  render(Page, { data: { ...data, justCreated: false, justRescheduled: true } });
+  const message = preparedForm('Enviar actualización por WhatsApp'), preview = preparedForm('Ver lo que verá el paciente');
+  for (const form of [message, preview]) {
+   expect(form).toHaveAttribute('method', 'POST'); expect(form).toHaveAttribute('target', '_blank');
+   expect(new FormData(form).get('kind')).toBe('rescheduled');
+   expect(new FormData(form).get('expected_revision')).toBe(data.management!.revision);
+  }
+  expect(new FormData(message).get('destination')).toBe('whatsapp');
+  expect(new FormData(preview).get('destination')).toBe('preview');
+ });
+ it('sin teléfono ofrece corregir la ficha y conserva una vista previa útil del cambio', () => {
+  const { unmount } = render(Page, { data: { ...data, delivery: { available: true, hasPhone: false } } });
+  expect(screen.queryByRole('button', { name: 'Enviar enlace de activación' })).not.toBeInTheDocument();
+  expect(screen.getByText('Falta completar el teléfono del paciente')).toBeInTheDocument(); unmount();
+  render(Page, { data: { ...data, justCreated: false, justRescheduled: true, delivery: { available: true, hasPhone: false } } });
+  expect(screen.queryByRole('button', { name: 'Enviar actualización por WhatsApp' })).not.toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Ver lo que verá el paciente' })).toBeInTheDocument();
+ });
+ it('no vuelve a advertir si el usuario ya decidió continuar sin teléfono', () => {
+  render(Page, { data: { ...data, phoneWarningAcknowledged: true } });
+  expect(screen.queryByRole('heading', { name: 'Último paso' })).not.toBeInTheDocument();
+ });
+ it('no ofrece preparar si el permiso o el contexto actual ya no lo permiten', () => {
+  render(Page, { data: { ...data, justRescheduled: true, delivery: { available: false, hasPhone: true } } });
+  expect(screen.queryByRole('heading', { name: 'Último paso' })).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: 'Enviar actualización por WhatsApp' })).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: 'Ver lo que verá el paciente' })).not.toBeInTheDocument();
+ });
+ it('no agrega la indicación de alta a una visita normal del detalle', () => {
+  render(Page, { data: { ...data, justCreated: false } });
+  expect(screen.queryByRole('heading', { name: 'Último paso' })).not.toBeInTheDocument();
+ });
 });
 
 describe('turno cancelado', () => {

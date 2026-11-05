@@ -26,7 +26,7 @@ describe('shouldOfferCreatedAppointmentActivation', () => {
 		source: 'manual',
 		status: 'reserved',
 		startsAt: '2026-08-20T15:00:00.000Z',
-		token: 'private-token',
+		canPrepareLink: true,
 		now
 	};
 
@@ -38,6 +38,6 @@ describe('shouldOfferCreatedAppointmentActivation', () => {
 		expect(
 			shouldOfferCreatedAppointmentActivation({ ...base, startsAt: '2026-08-05T11:59:59.000Z' })
 		).toBe(false);
-		expect(shouldOfferCreatedAppointmentActivation({ ...base, token: null })).toBe(false);
+		expect(shouldOfferCreatedAppointmentActivation({ ...base, canPrepareLink: false })).toBe(false);
 	});
 });

@@ -24,6 +24,7 @@ const row = (overrides: Record<string, unknown> = {}) => ({
 	dueLabel: 'miércoles, 18 de noviembre a las 10:00',
 	section: 'to_request',
 	revision: 3,
+ managementRevision: 'a'.repeat(64),
 	appointmentStatus: 'reserved',
 	hasPhone: true,
 	reminder: null,
@@ -87,11 +88,14 @@ describe('página de señas', () => {
 	it('cada seña pendiente ofrece pedirla, confirmarla, exceptuarla y ver el turno, con la revisión que se vio', () => {
 		render(Page, { data: data([row()]) });
 		const card = document.querySelector('[data-deposit-row]') as HTMLElement;
-		expect(within(card).getByRole('link', { name: 'Pedir seña por WhatsApp' })).toHaveAttribute(
-			'href',
+		expect(within(card).getByRole('button', { name: 'Pedir seña por WhatsApp' }).closest('form')).toHaveAttribute(
+			'action',
 			'/odonto/senas/abrir/00000000-0000-4000-8000-0000000000a1?dispositivo=android'
 		);
-		const confirm = within(card).getByRole('button', { name: 'Confirmar seña' }).closest('form')!;
+		const open = within(card).getByRole('button', { name: 'Pedir seña por WhatsApp' }).closest('form')!;
+  expect(open).toHaveAttribute('method', 'POST');
+  expect(new FormData(open).get('expected_revision')).toBe('a'.repeat(64));
+  const confirm = within(card).getByRole('button', { name: 'Confirmar seña' }).closest('form')!;
 		expect(Object.fromEntries(new FormData(confirm))).toEqual({
 			appointment_id: '00000000-0000-4000-8000-0000000000a1',
 			deposit_action: 'paid',
@@ -106,8 +110,8 @@ describe('página de señas', () => {
 	it('si ya se pidió por WhatsApp dice quién y cuándo, y abrirlo otra vez requiere confirmarlo', () => {
 		render(Page, { data: data([row({ reminder: { openedAt: new Date(Date.now() - 2 * 3_600_000).toISOString(), openedBy: 'aye@consultorio.test' } })]) });
 		expect(screen.getByText('WhatsApp abierto hace 2 h por aye@consultorio.test')).toBeInTheDocument();
-		expect(screen.queryByRole('link', { name: 'Pedir seña por WhatsApp' })).toBeNull();
-		expect(screen.getByRole('link', { name: 'Abrir de todos modos' }).getAttribute('href')).toContain('confirmar=1');
+		expect(screen.queryByRole('button', { name: 'Pedir seña por WhatsApp' })).toBeNull();
+		expect(screen.getByRole('button', { name: 'Abrir de todos modos' }).closest('form')!.getAttribute('action')).toContain('confirmar=1');
 	});
 
 	it('sin teléfono válido no ofrece WhatsApp y lleva a corregir el número', () => {

@@ -35,11 +35,20 @@
 		no_pendiente: 'Esa seña ya no está pendiente: otra persona la registró o la exceptuó, o el turno se canceló. La lista ya está actualizada.',
 		sin_telefono: 'Esa persona no tiene un teléfono válido para WhatsApp. Corregilo en su ficha.',
 		no_encontrado: 'No encontramos ese turno en este consultorio.',
-		error: 'No pudimos abrir el pedido por WhatsApp y no se registró nada. Probá otra vez.'
+		actualizar: 'Revisá la seña actualizada y volvé a preparar el mensaje desde su botón.',
+  cambio: 'El turno o tu permiso cambiaron. Revisá la información actualizada antes de seguir.',
+  error: 'No pudimos confirmar la apertura del mensaje. Revisá lo registrado antes de volver a abrirlo.'
 	};
-	const openNotice = $derived(OPEN_NOTICES[page.url.searchParams.get('aviso') ?? ''] ?? null);
+	const openNotice = $derived(Object.hasOwn(OPEN_NOTICES, page.url.searchParams.get('aviso') ?? '') ? OPEN_NOTICES[page.url.searchParams.get('aviso') ?? ''] : null);
 	const totalRows = $derived(data.sections.reduce((count, section) => count + section.rows.length, 0));
 </script>
+
+{#snippet openDeposit(row: Row, reopen = false)}
+ <form method="POST" action={openHref(row, reopen)} target="_blank" rel="noopener">
+  <input type="hidden" name="expected_revision" value={row.managementRevision} />
+  <button class={reopen ? 'ux-btn-secondary' : 'ux-btn-primary px-3 sm:px-5'}>{reopen ? 'Abrir de todos modos' : 'Pedir seña por WhatsApp'}</button>
+ </form>
+{/snippet}
 
 {#snippet depositActions(row: Row)}
 	<div class="flex shrink-0 flex-col gap-2 sm:items-end">
@@ -53,9 +62,9 @@
 			<a href={`/odonto/pacientes/${row.patientId}`} class="ux-btn-secondary">Corregir número</a>
 		{:else if row.reminder}
 			<p class="max-w-60 text-xs text-copy-subtle sm:text-right">Ya se pidió por WhatsApp. ¿Abrirlo otra vez?</p>
-			<a href={openHref(row, true)} target="_blank" rel="noreferrer" class="ux-btn-secondary">Abrir de todos modos</a>
+			{@render openDeposit(row, true)}
 		{:else}
-			<a href={openHref(row)} target="_blank" rel="noreferrer" class="ux-btn-primary px-3 sm:px-5">Pedir seña por WhatsApp</a>
+			{@render openDeposit(row)}
 		{/if}
 		<form method="POST" action="?/deposit">
 			<input type="hidden" name="appointment_id" value={row.appointmentId} />

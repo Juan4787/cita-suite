@@ -79,7 +79,7 @@ const item = (section: string, overrides: Record<string, unknown> = {}) => ({
 		id: APPOINTMENT_ID,
 		startsAt: '2026-11-20T13:00:00.000Z',
 		status: 'reserved',
-		token: 'token',
+		managementRevision: 'a'.repeat(64),
 		professionalId: 'professional-1',
 		serviceId: 'service-1'
 	},

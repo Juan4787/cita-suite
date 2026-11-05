@@ -99,6 +99,9 @@ test('@candidate-behavior isolated informed booking: stale policy, atomic retry 
   await page.getByLabel('Teléfono de contacto', { exact: true }).fill('3425048230');
   await page.getByLabel('Correo electrónico', { exact: true }).fill('Informed+Booking@Example.test');
   await page.getByLabel('Comentario', { exact: true }).fill('Comentario previo al inicio de JavaScript');
+  const preferenceName = await page.getByLabel('Preferencia de contacto', { exact: true }).getAttribute('name');
+  const birthName = await page.getByLabel('Fecha de nacimiento', { exact: true }).getAttribute('name');
+  expect(preferenceName).toMatch(/^intake_/); expect(birthName).toMatch(/^intake_/);
   await page.getByLabel('Preferencia de contacto', { exact: true }).selectOption('Tarde');
   await page.getByLabel('Fecha de nacimiento', { exact: true }).fill('1990-01-02');
   releaseScripts();
@@ -108,8 +111,10 @@ test('@candidate-behavior isolated informed booking: stale policy, atomic retry 
   await expect(page.getByLabel('Teléfono de contacto', { exact: true })).toHaveValue('3425048230');
   await expect(page.getByLabel('Correo electrónico', { exact: true })).toHaveValue('Informed+Booking@Example.test');
   await expect(page.getByLabel('Comentario', { exact: true })).toHaveValue('Comentario previo al inicio de JavaScript');
-  await expect(page.locator('select[name="intake_preference"]')).toHaveValue('Tarde');
-  await expect(page.locator('[name="intake_birth"]')).toHaveValue('1990-01-02');
+  expect(await page.locator('.patient-booking-form').evaluate((form, names) => {
+   const data = new FormData(form as HTMLFormElement);
+   return names.map(name => data.get(name!));
+  }, [preferenceName, birthName])).toEqual(['Tarde', '1990-01-02']);
   await page.getByLabel('Nombre y apellido', { exact: true }).focus();
   await page.getByLabel('Correo electrónico', { exact: true }).focus();
   await expect(page.getByLabel('Nombre y apellido', { exact: true })).toHaveValue('Paciente Reserva Informada');
