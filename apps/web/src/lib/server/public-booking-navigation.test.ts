@@ -4,7 +4,7 @@ const mocks = vi.hoisted(() => ({
   admin: vi.fn(), state: vi.fn(), create: vi.fn(), verify: vi.fn(),
   lookup: vi.fn(), rpc: vi.fn(), resolve: vi.fn(), appointment: vi.fn(),
 }));
-vi.mock('$lib/server/scheduling/public/email-policy', () => ({ loadPublicBookingEmailRequirement: vi.fn(async () => true) }));
+vi.mock('$lib/server/scheduling/public/email-policy', () => ({ loadPublicBookingPolicy: vi.fn(async () => ({ requireEmail: true, reschedulePolicy: null })) }));
 vi.mock('$env/dynamic/private', () => ({ env: { DEMO_MODE: 'false' } }));
 vi.mock('$env/dynamic/public', () => ({ env: {} }));
 vi.mock('$lib/server/platform/supabase', () => ({ createSupabaseAdminClient: mocks.admin }));

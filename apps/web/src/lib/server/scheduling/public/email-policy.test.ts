@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { DEFAULT_APPOINTMENT_EMAIL_PREFERENCES } from '$lib/scheduling/email-policy';
-import { loadAppointmentEmailPolicy, parseAppointmentEmailPolicyForm, saveAppointmentEmailPolicy } from './email-policy';
+import { loadAppointmentEmailPolicy, loadPublicBookingPolicy, parseAppointmentEmailPolicyForm, saveAppointmentEmailPolicy } from './email-policy';
 
 const businessId = '11111111-1111-4111-8111-111111111111';
 const policy = { ...DEFAULT_APPOINTMENT_EMAIL_PREFERENCES, email_enabled: false, revision: 7, sender_verified: false };
@@ -15,6 +15,12 @@ describe('appointment email preferences', () => {
   const from = vi.fn().mockReturnValue(query);
   expect(await loadAppointmentEmailPolicy({ from } as never, businessId)).toEqual(policy);
   expect(query.eq).toHaveBeenCalledWith('business_id', businessId);
+ });
+ it('projects only required contact and the versioned economic rules to public booking', async () => {
+  const query = { select: () => query, eq: () => query, single: async () => ({ data: policy, error: null }) };
+  expect(await loadPublicBookingPolicy({ from: () => query } as never, businessId)).toEqual({ requireEmail: true,
+   reschedulePolicy: { schema_version: 1, policy_revision: 7, require_deposit_on_reschedule: true, previous_deposit_disposition: 'forfeit' }
+  });
  });
  it.each([null, { ...policy, require_email: 'false' }, { ...policy, revision: 0 }, { ...policy, sender_verified: undefined }])('rejects an incomplete policy instead of enabling or disabling preferences by fallback', async data => {
   const query = { select: () => query, eq: () => query, single: async () => ({ data, error: null }) };

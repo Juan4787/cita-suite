@@ -8,6 +8,7 @@
  import { normalizePatientFullName, patientFullNameErrorMessage, PATIENT_FULL_NAME_INVALID_ERROR_MESSAGE } from '$lib/utils/patient-name';
  import { formatQuotedPrice } from './pricing';
  import { buildDepositTermsNotice, DEPOSIT_TERMS_UNAVAILABLE_NOTICE } from '$lib/scheduling/deposits';
+ import { bookingReschedulePolicyNotice } from '$lib/scheduling/email-policy';
  import PublicBookingIntakeField from './PublicBookingIntakeField.svelte';
 
  let { data, form, confirmation, requiresRecovery, onUncertain, localDraft = $bindable({}), activeStepCard = $bindable(null) }: {
@@ -23,6 +24,8 @@
    : buildDepositTermsNotice(depositTerms, timezone, new Date())
  );
  const selectedProfessional = $derived({ id: confirmation.professionalId });
+ const informedReschedulePolicy = $derived(depositTerms === 'none' ? null : data.reschedulePolicy ?? null);
+ const reschedulePolicyNotice = $derived(informedReschedulePolicy ? bookingReschedulePolicyNotice(informedReschedulePolicy) : null);
  const business = $derived(data.state.business);
  const values = $derived(form?.values ?? localDraft);
  const intakeFields = $derived(data.patientFields?.fields ?? data.presentation?.intakeFields ?? []);
@@ -167,6 +170,10 @@
 				        Este arancel incluye los ajustes del consultorio para la fecha elegida.
 				      </p>{/if}
 				    {#if depositNotice}<p class="patient-price-notice" data-deposit-notice>{depositNotice}</p>{/if}
+				    {#if reschedulePolicyNotice}<div class="patient-price-notice" data-reschedule-policy-notice>
+				        <p class="font-semibold">{depositTerms === 'unknown' ? 'Si este turno requiere seña y necesitás reprogramar' : 'Si necesitás reprogramar'}</p>
+				        <p class="mt-2">{reschedulePolicyNotice}</p>
+				      </div>{/if}
 				  </section>
 
 				  {#if data.integration}
@@ -209,6 +216,7 @@
 				    name="patient_schema_hash"
 				    value={data.patientFields?.hash ?? ""}
 				  />
+				  {#if informedReschedulePolicy}<input type="hidden" name="reschedule_policy_terms" value={JSON.stringify(informedReschedulePolicy)} />{/if}
 
 				  <fieldset class="patient-required-fields" disabled={bookingSubmitting}>
 				    <legend class="sr-only">Datos obligatorios</legend>

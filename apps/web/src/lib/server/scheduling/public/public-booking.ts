@@ -684,6 +684,7 @@ export const createPublicBooking = async (
 		now?: Date;
 		bookingIntegration?: IntegratedBookingInput;
 		depositTerms?: import('$lib/scheduling/deposits').BookingDepositTerms;
+        reschedulePolicyTerms?: import('$lib/scheduling/email-policy').BookingReschedulePolicy;
         bookingInformation?: import('$lib/server/scheduling/public/appointments').BookingPatientInformationInput;
 	}
 ) => {
@@ -756,6 +757,7 @@ export const createPublicBooking = async (
 				idempotencyKey: input.idempotencyKey,
                 bookingInformation: input.bookingInformation,
 				depositTerms: input.depositTerms,
+                reschedulePolicyTerms: input.reschedulePolicyTerms,
 				bookingIntegration: input.bookingIntegration ? {
 					...input.bookingIntegration, expectedAvailabilityRevision: availabilityRevision
 				} : undefined
@@ -856,6 +858,8 @@ export const createPublicBooking = async (
 };
 
 export const PUBLIC_BOOKING_ERROR_MESSAGES = {
+    RESCHEDULE_POLICY_TERMS_CHANGED: 'Las condiciones para reprogramar cambiaron mientras reservabas. Actualizá la página, revisá el resumen y confirmá nuevamente. Todavía no se reservó el turno.',
+    RESCHEDULE_POLICY_TERMS_INVALID: 'No pudimos leer las condiciones para reprogramar. Actualizá la página y revisalas antes de confirmar.',
 	DEPOSIT_TERMS_CHANGED: 'Las condiciones de la seña cambiaron mientras reservabas. Revisá el monto y el vencimiento del resumen y confirmá nuevamente. Todavía no se reservó el turno.',
 	DEPOSIT_TERMS_INVALID: 'No pudimos leer las condiciones de la seña. Recargá la página para revisarlas antes de confirmar.',
 	PUBLIC_BOOKING_UNAVAILABLE:
@@ -906,6 +910,8 @@ export const PUBLIC_BOOKING_ERROR_MESSAGES = {
 export type PublicBookingErrorCode = keyof typeof PUBLIC_BOOKING_ERROR_MESSAGES;
 
 const publicBookingErrorTokenMap: ReadonlyArray<readonly [string, PublicBookingErrorCode]> = [
+    ['RESCHEDULE_POLICY_TERMS_CHANGED', 'RESCHEDULE_POLICY_TERMS_CHANGED'],
+    ['RESCHEDULE_POLICY_TERMS_INVALID', 'RESCHEDULE_POLICY_TERMS_INVALID'],
 	['DEPOSIT_TERMS_CHANGED', 'DEPOSIT_TERMS_CHANGED'],
 	['DEPOSIT_TERMS_INVALID', 'DEPOSIT_TERMS_INVALID'],
 	['PUBLIC_BOOKING_UNAVAILABLE', 'PUBLIC_BOOKING_UNAVAILABLE'],

@@ -135,3 +135,6 @@ E3.8 actualiza el punto anterior, sin publicar: veinticinco pasó sus catorce gr
 
 
 E3.10, sin publicar, actualiza la verificación del párrafo anterior: SQL 41929889370 aprobó las veintiséis migraciones y regresiones, cinco contenciones nuevas, 48 carreras/dos contraejemplos FK y doce esperas, con tipos oficiales/digest de 157 migraciones cotejados. El trigger conserva la resolución endurecida de esquemas. Recepción/render nuevo siguen pendientes de browser; estas garantías SQL no prueban envío, entrega ni aplicación productiva.
+
+
+**E3.11, 5 de noviembre — borrador, sin publicación:** el alta pública con seña transporta sólo cuatro campos económicos versionados de su resumen. SQL decide sobre condiciones efectivas bajo bloqueo; un endurecimiento exige revisar y una relajación aplica la regla menos exigente. Aceptación y auditoría pertenecen al alta, nunca a su lectura ni a recuperar la clave completada. Sin seña no hay adopción de penalidades; las altas del personal todavía no acreditan información por este mecanismo. Ver [12.29](../plans/propuesta-senas-avisos-natalia.md) y el registro activo para evidencia/pendientes.
