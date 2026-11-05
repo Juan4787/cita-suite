@@ -148,3 +148,6 @@ E3.42 actualiza únicamente la evidencia SQL del párrafo anterior: **4207354113
 
 
 E3.45 actualiza la verificación de interfaz SN14: fast **42076262537 aprobado**, código f4eff44, 2038 servidor/300 cliente y cero errores/avisos. El formulario tardío pertenece al panel de importes; la obligación cerrada conserva su descripción sin acciones. Browser 42076886857 todavía en curso; no hay prueba de banco/correo ni publicación. [Revisión exacta, evidencia y límites](../plans/ejecucion-etapa-e-20261103.md#e345--consumidor-integrado-aprobado-browser-sobre-la-misma-revisión).
+
+
+E3.48–E3.49: personal aprobado como caso en browser **42078792126** (corrida completa fallida por SN14), con Auth/SQL, revocación, marcas, matriz de tres superficies/cinco anchos/dos temas y salud del entorno. SN14 alcanzó POST nativo 400 e importe conservado; la asociación explícita de etiquetas se verifica en 42080552190, todavía en curso. No hubo envío externo, banco ni publicación. [Resultado por caso y límites](../plans/ejecucion-etapa-e-20261103.md#e348--personal-aprobado-asociación-estable-de-la-nota-al-volver-del-post-nativo).
