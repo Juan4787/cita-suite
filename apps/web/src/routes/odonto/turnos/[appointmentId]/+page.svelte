@@ -626,7 +626,13 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@cita-suite/share
 							{/if}
 						</div>
 					{/if}
-     {#if isClosed && data.canRecordDeposit && !data.demo && data.management}
+				</section>
+			{/if}
+
+   {#if data.depositFinancials && (data.depositFinancials.appliedAmount !== '0' || data.depositFinancials.forfeitedAmount !== '0' || data.depositFinancials.unresolvedAmount !== '0' || data.depositFinancials.latePayments.length || (isClosed && data.deposit && data.canRecordDeposit && !data.demo))}
+    <section class="ux-soft-card mt-5 p-5" aria-labelledby="deposit-financials-title">
+     <h2 id="deposit-financials-title" class="ux-section-title">Importes registrados</h2>
+     {#if isClosed && data.deposit && data.canRecordDeposit && !data.demo && data.management}
       <details id="late-deposit-record" class="mt-5 border-t border-line pt-4" open={!!feedback?.lateDepositDraft}>
        <summary class="cursor-pointer text-base font-semibold text-accent">Registrar dinero después de cancelar</summary>
        <form method="POST" action="?/late_deposit" use:enhance={onStaffAction} class="mt-4">
@@ -652,12 +658,6 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@cita-suite/share
        </form>
       </details>
      {/if}
-				</section>
-			{/if}
-
-   {#if data.depositFinancials && (data.depositFinancials.appliedAmount !== '0' || data.depositFinancials.forfeitedAmount !== '0' || data.depositFinancials.unresolvedAmount !== '0' || data.depositFinancials.latePayments.length)}
-    <section class="ux-soft-card mt-5 p-5" aria-labelledby="deposit-financials-title">
-     <h2 id="deposit-financials-title" class="ux-section-title">Importes registrados</h2>
      <dl class="mt-4 grid gap-4 sm:grid-cols-3">
       <div><dt class="text-sm text-fg-65">A cuenta de la consulta</dt><dd class="mt-1 font-semibold">{formatDepositMoney(data.depositFinancials.appliedAmount)}</dd></div>
       <div><dt class="text-sm text-fg-65">No aplicables por reprogramación</dt><dd class="mt-1 font-semibold">{formatDepositMoney(data.depositFinancials.forfeitedAmount)}</dd></div>

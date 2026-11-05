@@ -6,6 +6,7 @@ import { loginWithSharedSession } from './helpers/shared-auth';
 import { observeRenderHealth } from './helpers/render-health';
 import { layoutIssues, type LayoutIssue } from './helpers/layout-usability';
 import { alignTaskForCapture } from './helpers/task-capture';
+import { contrastViolations, expectRenderedTheme } from './helpers/theme';
 
 // Hosted Playwright fallback: no approved host browser is exposed. Actual Auth,
 // POSTs and persisted money; intercepted responses never replace the SQL command.
@@ -134,15 +135,21 @@ test('@candidate-behavior late deposit: native recording, lost response recovery
    expect(await patientPage.locator('main').innerText()).not.toContain('Nota interna sintética');
    await expect(patientPage.locator('form[action="?/cancel"],form[action="?/reschedule"]')).toHaveCount(0);
   } finally { await patientPage.close(); }
-  for (const theme of ['light','dark']) {
+  for (const theme of ['light','dark'] as const) {
    await context.addCookies([{ name: 'cita-theme',value: theme,url: process.env.E2E_BASE_URL! }]);
    await page.goto(path);
+   await expectRenderedTheme(page,theme);
    await page.getByText('Registrar dinero después de cancelar',{ exact: true }).click();
    for (const width of [320,390,768,1280,1600]) {
     await page.setViewportSize({ width,height: 900 });
     issues.push(...await layoutIssues(page,'main a:visible, main button:visible, main input:visible, main textarea:visible','main'));
     await alignTaskForCapture(page.locator('#late-deposit-record'));
     await page.screenshot({ path: info.outputPath(`late-money-${theme}-${width}.jpg`),type: 'jpeg',quality: 65 });
+    if (width === 320) {
+     const contrast = await contrastViolations(page,'#late-deposit-record, section[aria-labelledby="deposit-financials-title"]');
+     await info.attach(`late-money-contrast-${theme}`,{ body: JSON.stringify(contrast),contentType: 'application/json' });
+     expect(contrast.violations).toEqual([]); expect(contrast.passes).toBeGreaterThan(0);
+    }
    }
   }
   expect(issues).toEqual([]);

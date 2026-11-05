@@ -6,6 +6,7 @@ import { loginWithSharedSession } from './helpers/shared-auth';
 import { observeRenderHealth } from './helpers/render-health';
 import { layoutIssues, type LayoutIssue } from './helpers/layout-usability';
 import { alignTaskForCapture } from './helpers/task-capture';
+import { expectRenderedTheme } from './helpers/theme';
 
 // No host-managed browser is exposed. Hosted Playwright uses owned fixtures,
 // real Auth/PostgREST and actual POSTs. External WhatsApp navigation is intercepted;
@@ -142,9 +143,10 @@ test('@candidate-behavior staff delivery: explicit preparation, contact revocati
   expect(replay.status()).toBe(200); expect(counts()).toBe(afterMark);
   expect(f.sql(`select count(*) from public.audit_logs where entity_id='${reminderId}' and action='reminder.whatsapp_marked_sent' and user_id='${owner}';`)).toBe('1');
   for (const [path, label] of [[`/odonto/turnos/${depositId}?created=1`,'delivery-detail'], ['/odonto/senas','delivery-deposits'], ['/odonto/recordatorios','delivery-reminders']]) {
-   for (const theme of ['light','dark']) {
+   for (const theme of ['light','dark'] as const) {
     await context.addCookies([{ name: 'cita-theme', value: theme, url: origin.origin }]);
     await page.goto(path);
+    await expectRenderedTheme(page,theme);
     for (const width of [320,390,768,1280,1600]) {
      await page.setViewportSize({ width, height: 900 });
      issues.push(...await layoutIssues(page,'main a:visible, main button:visible, main input:visible, main textarea:visible','main'));
