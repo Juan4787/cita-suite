@@ -74,7 +74,7 @@ declare b uuid:='e3300000-0000-4000-8000-000000000001'; a uuid; patient uuid; re
   values(b,'e3300000-0000-4000-8000-000000000002','e3300000-0000-4000-8000-000000000003',clock_timestamp()-interval '1 minute',clock_timestamp()+interval '3 seconds');
  end if;
 end $$;
-create function late_deposit_race.act(p_label text,p_action text,p_helper boolean default false) returns jsonb language plpgsql as $$
+create function late_deposit_race.act(p_label text,p_action text,p_helper boolean default false,p_new_operation boolean default false) returns jsonb language plpgsql as $$
 declare r late_deposit_race.requests; b uuid:='e3300000-0000-4000-8000-000000000001'; begin
  perform set_config('request.jwt.claim.sub',case when p_helper then 'e3300000-0000-4000-8000-000000000003' else 'e3300000-0000-4000-8000-000000000002' end,true);
  select * into strict r from late_deposit_race.requests where label=p_label;
@@ -82,7 +82,7 @@ declare r late_deposit_race.requests; b uuid:='e3300000-0000-4000-8000-000000000
   perform public.reassign_appointment_patient_safely(b,r.appointment_id,r.replacement_id,'e3300000-0000-4000-8000-000000000002','Synthetic race repair');
   return jsonb_build_object('repaired',true);
  end if;
- return public.record_late_appointment_deposit(b,r.appointment_id,case when p_action='distinct' then gen_random_uuid() else r.operation_id end,r.revision,
+ return public.record_late_appointment_deposit(b,r.appointment_id,case when p_new_operation then gen_random_uuid() else r.operation_id end,r.revision,
   case when p_action='correct' then 'correct' else 'record' end,case when p_action='correct' then null else '40000' end,case when p_action='correct' then r.event_id end);
 end $$;
 create function late_deposit_race.check_result(p_label text) returns void language plpgsql as $$
@@ -113,11 +113,13 @@ for late_case in replay distinct correction record_first repair_first help_recor
  case "$late_case" in help_*) late_help=true;; esac
  "${late_psql[@]}" -c "select late_deposit_race.prepare('$late_case',$late_seed,$late_help);"
  late_first_action=record
- late_second_action=distinct
+ late_second_action=record
+ late_distinct=false
  late_expected=APPOINTMENT_MANAGEMENT_CHANGED
  case "$late_case" in
   replay) late_second_action=record; late_expected='';;
-  correction) late_first_action=correct; late_second_action=correct;;
+  distinct) late_distinct=true;;
+  correction) late_first_action=correct; late_second_action=correct; late_distinct=true;;
   record_first) late_second_action=repair; late_expected=APPOINTMENT_DEPOSIT_IDENTITY_CHANGE;;
   repair_first) late_first_action=repair; late_second_action=record;;
   help_correct_*) late_second_action=correct; late_expected=DEPOSIT_FORBIDDEN;;
@@ -154,7 +156,7 @@ SQL
  done
  [[ "$late_ready" == true ]]
  late_status=0
- PGAPPNAME=late-deposit-other "${late_psql[@]}" -c "select late_deposit_race.act('$late_case','$late_second_action',$late_help);" >"$late_directory/actor.log" 2>&1 || late_status=$?
+ PGAPPNAME=late-deposit-other "${late_psql[@]}" -c "select late_deposit_race.act('$late_case','$late_second_action',$late_help,$late_distinct);" >"$late_directory/actor.log" 2>&1 || late_status=$?
  wait "$late_holder"; late_holder=''
  if [[ -z "$late_expected" ]]; then
   [[ "$late_status" == 0 ]]
