@@ -215,7 +215,8 @@ describe('explicit detail delivery', () => {
  const post = (fields: Record<string,string>, canOperate = true) => {
   mocks.getOdontoContext.mockResolvedValue({ supabase: { from: mocks.from, rpc: mocks.rpc },
    business: { business: { id: businessId }, role: 'reception', canOperate }, userId: 'validated-session-user' });
-  return actions.prepare_delivery!({ ...event(), request: new Request('https://app.test/detail?/prepare_delivery',
+  return actions.prepare_delivery!({ params: { appointmentId }, locals: { auth: { access_token: 'test-token' } },
+   fetch: vi.fn(), cookies: { get: vi.fn() }, request: new Request('https://app.test/detail?/prepare_delivery',
    { method: 'POST', body: new URLSearchParams(fields) }), setHeaders: vi.fn() } as never);
  };
  beforeEach(() => {
@@ -232,9 +233,9 @@ describe('explicit detail delivery', () => {
    .rejects.toMatchObject({ status: 303, location: 'https://app.test/gestion/current' });
  });
  it('unreviewed, unsupported and readonly requests never mint', async () => {
-  for (const fields of [ {}, { kind: 'reminder', destination: 'whatsapp', expected_revision: revision },
-   { kind: 'activation', destination: 'https://evil.test', expected_revision: revision } ])
-   await expect(post(fields)).resolves.toMatchObject({ status: 400 });
+  const invalid: Record<string,string>[] = [ {}, { kind: 'reminder', destination: 'whatsapp', expected_revision: revision },
+   { kind: 'activation', destination: 'https://evil.test', expected_revision: revision } ];
+  for (const fields of invalid) await expect(post(fields)).resolves.toMatchObject({ status: 400 });
   await expect(post({ kind: 'activation', destination: 'preview', expected_revision: revision }, false)).resolves.toMatchObject({ status: 403 });
   expect(mocks.prepareDelivery).not.toHaveBeenCalled();
  });
