@@ -144,3 +144,6 @@ E3.10, sin publicar, actualiza la verificación del párrafo anterior: SQL 41929
 
 
 **E3.18, 5 de noviembre — UI conectada, sin CI del conjunto:** la declaración de información del personal parte sin marcar, se limita a seña aplicable y se retira al cambiar paciente/selección/consecuencias. No se exige nuevamente por una revisión de presentación. La creación completada se recupera antes de revalidarla; SQL y la auditoría conservan su autoridad. Setenta y dos dirigidas locales no acreditan todavía tipado/cliente/SQL28/browser ni publicación; ver el registro activo.
+
+
+**E, distribución del personal — borrador E3.22 del 5 de noviembre, sin conectar ni publicar:** la preparación explícita de un enlace y las marcas de WhatsApp se autorizan dentro de la transacción; no se emiten credenciales al leer listas ni se restaura UPDATE directo. El emisor backend y la marca manual de envío conservan sus responsabilidades distintas. La revisión observada evita cubrir un turno movido/reasignado, y la credencial usa la generación/contacto actuales. La marca manual no acredita entrega externa. Estado, decisiones de reintento y prueba todavía pendiente en el [registro E3.22](../plans/ejecucion-etapa-e-20261103.md#e322--borrador-de-distribución-explícita-y-marcas-de-recordatorio-atómicas).
