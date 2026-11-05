@@ -74,10 +74,10 @@ do $$declare before jsonb:=pg_temp.delivery_counts(); begin
  if before is distinct from pg_temp.delivery_counts() then raise exception 'READONLY_MARK_EFFECT'; end if;
 end$$;
 select set_config('request.jwt.claim.sub',pg_temp.dv('reception'),true);
-update public.business_users set accepted_at=null where business_id=pg_temp.did('business') and user_id=pg_temp.did('reception');
+update public.business_users set status='disabled',disabled_at=clock_timestamp() where business_id=pg_temp.did('business') and user_id=pg_temp.did('reception');
 select pg_temp.reject_delivery('activation','APPOINTMENT_MANAGEMENT_FORBIDDEN');
-update public.business_users set accepted_at=now() where business_id=pg_temp.did('business') and user_id=pg_temp.did('reception');
-select extensions.pass('4. Read-only and an unaccepted membership cannot mint or audit a delivery');
+update public.business_users set status='active',disabled_at=null where business_id=pg_temp.did('business') and user_id=pg_temp.did('reception');
+select extensions.pass('4. Read-only and a disabled membership cannot mint or audit a delivery');
 
 do $$declare before jsonb:=pg_temp.delivery_counts(); begin
  begin perform public.prepare_staff_appointment_delivery(gen_random_uuid(),pg_temp.did('appointment'),pg_temp.delivery_revision(),'activation'); raise exception 'CROSS_TENANT_DELIVERY';
