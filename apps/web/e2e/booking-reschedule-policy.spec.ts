@@ -86,8 +86,39 @@ test('@candidate-behavior isolated informed booking: stale policy, atomic retry 
    (select count(*) from public.appointment_deposit_requirements where business_id='${businessId}' and is_current and status='pending' and amount=40000),
    (select count(*) from public.audit_logs where business_id='${businessId}' and action='appointment.reschedule_policy_informed'),
    (select count(*) from public.appointments where business_id='${businessId}' and creation_request_key='${acceptedAttempt}'));`)).toBe('[1, 1, 1, 1, 1]');
+  // Exercise the consequence of the actual initial disclosure; do not seed
+  // terms_acknowledged as the older management fixtures intentionally do.
+  const appointmentId = f.sql(`select id from public.appointments where business_id='${businessId}';`);
+  expect(appointmentId).toMatch(/^[a-f0-9-]{36}$/);
+  f.sql(`begin; select set_config('request.jwt.claim.sub','${ownerId}',true);
+   select public.set_appointment_deposit('${businessId}','${appointmentId}','paid',
+    (select revision from public.appointment_deposits where appointment_id='${appointmentId}'),null); commit;`);
+  await page.reload();
+  const moneyState = () => f.sql(`select jsonb_build_array(a.starts_at,a.status,
+   (select jsonb_agg(jsonb_build_array(status,amount,allocation,is_current) order by ordinal) from public.appointment_deposit_requirements where appointment_id=a.id))
+   from public.appointments a where a.id='${appointmentId}';`);
+  const beforeMove = moneyState();
+  await page.getByRole('link', { name: 'Reprogramar turno', exact: true }).click();
+  const targetDate = f.sql(`select to_char(starts_at::date+1,'YYYY-MM-DD') from public.appointments where id='${appointmentId}';`);
+  await page.getByLabel('Día para el nuevo turno').fill(targetDate);
+  await page.getByRole('button', { name: 'Ver horarios', exact: true }).click();
+  await page.locator('[aria-label="Horarios disponibles"] a').first().click();
+  await expect(page.getByText(/La seña anterior de.*dejará de aplicarse/)).toBeVisible();
+  await expect(page.getByText(/Nueva seña pendiente/)).toBeVisible();
+  expect(moneyState()).toBe(beforeMove);
+  await page.getByRole('button', { name: 'Confirmar reprogramación', exact: true }).click();
+  await expect(page.getByText('La reprogramación quedó registrada.', { exact: true })).toBeVisible();
+  expect(f.sql(`select jsonb_build_array((select status from public.appointments where id='${appointmentId}'),
+   (select count(*) from public.appointment_deposit_requirements where appointment_id='${appointmentId}' and status='paid' and allocation='forfeited'),
+   (select count(*) from public.appointment_deposit_requirements where appointment_id='${appointmentId}' and is_current and status='pending' and amount=40000));`)).toBe('["reserved", 1, 1]');
+  await page.getByRole('link', { name: 'Cancelar turno', exact: true }).click();
+  await page.getByRole('button', { name: 'Sí, cancelar turno', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Turno cancelado', exact: true })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Cancelar turno', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('link', { name: 'Reprogramar turno', exact: true })).toHaveCount(0);
   expect(pageErrors).toBe(0); expect(issues).toEqual([]);
-  await info.attach('informed-booking-proof', { body: JSON.stringify({ actualPublicPost: true, staleRejectedAtomically: true, attemptAndAliasPreserved: true, freshTermsPersisted: true, issues, pageErrors }), contentType: 'application/json' });
+  await info.attach('informed-booking-proof', { body: JSON.stringify({ actualPublicPost: true, staleRejectedAtomically: true, attemptAndAliasPreserved: true, freshTermsPersisted: true,
+   paymentRecordedBySqlCommand: true, actualInformedReschedule: true, originalPaymentRetainedAsForfeited: true, oneNewPendingDeposit: true, cancelledHasNeitherAction: true, issues, pageErrors }), contentType: 'application/json' });
  } finally {
   f.sql(`begin; delete from public.appointments where business_id='${businessId}'; delete from public.businesses where id='${businessId}'; delete from auth.users where id='${ownerId}';
    update private.deposit_automation set enabled=${original.deposit}; update private.appointment_management_runtime set reschedule_enabled=${original.reschedule}; commit;`);
