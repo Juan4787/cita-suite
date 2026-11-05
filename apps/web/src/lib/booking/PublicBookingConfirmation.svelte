@@ -297,7 +297,7 @@
 				        class="ux-textarea patient-control"
 				        placeholder="Podés agregar algo que quieras consultar."
 				        bind:value={() => String(values.note ?? ''), (value: string) => setDraftValue('note', value)}
-				      />
+				      ></textarea>
 				    </div>
 				    {#if !(data.requireEmail ?? true)}{@render emailField(false)}{/if}
 				  </fieldset>

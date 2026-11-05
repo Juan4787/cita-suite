@@ -42,6 +42,10 @@ test('@candidate-behavior isolated informed booking: stale policy, atomic retry 
    update private.deposit_automation set enabled=true;
    update private.appointment_management_runtime set reschedule_enabled=true;
    update public.appointment_email_policies set require_deposit_on_reschedule=false,previous_deposit_disposition='credit',revision=revision+1 where business_id='${businessId}';
+   select set_config('request.jwt.claim.sub','${ownerId}',true);
+   select public.save_professional_booking_form('${businessId}','${professionalId}',0,
+    '[{"id":"preference","label":"Preferencia de contacto","kind":"choice","required":false,"options":["Mañana","Tarde"]},
+      {"id":"birth","label":"Fecha de nacimiento","kind":"text","required":false,"maxLength":10,"patientField":"birth_date"}]'::jsonb);
    commit;`);
   const date = f.sql("select (now() at time zone 'UTC')::date+25;");
   await page.goto(`/reservar/${slug}?service_id=${serviceId}&professional_id=${professionalId}&date=${date}`);
@@ -95,6 +99,8 @@ test('@candidate-behavior isolated informed booking: stale policy, atomic retry 
   await page.getByLabel('Teléfono de contacto', { exact: true }).fill('3425048230');
   await page.getByLabel('Correo electrónico', { exact: true }).fill('Informed+Booking@Example.test');
   await page.getByLabel('Comentario', { exact: true }).fill('Comentario previo al inicio de JavaScript');
+  await page.getByLabel('Preferencia de contacto', { exact: true }).selectOption('Tarde');
+  await page.getByLabel('Fecha de nacimiento', { exact: true }).fill('1990-01-02');
   releaseScripts();
   await expect(page.locator('.patient-booking-form')).toHaveAttribute('data-booking-enhanced', 'true');
   await page.unroute('**/*', delayScripts);
@@ -102,6 +108,8 @@ test('@candidate-behavior isolated informed booking: stale policy, atomic retry 
   await expect(page.getByLabel('Teléfono de contacto', { exact: true })).toHaveValue('3425048230');
   await expect(page.getByLabel('Correo electrónico', { exact: true })).toHaveValue('Informed+Booking@Example.test');
   await expect(page.getByLabel('Comentario', { exact: true })).toHaveValue('Comentario previo al inicio de JavaScript');
+  await expect(page.locator('select[name="intake_preference"]')).toHaveValue('Tarde');
+  await expect(page.locator('[name="intake_birth"]')).toHaveValue('1990-01-02');
   await page.getByLabel('Nombre y apellido', { exact: true }).focus();
   await page.getByLabel('Correo electrónico', { exact: true }).focus();
   await expect(page.getByLabel('Nombre y apellido', { exact: true })).toHaveValue('Paciente Reserva Informada');
@@ -205,7 +213,7 @@ test('@candidate-behavior isolated informed booking: stale policy, atomic retry 
   await expect(page.getByRole('link', { name: 'Reprogramar turno', exact: true })).toHaveCount(0);
   expect(pageErrors).toBe(0); expect(issues).toEqual([]);
   await info.attach('informed-booking-proof', { body: JSON.stringify({ actualPublicPost: true, staleRejectedAtomically: true, attemptAndAliasPreserved: true, freshTermsPersisted: true,
-   noJavaScriptFailureRetainsSelectionAndDraft: true, earlyNativeInputRetained: true, enhancementObservedViaSubmitListener: true,
+   noJavaScriptFailureRetainsSelectionAndDraft: true, earlyNativeInputRetained: true, earlyChoiceAndBirthDateRetained: true, enhancementObservedViaSubmitListener: true,
    paymentRecordedBySqlCommand: true, actualInformedReschedule: true, originalPaymentRetainedAsForfeited: true, oneNewPendingDeposit: true, cancelledHasNeitherAction: true, issues, pageErrors }), contentType: 'application/json' });
  } finally {
   releaseScripts();

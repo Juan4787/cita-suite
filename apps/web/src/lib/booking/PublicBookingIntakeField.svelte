@@ -88,7 +88,7 @@
         rows="3"
         bind:value
         class="ux-textarea patient-control"
-      />
+      ></textarea>
     {:else if field.kind === "text"}
       <input
         id={inputId}
