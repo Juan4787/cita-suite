@@ -35,6 +35,7 @@ import { normalizeArgentineWhatsAppPhone } from '$lib/utils/phone';
 import { buildWaMeUrl, buildWhatsAppWebUrl } from '$lib/utils/whatsapp';
 import type { Business } from '$lib/server/access/public/business';
 import { isManagedGoogleCalendarEnabled } from '$lib/server/integrations/public/google-calendar';
+import { managementRevision } from '../internal/management-contract';
 
 const ACTIVE_DISPATCH_STATUSES = ['scheduled', 'queued', 'sending', 'sent', 'delivered', 'read'];
 const UNCOVERED_CALENDAR_STATUSES = new Set(['not_offered', 'offered']);
@@ -116,8 +117,7 @@ export type ReminderMessageInput = {
 	businessName: string;
 	address: string | null;
 	mapsLink: string | null;
-	token: string;
-};
+} & ({ token: string; publicUrl?: never } | { publicUrl: string; token?: never });
 
 export const buildReminderWhatsAppMessage = (input: ReminderMessageInput): string => {
 	const { dateLabel, timeLabel } = formatInTimeZone(input.startsAt, input.timezone);
@@ -132,7 +132,7 @@ export const buildReminderWhatsAppMessage = (input: ReminderMessageInput): strin
 	if (lines.length > 2) lines.push('');
 	lines.push(
 		'Si no podés venir, avisanos por acá o cancelalo desde el enlace, así le damos el horario a otra persona.',
-		`Ver turno: ${publicAppointmentUrl(input.token)}`
+		`Ver turno: ${input.publicUrl ?? publicAppointmentUrl(input.token)}`
 	);
 	return lines.join('\n');
 };
@@ -158,9 +158,10 @@ export type AppointmentActivationDelivery = {
 
 export const buildAppointmentActivationDelivery = (
 	phone: string | null | undefined,
-	token: string
+	token: string,
+	baseUrl: string = publicAppointmentUrl(token)
 ): AppointmentActivationDelivery => {
-	const publicUrl = `${publicAppointmentUrl(token)}?creado=1`;
+	const publicUrl = `${baseUrl}?creado=1`;
 	const message = [
 		'Tu turno quedó reservado.',
 		'Activá acá el recordatorio:',
@@ -308,6 +309,7 @@ const collectReminderItems = async (
 			service_name_snapshot,
 			professional_name_snapshot,
 			confirmation_token,
+			appointment_management_revision,
 			calendar_action_status,
 			calendar_sequence,
 			calendar_update_required_at,
@@ -421,6 +423,7 @@ const collectReminderItems = async (
 
 		items.push({
 			appointment_id: String(row.id),
+			management_revision: managementRevision(row.appointment_management_revision),
 			patient_id: String(patient.id),
 			starts_at: String(row.starts_at),
 			time_label: formatInTimeZone(String(row.starts_at), business.timezone).timeLabel,

@@ -11,6 +11,7 @@
 			candidates: ReminderListItem[];
 			restricted: boolean;
 			remindersUnavailable: boolean;
+			deliveryNotice: string | null;
 		};
 		form?: { success?: boolean; message?: string };
 	} = $props();
@@ -50,6 +51,13 @@
 	};
 </script>
 
+{#snippet openButton(candidate: ReminderListItem, label: string, confirm = false, primary = false)}
+ <form method="POST" action={openHref(candidate, confirm)} target="_blank" rel="noopener">
+  <input type="hidden" name="expected_revision" value={candidate.management_revision} />
+  <button class={primary ? 'ux-btn-primary w-full' : 'ux-btn-secondary w-full'} disabled={data.demo}>{label}</button>
+ </form>
+{/snippet}
+
 {#snippet reminderRow(candidate: ReminderListItem)}
 	<div class="ux-soft-card p-5">
 		<div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -81,24 +89,19 @@
 						Corregir número
 					</a>
 				{:else if candidate.whatsapp_marked_sent_at}
-					<a href={openHref(candidate, true)} target="_blank" rel="noreferrer" class="ux-btn-secondary">
-						Abrir de nuevo
-					</a>
+					{@render openButton(candidate, 'Abrir de nuevo', true)}
 				{:else if candidate.whatsapp_opened_at}
 					<p class="max-w-60 text-right text-xs text-copy-subtle">
 						Ya se abrió un recordatorio para este turno. ¿Abrirlo otra vez?
 					</p>
-					<a href={openHref(candidate, true)} target="_blank" rel="noreferrer" class="ux-btn-secondary">
-						Abrir de todos modos
-					</a>
-					<form method="POST" action="?/mark_sent">
+					{@render openButton(candidate, 'Abrir de todos modos', true)}
+					<form method="POST" action={`?/mark_sent&dia=${data.day}`}>
 						<input type="hidden" name="appointment_id" value={candidate.appointment_id} />
+						<input type="hidden" name="expected_revision" value={candidate.management_revision} />
 						<button class="ux-btn-primary w-full" disabled={data.demo}>Marcar como enviado</button>
 					</form>
 				{:else}
-					<a href={openHref(candidate)} target="_blank" rel="noreferrer" class="ux-btn-primary">
-						Enviar WhatsApp
-					</a>
+					{@render openButton(candidate, 'Enviar WhatsApp', false, true)}
 				{/if}
 			</div>
 		</div>
@@ -141,6 +144,7 @@
 	{#if form?.message}
 		<p class="ux-alert">{form.message}</p>
 	{/if}
+	{#if data.deliveryNotice}<p class="ux-alert" role="status">{data.deliveryNotice}</p>{/if}
 
 	{#if data.restricted}
 		<div class="ux-card">

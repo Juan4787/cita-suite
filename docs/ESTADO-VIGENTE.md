@@ -18,7 +18,7 @@ produccion_repositorio: github-secundaria:Juan4787/cita-suite-verificacion.git
 
 ## Etapa E — ejecución al 5 de noviembre
 
-E conserva autorización íntegra de implementación/pruebas/publicación: [plan 12.18–12.26](plans/propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada), [especificación](plans/etapa-e-correo-autogestion.md) y [registro activo](plans/ejecucion-etapa-e-20261103.md). E1/E2/E3 sin publicar. SQL28 aprobada en 41965713239 y fast 41967728128 (1962/294). Recepción ampliada aprobada en browser 41968223023; vaciado de campos públicos durante matriz todavía sin causa. Diagnóstico acotado preparado, sin rellenar ni ocultar el fallo. SQL29 y dieciséis grupos/seis esperas nuevas pendientes: 42011083593 se detuvo en fixture que violaba aceptación de membresía; corregido a estado deshabilitado válido, sin tocar producto/constraint. Siguiente: repetir SQL29/tipos, después diagnóstico público e integración de distribución; continúan contacto/outbox/SN14/Zoho/correo/E5–E6. Checkpoint E3.23; índice documental disponible. Producción V12b, ningún envío ni cierre E; P1/P2/P3 pospuestas.
+E conserva autorización íntegra de implementación/pruebas/publicación: [plan 12.18–12.26](plans/propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada), [especificación](plans/etapa-e-correo-autogestion.md) y [registro activo](plans/ejecucion-etapa-e-20261103.md). E1/E2/E3 sin publicar. SQL29 aprobada en 42011723187: 160 migraciones, dieciséis grupos nuevos y dieciocho esperas de autoridad; tipos oficiales importados/digest cotejado. Recordatorios usa preparación POST y marca transaccional; 71 dirigidas locales aprobadas. Tipos/cliente/browser del consumidor pendientes. Browser de diagnóstico 42012721019 se frenó por snapshot con tipos viejos: ningún diagnóstico de campos atribuible; instrumentación sigue preparada. Siguiente: fast del conjunto actual y luego diagnóstico público; conectar seña/detalle y continuar contacto/outbox/SN14/Zoho/correo/E5–E6. Checkpoint E3.25, índice documental disponible. Producción V12b, ningún envío ni cierre E; P1/P2/P3 pospuestas.
 
 ## Código que difiere de producción
 
@@ -53,6 +53,7 @@ M	apps/web/src/lib/components/patients/PatientProfileDialog.svelte
 A	apps/web/src/lib/patients/public-booking-information.ts
 A	apps/web/src/lib/scheduling/booking-reschedule-policy.test.ts
 M	apps/web/src/lib/scheduling/booking-view.ts
+M	apps/web/src/lib/scheduling/contracts.ts
 A	apps/web/src/lib/scheduling/email-policy.ts
 A	apps/web/src/lib/scheduling/patient-action-context.test.ts
 A	apps/web/src/lib/scheduling/patient-action-context.ts
@@ -107,7 +108,11 @@ A	apps/web/src/lib/server/scheduling/public/public-booking-recovery.test.ts
 M	apps/web/src/lib/server/scheduling/public/public-booking.ts
 A	apps/web/src/lib/server/scheduling/public/receipt-pdf-handler.test.ts
 A	apps/web/src/lib/server/scheduling/public/receipt-pdf-handler.ts
+M	apps/web/src/lib/server/scheduling/public/reminders.test.ts
+M	apps/web/src/lib/server/scheduling/public/reminders.ts
 A	apps/web/src/lib/server/scheduling/public/reschedule-notice-page.ts
+A	apps/web/src/lib/server/scheduling/public/staff-delivery.test.ts
+A	apps/web/src/lib/server/scheduling/public/staff-delivery.ts
 A	apps/web/src/lib/server/scheduling/public/staff-management-flow.test.ts
 A	apps/web/src/lib/server/scheduling/public/staff-management-flow.ts
 A	apps/web/src/lib/server/scheduling/public/staff-management.test.ts
@@ -142,6 +147,11 @@ M	apps/web/src/routes/odonto/configuracion/+page.svelte
 A	apps/web/src/routes/odonto/configuracion/correo/+page.server.ts
 A	apps/web/src/routes/odonto/configuracion/correo/+page.svelte
 M	apps/web/src/routes/odonto/pacientes/[id]/+page.svelte
+M	apps/web/src/routes/odonto/recordatorios/+page.server.ts
+M	apps/web/src/routes/odonto/recordatorios/+page.svelte
+M	apps/web/src/routes/odonto/recordatorios/abrir/[appointmentId]/+server.ts
+A	apps/web/src/routes/odonto/recordatorios/abrir/[appointmentId]/abrir.server.test.ts
+M	apps/web/src/routes/odonto/recordatorios/recordatorios.server.test.ts
 M	apps/web/src/routes/odonto/turnos/[appointmentId]/+page.server.ts
 M	apps/web/src/routes/odonto/turnos/[appointmentId]/+page.svelte
 M	apps/web/src/routes/odonto/turnos/[appointmentId]/appointment-detail.server.test.ts

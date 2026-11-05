@@ -5531,6 +5531,14 @@ export type Database = {
         Args: { p_access_id: string; p_business_id: string; p_name: string }
         Returns: string
       }
+      mark_appointment_whatsapp_reminder_sent: {
+        Args: {
+          p_appointment_id: string
+          p_business_id: string
+          p_expected_revision: string
+        }
+        Returns: boolean
+      }
       mark_patient_calendar_offered: {
         Args: { p_legacy: boolean; p_token: string }
         Returns: boolean
@@ -5598,6 +5606,17 @@ export type Database = {
           notification_title: string
           review_url: string
         }[]
+      }
+      prepare_staff_appointment_delivery: {
+        Args: {
+          p_appointment_id: string
+          p_business_id: string
+          p_expected_phone?: string
+          p_expected_revision: string
+          p_kind: string
+          p_reopen?: boolean
+        }
+        Returns: Json
       }
       professional_break_minutes_at: {
         Args: {

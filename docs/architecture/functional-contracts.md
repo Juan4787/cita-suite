@@ -147,3 +147,6 @@ E3.10, sin publicar, actualiza la verificación del párrafo anterior: SQL 41929
 
 
 **E, distribución del personal — borrador E3.22 del 5 de noviembre, sin conectar ni publicar:** la preparación explícita de un enlace y las marcas de WhatsApp se autorizan dentro de la transacción; no se emiten credenciales al leer listas ni se restaura UPDATE directo. El emisor backend y la marca manual de envío conservan sus responsabilidades distintas. La revisión observada evita cubrir un turno movido/reasignado, y la credencial usa la generación/contacto actuales. La marca manual no acredita entrega externa. Estado, decisiones de reintento y prueba todavía pendiente en el [registro E3.22](../plans/ejecucion-etapa-e-20261103.md#e322--borrador-de-distribución-explícita-y-marcas-de-recordatorio-atómicas).
+
+
+**Actualización E3.25:** SQL29 está aprobada y Recordatorios ya consume los comandos autenticados para abrir un mensaje y registrar su envío manual, con revisión del mismo SELECT, GET sin emisión y formularios POST nativos. Unidad/servidor dirigidas 71/71; tipos/cliente/browser de esos consumidores siguen pendientes. Señas y compartir desde el detalle todavía no están conectados; no se afirma distribución ni correo terminados. [Evidencia y límites](../plans/ejecucion-etapa-e-20261103.md#e325--consumidor-de-recordatorios-conectado-fastbrowser-pendientes).
