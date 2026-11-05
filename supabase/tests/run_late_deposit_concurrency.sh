@@ -98,9 +98,9 @@ declare r late_deposit_race.requests; v_patient uuid; v_late integer; v_correct 
   if v_patient<>r.replacement_id or v_late<>0 or exists(select 1 from private.appointment_management_operations where appointment_id=r.appointment_id)
    or private.appointment_late_deposit_balance('e3300000-0000-4000-8000-000000000001',r.appointment_id,r.replacement_id)<>0 then raise exception 'LATE_REPAIR_WIN_INVALID'; end if;
  else
-  if v_patient<>r.patient_id or v_late<>1 or v_correct<>case when p_label='correction' then 1 else 0 end
-   or (select count(*) from private.appointment_management_operations where appointment_id=r.appointment_id)<>case when p_label='correction' then 2 else 1 end
-   or (select count(*) from public.audit_logs where entity_id=r.appointment_id and action in ('appointment.late_deposit_recorded','appointment.late_deposit_corrected'))<>case when p_label='correction' then 2 else 1 end
+  if v_patient<>r.patient_id or v_late<>1 or v_correct<>(case when p_label='correction' then 1 else 0 end)
+   or (select count(*) from private.appointment_management_operations where appointment_id=r.appointment_id)<>(case when p_label='correction' then 2 else 1 end)
+   or (select count(*) from public.audit_logs where entity_id=r.appointment_id and action in ('appointment.late_deposit_recorded','appointment.late_deposit_corrected'))<>(case when p_label='correction' then 2 else 1 end)
   then raise exception 'LATE_RACE_DUPLICATED_OR_REASSIGNED'; end if;
  end if;
 end $$;

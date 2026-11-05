@@ -6,6 +6,7 @@ import { bookingContextsAvailable } from '$lib/server/sites/public/booking-integ
 import { demoBusinessContext } from '$lib/server/access/public/business';
 import { parseStaffManagementSelection } from '$lib/server/scheduling/public/staff-management';
 import { submitStaffManagementAction } from '$lib/server/scheduling/public/staff-management-flow';
+import { parseStaffDepositFinancials, submitLateDepositAction } from '$lib/server/scheduling/public/late-deposits';
 import { getOdontoContext } from '$lib/server/access/public/odonto-context';
 import { createSupabaseAdminClient } from '$lib/server/platform/supabase';
 import { loadAppointmentBookingContext, loadAppointmentIntakeForPatient } from '$lib/server/sites/public/booking-integrations';
@@ -66,6 +67,7 @@ export const load: PageServerLoad = async ({ params, locals, fetch, cookies, url
 			appointment: null,
             management: null,
 			deposit: null,
+   depositFinancials: null,
 			canRecordDeposit: false,
 			auditLogs: [],
 			userLabels: {},
@@ -91,7 +93,7 @@ export const load: PageServerLoad = async ({ params, locals, fetch, cookies, url
 	const { data, error } = await supabase
 		.from('appointments')
 		.select(
-			'id, business_id, patient_id, service_id, professional_id, starts_at, ends_at, blocking_starts_at, blocking_ends_at, status, source, service_name_snapshot, professional_name_snapshot, duration_minutes_snapshot, buffer_before_minutes_snapshot, buffer_after_minutes_snapshot, break_minutes_snapshot, ignore_break, confirmed_at, cancelled_at, cancelled_reason, reschedule_requested_at, internal_note, patient_instructions_snapshot, public_reminder_description_snapshot, price_quote_snapshot, phone_communication_status_at_booking, phone_warning_acknowledged_at, created_by_user_id, updated_by_user_id, cancelled_by_user_id, created_at, updated_at, appointment_management_revision, appointment_professionals(professional_id, position, is_primary, professional_name_snapshot, break_minutes_snapshot), patients(id, full_name, phone_e164, email, blocked, archived_at), appointment_deposits(appointment_id, status, amount, currency, request_from, due_at, auto_cancel, waived_reason, recorded_at, reminder_opened_at, expired_at, revision)'
+			'id, business_id, patient_id, service_id, professional_id, starts_at, ends_at, blocking_starts_at, blocking_ends_at, status, source, service_name_snapshot, professional_name_snapshot, duration_minutes_snapshot, buffer_before_minutes_snapshot, buffer_after_minutes_snapshot, break_minutes_snapshot, ignore_break, confirmed_at, cancelled_at, cancelled_reason, reschedule_requested_at, internal_note, patient_instructions_snapshot, public_reminder_description_snapshot, price_quote_snapshot, phone_communication_status_at_booking, phone_warning_acknowledged_at, created_by_user_id, updated_by_user_id, cancelled_by_user_id, created_at, updated_at, appointment_management_revision, appointment_deposit_financials, appointment_professionals(professional_id, position, is_primary, professional_name_snapshot, break_minutes_snapshot), patients(id, full_name, phone_e164, email, blocked, archived_at), appointment_deposits(appointment_id, status, amount, currency, request_from, due_at, auto_cancel, waived_reason, recorded_at, reminder_opened_at, expired_at, revision)'
 		)
 		.eq('business_id', business.business.id)
 		.eq('id', params.appointmentId)
@@ -113,7 +115,10 @@ export const load: PageServerLoad = async ({ params, locals, fetch, cookies, url
 	let selection;
  try { selection = parseStaffManagementSelection(data); }
  catch (error) { logServerFailure('appointment.management_selection_unavailable', error); throw kitError(503, 'No pudimos cargar el turno completo. Volvé a intentar.'); }
- const { appointment_deposits: depositRelation, appointment_professionals: team, ...appointmentRow } = data;
+ let financials;
+ try { financials = parseStaffDepositFinancials(data.appointment_deposit_financials); }
+ catch (error) { logServerFailure('Error cargando los importes registrados del turno',error); throw kitError(503,'No pudimos cargar los importes del turno. Volvé a intentar antes de registrar dinero.'); }
+ const { appointment_deposit_financials: _financials, appointment_deposits: depositRelation, appointment_professionals: team, ...appointmentRow } = data;
 	const depositRow: OneToOne<typeof depositRelation> = depositRelation;
 	const deposit = parseAppointmentDeposit(depositRow ?? null);
 	// It cancels itself only with its own snapshot and the practice's switch both on; unknown is said
@@ -183,7 +188,8 @@ export const load: PageServerLoad = async ({ params, locals, fetch, cookies, url
 
 	return {
 		context: business,canEditInstructions,
-  management: { revision: selection.revision, statusOperationId: crypto.randomUUID(), rescheduleOperationId: crypto.randomUUID() },
+  management: { revision: selection.revision, statusOperationId: crypto.randomUUID(), rescheduleOperationId: crypto.randomUUID(), lateDepositOperationId: crypto.randomUUID() },
+  depositFinancials: { ...financials, latePayments: financials.latePayments.map(row => ({ ...row,correctionOperationId: crypto.randomUUID() })) },
 		appointment: {
 			...appointmentRow,
 			// The quote saved with the booking is JSON: validated here, never trusted as is.
@@ -211,6 +217,19 @@ export const load: PageServerLoad = async ({ params, locals, fetch, cookies, url
 };
 
 export const actions: Actions = {
+ late_deposit: async event => {
+  if (!event.locals.auth) throw redirect(303,'/login');
+  if (env.DEMO_MODE === 'true') return fail(400,{ message: 'No disponible en modo demo.' });
+  if (!isUuid(event.params.appointmentId)) return fail(404,{ message: 'No encontramos ese turno.' });
+  event.setHeaders({ 'cache-control': 'no-store','referrer-policy': 'no-referrer' });
+  const { supabase,business } = await getOdontoContext(event);
+  if (!business.canOperate || !DEPOSIT_ROLES.has(business.role)) return fail(403,{ message: 'No tenés permiso para registrar dinero en este consultorio.' });
+  let form: FormData;
+  try { form = await readBoundedBookingForm(event.request,[]); }
+  catch { return fail(400,{ message: 'No pudimos leer el registro. Actualizá el detalle antes de continuar.' }); }
+  const feedback = await submitLateDepositAction(supabase,{ businessId: business.business.id,appointmentId: event.params.appointmentId },form);
+  return feedback.success ? feedback : fail(feedback.retry ? 503 : feedback.invalid ? 400 : 409,feedback);
+ },
  prepare_delivery: async event => {
   if (!event.locals.auth) throw redirect(303, '/login');
   if (env.DEMO_MODE === 'true') return fail(400, { message: 'No disponible en modo demo.' });
