@@ -41,6 +41,7 @@ do $$declare b uuid:=gen_random_uuid(); u uuid:=gen_random_uuid(); s uuid:=gen_r
  values(i,b,'Synthetic informed integration',true,array['https://booking.example.test'],array[s],array[p]);
  insert into booking_policy_fixture values('business',b::text),('owner',u::text),('service',s::text),('professional',p::text),('integration',i::text),('key',gen_random_uuid()::text);
  update private.deposit_automation set enabled=true;
+ update private.appointment_management_runtime set email_producer_enabled=true;
  insert into public.deposit_policies(business_id,enabled,auto_cancel_enabled,amount_mode,fixed_amount,transfer_details)
  values(b,true,true,'fixed',40000,'Synthetic fixture transfer details');
 end$$;
@@ -110,6 +111,7 @@ do $$declare required boolean; disposition text; result jsonb; state public.appo
    if (select count(*) from public.audit_logs where entity_id=state.appointment_id and action='appointment.reschedule_policy_informed' and user_id is null)<>1 then raise exception 'INFORMED_AUDIT_MISSING'; end if;
    if (select count(*) from public.appointment_deposit_requirements where appointment_id=state.appointment_id and is_current and status='pending' and amount=40000)<>1
     or (select status from public.appointments where id=state.appointment_id)<>'reserved' then raise exception 'INITIAL_BOOKING_MONEY_CHANGED'; end if;
+   if (select count(*) from private.appointment_email_events where appointment_id=state.appointment_id and purpose='booking_receipt')<>1 then raise exception 'INFORMED_BOOKING_EVENT_MISSING'; end if;
   end loop;
  end loop;
 end$$;
@@ -187,9 +189,9 @@ select extensions.ok(pg_temp.bpbook()->>'id' is not null,'18. An enabled route d
 select extensions.ok((select not terms_acknowledged and accepted_at is null from public.appointment_management_states
  where appointment_id=(pg_temp.bpv('replay')::jsonb->>'id')::uuid),
  '19. All preference edits and later informed bookings leave the original uninformed reservation untouched');
-select extensions.ok(not has_function_privilege('anon','private.accept_public_booking_reschedule_policy(uuid,uuid)','EXECUTE')
- and not has_function_privilege('authenticated','private.accept_public_booking_reschedule_policy(uuid,uuid)','EXECUTE')
- and not has_function_privilege('service_role','private.accept_public_booking_reschedule_policy(uuid,uuid)','EXECUTE'),
+select extensions.ok(not has_function_privilege('anon','private.accept_booking_reschedule_policy(uuid,uuid,uuid)','EXECUTE')
+ and not has_function_privilege('authenticated','private.accept_booking_reschedule_policy(uuid,uuid,uuid)','EXECUTE')
+ and not has_function_privilege('service_role','private.accept_booking_reschedule_policy(uuid,uuid,uuid)','EXECUTE'),
  '20. The enrollment helper is not an alternative API for enrolling another or existing appointment');
 select * from extensions.finish();
 rollback;

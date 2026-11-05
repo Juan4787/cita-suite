@@ -1,6 +1,7 @@
 import type { CitaSupabaseClient } from '$lib/types/database';
 import { readBoolean, readChoice, readFiniteNumber, readRecord } from '$lib/contracts/json';
-import { EMAIL_POLICY_BOOLEAN_KEYS, type AppointmentEmailPreferences, type BookingReschedulePolicy } from '$lib/scheduling/email-policy';
+import { EMAIL_POLICY_BOOLEAN_KEYS, parseBookingReschedulePolicy, type AppointmentEmailPreferences, type BookingReschedulePolicy, type ManualBookingReschedulePolicy } from '$lib/scheduling/email-policy';
+import { loadDepositAutomationStatus, loadDepositPolicy } from './deposits';
 
 export type AppointmentEmailPolicy = AppointmentEmailPreferences & { revision: number; sender_verified: boolean };
 
@@ -9,6 +10,25 @@ export const loadPublicBookingPolicy = async (supabase: CitaSupabaseClient, busi
  const reschedulePolicy: BookingReschedulePolicy = { schema_version: 1, policy_revision: policy.revision,
   require_deposit_on_reschedule: policy.require_deposit_on_reschedule, previous_deposit_disposition: policy.previous_deposit_disposition };
  return { requireEmail: policy.require_email, reschedulePolicy };
+};
+
+/** Loaded only when opening a staff booking, never with the agenda's lists. */
+export const loadManualBookingReschedulePolicy = async (supabase: CitaSupabaseClient, businessId: string): Promise<ManualBookingReschedulePolicy | null> => {
+ const [deposit, automation] = await Promise.all([loadDepositPolicy(supabase, businessId), loadDepositAutomationStatus(supabase)]);
+ if (!deposit.enabled || !deposit.appliesToManual || !automation.enabled) return null;
+ return { policy: (await loadPublicBookingPolicy(supabase, businessId)).reschedulePolicy, excludedServiceIds: deposit.excludedServiceIds };
+};
+
+/** A staff checkbox records what the operator says they communicated. */
+export const parseManualBookingRescheduleAttestation = (form: FormData): BookingReschedulePolicy | undefined => {
+ const choices = form.getAll('reschedule_policy_acknowledged');
+ if (choices.length > 1 || (choices.length && choices[0] !== 'true' && choices[0] !== '')) throw new Error('RESCHEDULE_POLICY_TERMS_INVALID');
+ if (choices[0] !== 'true') return undefined;
+ const terms = form.getAll('reschedule_policy_terms');
+ try {
+  if (terms.length !== 1 || typeof terms[0] !== 'string' || terms[0].length > 1024) throw new Error();
+  return parseBookingReschedulePolicy(JSON.parse(terms[0]));
+ } catch { throw new Error('RESCHEDULE_POLICY_TERMS_INVALID'); }
 };
 
 const revision = (value: unknown) => {

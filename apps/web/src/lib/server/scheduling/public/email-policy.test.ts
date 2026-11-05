@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 import { DEFAULT_APPOINTMENT_EMAIL_PREFERENCES } from '$lib/scheduling/email-policy';
-import { loadAppointmentEmailPolicy, loadPublicBookingPolicy, parseAppointmentEmailPolicyForm, saveAppointmentEmailPolicy } from './email-policy';
+import { loadAppointmentEmailPolicy, loadPublicBookingPolicy, loadManualBookingReschedulePolicy, parseManualBookingRescheduleAttestation, parseAppointmentEmailPolicyForm, saveAppointmentEmailPolicy } from './email-policy';
+
+const deposits = vi.hoisted(() => ({ loadDepositPolicy: vi.fn(), loadDepositAutomationStatus: vi.fn() }));
+vi.mock('./deposits', () => deposits);
 
 const businessId = '11111111-1111-4111-8111-111111111111';
 const policy = { ...DEFAULT_APPOINTMENT_EMAIL_PREFERENCES, email_enabled: false, revision: 7, sender_verified: false };
@@ -10,6 +13,38 @@ const form = () => {
  result.set('previous_deposit_disposition', 'forfeit'); return result;
 };
 describe('appointment email preferences', () => {
+
+ it.each([{ enabled: false, manual: true, automation: true }, { enabled: true, manual: false, automation: true }, { enabled: true, manual: true, automation: false }])(
+  'does not ask staff to attest irrelevant deposit conditions: %j', async input => {
+   deposits.loadDepositPolicy.mockResolvedValue({ enabled: input.enabled, appliesToManual: input.manual, excludedServiceIds: [] });
+   deposits.loadDepositAutomationStatus.mockResolvedValue({ enabled: input.automation });
+   const from = vi.fn();
+   expect(await loadManualBookingReschedulePolicy({ from } as never, businessId)).toBeNull();
+   expect(from).not.toHaveBeenCalled();
+  }
+ );
+ it('loads only economic rules and excluded services for the staff disclosure', async () => {
+  deposits.loadDepositPolicy.mockResolvedValue({ enabled: true, appliesToManual: true, excludedServiceIds: ['service-without-deposit'], transferDetails: 'Not part of this DTO' });
+  deposits.loadDepositAutomationStatus.mockResolvedValue({ enabled: true });
+  const query = { select: () => query, eq: () => query, single: async () => ({ data: policy, error: null }) };
+  expect(await loadManualBookingReschedulePolicy({ from: () => query } as never, businessId)).toEqual({
+   policy: { schema_version: 1, policy_revision: 7, require_deposit_on_reschedule: true, previous_deposit_disposition: 'forfeit' },
+   excludedServiceIds: ['service-without-deposit']
+  });
+ });
+ it('requires an explicit staff attestation before transporting any supplied rules', () => {
+  const data = new FormData(); const terms = { schema_version: 1, policy_revision: 7, require_deposit_on_reschedule: true, previous_deposit_disposition: 'forfeit' };
+  data.set('reschedule_policy_terms', JSON.stringify(terms));
+  expect(parseManualBookingRescheduleAttestation(data)).toBeUndefined();
+  data.set('reschedule_policy_acknowledged', 'true');
+  expect(parseManualBookingRescheduleAttestation(data)).toEqual(terms);
+  data.append('reschedule_policy_acknowledged', 'true');
+  expect(() => parseManualBookingRescheduleAttestation(data)).toThrow('RESCHEDULE_POLICY_TERMS_INVALID');
+ });
+ it.each(['{broken', JSON.stringify({ schema_version: 1 }), JSON.stringify({ schema_version: 1, policy_revision: 7, require_deposit_on_reschedule: true, previous_deposit_disposition: 'forfeit', actor_id: 'forged' })])('rejects invalid staff disclosure %s', value => {
+  const data = new FormData(); data.set('reschedule_policy_acknowledged', 'true'); data.set('reschedule_policy_terms', value);
+  expect(() => parseManualBookingRescheduleAttestation(data)).toThrow('RESCHEDULE_POLICY_TERMS_INVALID');
+ });
  it('keeps required email independent from disabled sending and readiness', async () => {
   const query = { select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(), single: vi.fn().mockResolvedValue({ data: policy, error: null }) };
   const from = vi.fn().mockReturnValue(query);

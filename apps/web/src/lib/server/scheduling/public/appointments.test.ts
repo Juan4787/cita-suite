@@ -73,6 +73,12 @@ describe('appointment transitions', () => {
 });
 
 describe('appointment error messages', () => {
+	it('classifies an uncommitted financial disclosure conflict and invalid input as known human failures', () => {
+		for (const [code, status] of [['RESCHEDULE_POLICY_TERMS_CHANGED', 409], ['RESCHEDULE_POLICY_TERMS_INVALID', 400]] as const) {
+			expect(getAppointmentCreationErrorStatus(new Error(code))).toBe(status);
+			expect(getHumanAppointmentErrorMessage(new Error(code))).not.toContain(code);
+		}
+	});
 	it('reports a changed actor as forbidden while preserving overlap and unexpected failure statuses', () => {
 		expect(getAppointmentCreationErrorStatus(new Error('APPOINTMENT_CREATOR_INVALID'))).toBe(403);
 		expect(getAppointmentCreationErrorStatus({ code: 'P0001', message: 'PATIENT_OWNER_INVALID' })).toBe(403);
@@ -145,6 +151,15 @@ const createAtomicAppointmentMock = (options: { replayData?: Record<string, unkn
 };
 
 describe('patient identity during appointment creation', () => {
+	it('transports explicit staff disclosure without changing the existing creator contract', async () => {
+		const { supabase, headers, rpcCalls } = createAtomicAppointmentMock();
+		const policy = { schema_version: 1 as const, policy_revision: 3, require_deposit_on_reschedule: true, previous_deposit_disposition: 'forfeit' as const };
+		await createManualAppointment(supabase, { businessId: 'business-1', ownerId: 'owner-1', createdByUserId: 'reception-1',
+			patient: { mode: 'existing', patientId: 'patient-1', phone: '3425048209' }, serviceId: 'service-1', professionalId: 'professional-1',
+			startsAt: new Date('2026-07-30T13:00:00Z'), idempotencyKey: requestKey, reschedulePolicyTerms: policy });
+		expect(headers).toEqual([['x-cita-reschedule-policy', JSON.stringify(policy)]]);
+		expect(rpcCalls[0].payload).toMatchObject({ p_source: 'manual', p_created_by_user_id: 'reception-1', p_owner_id: 'owner-1', p_patient_id: 'patient-1' });
+	});
 	it.each(['direct', 'information', 'integrated'] as const)('transports the disclosed policy in the request for %s creation', async mode => {
 		const { supabase, headers, rpcCalls } = createAtomicAppointmentMock();
 		const policy = { schema_version: 1 as const, policy_revision: 3, require_deposit_on_reschedule: true, previous_deposit_disposition: 'forfeit' as const };

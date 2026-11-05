@@ -41,7 +41,7 @@ test('@candidate-behavior isolated informed booking: stale policy, atomic retry 
   await page.goto(`/reservar/${slug}?service_id=${serviceId}&professional_id=${professionalId}&date=${date}`);
   await page.getByRole('link', { name: /^\d{2}:\d{2}$/ }).first().click();
   await page.getByLabel('Nombre y apellido', { exact: true }).fill('Paciente Reserva Informada');
-  await page.getByLabel('Teléfono', { exact: true }).fill('3425048230');
+  await page.getByLabel('Teléfono de contacto', { exact: true }).fill('3425048230');
   await page.getByLabel('Correo electrónico', { exact: true }).fill('Informed+Booking@Example.test');
   const confirm = page.getByRole('button', { name: 'Confirmar reserva', exact: true });
   const attempt = await page.locator('[name="idempotency_key"]').inputValue();

@@ -18,7 +18,7 @@ produccion_repositorio: github-secundaria:Juan4787/cita-suite-verificacion.git
 
 ## Etapa E — ejecución al 5 de noviembre
 
-E conserva autorización íntegra de implementación/pruebas/publicación: [plan 12.18–12.26](plans/propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada), [especificación](plans/etapa-e-correo-autogestion.md) y [registro activo](plans/ejecucion-etapa-e-20261103.md). E1/E2/E3 sin publicar ni SQL E productivo. SQL 41961486301 aprueba 27 migraciones E/158 totales, altas informadas/carreras/limpieza/tipos. Fast 41962197791 aprobado sobre cf9223a: 1948 servidor/289 cliente, cero errores/avisos, tipos de navegador y guardias. Browser anterior de recepción/integración 41931144923 conserva su aprobación. Siguiente: browser del resumen informado→pago→reprogramación→cancelación y confirmación del ajuste ámbar de recepción; luego altas manuales informadas/contacto/outbox/distribución/SN14/Zoho/correo/E5–E6. Zoho: una clave existente recuperada por GET en custodia privada, sin crearla/desplegarla/enviar. Checkpoint E3.14. Producción V12b, ningún envío nuevo ni cierre E; P1/P2/P3 pospuestas.
+E conserva autorización íntegra de implementación/pruebas/publicación: [plan 12.18–12.26](plans/propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada), [especificación](plans/etapa-e-correo-autogestion.md) y [registro activo](plans/ejecucion-etapa-e-20261103.md). E1/E2/E3 sin publicar ni SQL E productivo. SQL27 (41961486301) y fast 41962197791 (1948/289, cero errores/avisos) conservan su aprobación. Browser 41962871294: recepción aprobada; alta informada detenida antes del primer POST por selector incorrecto de teléfono, corregido. Ajuste de texto público pendiente de navegador. Borrador28 comparte validación económica con declaración expresa del personal, sin inferir información ni cambiar permisos; diez grupos SQL y una espera de vencimiento preparados, 65 dirigidas locales aprobadas. Loader/parser aún sin conectar a la UI. Siguiente: SQL28/tipos antes de fast/browser; luego completar asistente del personal, contacto/outbox/distribución/SN14/Zoho/correo/E5–E6. Zoho conserva clave existente privada, sin crear/desplegar/enviar. Checkpoint E3.16. Producción V12b, ningún envío nuevo ni cierre E; P1/P2/P3 pospuestas.
 
 ## Código que difiere de producción
 
@@ -202,6 +202,7 @@ A	supabase/migrations/20261104110000_public_booking_email_requirement.sql
 A	supabase/migrations/20261104120000_public_booking_email_contact_scope.sql
 A	supabase/migrations/20261104130000_patient_contact_lock_order.sql
 A	supabase/migrations/20261104140000_informed_public_booking_reschedule_policy.sql
+A	supabase/migrations/20261105010000_informed_staff_booking_reschedule_policy.sql
 M	supabase/templates/recovery.html
 M	supabase/tests/appointment_actor_revalidation.sql
 M	supabase/tests/appointment_deposits.sql
@@ -244,6 +245,7 @@ M	supabase/tests/run_public_booking_limit_concurrency.sh
 M	supabase/tests/run_public_patient_resolution_concurrency.sh
 A	supabase/tests/run_staff_authorization_concurrency.sh
 A	supabase/tests/staff_appointment_management.sql
+A	supabase/tests/staff_booking_reschedule_policy.sql
 ```
 
 | Archivo | Qué es | ¿Afecta a producción? |

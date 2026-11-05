@@ -15,7 +15,8 @@ begin;
 do $$begin
  if to_regclass('booking_policy_race.original_runtime') is not null then
   update private.deposit_automation set enabled=(select deposit_enabled from booking_policy_race.original_runtime);
-  update private.appointment_management_runtime set reschedule_enabled=(select reschedule_enabled from booking_policy_race.original_runtime);
+  update private.appointment_management_runtime set reschedule_enabled=(select reschedule_enabled from booking_policy_race.original_runtime),
+   email_producer_enabled=(select email_producer_enabled from booking_policy_race.original_runtime);
  end if;
 end$$;
 drop schema if exists booking_policy_race cascade;
@@ -33,10 +34,10 @@ SQL
 trap cleanup EXIT
 query <<'SQL'
 create schema booking_policy_race;
-create table booking_policy_race.original_runtime as select d.enabled as deposit_enabled,r.reschedule_enabled
+create table booking_policy_race.original_runtime as select d.enabled as deposit_enabled,r.reschedule_enabled,r.email_producer_enabled
  from private.deposit_automation d cross join private.appointment_management_runtime r where d.singleton and r.singleton;
 create table booking_policy_race.control(label text primary key,go boolean not null default false,shown jsonb);
-insert into booking_policy_race.control(label) values('tighten'),('booking'),('relax');
+insert into booking_policy_race.control(label) values('tighten'),('booking'),('relax'),('staff');
 create table booking_policy_race.results(label text primary key,result jsonb);
 create function booking_policy_race.wait_go(p_label text) returns void language plpgsql as $$begin
  for attempt in 1..1500 loop
@@ -61,8 +62,8 @@ insert into public.availability_rules(business_id,professional_id,weekday,start_
  select 'b9300000-0000-4000-8000-000000000001','b9700000-0000-4000-8000-000000000001',day,'08:00','18:00',30,0,true from generate_series(0,6) day;
 update private.deposit_automation set enabled=true;
 update private.appointment_management_runtime set reschedule_enabled=true;
-insert into public.deposit_policies(business_id,enabled,auto_cancel_enabled,amount_mode,fixed_amount,transfer_details)
- values('b9300000-0000-4000-8000-000000000001',true,true,'fixed',40000,'Synthetic policy race transfer');
+insert into public.deposit_policies(business_id,enabled,auto_cancel_enabled,amount_mode,fixed_amount,transfer_details,applies_to_manual)
+ values('b9300000-0000-4000-8000-000000000001',true,true,'fixed',40000,'Synthetic policy race transfer',true);
 create function booking_policy_race.save(p_required boolean,p_disposition text) returns void language plpgsql as $$begin
  perform public.save_appointment_email_policy('b9300000-0000-4000-8000-000000000001',jsonb_build_object(
   'email_enabled',true,'require_email',true,'show_cancel',true,'show_reschedule',true,
@@ -82,6 +83,14 @@ create function booking_policy_race.book(p_label text,p_key text,p_hour integer)
  date_trunc('day',now())+interval '25 days'+make_interval(hours=>p_hour),null,null,false,'public_booking','valid',false,p_key);
  return to_jsonb(result);
 end$$;
+create function booking_policy_race.counts() returns jsonb language sql as $$select jsonb_build_array(
+ (select count(*) from public.appointments where business_id='b9300000-0000-4000-8000-000000000001'),
+ (select count(*) from public.patients where business_id='b9300000-0000-4000-8000-000000000001'),
+ (select count(*) from public.appointment_management_states where business_id='b9300000-0000-4000-8000-000000000001'),
+ (select count(*) from public.appointment_deposit_requirements where business_id='b9300000-0000-4000-8000-000000000001'),
+ (select count(*) from public.appointment_deposit_events where business_id='b9300000-0000-4000-8000-000000000001'),
+ (select count(*) from private.appointment_email_events where business_id='b9300000-0000-4000-8000-000000000001'),
+ (select count(*) from public.audit_logs where business_id='b9300000-0000-4000-8000-000000000001')))$$;
 grant usage on schema booking_policy_race to authenticated;
 grant select on booking_policy_race.control to authenticated;
 grant execute on function booking_policy_race.save(boolean,text),booking_policy_race.wait_go(text) to authenticated;
@@ -147,6 +156,52 @@ do $$declare result jsonb; again jsonb; counts jsonb; begin
  if (select count(*) from public.audit_logs where business_id='b9300000-0000-4000-8000-000000000001' and action='appointment.reschedule_policy_informed')<>2 then raise exception 'CONTENDED_INFORMED_AUDIT'; end if;
 end$$;
 SQL
+# An actor can be valid at the first check and expire at the newly added final
+# policy wait. The producer is on so rollback must cover an actual queue write.
+query <<'SQL'
+update private.appointment_management_runtime set email_producer_enabled=true;
+select booking_policy_race.remember('staff');
+insert into booking_policy_race.results values('staff-before',booking_policy_race.counts());
+update public.business_subscriptions set is_permanent=false,paid_until=clock_timestamp()+interval '3 seconds',grace_until=null
+ where business_id='b9300000-0000-4000-8000-000000000001';
+SQL
+PGAPPNAME=booking-policy-first query -c "begin; $owner_claim select booking_policy_race.save(false,'credit'); select pg_advisory_xact_lock(943173); select booking_policy_race.wait_go('staff'); commit;" >"$scratch/staff-first.log" 2>&1 &
+first_pid=$!
+ready=false
+for attempt in $(seq 1 300); do
+ if [ "$(query -c "select exists(select 1 from pg_locks where locktype='advisory' and classid=0 and objid=943173 and granted);" 2>/dev/null || true)" = t ]; then ready=true; break; fi
+ sleep 0.02
+done
+if [ "$ready" != true ]; then cat "$scratch/staff-first.log"; echo 'Staff policy barrier not reached' >&2; exit 1; fi
+PGAPPNAME=booking-policy-second query <<'SQL' >"$scratch/staff-second.log" 2>&1 &
+begin;
+select set_config('request.jwt.claims','{"role":"service_role"}',true);
+select set_config('request.headers',jsonb_build_object('x-cita-reschedule-policy',(select shown from booking_policy_race.control where label='staff')::text)::text,true);
+select public.create_appointment_with_patient_identity('b9300000-0000-4000-8000-000000000001','new',null,'Synthetic Staff Expiry',
+ '+5493425000020','+5493425000020','Staff+Expiry@Example.test',false,'b9400000-0000-4000-8000-000000000001',
+ 'b9600000-0000-4000-8000-000000000001',array['b9700000-0000-4000-8000-000000000001'::uuid],date_trunc('day',now())+interval '26 days 9 hours',
+ null,'b9400000-0000-4000-8000-000000000001',false,'manual','valid',false,'b9800000-0000-4000-8000-000000000004');
+commit;
+SQL
+second_pid=$!
+observed=false
+for attempt in $(seq 1 300); do
+ if [ "$(query -c "select exists(select 1 from pg_stat_activity s join pg_stat_activity f on f.application_name='booking-policy-first' where s.application_name='booking-policy-second' and f.pid=any(pg_blocking_pids(s.pid)));" 2>/dev/null || true)" = t ]; then observed=true; break; fi
+ sleep 0.02
+done
+query -c "select pg_sleep(greatest(extract(epoch from (paid_until-clock_timestamp())),0)+0.025) from public.business_subscriptions where business_id='b9300000-0000-4000-8000-000000000001'; update booking_policy_race.control set go=true where label='staff';" >/dev/null
+set +e
+wait "$first_pid"; first_result=$?; first_pid=''
+wait "$second_pid"; second_result=$?; second_pid=''
+set -e
+if [ "$observed" != true ] || [ "$first_result" -ne 0 ] || [ "$second_result" -eq 0 ] || ! grep -q 'APPOINTMENT_CREATOR_INVALID' "$scratch/staff-second.log"; then
+ cat "$scratch/staff-first.log" "$scratch/staff-second.log"; echo 'Staff expiry must reject after its observed policy wait' >&2; exit 1
+fi
+query <<'SQL'
+do $$begin
+ if booking_policy_race.counts() is distinct from (select result from booking_policy_race.results where label='staff-before') then raise exception 'EXPIRED_STAFF_PARTIAL_CREATION'; end if;
+end$$;
+SQL
 cleanup
 trap - EXIT
 query <<'SQL'
@@ -155,4 +210,4 @@ do $$begin
  or exists(select 1 from auth.users where id='b9400000-0000-4000-8000-000000000001') then raise exception 'POLICY_RACE_CLEANUP_FAILED'; end if;
 end$$;
 SQL
-echo 'Informed public booking: tightening first, booking first, relaxation first, response recovery and cleanup verified with observed PostgreSQL waits.'
+echo 'Informed booking: three public policy orders, staff expiry at final policy wait, response recovery and cleanup verified with observed PostgreSQL waits.'

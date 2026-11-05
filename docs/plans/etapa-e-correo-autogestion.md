@@ -22,6 +22,8 @@ Esta es la especificación vigente de E, incorporada por la sección 12.18 del [
 | Activación | Envíos habilitados por defecto y desactivables por el consultorio. La preferencia no simula preparación del emisor: falta de dominio/contacto/datos exigidos se muestra pendiente, sin emitir ni marcar enviado. No exigir otra activación manual al quedar listo. |
 | Economía | Juan acepta el gasto controlado de correo también con un consultorio. No exigir gratuidad indefinida ni interpretar esto como permiso para contratar otra infraestructura. Las compras las hace Juan, sin recargas automáticas del agente. |
 
+La información inicial en altas del personal se registra sólo mediante declaración expresa del operador; no se infiere de la configuración ni de enviar luego un comprobante. Alcance y precedencia en [12.30](propuesta-senas-avisos-natalia.md).
+
 Si no hay nueva obligación pendiente, conservar una confirmación previa válida cuando corresponda; un turno sin seña que estaba reservado no se confirma artificialmente por abrir el correo. No crear estados nuevos de turno para representar pagos.
 
 ### 1.1 Estado de Zoho informado por Juan
