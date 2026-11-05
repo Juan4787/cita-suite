@@ -18,7 +18,12 @@ test('@candidate-behavior isolated informed booking: stale policy, atomic retry 
   !('reschedule' in original) || typeof original.reschedule !== 'boolean') throw new Error('Invalid informed booking switch snapshot');
  const issues: LayoutIssue[] = [];
  let pageErrors = 0;
+ const formCheckpoints: unknown[] = [];
+ const browserEvents: string[] = [];
  page.on('pageerror', () => { pageErrors++; });
+ page.on('framenavigated', frame => { if (frame === page.mainFrame()) browserEvents.push('main-frame-navigation'); });
+ page.on('request', request => { if (request.method() === 'POST') browserEvents.push('post'); });
+ page.on('console', message => { if (message.type() === 'warning' && /hydration|svelte/.test(message.text())) browserEvents.push(message.text().slice(0, 800)); });
  try {
   f.sql(`begin;
    insert into auth.users(id,email) values('${ownerId}','informed-owner-${ownerId}@example.test');
@@ -50,6 +55,30 @@ test('@candidate-behavior isolated informed booking: stale policy, atomic retry 
   await expect(notice).toContainText('no se pedirá una nueva');
   const initial = JSON.parse(await page.locator('[name="reschedule_policy_terms"]').inputValue());
   expect(initial).toMatchObject({ schema_version: 1, require_deposit_on_reschedule: false, previous_deposit_disposition: 'credit' });
+  // Bounded temporary diagnosis: preserve the original setters/reset behavior.
+  // Locate whether a framework assignment, native reset or navigation clears
+  // already entered fields; never refill them to conceal that failure.
+  await page.evaluate(() => {
+   const traces: unknown[] = [];
+   Reflect.set(window, '__informedBookingTraces', traces);
+   const descriptor = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
+   if (!descriptor?.get || !descriptor.set) throw new Error('Missing native input descriptor');
+   const get = descriptor.get, set = descriptor.set;
+   Object.defineProperty(HTMLInputElement.prototype, 'value', { ...descriptor, set(this: HTMLInputElement, value: string) {
+    if (['patient_name','patient_phone','patient_email'].includes(this.name) && get.call(this) && value === '' && traces.length < 30)
+     traces.push({ kind: 'empty-assignment', field: this.name, stack: new Error().stack?.slice(0, 2500) });
+    set.call(this, value);
+   } });
+   const reset = HTMLFormElement.prototype.reset;
+   HTMLFormElement.prototype.reset = function() {
+    if (this.classList.contains('patient-booking-form') && traces.length < 30) traces.push({ kind: 'native-reset', stack: new Error().stack?.slice(0, 2500) });
+    return reset.call(this);
+   };
+  });
+  const checkpoint = async (stage: string) => { formCheckpoints.push({ stage, values: await page.locator('.patient-booking-form').evaluate((element: HTMLFormElement) => {
+   const form = new FormData(element); return Object.fromEntries(['patient_name','patient_phone','patient_email'].map(key => [key,form.get(key)]));
+  }) }); };
+  await checkpoint('filled');
   expect(await notice.evaluate((element) => {
    const submit = element.closest('form')?.querySelector('button[type="submit"]');
    return Boolean(submit && element.compareDocumentPosition(submit) & Node.DOCUMENT_POSITION_FOLLOWING);
@@ -61,6 +90,7 @@ test('@candidate-behavior isolated informed booking: stale policy, atomic retry 
     await alignTaskForCapture(notice);
     issues.push(...await layoutIssues(page, '.patient-booking-form button:visible, .patient-booking-form input:visible', '.patient-booking-form'));
     await page.screenshot({ path: info.outputPath(`informed-booking-${theme}-${width}.jpg`), type: 'jpeg', quality: 65 });
+    await checkpoint(`${theme}-${width}`);
    }
   }
   await page.setViewportSize({ width: 1280, height: 900 });
@@ -120,8 +150,13 @@ test('@candidate-behavior isolated informed booking: stale policy, atomic retry 
   await info.attach('informed-booking-proof', { body: JSON.stringify({ actualPublicPost: true, staleRejectedAtomically: true, attemptAndAliasPreserved: true, freshTermsPersisted: true,
    paymentRecordedBySqlCommand: true, actualInformedReschedule: true, originalPaymentRetainedAsForfeited: true, oneNewPendingDeposit: true, cancelledHasNeitherAction: true, issues, pageErrors }), contentType: 'application/json' });
  } finally {
-  f.sql(`begin; delete from public.appointments where business_id='${businessId}'; delete from public.businesses where id='${businessId}'; delete from auth.users where id='${ownerId}';
-   update private.deposit_automation set enabled=${original.deposit}; update private.appointment_management_runtime set reschedule_enabled=${original.reschedule}; commit;`);
-  expect(f.sql(`select count(*) from public.businesses where id='${businessId}';`)).toBe('0');
+  try {
+   await info.attach('informed-booking-form-diagnosis', { body: JSON.stringify({ formCheckpoints, browserEvents,
+    traces: await page.evaluate(() => Reflect.get(window, '__informedBookingTraces') ?? []) }), contentType: 'application/json' });
+  } finally {
+   f.sql(`begin; delete from public.appointments where business_id='${businessId}'; delete from public.businesses where id='${businessId}'; delete from auth.users where id='${ownerId}';
+    update private.deposit_automation set enabled=${original.deposit}; update private.appointment_management_runtime set reschedule_enabled=${original.reschedule}; commit;`);
+   expect(f.sql(`select count(*) from public.businesses where id='${businessId}';`)).toBe('0');
+  }
  }
 });
