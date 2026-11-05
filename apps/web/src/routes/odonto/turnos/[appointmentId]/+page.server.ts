@@ -172,7 +172,7 @@ export const load: PageServerLoad = async ({ params, locals, fetch, cookies, url
 	if (usersResult.error) logServerFailure('Error cargando usuarios para auditoria', usersResult.error);
 
 	const userLabels = Object.fromEntries(
-		(usersResult.data ?? []).map((user) => [String(user.user_id), user.email ?? String(user.user_id).slice(0, 8)])
+		(usersResult.data ?? []).map((user) => [String(user.user_id), user.email || 'Una persona del equipo'])
 	);
 
 	// Botón "Enviar actualización por WhatsApp": solo si el turno sigue activo, hay un

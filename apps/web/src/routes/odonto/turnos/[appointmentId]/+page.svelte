@@ -141,7 +141,7 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@cita-suite/share
 	};
 
 	const auditLabel = (log: AuditLog) => {
-		const user = log.user_id ? (data.userLabels[log.user_id] ?? log.user_id.slice(0, 8)) : 'Sistema';
+		const user = log.user_id ? (data.userLabels[log.user_id] ?? 'Una persona del equipo') : 'Sistema';
 		if (log.action === 'appointment.created') return `${user} creó el turno`;
 		if (log.action === 'appointment.public_created') return 'El paciente reservó el turno online';
 		if (log.action === 'appointment.reschedule_policy_informed') return 'Se informaron las condiciones de reprogramación al reservar';

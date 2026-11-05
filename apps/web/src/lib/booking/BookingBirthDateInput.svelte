@@ -3,7 +3,7 @@
   let {
     name,
     label,
-    value = "",
+    value = $bindable(""),
     required = false,
     helpId,
     today = new Date().toISOString().slice(0, 10),
@@ -24,17 +24,20 @@
   let touched = $state(false);
   let enhanced = $state(false);
   let fallbackInput = $state<HTMLInputElement | null>(null);
+  let fallbackValue = $state(untrack(() => value));
   let dayInput = $state<HTMLInputElement | null>(null);
   onMount(() => {
     // Preserve a date entered before hydration replaces the native control.
     if (fallbackInput?.value)
       [year, month, day] = fallbackInput.value.split("-");
+    publishDate();
     enhanced = true;
   });
   $effect(() => {
     if (value !== sourceValue) {
       [year, month, day] = initial();
       sourceValue = value;
+      fallbackValue = value;
     }
   });
   const empty = $derived(!year && !month && !day);
@@ -76,6 +79,12 @@
   $effect(() => dayInput?.setCustomValidity(message));
   const clean = (value: string, length: number) =>
     value.replace(/\D/g, "").slice(0, length);
+  const publishDate = () => {
+    // Mark a local edit before publishing it. Its echoed prop is not an
+    // external reset, especially while a formerly valid date is incomplete.
+    sourceValue = dateValue;
+    value = dateValue;
+  };
 </script>
 
 {#if !enhanced}
@@ -83,7 +92,7 @@
     bind:this={fallbackInput}
     type="date"
     {name}
-    {value}
+    bind:value={fallbackValue}
     {required}
     min={earliest}
     max={today}
@@ -117,8 +126,7 @@
         placeholder="DD"
         maxlength="2"
         {required}
-        bind:value={day}
-        oninput={() => (day = clean(day, 2))}
+        bind:value={() => day, (next: string) => { day = clean(next, 2); publishDate(); }}
         oninvalid={() => (touched = true)}
       /></label
     >
@@ -131,8 +139,7 @@
         placeholder="MM"
         maxlength="2"
         {required}
-        bind:value={month}
-        oninput={() => (month = clean(month, 2))}
+        bind:value={() => month, (next: string) => { month = clean(next, 2); publishDate(); }}
       /></label
     >
     <label
@@ -144,8 +151,7 @@
         placeholder="AAAA"
         maxlength="4"
         {required}
-        bind:value={year}
-        oninput={() => (year = clean(year, 4))}
+        bind:value={() => year, (next: string) => { year = clean(next, 4); publishDate(); }}
       /></label
     >
   </div>

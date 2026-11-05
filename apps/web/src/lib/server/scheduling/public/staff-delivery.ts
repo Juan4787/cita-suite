@@ -24,7 +24,8 @@ export const staffDeliveryFailure = (cause: unknown) => {
   APPOINTMENT_DELIVERY_INVALID: { status: 400, message: 'No pudimos leer esta acción. Actualizá la página y volvé a intentar.' },
   APPOINTMENT_REMINDER_ALREADY_OPENED: { status: 409, message: 'Ya se abrió un recordatorio para este turno. Revisalo antes de abrirlo otra vez.' }
  };
- return { code, ...(known[code] ?? { status: 503, message: 'No pudimos confirmar el resultado. Actualizá la página para revisar lo registrado antes de repetir la acción.' }) };
+ const failure = Object.hasOwn(known, code) ? known[code] : null;
+ return { code, ...(failure ?? { status: 503, message: 'No pudimos confirmar el resultado. Actualizá la página para revisar lo registrado antes de repetir la acción.' }) };
 };
 
 /** The result is a committed preparation, not evidence of an external send.

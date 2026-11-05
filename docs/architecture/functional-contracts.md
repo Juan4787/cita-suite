@@ -150,3 +150,6 @@ E3.10, sin publicar, actualiza la verificación del párrafo anterior: SQL 41929
 
 
 **Actualización E3.25:** SQL29 está aprobada y Recordatorios ya consume los comandos autenticados para abrir un mensaje y registrar su envío manual, con revisión del mismo SELECT, GET sin emisión y formularios POST nativos. Unidad/servidor dirigidas 71/71; tipos/cliente/browser de esos consumidores siguen pendientes. Señas y compartir desde el detalle todavía no están conectados; no se afirma distribución ni correo terminados. [Evidencia y límites](../plans/ejecucion-etapa-e-20261103.md#e325--consumidor-de-recordatorios-conectado-fastbrowser-pendientes).
+
+
+**E3.28, todavía sin fast/browser de esta corrección:** los campos de reserva pública conservan un borrador durante edición y al montar sus bindings, incluido ingreso previo a JavaScript; no se consideran autoridad económica. El contexto del POST nativo conserva selección/datos tras rechazo también fuera de la integración. La pérdida observada y sus trazas/corrección por categoría están en el [registro](../plans/ejecucion-etapa-e-20261103.md#e327--fast-aprobado-y-causa-observada-del-vaciado-público); las pruebas nuevas siguen pendientes. No es un cierre de formularios ni correo E.
