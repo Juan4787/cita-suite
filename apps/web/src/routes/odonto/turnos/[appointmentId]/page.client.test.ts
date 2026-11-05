@@ -326,7 +326,7 @@ describe('seña del turno en el detalle', () => {
 		expect(screen.queryByRole('button', { name: 'Confirmar seña' })).toBeNull();
 	});
 
-	it('una exención por apagar la política, un turno cancelado o quien no registra señas no tienen acciones', () => {
+	it('una exención por política apagada, un turno cancelado o quien no registra señas no ofrecen acciones para resolver esa obligación', () => {
 		render(Page, { data: { ...data, justCreated: false, deposit: deposit({ status: 'waived', waived_reason: 'policy_disabled' }) } });
 		expect(panel()).toHaveTextContent('Exceptuada al apagar la seña del consultorio.');
 		expect(panel().querySelector('form')).toBeNull();
