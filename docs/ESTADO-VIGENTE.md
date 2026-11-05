@@ -31,6 +31,7 @@ M	apps/web/e2e/booking-embed.spec.ts
 A	apps/web/e2e/booking-reschedule-policy.spec.ts
 A	apps/web/e2e/email-preferences.spec.ts
 M	apps/web/e2e/helpers/owned-appointment-fixture.ts
+A	apps/web/e2e/late-deposits.spec.ts
 A	apps/web/e2e/patient-management-clinical.spec.ts
 A	apps/web/e2e/patient-management.spec.ts
 A	apps/web/e2e/reception-email.spec.ts
