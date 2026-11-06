@@ -42,6 +42,8 @@ export const parsePatientManagementView = (value: unknown) => {
  const canReschedule = readBoolean(row.can_reschedule, 'appointment.management.reschedule');
  const canAddInformation = readBoolean(row.can_add_information, 'appointment.management.information');
  const canManageReminders = readBoolean(row.can_manage_reminders, 'appointment.management.reminders');
+ const emailRemindersActive = row.email_reminders_active === true;
+ const scheduleRevision = typeof row.schedule_revision === 'number' ? row.schedule_revision : null;
  const isActive = ['reserved', 'confirmed', 'reschedule_requested'].includes(row.status);
  if (isPast !== (epochMicroseconds(startsAt) <= epochMicroseconds(now)) || ((!isActive || isPast) && (canCancel || canConfirm || canReschedule || canAddInformation || canManageReminders)) ||
   (canConfirm && row.status !== 'reserved')) return invalid();
@@ -92,7 +94,7 @@ export const parsePatientManagementView = (value: unknown) => {
   }
  };
  return {
-  appointment, canAddInformation, canManageReminders, revision: token(row.revision), generation: counter(row.generation), scheduleRevision: counter(row.schedule_revision),
+  appointment, canAddInformation, canManageReminders, emailRemindersActive, scheduleRevision, revision: token(row.revision), generation: counter(row.generation), scheduleRevision: counter(row.schedule_revision),
   accessKind: row.access_kind === 'legacy' ? 'legacy' as const : 'capability' as const, now,
   serviceId: row.service_id === null ? null : uuid(row.service_id), professionalIds, durationMinutes, integration,
   newBookingAllowed: readBoolean(row.new_booking_allowed, 'appointment.management.newBooking'),

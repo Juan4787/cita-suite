@@ -9,6 +9,7 @@
  import { formatQuotedPrice } from './pricing';
  import { buildDepositTermsNotice, DEPOSIT_TERMS_UNAVAILABLE_NOTICE } from '$lib/scheduling/deposits';
  import { bookingReschedulePolicyNotice } from '$lib/scheduling/email-policy';
+ import { suggestEmailCorrection } from '$lib/booking/email-suggestion';
  import PublicBookingIntakeField from './PublicBookingIntakeField.svelte';
 
  let { data, form, confirmation, requiresRecovery, onUncertain, localDraft = $bindable({}), activeStepCard = $bindable(null) }: {
@@ -28,6 +29,7 @@
  const reschedulePolicyNotice = $derived(informedReschedulePolicy ? bookingReschedulePolicyNotice(informedReschedulePolicy) : null);
  const business = $derived(data.state.business);
  const values = $derived({ ...form?.values, ...localDraft });
+ const emailSuggestion = $derived(suggestEmailCorrection(String(values.patient_email ?? '')));
  const setDraftValue = (key: string, value: unknown) => {
   localDraft = { ...values, [key]: value == null ? '' : String(value) };
  };
@@ -128,6 +130,9 @@
   <label for="patient-email" class="patient-label"><span>Correo electrónico</span><span class={required ? 'patient-required' : 'patient-optional'} aria-hidden="true">{required ? '*' : 'Opcional'}</span></label>
   <input id="patient-email" aria-label="Correo electrónico" name="patient_email" maxlength="254" type="email" autocomplete="email"
    {required} bind:value={() => String(values.patient_email ?? ''), (value: string) => setDraftValue('patient_email', value)} class="ux-input patient-control" />
+  {#if emailSuggestion}
+   <p class="mt-2 text-sm" role="status">¿Quisiste decir <button type="button" class="font-semibold underline" onclick={() => setDraftValue('patient_email', emailSuggestion)}>{emailSuggestion}</button>?</p>
+  {/if}
  </div>
 {/snippet}
 

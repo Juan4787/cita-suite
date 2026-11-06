@@ -51,6 +51,8 @@ M	apps/web/src/lib/booking/PublicBookingFlow.client.test.ts
 M	apps/web/src/lib/booking/PublicBookingFlow.svelte
 M	apps/web/src/lib/booking/PublicBookingIntakeField.svelte
 A	apps/web/src/lib/booking/PublicInformationPage.svelte
+A	apps/web/src/lib/booking/email-suggestion.test.ts
+A	apps/web/src/lib/booking/email-suggestion.ts
 M	apps/web/src/lib/components/agenda/ManualAppointmentWizard.client.test.ts
 M	apps/web/src/lib/components/agenda/ManualAppointmentWizard.svelte
 A	apps/web/src/lib/components/appointments/PatientManagementPanel.client.test.ts
@@ -58,6 +60,8 @@ A	apps/web/src/lib/components/appointments/PatientManagementPanel.svelte
 A	apps/web/src/lib/components/appointments/PublicAppointmentPage.svelte
 A	apps/web/src/lib/components/appointments/RescheduleNoticePage.svelte
 M	apps/web/src/lib/components/patients/PatientProfileDialog.svelte
+M	apps/web/src/lib/device.test.ts
+M	apps/web/src/lib/device.ts
 A	apps/web/src/lib/patients/public-booking-information.ts
 M	apps/web/src/lib/scheduling/agenda-navigation.test.ts
 M	apps/web/src/lib/scheduling/agenda-navigation.ts

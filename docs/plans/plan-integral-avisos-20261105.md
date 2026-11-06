@@ -12,7 +12,8 @@ Se actualiza después de cada bloque con resultado. Es el único lugar con el «
 |---|---|
 | Fecha | 5 de noviembre de 2026, noche (Argentina) |
 | Revisión de partida | `main` `d3f7553c`, igual a GitHub; producción V12b `771fac59`, versión `277d332d`, comprobada con `/_app/version.json` y `wrangler deployments list` |
-| Fase | Investigación física de permisos y `.ics` terminada; ver 4.1 y 4.2. Empieza la implementación |
+| Fase | Implementación en curso, sin commitear todavía (archivos en el árbol de trabajo). SN14: causa hallada y corregida (hidratación cerraba el `<details>`). Correo: migración `20261106010000`, suite `appointment_email_delivery.sql` (35 pasan), `zoho-email.ts`, `appointment-email*.ts`, webhook `/api/zoho/webhook`, baja `/correo/baja/<token>`, cron reasignados. Recordatorio: `PublicAppointmentPage.svelte` y guías reescritas, pruebas de cliente verdes |
+| Corridas | SQL `42137372493` en curso (rama `verify/avisos-correo-sql3-20261106`). Al aprobar: importar tipos oficiales. Pendiente volver a medir `client_reference` en la lista de Zoho |
 | Datos sintéticos abiertos en producción | Práctica de dispositivo `78f3c48dedc7`: limpiar con `node scripts/production-device-push.mjs cleanup 78f3c48dedc7` |
 | Ajustes de teléfonos a restaurar | Xiaomi: `stay_on_while_plugged_in` estaba en 0; permiso de notificaciones de Chrome estaba denegado por el usuario, y quedó igual después de las pruebas; origen `app.cita-suite.com.ar` quedó concedido. Samsung: origen de la sonda concedido. El evento sintético guardado por error en Hotmail ya se borró (el proveedor de calendario no lo devuelve) |
 | Siguiente acción | Implementación. Quedan físicos para la versión nueva: Google gestionado y manual en teléfonos, Apple por TestKase, push con Chrome cerrado |
@@ -114,6 +115,22 @@ Samsung SM-A715F, Android 13, Chrome 156, con Calendario Samsung, Proton Calenda
 | `.ics`: `METHOD:CANCEL` | Abre el evento viejo; no lo quita | Sin probar | Hay que pedir borrarlo a mano |
 
 El enlace manual y Google gestionado se comprueban en los teléfonos con la versión nueva.
+
+## 4.3 Comportamiento real de Zoho (medido el 5 de noviembre)
+
+Un envío real a citasuite@gmail.com desde `avisos.cita-suite.com.ar`, más pedidos que debían fallar. Referencia `sonda-fd90dee6083e`.
+
+| Hecho medido | Consecuencia |
+|---|---|
+| Éxito: HTTP **201** (la documentación dice 200), `data[0].code=EM_104`, `request_id` | El cliente acepta cualquier 2xx con ese código, y exige `request_id` |
+| Errores: HTTP **401** `TM_4001` con subcódigo: `SM_111` remitente no verificado, `SERR_157` clave inválida, `SM_113` destinatario inválido | La clasificación usa el subcódigo, no el estado HTTP |
+| Mensaje en la bandeja en segundos, con DKIM, SPF y DMARC aprobados | Dominio y cabeceras correctos |
+| `Reply-To`, `List-Unsubscribe` y `List-Unsubscribe-Post` llegan intactos | Baja de un toque viable |
+| El detalle por `request_id` (OAuth) responde enseguida con la entrega al servidor receptor | Sirve para conciliar **si se tiene** el `request_id` |
+| La lista no mostró el envío recién hecho y filtrar por `client_reference` devolvió 0; una hora después ese filtro lo encuentra | El filtro funciona con demora de sincronización. Una respuesta perdida se puede conciliar por referencia, usando OAuth. La aplicación se apoya en el webhook; el filtro queda como herramienta de operador, para no poner credenciales de administración en el Worker |
+| Crédito real, leído del panel: 1 crédito = 10.000 correos, 9.997 restantes, **vence el 3 de diciembre de 2026**, recarga automática desactivada | Hay margen sobrado para las pruebas. Juan debe comprar antes de esa fecha o los envíos se detienen: ZH04 |
+| `POST /domains` exige `sub_domain_prefix`, aunque la documentación diga optativo, y con él responde `SERR_123`; `PUT .../verify` da 401. Lectura y envío funcionan | Crear y verificar dominios sólo se pudo desde el panel. La herramienta los lee y muestra los registros; el alta sigue siendo un paso de panel |
+| Provisión real de `prueba-correo.cita-suite.com.ar`: alta en el panel, TXT DKIM y CNAME `bounce-zem` cargados a mano en Cloudflare, verificación del panel aprobada | Cada subdominio necesita esos dos registros. Ninguno toca app, landing ni Auth |
 
 ## 5. Evidencia heredada
 
