@@ -866,12 +866,21 @@ test.describe('roles, profesionales y agenda - regresiones críticas', () => {
 		// asignaciones en una sola operación.
 		const jointNextDate = addIsoDays(fixture.date, 1);
 		const jointNextStart = `${jointNextDate}T12:00:00.000Z`; // 09:00 en Córdoba.
+		await page.goto(`/odonto/turnos/${jointId}?from_date=${fixture.date}&reprogram_date=${jointNextDate}`);
+		const jointSlots = page.waitForResponse((response) => new URL(response.url()).pathname.endsWith(`/turnos/${jointId}/slots`));
+		await page.locator('#reprogramar > summary').click();
+		const { availabilityRevision } = (await (await jointSlots).json()) as { availabilityRevision: number };
+		const observedForm = await page.locator('form[action="?/reschedule"]').evaluate((form) =>
+			[...new FormData(form as HTMLFormElement)].map(([key, value]) => [key, String(value)] as const));
 		const jointReschedule = await postAction(page, `/odonto/turnos/${jointId}?/reschedule`, {
+			...Object.fromEntries(observedForm),
+			availability_revision: String(availabilityRevision),
 			slot_starts_at: jointNextStart,
 			reprogram_date: jointNextDate,
 			ignore_break: 'false'
 		});
 		expect(jointReschedule.status).toBeLessThan(500);
+		expect(jointReschedule.text).not.toContain('"type":"failure"');
 
 		const { data: movedAllocations, error: movedAllocationsError } = await admin
 			.from('appointment_professionals')
