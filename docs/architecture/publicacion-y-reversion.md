@@ -318,7 +318,7 @@ node scripts/rehearse-production-migrations.mjs
 node scripts/backup-production.mjs
 # 3. Sin trabajos programados mientras cambian esquema y app.
 NODE_OPTIONS=--max-old-space-size=192 node scripts/deploy-production-workers.mjs scheduler-without-crons
-# 4. Las 31 migraciones de E en una sola transacción: todo o nada.
+# 4. Las 32 migraciones de E en una sola transacción: todo o nada.
 node scripts/apply-production-migrations.mjs <directorio del respaldo del paso 2>
 # 5. Secretos de correo, leídos de archivos privados por la entrada estándar; nunca en argumentos ni registros.
 # 6. App: el paquete exacto, y su verificación.

@@ -10,9 +10,10 @@ import Page from './+page.svelte';
 type Data = ComponentProps<typeof Page>['data'];
 const policy = { email_enabled: true, require_email: true, show_cancel: true, show_reschedule: true, require_deposit_on_reschedule: true,
 	previous_deposit_disposition: 'forfeit' as const, revision: 1, sender_verified: true };
-const ready = { domainState: 'verified' as const, fromAddress: 'turnos@consultorio.cita-suite.com.ar', replyTo: 'contacto@example.test',
+type Status = NonNullable<Data['status']>;
+const ready: Status = { domainState: 'verified', fromAddress: 'turnos@consultorio.cita-suite.com.ar', replyTo: 'contacto@example.test',
 	ready: true, producerEnabled: true, paused: false, used24h: 3, dailyLimit: 100, needsReview: 0, failed7d: 0 };
-const page = (status: Partial<typeof ready> | null, policyChanges: Partial<typeof policy> = {}) =>
+const page = (status: Partial<Status> | null, policyChanges: Partial<typeof policy> = {}) =>
 	render(Page, { data: { demo: false, context: {}, policy: { ...policy, ...policyChanges }, status: status && { ...ready, ...status } } as unknown as Data });
 const readiness = (container: HTMLElement) => container.querySelector('[data-email-readiness]');
 

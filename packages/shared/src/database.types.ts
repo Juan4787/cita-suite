@@ -5602,6 +5602,7 @@ export type Database = {
           previously_opened_at: string
         }[]
       }
+      operator_get_email_operations: { Args: { p_now?: string }; Returns: Json }
       operator_set_business_email_sender: {
         Args: {
           p_business_id: string
@@ -5609,6 +5610,19 @@ export type Database = {
           p_provider_domain_key?: string
           p_reply_to?: string
           p_state: string
+        }
+        Returns: Json
+      }
+      operator_set_email_operations: {
+        Args: {
+          p_actor_id: string
+          p_credit_expires_at: string
+          p_credit_messages: number
+          p_credit_started_at: string
+          p_daily_limit: number
+          p_expected_revision: number
+          p_lift_pause?: boolean
+          p_producer_enabled: boolean
         }
         Returns: Json
       }

@@ -1,4 +1,6 @@
 import { logServerFailure } from '$lib/server/platform/logging';
+import { emailOperationWarnings, loadEmailOperations } from '$lib/server/integrations/public/email-operations';
+import type { CitaSupabaseClient } from '$lib/types/database';
 import {
 	COMMERCIAL_STATUSES,
 	getBusinessAccessState
@@ -309,6 +311,16 @@ const buildMasterData = async (
 	};
 };
 
+// Informative: a failure reading it must not hide the rest of the panel. Only what needs action.
+const emailWarningsFor = async (admin: CitaSupabaseClient) => {
+	try {
+		return emailOperationWarnings(await loadEmailOperations(admin), new Date()).filter((warning) => warning.level !== 'info');
+	} catch (cause) {
+		logServerFailure('Error cargando los avisos de correo', cause);
+		return null;
+	}
+};
+
 export const load: PageServerLoad = async ({ locals, fetch }) => {
 	if (!locals.auth) throw redirect(303, '/login');
 	const master = ensureMaster(locals);
@@ -317,6 +329,7 @@ export const load: PageServerLoad = async ({ locals, fetch }) => {
 	try {
 		return {
 			...(await buildMasterData(admin, master.email)),
+			emailWarnings: await emailWarningsFor(admin),
 			masterEmail: master.email,
 			loadError: null
 		};
@@ -328,6 +341,7 @@ export const load: PageServerLoad = async ({ locals, fetch }) => {
 			statuses: COMMERCIAL_STATUSES,
 			assistance: [],
 			mpAttention: [],
+			emailWarnings: await emailWarningsFor(admin),
 			masterEmail: master.email,
 			loadError: 'No se pudo cargar el panel maestro. Revisá la conexión y las migraciones.'
 		};

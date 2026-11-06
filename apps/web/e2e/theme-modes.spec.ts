@@ -344,6 +344,6 @@ test.describe('color modes', () => {
 		if (!masterEmail || !masterPassword) throw new Error('Explicit synthetic master identity is required.');
 		await syntheticMasterId(f.admin.auth.admin, masterEmail, masterPassword);
 		await signInWithPassword(page, masterEmail, masterPassword);
-		await sweep(page, info, ['/odonto/maestro', '/odonto/maestro/almacenamiento'], 'maestro');
+		await sweep(page, info, ['/odonto/maestro', '/odonto/maestro/almacenamiento', '/odonto/maestro/correo'], 'maestro');
 	});
 });
