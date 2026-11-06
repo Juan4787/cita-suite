@@ -202,6 +202,7 @@ const load = async (event: RequestEvent) => {
 			appointment,
 			bookingInformationEnabled: bookingInformationEnabled() && screen?.view.canAddInformation === true,
    remindersEnabled,
+   emailRemindersActive: screen?.view.emailRemindersActive === true,
 			message: appointment ? (appointment.status === 'cancelled' ? 'Este turno ya fue cancelado.' : appointment.is_past ? 'Este turno ya no admite cambios online.' : appointment.status === 'confirmed' ? 'Tu turno está confirmado.' : appointment.status === 'reschedule_requested' ? 'Este turno tiene un pedido de reprogramación pendiente.' : 'Tu turno está reservado.') : 'El enlace no es válido o ya no está disponible.',
 			created,
 			...(appointment ? buildTurnWhatsAppNotices(appointment, { created }) : { depositWhatsApp: null, practiceWhatsApp: null }),

@@ -4,7 +4,6 @@ import {
 	isLikelyBotUserAgent,
 	notificationBrowserProfile,
 	refineDeviceClass,
-	samsungAppNotificationToggleStep,
 	supportsAndroidCalendarIntent,
 	whatsappHrefFor
 } from './device';
@@ -53,8 +52,9 @@ describe('notificationBrowserProfile', () => {
 			label: 'Microsoft Edge',
 			sitePermissionGuide: null
 		});
+		// El nombre del interruptor varía por fabricante: se describe, no se nombra.
 		expect(notificationBrowserProfile(UA.samsungInternet).phoneNotificationGuide?.steps).toContain(
-			'{{app_notification_toggle}}'
+			'Activá el interruptor principal, arriba de todo.'
 		);
 		expect(notificationBrowserProfile(UA.samsungInternet).phoneNotificationGuide?.steps).toContain(
 			'Tocá “Aplicaciones”.'
@@ -69,15 +69,14 @@ describe('notificationBrowserProfile', () => {
 			'Activá {{site}}.',
 			'Volvé a este turno.'
 		]);
-		expect(notificationBrowserProfile(UA.android).sitePermissionGuide?.steps[0]).toBe(
-			'Si no ves la dirección, deslizá la página apenas hacia abajo para mostrarla.'
-		);
-		expect(notificationBrowserProfile(UA.android).sitePermissionGuide?.steps[1]).toBe(
-			'Tocá el ícono situado a la izquierda de la dirección.'
-		);
-		expect(notificationBrowserProfile(UA.android).sitePermissionGuide?.steps).toContain(
-			'{{app_notification_toggle}}'
-		);
+	});
+
+	it('en Chrome guía por el menú, la única entrada que existe en Chrome 156 en un sitio HTTPS', () => {
+		const steps = notificationBrowserProfile(UA.android).sitePermissionGuide?.steps ?? [];
+		expect(steps.slice(0, 3)).toEqual(['Tocá los tres puntos de Chrome, arriba a la derecha.', 'Tocá “Controles de sitios”.', 'Tocá “Permisos”.']);
+		expect(steps[3]).toContain('Suscribirse');
+		expect(steps[3]).toContain('Restablecer permisos');
+		expect(steps.join(' ')).not.toContain('a la izquierda de la dirección');
 	});
 
 	it('entrega una guía propia para Firefox en vez de reutilizar Chrome', () => {
@@ -113,31 +112,6 @@ describe('notificationBrowserProfile', () => {
 			sitePermissionGuide: null
 		});
 		expect(notificationBrowserProfile(UA.instagramInApp)).toMatchObject({ id: 'embedded' });
-	});
-});
-
-describe('samsungAppNotificationToggleStep', () => {
-	it('usa la etiqueta observada en One UI sobre Android 12 o anterior', () => {
-		expect(samsungAppNotificationToggleStep('11.0.0')).toBe(
-			'Activá “Mostrar notificaciones”.'
-		);
-		expect(samsungAppNotificationToggleStep('12')).toBe('Activá “Mostrar notificaciones”.');
-	});
-
-	it('usa la etiqueta vigente desde Android 13 cuando la versión está disponible', () => {
-		expect(samsungAppNotificationToggleStep('13.0.0')).toBe(
-			'Activá “Permitir notificaciones”.'
-		);
-		expect(samsungAppNotificationToggleStep('15')).toBe('Activá “Permitir notificaciones”.');
-	});
-
-	it('no inventa un nombre de pantalla si el navegador oculta la versión', () => {
-		expect(samsungAppNotificationToggleStep(null)).toBe(
-			'Activá el interruptor principal de notificaciones, en la parte superior.'
-		);
-		expect(samsungAppNotificationToggleStep('')).toBe(
-			'Activá el interruptor principal de notificaciones, en la parte superior.'
-		);
 	});
 });
 

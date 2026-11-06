@@ -556,8 +556,34 @@ begin
  return jsonb_build_object('ready',private.email_sender_ready(p_business_id));
 end $$;
 
+-- Whether reminders by email will really be attempted for this appointment, so the page does not
+-- ask a patient to set up something they already have. It says nothing about reaching a mailbox.
+create function private.appointment_email_reminders_active(p_business_id uuid,p_appointment_id uuid) returns boolean
+language sql stable security definer set search_path=pg_catalog,pg_temp as $$
+ select coalesce((select r.email_producer_enabled from private.appointment_management_runtime r where r.singleton),false)
+  and coalesce((select p.email_enabled from public.appointment_email_policies p where p.business_id=p_business_id),false)
+  and private.email_sender_ready(p_business_id)
+  and exists(select 1 from private.appointment_email_contact(p_business_id,p_appointment_id) c
+   where nullif(btrim(c.email),'') is not null and not exists(select 1 from private.email_suppressions s
+    where s.business_id=p_business_id and s.email_normalized=lower(btrim(c.email)) and s.lifted_at is null))
+$$;
+
+create or replace function public.get_patient_appointment_management_view(p_token text,p_legacy boolean default false,p_starts_at timestamptz default null)
+returns jsonb language plpgsql volatile security definer set search_path=pg_catalog,pg_temp as $$
+declare v_now timestamptz:=clock_timestamp(); v_result jsonb;
+begin
+ if p_legacy is null or not coalesce(p_token ~ '^[0-9a-f]{64}$',false) then raise exception 'APPOINTMENT_LINK_UNAVAILABLE'; end if;
+ with access as materialized (select private.appointment_management_access_at(p_token,p_legacy,v_now) as context)
+ select private.appointment_management_snapshot((context->>'business_id')::uuid,(context->>'appointment_id')::uuid,p_starts_at,v_now)
+  ||jsonb_build_object('revision',context->'revision','generation',context->'generation','access_kind',context->'access_kind',
+   'email_reminders_active',private.appointment_email_reminders_active((context->>'business_id')::uuid,(context->>'appointment_id')::uuid))
+ into v_result from access where context is not null;
+ if v_result is null then raise exception 'APPOINTMENT_LINK_UNAVAILABLE'; end if;
+ return v_result;
+end $$;
+
 revoke all on function private.stamp_email_producer_activation(),private.email_sender_ready(uuid),private.mirror_email_sender_readiness(),
- private.plan_appointment_email_work(timestamptz,integer),private.discard_appointment_email(uuid,text),
+ private.plan_appointment_email_work(timestamptz,integer),private.discard_appointment_email(uuid,text),private.appointment_email_reminders_active(uuid,uuid),
  public.claim_appointment_email_batch(integer,timestamptz),public.record_appointment_email_results(jsonb,timestamptz),
  public.record_email_provider_event(text,text,text,timestamptz),public.get_email_unsubscribe(text),public.apply_email_unsubscribe(text),
  public.list_appointment_email_deliveries(uuid,uuid),public.resolve_appointment_email_delivery(uuid,uuid,text),

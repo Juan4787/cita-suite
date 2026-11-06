@@ -182,9 +182,10 @@ select extensions.ok((public.record_email_provider_event('wh-1',(select value#>>
  and (public.record_email_provider_event('wh-1',(select value#>>'{items,0,delivery_id}' from mail_claim where label='lost'),'hard_bounce')->>'duplicate')='true'
  and pg_temp.state(pg_temp.mid('a9'),'booking_receipt')='delivered',
  '22. ZH10: provider evidence resolves the uncertainty, and a repeated notification id changes nothing');
-select extensions.ok((public.record_email_provider_event('wh-2',(select value#>>'{items,0,delivery_id}' from mail_claim where label='lost'),'hard_bounce')->>'outcome')='hard_bounce'
- and (public.record_email_provider_event('wh-3',(select value#>>'{items,0,delivery_id}' from mail_claim where label='lost'),'delivered')->>'outcome')='ignored'
- and pg_temp.state(pg_temp.mid('a9'),'booking_receipt')='bounced'
+select public.record_email_provider_event('wh-2',(select value#>>'{items,0,delivery_id}' from mail_claim where label='lost'),'hard_bounce');
+select public.record_email_provider_event('wh-3',(select value#>>'{items,0,delivery_id}' from mail_claim where label='lost'),'delivered');
+select extensions.ok(pg_temp.state(pg_temp.mid('a9'),'booking_receipt')='bounced'
+ and (select outcome='ignored' from private.email_provider_events where webhook_request_id='wh-3')
  and exists(select 1 from private.email_suppressions where reason='hard_bounce' and email_normalized='nuevo@example.test'),
  '23. ZH08: a bounce stops that address and a late delivered does not undo it');
 delete from private.email_suppressions;
@@ -248,7 +249,9 @@ select set_config('request.jwt.claim.sub','',true);
 
 -- Reassigning an appointment must not carry the previous recipient (EM11).
 insert into mail_fixture select 'a16',pg_temp.book(pg_temp.base()+interval '1600 hours');
-update public.appointments set patient_id=pg_temp.mid('bare') where id=pg_temp.mid('a16');
+select set_config('request.jwt.claim.sub',pg_temp.mid('owner')::text,true);
+select public.reassign_appointment_patient_safely(pg_temp.mid('business'),pg_temp.mid('a16'),pg_temp.mid('bare'),pg_temp.mid('owner'),'Synthetic identity correction');
+select set_config('request.jwt.claim.sub','',true);
 insert into mail_claim select 'reassigned',pg_temp.claim();
 select extensions.ok((select pg_temp.items_for(value,pg_temp.mid('a16'))#>>'{0,recipient}'='agregado@example.test' from mail_claim where label='reassigned'),
  '33. EM11: a reassigned appointment goes to the person it belongs to now');

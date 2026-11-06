@@ -27,48 +27,33 @@ export type NotificationBrowserProfile = {
 	phoneNotificationGuide: NotificationGuide | null;
 };
 
+// Comprobado en Chrome 156 con un Samsung (Android 13) y un Xiaomi (Android 16). En un sitio HTTPS ya no
+// hay ícono a la izquierda de la dirección: la entrada es el menú. «Permisos» sólo aparece si la página
+// pidió el permiso en esta visita, y ofrece «Suscribirse» o, si Chrome lo bloqueó solo, «Restablecer permisos».
 const chromeSitePermissionGuide = (): NotificationGuide => ({
-	title: 'Permití los avisos de este turno en Chrome',
+	title: 'Permití los avisos de este sitio en Chrome',
 	steps: [
-		'Si no ves la dirección, deslizá la página apenas hacia abajo para mostrarla.',
-		'Tocá el ícono situado a la izquierda de la dirección.',
+		'Tocá los tres puntos de Chrome, arriba a la derecha.',
+		'Tocá “Controles de sitios”.',
 		'Tocá “Permisos”.',
-		'Tocá “Notificaciones”.',
-		'{{app_notification_toggle}}',
+		'Tocá “Suscribirse”. Si dice “Bloqueado de forma automática”, tocá “Restablecer permisos” y confirmá.',
 		'Volvé a este turno.'
 	]
 });
 
+// El nombre del interruptor cambia entre fabricantes y versiones: en este Xiaomi con Android 16 es
+// «Mostrar notificaciones», en Samsung «Permitir notificaciones». Se describe en vez de nombrarlo.
 const phoneNotificationGuide = (label: string): NotificationGuide => ({
-	title: `Permití que ${label} muestre los avisos`,
+	title: `Permití que ${label} muestre avisos en el teléfono`,
 	steps: [
 		'Abrí “Ajustes” en tu teléfono.',
 		'Tocá “Aplicaciones”.',
-		'Tocá la lupa.',
-		`Escribí “${label}”.`,
-		`Tocá “${label}”.`,
+		`Buscá y tocá “${label}”.`,
 		'Tocá “Notificaciones”.',
-		'{{app_notification_toggle}}',
+		'Activá el interruptor principal, arriba de todo.',
 		'Volvé a este turno.'
 	]
 });
-
-// En Galaxy, One UI cambió el nombre del interruptor principal. Los navegadores
-// Chromium reducen el User-Agent a "Android 10" incluso en otras versiones, por
-// eso el cliente usa platformVersion de User-Agent Client Hints cuando existe.
-// Si el navegador no lo informa, evitamos inventar una etiqueta de pantalla.
-export const samsungAppNotificationToggleStep = (
-	platformVersion: string | null | undefined
-): string => {
-	const major = Number.parseInt(platformVersion ?? '', 10);
-	if (Number.isInteger(major) && major > 0 && major <= 12) {
-		return 'Activá “Mostrar notificaciones”.';
-	}
-	if (Number.isInteger(major) && major >= 13) {
-		return 'Activá “Permitir notificaciones”.';
-	}
-	return 'Activá el interruptor principal de notificaciones, en la parte superior.';
-};
 
 // Se conservan sólo rutas con etiquetas contrastadas en documentación vigente.
 // Ante un WebView o un navegador que no podemos identificar, no se muestra una

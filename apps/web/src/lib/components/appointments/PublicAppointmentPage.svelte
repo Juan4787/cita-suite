@@ -11,7 +11,6 @@
 	import { formatDepositAmount } from '$lib/scheduling/deposits';
 	import {
 		refineDeviceClass,
-		samsungAppNotificationToggleStep,
 		whatsappHrefFor,
 		type DeviceClass,
 		type NotificationBrowserProfile,
@@ -47,6 +46,7 @@
 				current: boolean;
 				reminderLabel: string;
 			};
+			emailRemindersActive?: boolean;
 			calendarMessage: string | null;
 			bookingInformationEnabled?: boolean;
    remindersEnabled: boolean;
@@ -70,17 +70,22 @@
 	// En iOS el flujo es el calendario. En los demás dispositivos, el permiso sólo se
 	// solicita con un toque cuando aún está sin decidir; si ya estaba concedido, el
 	// alta se recupera automáticamente sin volver a interrumpir.
+	// `undecided` y `denied` son lo único que la página puede saber cuando el permiso no llega.
+	// Chrome devuelve `default` tanto si la pregunta venció como si la contrajo o si Android tiene
+	// sus avisos apagados, y pasa solo a `denied` tras varios pedidos: repetir el botón no sirve y
+	// termina en bloqueo. Por eso ninguno de los dos estados ofrece sólo «volver a intentar».
 	type PushState =
 		| 'unavailable'
 		| 'unsupported'
 		| 'idle'
+		| 'asking'
 		| 'working'
 		| 'test_waiting'
 		| 'test_question'
 		| 'subscribed'
 		| 'needs_device_check'
+		| 'undecided'
 		| 'denied'
-		| 'awaiting_permission'
 		| 'error';
 	// El CTA existe desde el primer HTML de Android. Al hidratar, el navegador
 	// confirma si Push API está disponible y, si no lo está, pasa al calendario.
@@ -128,26 +133,15 @@
 	let lastObservedNotificationPermission: NotificationPermission | null = null;
 	let pendingTestPhase = $state<TestPhase | null>(null);
 	let returnCheckQueued = false;
-	let showSamsungPhoneGuide = $state(false);
-	let androidPlatformVersion = $state<string | null>(null);
 	let currentSiteOrigin = $state<string | null>(null);
-	type PermissionRecoveryTarget = 'phone' | 'site';
-	// Chrome devuelve el mismo `denied` cuando Android bloquea los avisos de la
-	// aplicación y cuando la persona bloquea sólo este sitio; la Web API no expone
-	// cuál de las dos capas lo produjo. Por eso Chrome empieza por el ajuste del
-	// teléfono (el recorrido siempre existe) y permite pasar, sin mezclarlos, al
-	// ajuste exacto del sitio cuando el primero ya estaba activo.
-	let permissionRecoveryTarget = $state<PermissionRecoveryTarget>('site');
-	type DeviceCheckReason = 'test_missing' | 'permission_not_granted';
-	let deviceCheckReason = $state<DeviceCheckReason>('test_missing');
 	let inMemoryPushSessionId = '';
 	const testRetrySequence: Record<TestPhase, number> = { initial: 0, recovery: 0 };
 	const nextTestPhase = (): TestPhase =>
-		deviceCheckReason === 'test_missing' && activeTestDeliveryId ? 'recovery' : 'initial';
+		renderedPushState === 'needs_device_check' && activeTestDeliveryId ? 'recovery' : 'initial';
 
 	const base = $derived(appointment ? `/turno/${appointment.token}` : '');
  const managementBase = $derived(data.management?.url ?? base);
-	type CalendarHandoffProvider = 'google' | 'iphone';
+	type CalendarHandoffProvider = 'google' | 'phone';
 	type CalendarHandoffStage = 'idle' | 'waiting' | 'asking' | 'saved';
 	type StoredCalendarHandoff = {
 		version: 1;
@@ -163,11 +157,9 @@
 	let calendarHandoffRevealTimer: ReturnType<typeof setTimeout> | null = null;
 	let calendarHandoffMounted = false;
 	let activeCalendarHandoffStorageKey = '';
-	const calendarHandoffAllowed = $derived(
-		device === 'ios' || (device === 'android' && !data.notificationBrowser.samsungExclusive)
-	);
+	const calendarHandoffAllowed = $derived(device === 'ios' || device === 'android');
 	const calendarHandoffRetryHref = $derived(
-		calendarHandoffProvider === 'iphone'
+		calendarHandoffProvider === 'phone'
 			? `${managementBase}/calendario.ics?p=phone`
 			: `${managementBase}/ir/google`
 	);
@@ -188,7 +180,7 @@
 			const provider = stored.provider;
 			const stage = stored.stage;
 			const updatedAt = stored.updatedAt;
-			const validProvider = provider === 'google' || provider === 'iphone';
+			const validProvider = provider === 'google' || provider === 'phone';
 			const validStage = stage === 'waiting' || stage === 'asking' || stage === 'saved';
 			const validTime = typeof updatedAt === 'number' && Number.isFinite(updatedAt);
 			if (!validProvider || !validStage || !validTime || stored.version !== 1) {
@@ -340,27 +332,10 @@
 		}
 	});
 	const resolveGuide = (guide: NotificationGuide | null): NotificationGuide | null =>
-		guide
-			? {
-					title: guide.title,
-					steps: guide.steps.map((step) =>
-						step
-							.replaceAll('{{site}}', `“${siteLabel}”`)
-							.replaceAll(
-								'{{app_notification_toggle}}',
-								samsungAppNotificationToggleStep(androidPlatformVersion)
-							)
-					)
-				}
-			: null;
+		guide ? { title: guide.title, steps: guide.steps.map((step) => step.replaceAll('{{site}}', `“${siteLabel}”`)) } : null;
 	const sitePermissionGuide = $derived(resolveGuide(data.notificationBrowser.sitePermissionGuide));
 	const phoneNotificationGuide = $derived(
 		resolveGuide(data.notificationBrowser.phoneNotificationGuide)
-	);
-	const deniedPermissionGuide = $derived(
-		permissionRecoveryTarget === 'site'
-			? (sitePermissionGuide ?? phoneNotificationGuide)
-			: (phoneNotificationGuide ?? sitePermissionGuide)
 	);
 	const permissionChoiceLabel = $derived(
 		data.notificationBrowser.id === 'firefox' ? 'Siempre' : 'Permitir'
@@ -368,24 +343,7 @@
 
 	const pushSessionStorageKey = () =>
 		appointment ? `cita-suite:push-session:${appointment.token}` : 'cita-suite:push-session';
-	const permissionRecoveryStorageKey = () =>
-		`${pushSessionStorageKey()}:permission-recovery`;
 	const recoveryRetryStorageKey = () => `${pushSessionStorageKey()}:recovery-retry`;
-	const rememberPermissionRecoveryTarget = (target: PermissionRecoveryTarget) => {
-		permissionRecoveryTarget = target;
-		try {
-			localStorage.setItem(permissionRecoveryStorageKey(), target);
-		} catch {
-			// El estado reactivo alcanza mientras esta página permanezca abierta.
-		}
-	};
-	const clearPermissionRecoveryTarget = () => {
-		try {
-			localStorage.removeItem(permissionRecoveryStorageKey());
-		} catch {
-			// El permiso efectivo sigue siendo la fuente de verdad.
-		}
-	};
 	const stablePushSessionId = () => {
 		if (inMemoryPushSessionId) return inMemoryPushSessionId;
 		try {
@@ -550,7 +508,6 @@
 			delivery.state === 'failed' ||
 			delivery.state === 'expired'
 		) {
-			deviceCheckReason = 'test_missing';
 			pushState = 'needs_device_check';
 			pushMessage = '';
 			return true;
@@ -663,7 +620,7 @@
 			pushState =
 				typeof window.Notification !== 'undefined' && readNotificationPermission() === 'denied'
 					? 'denied'
-					: 'awaiting_permission';
+					: 'undecided';
 			pushMessage = '';
 			return;
 		}
@@ -678,7 +635,7 @@
 				// El permiso pudo cambiar mientras esta pestaña esperaba a otra. Se
 				// comprueba de nuevo antes de tocar la suscripción compartida.
 				if (readNotificationPermission() !== 'granted') {
-					pushState = readNotificationPermission() === 'denied' ? 'denied' : 'awaiting_permission';
+					pushState = readNotificationPermission() === 'denied' ? 'denied' : 'undecided';
 					return;
 				}
 				const registration = await navigator.serviceWorker.register('/push-sw.js', {
@@ -754,37 +711,18 @@
 		}
 		if (currentPermission === 'denied') {
 			pushState = 'denied';
+			pushMessage = 'Chrome sigue bloqueando los avisos de este sitio. Revisá los pasos de arriba.';
 			return;
 		}
-		pushState = 'working';
+		pushState = 'asking';
 		try {
 			await Notification.requestPermission();
+			// La promesa puede decir `default` aunque el permiso ya haya pasado a bloqueado:
+			// la propiedad efectiva es la única fuente de verdad.
 			const effectivePermission = readNotificationPermission();
 			lastObservedNotificationPermission = effectivePermission;
-			// La propiedad efectiva es la única fuente de verdad para habilitar el envío.
-			// Si todavía figura en default, el botón queda disponible para reintentar y el
-			// listener de permisos continúa observando el cambio sin enviar nada antes.
-			if (effectivePermission === 'granted') {
-				clearPermissionRecoveryTarget();
-				await syncPushSubscription(true, phase);
-			} else if (effectivePermission === 'denied') {
-				// Chrome no informa qué capa rechazó. Su recorrido general va primero y
-				// ofrece pasar explícitamente al del sitio si ya estaba habilitado.
-				rememberPermissionRecoveryTarget(
-					data.notificationBrowser.id === 'chrome' && phoneNotificationGuide ? 'phone' : 'site'
-				);
-				pushState = 'denied';
-			} else {
-				// Samsung Browser conserva `default` si sus notificaciones están apagadas
-				// en el teléfono, incluso después de tocar “Permitir”. No se envía ninguna
-				// prueba: mostramos la ruta exacta del sistema y una acción final con gesto.
-				if (data.notificationBrowser.samsungExclusive) {
-					deviceCheckReason = 'permission_not_granted';
-					pushState = 'needs_device_check';
-				} else {
-					pushState = 'awaiting_permission';
-				}
-			}
+			if (effectivePermission === 'granted') await syncPushSubscription(true, phase);
+			else pushState = effectivePermission === 'denied' ? 'denied' : 'undecided';
 		} catch {
 			pushMessage = 'No pudimos pedir el permiso de notificaciones. Volvé a intentar.';
 			pushState = 'error';
@@ -837,11 +775,12 @@
 			return;
 		}
 		if (currentPermission === 'default') {
-			clearPermissionRecoveryTarget();
-			if (pushState === 'denied') pushState = 'awaiting_permission';
+			if (pushState === 'denied') {
+				pushState = 'undecided';
+				pushMessage = 'Listo: ya no está bloqueado. Ahora tocá “Preguntar de nuevo”.';
+			}
 			return;
 		}
-		clearPermissionRecoveryTarget();
 		// Volver a la página sólo para releer una guía no demuestra que el ajuste haya
 		// cambiado. La recuperación automática se conserva exclusivamente cuando la
 		// Web API pasa de default/denied a granted. Si ya era granted, una nueva prueba
@@ -849,7 +788,7 @@
 		if (
 			previousPermission !== null &&
 			previousPermission !== 'granted' &&
-			['awaiting_permission', 'denied', 'idle', 'needs_device_check'].includes(pushState)
+			['undecided', 'denied', 'idle', 'needs_device_check'].includes(pushState)
 		) {
 			void syncPushSubscription(true, nextTestPhase());
 		}
@@ -859,37 +798,6 @@
   if (!data.remindersEnabled) return;
 		mounted = true;
 		currentSiteOrigin = window.location.origin;
-		showSamsungPhoneGuide = data.notificationBrowser.samsungExclusive;
-		try {
-			const storedRecoveryTarget = localStorage.getItem(permissionRecoveryStorageKey());
-			if (storedRecoveryTarget === 'phone' || storedRecoveryTarget === 'site') {
-				permissionRecoveryTarget = storedRecoveryTarget;
-			} else {
-				permissionRecoveryTarget = data.notificationBrowser.id === 'chrome' ? 'phone' : 'site';
-			}
-		} catch {
-			permissionRecoveryTarget = data.notificationBrowser.id === 'chrome' ? 'phone' : 'site';
-		}
-		type NavigatorWithUserAgentData = Navigator & {
-			userAgentData?: {
-				getHighEntropyValues: (
-					hints: string[]
-				) => Promise<{ platformVersion?: string }>;
-			};
-		};
-		const userAgentData = (navigator as NavigatorWithUserAgentData).userAgentData;
-		if (userAgentData) {
-			void userAgentData
-				.getHighEntropyValues(['platformVersion'])
-				.then((values) => {
-					if (mounted && typeof values.platformVersion === 'string') {
-						androidPlatformVersion = values.platformVersion;
-					}
-				})
-				.catch(() => {
-					// La guía conserva una instrucción exacta sin adivinar la etiqueta.
-				});
-		}
 		refinedDevice = refineDeviceClass(data.device, navigator);
 		const effective = refinedDevice ?? data.device;
 		pushSupported = Boolean(
@@ -912,10 +820,8 @@
 			// de mostrar avisos.
 			pushState = 'denied';
 		} else if (initialPermission === 'default') {
-			clearPermissionRecoveryTarget();
 			pushState = 'idle';
 		} else {
-			clearPermissionRecoveryTarget();
 			// Si el permiso ya estaba concedido, no se vuelve a pedir ni se espera un
 			// toque: se crea o recupera la suscripción y el servidor evita repetir una
 			// prueba que ya tenga confirmación positiva o un clic real.
@@ -966,7 +872,7 @@
 				appointment.calendar_action_status
 			)
 	);
-	const managedGoogleCalendar = $derived(device === 'android' && data.googleCalendar.available);
+	const managedGoogleCalendar = $derived(data.googleCalendar.available);
 	const googleCalendarIsUpdating = $derived(data.googleCalendar.state === 'updating');
 	const googleCalendarIsCurrent = $derived(
 		data.googleCalendar.state === 'active' && data.googleCalendar.current
@@ -979,14 +885,10 @@
 	const calendarHandoffSaved = $derived(
 		calendarHandoffAllowed && calendarHandoffStage === 'saved'
 	);
-	const showAndroidCalendarFallback = $derived(
-		device === 'android' &&
-		(
-			['unsupported', 'needs_device_check'].includes(renderedPushState) ||
-			(renderedPushState === 'denied' && !sitePermissionGuide) ||
-			data.googleCalendar.state === 'needs_reconnect' ||
-			data.googleCalendar.state === 'failed'
-		)
+	// Ningún estado del aviso del teléfono deja a la persona sin salida: mientras el aviso no esté
+	// activo y comprobado, el calendario se ofrece aunque nunca se haya podido enviar una prueba.
+	const showCalendarAlternative = $derived(
+		device === 'android' && ['unsupported', 'undecided', 'denied', 'needs_device_check', 'error'].includes(renderedPushState)
 	);
 	const needsCalendarUpdate = $derived(
 		Boolean(appointment?.calendar_update_required_at) &&
@@ -1013,16 +915,17 @@
 		if (googleCalendarIsUpdating) return 'Actualizando tu recordatorio';
 		if (data.googleCalendar.state === 'preparing') return 'Activando tu recordatorio';
 		if (needsCalendarUpdate) return 'Actualizá el calendario';
+		if (data.emailRemindersActive) return 'Te vamos a recordar el turno por correo';
 		return 'Último paso: activá el recordatorio';
 	});
 	const reminderIntro = $derived.by(() => {
 		if (pushReminderIsActive) {
-			return `Este teléfono ya está listo para avisarte ${pushWindowsLabel}.`;
+			return `Este teléfono confirmó que recibe los avisos, ${pushWindowsLabel}.`;
 		}
 		if (googleCalendarIsCurrent) {
 			return `El turno está guardado en tu cuenta Google con avisos ${data.googleCalendar.reminderLabel}. Si cambia el horario, lo actualizamos automáticamente.`;
 		}
-		if (calendarHandoffSaved) return 'Tu calendario podrá avisarte antes de la cita.';
+		if (calendarHandoffSaved) return 'Tu calendario va a usar sus propios avisos. Si el turno cambia, te vamos a avisar para que lo actualices.';
 		if (calendarHandoffAllowed && calendarHandoffStage === 'asking') {
 			return 'Confirmá abajo si pudiste guardar el turno.';
 		}
@@ -1036,25 +939,24 @@
 			return 'Elegí nuevamente tu cuenta Google para mantener el turno y sus avisos actualizados.';
 		}
 		if (needsCalendarUpdate) {
-			return 'El turno cambió de fecha. Actualizá el calendario para conservar el horario correcto.';
+			return 'El turno cambió. Si lo habías guardado en tu calendario, borrá el evento anterior y guardá el nuevo.';
 		}
-		if (renderedPushState === 'denied' && deniedPermissionGuide) {
-			return permissionRecoveryTarget === 'phone'
-				? `Para enviarte los recordatorios, necesitamos que ${data.notificationBrowser.label ?? 'la aplicación que muestra esta página'} pueda mostrar avisos en el teléfono.`
-				: 'Para enviarte los recordatorios, necesitamos que permitas los avisos de este turno.';
+		if (renderedPushState === 'undecided') {
+			return 'No pudimos activar los avisos en este teléfono. A veces el navegador no muestra la pregunta o se cierra sola. Elegí cómo seguir.';
 		}
-		if (renderedPushState === 'awaiting_permission') {
-			return 'Para enviarte los recordatorios, necesitamos que permitas los avisos. Tocá el botón y elegí la opción indicada.';
+		if (renderedPushState === 'denied') {
+			return 'Este teléfono tiene bloqueados los avisos de este sitio. Elegí cómo seguir.';
 		}
 		if (renderedPushState === 'needs_device_check') {
-			return deviceCheckReason === 'permission_not_granted'
-				? `${data.notificationBrowser.label ?? 'La aplicación que muestra esta página'} todavía no pudo habilitar los avisos. Revisá sus notificaciones en el teléfono y completá la activación al volver.`
-				: `Los avisos de este turno ya están permitidos. Ahora falta que ${data.notificationBrowser.label ?? 'la aplicación que muestra esta página'} pueda mostrarlos en el teléfono.`;
+			return 'El permiso está dado, pero la notificación de prueba no se vio en este teléfono. Elegí cómo seguir.';
 		}
-		if (showAndroidCalendarFallback) {
-			return renderedPushState === 'unsupported' && data.notificationBrowser.samsungExclusive
-				? 'Conservá este enlace: desde acá siempre podés consultar la fecha y la hora del turno.'
-				: 'Elegí la opción que corresponde a tu teléfono para terminar de guardar el recordatorio.';
+		if (renderedPushState === 'unsupported') {
+			return 'Este navegador no puede avisarte en el teléfono. Guardá el turno en tu calendario.';
+		}
+		if (data.emailRemindersActive) {
+			return device === 'ios'
+				? 'También podés guardarlo en el calendario del iPhone.'
+				: 'Si querés, también podés recibir un aviso en este teléfono.';
 		}
 		if (device === 'android') {
 			return 'Activá el recordatorio y comprobamos ahora mismo que este teléfono pueda avisarte.';
@@ -1166,6 +1068,11 @@
 					</svg>
 					<span>Listo para este turno</span>
 				</div>
+			{:else if renderedPushState === 'asking'}
+				<div class="ux-alert" aria-live="polite">
+					<p class="font-bold text-fg bk-text">Mirá arriba de todo</p>
+					<p class="mt-1">Si el navegador te pregunta, tocá “{permissionChoiceLabel}” enseguida: la pregunta dura unos segundos.</p>
+				</div>
 			{:else if renderedPushState === 'working'}
 				<div class="ux-alert" aria-live="polite">
 					<div class="flex items-start gap-3">
@@ -1203,40 +1110,6 @@
 						No la recibí
 					</button>
 				</div>
-			{:else if renderedPushState === 'denied' && deniedPermissionGuide}
-				<div class="rounded-2xl border border-warning-300-20 bg-warning-300-06 p-5 bk-warning-fill bk-warning-line" aria-live="polite">
-					{@render instructionList(deniedPermissionGuide)}
-					{#if permissionRecoveryTarget === 'phone' && sitePermissionGuide}
-						<p class="mt-4 text-sm leading-relaxed text-fg-65 bk-muted">
-							Si “Permitir notificaciones” ya estaba activado, falta revisar el permiso de este turno.
-						</p>
-						<button
-							type="button"
-							class="ux-btn-secondary mt-4 w-full"
-							onclick={() => rememberPermissionRecoveryTarget('site')}
-						>
-							Ya estaba activado
-						</button>
-					{:else}
-						<button type="button" class="ux-btn-secondary mt-5 w-full" onclick={enablePush}>
-							Ya lo permití
-						</button>
-						<p class="mt-3 text-center text-xs leading-relaxed text-fg-50 bk-muted">
-							Al volver, lo comprobamos automáticamente. El botón queda disponible por si la pantalla no se actualiza sola.
-						</p>
-					{/if}
-				</div>
-			{:else if renderedPushState === 'awaiting_permission'}
-				<button
-					type="button"
-					class={primary ? 'ux-btn-primary ux-btn-cta w-full px-3 text-cta font-bold' : 'ux-btn-secondary w-full px-3 text-cta font-bold'}
-					onclick={enablePush}
-				>
-					<Icon name="bell" />Activar recordatorio
-				</button>
-				<p class="mt-3 text-center text-xs leading-relaxed text-fg-55 bk-muted">
-					Cuando aparezca la pregunta, elegí “{permissionChoiceLabel}”.
-				</p>
 			{:else if renderedPushState === 'error'}
 				{#if pushMessage}
 					<p class="ux-alert" aria-live="polite">{pushMessage}</p>
@@ -1244,10 +1117,8 @@
 				<button type="button" class="ux-btn-secondary mt-3 w-full" disabled={syncing} onclick={enablePush}>
 					Volver a intentar
 				</button>
-			{:else if ['unsupported', 'needs_device_check', 'denied'].includes(renderedPushState)}
-				{#if pushMessage}
-					<p class="ux-alert" aria-live="polite">{pushMessage}</p>
-				{/if}
+			{:else if ['unsupported', 'needs_device_check', 'denied', 'undecided'].includes(renderedPushState)}
+				<!-- La salida de estos estados está en reminderAlternatives: nunca el mismo botón solo. -->
 			{:else}
 				<button
 					type="button"
@@ -1257,7 +1128,7 @@
 					<Icon name="bell" />Activar recordatorio
 				</button>
 				<p class="mt-3 text-center text-xs leading-relaxed text-copy-subtle bk-muted">
-					Primero te pedimos permiso y después enviamos una prueba real.
+					Te pedimos permiso y enviamos una prueba para confirmar que llega. Si aparece la pregunta, tocá “{permissionChoiceLabel}” enseguida.
 				</p>
 			{/if}
 		</div>
@@ -1312,68 +1183,75 @@
 	{/if}
 {/snippet}
 
-{#snippet androidCalendarFallback()}
-	{#if calendarHandoffStage === 'idle' && showAndroidCalendarFallback && ((renderedPushState === 'needs_device_check' && phoneNotificationGuide) || !data.notificationBrowser.samsungExclusive)}
-		<div class="mt-5 space-y-4" aria-live="polite">
-			{#if renderedPushState === 'needs_device_check' && phoneNotificationGuide}
-				<details
-					class="group overflow-hidden rounded-2xl border border-accent-300-30 bg-accent-400-10 shadow-[0_12px_30px_rgba(76,29,149,0.12)] bk-notice-fill bk-notice-line"
-					bind:open={showSamsungPhoneGuide}
-				>
-					<summary class="flex min-h-[5.75rem] cursor-pointer list-none items-center justify-between gap-4 px-5 py-4">
-						<span>
-							<span class="block text-base font-bold leading-snug text-fg bk-text">¿Tu teléfono es Samsung?</span>
-							<span class="mt-1.5 block text-sm font-bold text-accent-200 bk-notice-text">Configurar el recordatorio</span>
-						</span>
-						<svg viewBox="0 0 20 20" aria-hidden="true" class="h-5 w-5 shrink-0 text-accent-200-75 transition-transform group-open:rotate-180 bk-notice-text">
-							<path d="m5.75 7.75 4.25 4.25 4.25-4.25" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
-						</svg>
-					</summary>
-					<div class="border-t border-accent-200-15 px-5 pb-5 pt-5 bk-notice-line">
-						{#if deviceCheckReason === 'test_missing'}
-							<button
-								type="button"
-								aria-label="Enviar otra notificación de prueba"
-								class="ux-btn-primary ux-btn-cta mb-5 min-h-[4.25rem] w-full px-5 py-4 text-center text-cta font-bold leading-snug ring-2 ring-focus-accent-300-30"
-								disabled={syncing}
-								onclick={enablePush}
-							>
-								<Icon name="bell" />
-								<span>Enviar otra prueba</span>
-							</button>
-						{/if}
-						{@render instructionList(phoneNotificationGuide)}
-						{#if deviceCheckReason === 'permission_not_granted'}
-							<p class="mt-4 text-xs leading-relaxed text-fg-60 bk-muted">
-								Después de activar ese ajuste, usá el botón de abajo y elegí “Permitir”.
-							</p>
-							<button
-								type="button"
-								class="ux-btn-primary ux-btn-cta mt-4 w-full px-3 text-cta font-bold"
-								disabled={syncing}
-								onclick={enablePush}
-							>
-								<Icon name="bell" />Activar recordatorio
-							</button>
-						{/if}
-					</div>
-				</details>
-			{/if}
+{#snippet phoneCalendarOption(primary: boolean)}
+	<a
+		href={`${managementBase}/calendario.ics?p=phone`}
+		onclick={() => beginCalendarHandoff('phone')}
+		class={primary ? 'ux-btn-primary ux-btn-cta flex w-full px-3 text-center text-cta font-bold' : 'ux-btn-secondary flex w-full px-3 text-center font-bold'}
+	>
+		<Icon name="calendar" />Guardar en mi calendario
+	</a>
+	<p class="mt-2 text-xs leading-relaxed text-fg-60 bk-muted">
+		El navegador descarga un archivo: tocá “Abrir” y elegí tu calendario. Cada calendario usa sus propios avisos. Si el turno cambia, hay que volver a guardarlo.
+	</p>
+{/snippet}
 
-			{#if !data.notificationBrowser.samsungExclusive}
-				<a
-					href={`${managementBase}/ir/google`}
-					onclick={() => beginCalendarHandoff('google')}
-					class="flex min-h-[5.75rem] items-center justify-between gap-4 rounded-2xl border border-accent-300-30 bg-accent-400-10 px-5 py-4 shadow-[0_12px_30px_rgba(76,29,149,0.12)] transition hover:border-accent-300-45 hover:bg-accent-400-10 bk-notice-fill bk-notice-line"
-				>
-					<span>
-						<span class="block text-base font-bold leading-snug text-fg bk-text">¿Tu teléfono es de otra marca?</span>
-						<span class="mt-1.5 block text-sm font-bold text-accent-200 bk-notice-text">Agregar a Google Calendar</span>
-					</span>
-					<svg viewBox="0 0 20 20" aria-hidden="true" class="h-5 w-5 shrink-0 text-accent-200-75 bk-notice-text">
-						<path d="m7.75 5.75 4.25 4.25-4.25 4.25" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
-					</svg>
-				</a>
+{#snippet managedCalendarOption()}
+	{#if managedGoogleCalendar && !googleCalendarHasVisibleStatus}
+		<a href={`${managementBase}/google-calendar/connect${data.googleCalendar.state === 'needs_reconnect' ? '?reauthorize=1' : ''}`} class="ux-btn-secondary mt-4 flex w-full px-3 text-center font-bold">
+			Conectar mi cuenta Google
+		</a>
+		<p class="mt-2 text-xs leading-relaxed text-fg-60 bk-muted">
+			Guardamos el turno en tu Google Calendar con avisos {data.googleCalendar.reminderLabel}, y si cambia lo actualizamos solos. Sirve si usás esa cuenta en tu calendario.
+		</p>
+	{/if}
+{/snippet}
+
+{#snippet phoneRecovery()}
+	<details class="mt-4 rounded-2xl border border-line bg-fill-04 bk-line bk-soft" open={renderedPushState === 'needs_device_check'}>
+		<summary class="cursor-pointer list-none px-5 py-3 text-sm font-bold text-fg-70 bk-muted">
+			Prefiero recibir el aviso en este teléfono
+		</summary>
+		<div class="border-t border-line p-5 bk-line">
+			{#if renderedPushState !== 'needs_device_check' && sitePermissionGuide}
+				{@render instructionList(sitePermissionGuide)}
+			{/if}
+			{#if phoneNotificationGuide}
+				<div class={renderedPushState !== 'needs_device_check' && sitePermissionGuide ? 'mt-6' : ''}>
+					{@render instructionList(phoneNotificationGuide)}
+				</div>
+			{/if}
+			{#if !sitePermissionGuide && !phoneNotificationGuide}
+				<p class="text-sm leading-relaxed text-fg-70 bk-muted">Revisá los permisos de notificaciones del navegador en los ajustes del teléfono.</p>
+			{/if}
+			{#if pushMessage}
+				<p class="ux-alert mt-4" role="status">{pushMessage}</p>
+			{/if}
+			<button
+				type="button"
+				class="ux-btn-primary mt-5 w-full"
+				aria-label={renderedPushState === 'needs_device_check' ? 'Enviar otra notificación de prueba' : undefined}
+				disabled={syncing}
+				onclick={enablePush}
+			>
+				<Icon name="bell" />{renderedPushState === 'needs_device_check' ? 'Enviar otra prueba' : renderedPushState === 'denied' ? 'Ya lo cambié' : 'Preguntar de nuevo'}
+			</button>
+			{#if renderedPushState === 'undecided' && sitePermissionGuide}
+				<p class="mt-3 text-center text-xs leading-relaxed text-fg-60 bk-muted">
+					Si no ves “Permisos”, tocá “Preguntar de nuevo” y volvé a entrar.
+				</p>
+			{/if}
+		</div>
+	</details>
+{/snippet}
+
+{#snippet reminderAlternatives()}
+	{#if showCalendarAlternative && calendarHandoffStage === 'idle'}
+		<div class="mt-5" aria-live="polite">
+			{@render phoneCalendarOption(true)}
+			{@render managedCalendarOption()}
+			{#if renderedPushState !== 'unsupported'}
+				{@render phoneRecovery()}
 			{/if}
 		</div>
 	{/if}
@@ -1511,20 +1389,30 @@
 				{@render googleCalendarBlock()}
 			{:else}
 				{@render pushBlock(true)}
-				{@render androidCalendarFallback()}
+				{@render reminderAlternatives()}
+				{#if pushReminderIsActive || (!showCalendarAlternative && calendarHandoffStage === 'idle')}
+					<details class="mt-4 rounded-2xl border border-line bg-fill-04 bk-line bk-soft">
+						<summary class="cursor-pointer list-none px-5 py-3 text-sm font-bold text-fg-70 bk-muted">Guardarlo también en mi calendario</summary>
+						<div class="border-t border-line p-4 bk-line">
+							{@render phoneCalendarOption(false)}
+							{@render managedCalendarOption()}
+						</div>
+					</details>
+				{/if}
 			{/if}
 		{:else if device === 'ios'}
 			{#if calendarHandoffStage === 'idle'}
 				<a
 					href={`${managementBase}/calendario.ics?p=phone`}
-					onclick={() => beginCalendarHandoff('iphone')}
+					onclick={() => beginCalendarHandoff('phone')}
 					class="ux-btn-primary ux-btn-cta mt-5 flex w-full px-3 text-center text-cta font-bold"
 				>
 					<Icon name="calendar" />Agregar al calendario
 				</a>
 				<p class="mt-3 text-center text-xs leading-relaxed text-copy-subtle bk-muted">
-					El evento queda preparado con la fecha, la hora y sus avisos.
+					El evento queda preparado con la fecha y la hora. Si el turno cambia, hay que volver a guardarlo.
 				</p>
+				{@render managedCalendarOption()}
 			{/if}
 		{:else}
 			<details class="mt-4 rounded-2xl border border-line bg-fill-04 bk-line bk-soft">
@@ -1549,9 +1437,9 @@
 						{/each}
 					</div>
 					<p class="mt-4 text-xs text-copy-subtle bk-muted">
-						El evento incluye avisos sugeridos 24 horas y 2 horas antes, {isVirtual ? 'las indicaciones de acceso' : 'la dirección'} y este enlace.
-						Algunos calendarios usan tus recordatorios habituales.
+						El evento incluye {isVirtual ? 'las indicaciones de acceso' : 'la dirección'} y este enlace. Cada calendario usa sus propios avisos.
 					</p>
+					{@render managedCalendarOption()}
 				</div>
 			</details>
 			{@render pushBlock(false)}
@@ -1626,7 +1514,7 @@
 				</div>
 			{:else if needsCalendarUpdate && isActive && data.remindersEnabled}
 				<div class="ux-alert">
-					Tu turno fue reprogramado. Actualizá el calendario para recibir el aviso correcto.
+					Tu turno cambió. Si lo habías guardado en tu calendario, borrá el evento anterior y guardá el nuevo.
 				</div>
 			{/if}
 
@@ -1720,11 +1608,7 @@
 						<p class="mt-3 text-sm text-fg-70 bk-muted">También estamos quitando el evento de tu cuenta Google.</p>
 					{:else}
 						<p class="mt-3 text-sm text-fg-70 bk-muted">
-							Si lo guardaste con otra aplicación de calendario, podés eliminar esa copia desde allí.
-						</p>
-						<p class="mt-3 text-xs text-copy-subtle bk-muted">
-							<a href={`${managementBase}/calendario.ics`} class="underline">Abrir actualización de calendario</a>
-							para calendarios compatibles.
+							Si lo guardaste en tu calendario, borralo desde ahí: este cambio no lo quita solo.
 						</p>
 					{/if}
 				</section>
