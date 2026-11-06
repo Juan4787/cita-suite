@@ -432,7 +432,7 @@ test.describe('Dental Suite - flujo operativo completo', () => {
 
 		await page.goto(publicTokenUrl);
 		await page.getByRole('button', { name: 'Confirmo que voy' }).click();
-		await expect(page.getByText('Turno confirmado.')).toBeVisible();
+		await expect(page.getByText('La confirmación quedó registrada.')).toBeVisible();
 		await page.goto(`/odonto/agenda?date=${selectedDate}&status=confirmed`);
 		await page.waitForLoadState('networkidle');
 		await openDayAppointmentsPanel(page);

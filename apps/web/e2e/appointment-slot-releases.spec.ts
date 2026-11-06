@@ -25,7 +25,8 @@ test('appointment slots released: real cancellation, reassignment, occupation an
 }, async ({ page }, info) => {
  test.setTimeout(240_000);
  const f = ownedAppointmentFixture();
- const health = await observeRenderHealth(page);
+ // The notice for a patient without an address answers 422 once, on purpose, before reception goes on.
+ const health = await observeRenderHealth(page, failure => failure.status === 422 && failure.method === 'POST' && failure.path === '/odonto/agenda', 1);
  const link = await must(f.admin.from('professional_services').select('professional_id, service_id').eq('business_id', f.businessId).limit(1).single());
  const professional = await must(f.admin.from('professionals').select('name').eq('business_id', f.businessId).eq('id', link.professional_id).single());
  const service = await must(f.admin.from('services').select('name, duration_minutes').eq('id', link.service_id).eq('business_id', f.businessId).single());

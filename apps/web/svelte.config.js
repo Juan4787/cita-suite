@@ -66,10 +66,15 @@ const config = {
 						// Mercado Pago: el action de suscripción responde al POST del
 						// form con un 303 al checkout de MP; los navegadores aplican
 						// form-action a toda la cadena de redirects del envío.
+						// WhatsApp: los mensajes preparados por el personal también son un
+						// POST que termina en un redirect, y wa.me pasa por api.whatsapp.com.
 						'form-action': [
 							'self',
 							'https://*.mercadopago.com.ar',
-							'https://*.mercadopago.com'
+							'https://*.mercadopago.com',
+							'https://wa.me',
+							'https://api.whatsapp.com',
+							'https://web.whatsapp.com'
 						]
 					}
 			  }
