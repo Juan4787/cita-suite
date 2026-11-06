@@ -107,7 +107,7 @@ test('@candidate-behavior late deposit: native recording, lost response recovery
    await nativePage.getByRole('checkbox',{ name: 'Verifiqué el ingreso y que corresponde a este paciente' }).check();
    const [rejected] = await Promise.all([
     nativePage.waitForResponse(response => response.request().method() === 'POST'),
-    nativePage.getByRole('button',{ name: 'Registrar dinero recibido',exact: true }).click()
+    nativePage.getByRole('button',{ name: 'Registrar dinero',exact: true }).click()
    ]);
    expect(rejected.status()).toBe(400);
    await expect(nativePage.getByRole('alert')).toContainText('pesos sin centavos');
@@ -116,7 +116,7 @@ test('@candidate-behavior late deposit: native recording, lost response recovery
    expect(receipts()).toBe('[0, 0, 0, 0]'); expect(state()).toBe(closed);
    await nativePage.getByLabel('Importe recibido, en pesos',{ exact: true }).fill('10.000');
    await nativePage.getByRole('checkbox',{ name: 'Verifiqué el ingreso y que corresponde a este paciente' }).check();
-   await nativePage.getByRole('button',{ name: 'Registrar dinero recibido',exact: true }).click();
+   await nativePage.getByRole('button',{ name: 'Registrar dinero',exact: true }).click();
    await expect(nativePage.getByRole('status')).toContainText('El dinero quedó registrado por resolver');
    expect(receipts()).toBe('[1, 0, 1, 1]'); expect(state()).toBe(closed);
    nativeSucceeded = true;
@@ -141,11 +141,11 @@ test('@candidate-behavior late deposit: native recording, lost response recovery
   const recordForm = page.locator('#late-deposit-record form');
   // Opened before hydration on purpose: hydrating must not close what the person opened.
   await expect(recordForm).toHaveAttribute('data-fixture-enhanced','true');
-  await expect(recordForm.getByRole('button',{ name: 'Registrar dinero recibido',exact: true })).toBeVisible();
+  await expect(recordForm.getByRole('button',{ name: 'Registrar dinero',exact: true })).toBeVisible();
   await recordForm.getByLabel('Importe recibido, en pesos',{ exact: true }).fill('25.000');
   await recordForm.getByLabel('Nota del registro (opcional)',{ exact: true }).fill('Segundo ingreso sintético');
   await recordForm.getByRole('checkbox').check();
-  await loseThenRecover(recordForm,'Registrar dinero recibido');
+  await loseThenRecover(recordForm,'Registrar dinero');
   expect(receipts()).toBe('[2, 0, 2, 2]'); expect(state()).toBe(closed);
   const row = page.locator('section[aria-labelledby="deposit-financials-title"] li').filter({ hasText: /25\.000/ });
   await row.getByText('Corregir un error de carga',{ exact: true }).click();

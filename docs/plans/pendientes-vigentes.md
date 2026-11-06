@@ -161,6 +161,7 @@ Fuente: `docs/clientes/natalia-frutos/informacion-20261029.md`, secciones 4 y 5,
   - altas e ingresos: 30 cada 5 minutos;
   - intervalo mínimo por usuario: 60 segundos.
 - CI usa servicios descartables y no acredita Realtime alojado.
+- **`/confirmar-correo` sin JavaScript:** usa `Referrer-Policy: no-referrer`, así que sus dos formularios (reenviar y cerrar sesión) reciben `Origin: null` y responden 403. Es previo a E y de gravedad baja: la página indica qué hacer sin JavaScript. Se corrige con `FORM_PAGE_REFERRER_POLICY` cuando se vuelva a tocar esa pantalla.
 - Los registros históricos conservan palabras pegadas: se corrigieron los documentos de uso diario, no la historia.
 
 ## 6. Hecho (para no repetirlo)

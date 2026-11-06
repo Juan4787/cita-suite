@@ -35,6 +35,7 @@ M	apps/web/e2e/appointment-slot-releases.spec.ts
 M	apps/web/e2e/booking-embed.spec.ts
 A	apps/web/e2e/booking-reschedule-policy.spec.ts
 A	apps/web/e2e/email-preferences.spec.ts
+A	apps/web/e2e/email-public-routes.spec.ts
 M	apps/web/e2e/helpers/fixture-db.ts
 M	apps/web/e2e/helpers/owned-appointment-fixture.ts
 A	apps/web/e2e/late-deposits.spec.ts

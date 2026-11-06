@@ -116,7 +116,7 @@ describe('money after cancellation', () => {
   expect(screen.getByLabelText('Importe recibido, en pesos')).toHaveValue('1,5');
   expect(screen.getByLabelText('Nota del registro (opcional)')).toHaveValue('Conservar esta nota');
   await rerender({ data: { ...cancelled,canRecordDeposit: false,context: { ...data.context,role: 'readonly' } } });
-  expect(screen.queryByRole('button',{ name: 'Registrar dinero recibido' })).not.toBeInTheDocument();
+  expect(screen.queryByRole('button',{ name: 'Registrar dinero' })).not.toBeInTheDocument();
  });
  it('correction names the original fact, keeps the exact request, and cannot become a status action', () => {
   const fields = { operation_id: 'original-correction',expected_revision: 'original-revision',late_action: 'correct',amount: '',corrects_event_id: 'original-event',note: '',confirm_late_deposit: 'true' };
