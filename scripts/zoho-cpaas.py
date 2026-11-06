@@ -140,7 +140,8 @@ def connect(dc, terminal=False):
 def api_get(path):
     # Fixed resources and one bounded agent-key route, never an arbitrary URL.
     is_keys = re.fullmatch(r'mailagents/[A-Za-z0-9_-]{1,128}/apikeys', path) is not None
-    if path not in ('mailagents', 'domains', 'email?limit=10&offset=0') and not is_keys:
+    is_reference = re.fullmatch(r'email\?limit=10&offset=0&client_reference=[0-9a-f-]{36}', path) is not None
+    if path not in ('mailagents', 'domains', 'email?limit=10&offset=0') and not is_keys and not is_reference:
         raise ConnectionError('La consulta solicitada no está habilitada en esta herramienta.')
     config = load_config()
     if time.time() >= config.get('expires_at', 0):
@@ -261,8 +262,8 @@ def sender_command(action, value):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=('connect', 'status', 'agents', 'domains', 'logs', 'keys', 'scopes', 'sender-show', 'sender-add', 'sender-verify'))
-    parser.add_argument('domain', nargs='?', help='Subdominio del consultorio, para los comandos sender-*')
+    parser.add_argument('command', choices=('connect', 'status', 'agents', 'domains', 'logs', 'reference', 'keys', 'scopes', 'sender-show', 'sender-add', 'sender-verify'))
+    parser.add_argument('domain', nargs='?', help='Subdominio del consultorio para sender-*, o referencia del envío para reference')
     parser.add_argument('--dc', choices=REGIONS, default='com')
     parser.add_argument('--terminal', action='store_true', help='Captura oculta en una terminal interactiva')
     args = parser.parse_args()
@@ -276,6 +277,12 @@ def main():
         config = load_config()
         print('Credenciales locales presentes. Región:', config['dc'])
         print('La conexión remota sólo se verifica ejecutando agents, domains, logs o keys.')
+    elif args.command == 'reference':
+        # La lista de Zoho tarda en sincronizar: cero registros recientes no prueba que no haya salido.
+        if re.fullmatch(r'[0-9a-f-]{36}', args.domain or '') is None:
+            raise ConnectionError('Indicá la referencia del envío, tal como la guarda la aplicación.')
+        data = api_get(f'email?limit=10&offset=0&client_reference={args.domain}')
+        print(f'Envíos con esa referencia en Zoho: {len(data)}.')
     else:
         if args.command == 'keys':
             data = agent_keys()

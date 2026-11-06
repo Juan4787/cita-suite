@@ -49,6 +49,13 @@ describe('notificaciones de Zoho', () => {
 		expect(mocks.createSupabaseAdminClient).not.toHaveBeenCalled();
 	});
 
+	it('responde bien a la muestra sin firma de la verificación, sin guardarla', async () => {
+		const response = await post(notification());
+		expect(response.status).toBe(200);
+		expect(mocks.createSupabaseAdminClient).not.toHaveBeenCalled();
+		expect(mocks.rpc).not.toHaveBeenCalled();
+	});
+
 	it('guarda cada evento firmado antes de responder bien', async () => {
 		const body = notification([{ object: 'delivered', time: '2026-11-06T10:00:00Z' }, { object: 'hardbounce', time: '2026-11-06T10:01:00Z' }]);
 		const response = await post(body, { 'producer-signature': signature(body) });
@@ -72,7 +79,6 @@ describe('notificaciones de Zoho', () => {
 	});
 
 	it.each([
-		['sin firma', () => ({})],
 		['con otra clave', (body: string) => ({ 'producer-signature': signature(body, 'otra-clave') })],
 		['con una firma vieja', (body: string) => ({ 'producer-signature': signature(body, KEY, Date.now() - 20 * 60 * 1000) })],
 		['con otro algoritmo', (body: string) => ({ 'producer-signature': signature(body).replace('HmacSHA256', 'HmacSHA1') })]

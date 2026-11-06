@@ -132,6 +132,8 @@ Los casos de E no se marcan aprobados por actualizar este documento ni por reuti
 El [registro activo de E](../plans/ejecucion-etapa-e-20261103.md) conserva resultados por fuente/capa y los 97 casos. SQL parcial aprobado no acredita correo ni app completa. El spec `patient-management.spec.ts` usa fixtures descartables propios y etiqueta candidate-behavior para movimiento/dinero/repetición/revocación/sin JS y matrices de tema/ancho; dos recorridos aprobados en 41708652093, incluida la pregunta antes de desplazar y el resultado guardado en viewport; fuentes y límites en el registro. No cambia la compatibilidad de recuperación ni certifica producción. Personal/ayuda/contacto/cola y proveedor permanecen pendientes.
 
 
+**E quedó publicada el 6 de noviembre.** Las notas siguientes conservan su fecha y su estado de entonces.
+
 E3.24/E3.25, 5 de noviembre, **pendiente de verificación integrada y publicación**: Recordatorios debe preservar Hoy/Mañana, cobertura de push/calendario, normalización del teléfono, confirmación explícita de reapertura y texto neutral. Preparar por POST y marcar manualmente delegan efectos/auditoría a SQL29, sin UPDATE crudo ni emisión por GET. La revisión mostrada no puede cubrir otro horario/identidad; rechazo o resultado incierto no se anuncian como envío ni rollback confirmado. SQL 42011723187 aprueba dieciséis grupos nuevos y seis esperas adicionales (dieciocho totales); 71 dirigidas de modelos/servidor aprobadas. Navegador/tipado/cliente nuevos, Señas/detalle y proveedor conservan sus pendientes. [Evidencia por revisión](../plans/ejecucion-etapa-e-20261103.md#e325--consumidor-de-recordatorios-conectado-fastbrowser-pendientes).
 
 

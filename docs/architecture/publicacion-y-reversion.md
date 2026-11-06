@@ -1,8 +1,18 @@
 # Publicación y reversión
 
-## Último estado comprobado — segunda versión de E: 6 de noviembre de 2026, 08:34 hora argentina (11:34 UTC)
+## Último estado comprobado — tercera versión de E: 6 de noviembre de 2026, 09:12 hora argentina (12:12 UTC)
 
-**Producción sirve** la instantánea `36d8fe9cc1d191f684f8ebd80f99eecf40eba293` de `main` `7f16f5cd`, Worker `app`, versión de Cloudflare **`5a05383b-cb99-49e4-bdaa-01aeb83c5490`**. Sin migraciones ni cambios en el programador.
+**Producción sirve** la instantánea `fed61f5d9d81f821df180486c73aa07d04408f56` de `main` `83b8155e`, Worker `app`, versión de Cloudflare **`50c8570c-149d-43ea-8f42-f0d2e1496d1b`**. 164 migraciones.
+
+**Qué corrige:** la migración `20261106030000_email_staff_actor.sql`, porque decidir sobre un correo en comprobación y guardar el contacto de respuesta fallaban para todo el personal. El código de la app es el de la segunda versión.
+
+**Verificación sobre la revisión exacta:** SQL 42212825416, paquete 42213513295, `fast` 42213523343 y navegador 42213966225 con 76 de 76, ahora con los interruptores como en producción. Respaldo `production-2026-11-06T11-58-35-572Z` y ensayo sin fallas. `verify-production-release.mjs` aprobado.
+
+**Vuelta atrás:** `wrangler rollback 5a05383b-cb99-49e4-bdaa-01aeb83c5490`. La migración es compatible y no se revierte. Nunca una versión anterior a E.
+
+## Estado anterior — segunda versión de E: 6 de noviembre de 2026, 08:34 hora argentina (11:34 UTC)
+
+**Sirvió** la instantánea `36d8fe9cc1d191f684f8ebd80f99eecf40eba293` de `main` `7f16f5cd`, Worker `app`, versión de Cloudflare **`5a05383b-cb99-49e4-bdaa-01aeb83c5490`**. Sin migraciones ni cambios en el programador.
 
 **Qué corrige:** el envío de correo desde Workers, el orden de la guía de permisos, el estado después de restablecer un permiso, el mensaje contradictorio al reprogramar, el rojo de error en pasos normales, los textos de calendario y el bucle de reconexión de Google. Detalle en el [registro](../plans/ejecucion-etapa-e-20261103.md).
 
@@ -349,7 +359,7 @@ NODE_OPTIONS=--max-old-space-size=192 node scripts/deploy-production-workers.mjs
 ```
 
 8. Interruptores: `reschedule_enabled` y `email_producer_enabled` en `private.appointment_management_runtime`; `GOOGLE_CALENDAR_MANAGED_ENABLED` como secreto. El correo de Natalia no sale: su consultorio no tiene remitente hasta que Juan decida.
-9. Webhook de Zoho: la clave se genera en un archivo privado local y se carga como secreto del Worker. Juan la pega en el panel (agente → Webhooks → URL `https://app.cita-suite.com.ar/api/zoho/webhook` → clave → Configure) y usa «Send Test».
+9. Webhook de Zoho: la clave se genera en un archivo privado local y se carga como secreto del Worker. En el panel: agente → Webhooks → «Configurar webhook» → URL `https://app.cita-suite.com.ar/api/zoho/webhook` → Verificar → las cuatro casillas de correo → Agregar. La clave se carga después, con «Authentication Key»: sin webhook creado el panel no muestra ese botón. Al verificar, Zoho envía un POST de ejemplo sin firma y sólo acepta `200`; por eso un pedido sin firma recibe `200` y no se guarda, y una firma inválida recibe `401`. Cloudflare tiene una Configuration Rule, «Webhook de Zoho», que apaga Browser Integrity Check sólo para esa ruta.
 10. En el mismo paso: la instantánea publicada entra a la historia de `main` sin cambiar su árbol (`git merge -s ours --no-ff <instantánea>`), se actualiza `docs/ESTADO-VIGENTE.md`, se sube a GitHub y se corre `node scripts/check-repo-sync.mjs`.
 
 **Si algo falla:**
