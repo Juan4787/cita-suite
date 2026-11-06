@@ -41,7 +41,7 @@ Fuentes: [plan íntegro y ajustes](propuesta-senas-avisos-natalia.md#ejecucion-e
 
 ## Matriz de seguimiento
 
-La regla de cada caso se lee en la especificación; esta tabla registra su aceptación. Inicialmente ninguno tiene cierre funcional de E.
+La regla de cada caso se lee en la especificación; esta tabla registra su aceptación. Inicialmente ninguno tiene cierre funcional de E. **Actualizada el 6 de noviembre** sobre `d45af785` (entrada «Encargo integral» al final): «CI actual» significa pruebas aprobadas sobre el código vigente; lo que todavía exige producción, el buzón acordado o los teléfonos se dice en la misma fila.
 
 | Caso | Estado de aceptación | Evidencia y límites |
 |---|---|---|
@@ -49,37 +49,37 @@ La regla de cada caso se lee en la especificación; esta tabla registra su acept
 | EM02 | Parcial CI | SQL 41887356962 verifica optativo/formato e independencia del envío; fast 41887362821 y preferencias reales browser 41922591151. No cierre integral. E3.4. |
 | EM03 | Parcial CI | Browser 41931144923 aprueba recepción autenticada, continuación explícita, alta nueva y conservación del intento; tres turnos únicos/limpieza y cinco anchos/dos temas. Ajuste ámbar posterior aún sin nueva corrida; correo externo/integral pendientes. E3.11. |
 | EM04 | Parcial CI | Browser 41931144923 aprueba editor protegido de la ficha correcta, regreso y relectura del email guardado, sin perder teléfono alternativo ni duplicar creación. Corrección global/contacto de futuras entregas todavía parcial. E3.11. |
-| EM05 | Pendiente | Sin prueba funcional de E. |
+| EM05 | CI actual; falta navegador | `email-suggestion.ts` y su prueba: sugerencia «¿Quisiste decir…?» sin autocorrección, alias con + conservados; fast 42148450076. Recorrido en navegador pendiente del paquete. |
 | EM06 | Parcial CI | SQL 41887356962 acepta dirección familiar sin fusionar pacientes; destinatarios/cola/correo todavía pendientes. E3.4. |
-| EM07 | Parcial CI | Contacto/ABA y editor autorizado aprobados en SQL; clínica/auxiliares en browser 41827075064. Push/OAuth en SQL 41825879784 y fast 41827070902; callbacks calendario corregidos en 41829516097 (43 carreras). Faltan fronteras restantes, distribución/destinatario/cola/correo. E1.58–E1.82. |
-| EM08 | Pendiente | Sin prueba funcional de E. |
-| EM09 | Pendiente | Sin prueba funcional de E. |
-| EM10 | Pendiente | Sin prueba funcional de E. |
-| EM11 | Parcial CI | Reparación controlada no hereda aceptación/deuda y eventos conservan generación en 41616550006; faltan destinatarios/rutas/alta idempotente y prueba integral. |
+| EM07 | CI actual; falta recepción real | SQL `appointment_email_delivery.sql` 16 (lo pendiente sale a la dirección corregida) y carreras `run_appointment_email_concurrency.sh` (42145630681, 42147347019; mutaciones 42144983908 y 42145538367 la hacen fallar) escenario 9 en ambos órdenes (el enlace enviado a la dirección anterior queda inválido; lo ya entregado no se repite); SQL 42147347019. |
+| EM08 | CI actual; falta recepción real | SQL 18: un correo agregado después debe el comprobante vigente una vez; sin historia masiva ni reactivar bajas; SQL 42147347019. |
+| EM09 | CI actual | SQL 17: sin dirección no hay mensaje y el turno no cambia; SQL 42147347019. |
+| EM10 | CI actual; falta recepción real | SQL 20 (baja por consultorio y dirección, repetir no cambia nada) y 19 (abrir el enlace no da de baja); rutas `/correo/baja` con prueba de servidor; SQL 42147347019, fast 42148450076. |
+| EM11 | CI actual | SQL 33: un turno reasignado va a quien pertenece ahora; SQL 42147347019. |
 | EM12 | Parcial CI | Replay tras cambio de obligación en SQL 41887356962; recuperación HTTP inicial en browser 41922591151, cuyo caso completo falló después. Contacto/cola/correo e integral pendientes. E3.4. |
 | AC01 | Parcial CI | Contrato puro: 44 casos en fast 41578321181 y cuatro mutaciones locales; faltan integración y recorridos reales. Ver E1.1/E1.15. |
-| AC02 | Parcial CI | Browser descartable 41702920488: GET/bot, alternativas y selección no alteran turno/dinero/auditoría/recibos observados; faltan correo/rastreo de proveedor y cobertura integral. E2.10. |
+| AC02 | CI actual; falta navegador del paquete | SQL 19 y prueba de servidor de la baja: leer no escribe; browser 41702920488 conserva su alcance anterior; SQL 42147347019, fast 42148450076. |
 | AC03 | Parcial CI | Browser descartable 41702920488: alternativas sin escritura y estado anterior conservado; hueco de día corregido. Nueva prioridad de pantalla pendiente de otra corrida. E2.9–E2.11. |
-| AC04 | Pendiente | Sin prueba funcional de E. |
+| AC04 | CI actual | `scheduleChangedSinceMessage` en la página del turno con prueba de cliente; el enlace del correo lleva `desde=<revisión>`; fast 42148450076. |
 | AC05 | Parcial CI | Contrato puro: 44 casos en fast 41578321181 y cuatro mutaciones locales; faltan integración y recorridos reales. Ver E1.1/E1.15. |
 | AC06 | Parcial CI | Contrato puro: 44 casos en fast 41578321181 y cuatro mutaciones locales; faltan integración y recorridos reales. Ver E1.1/E1.15. |
 | AC07 | Parcial CI | Comando SQL/trece carreras 41660810130 y repetición HTTP real en browser 41702920488; faltan correo/consumidores y escenarios integrales restantes. |
-| AC08 | Pendiente | Sin prueba funcional de E. |
+| AC08 | CI actual | Acción «Invalidar los enlaces enviados al paciente» con pruebas de servidor (rol, revisión, conflicto) y de cliente; comando SQL `revoke_appointment_management_access` en las suites de capacidades; SQL 42147347019, fast 42148450076. |
 | AC09 | Parcial CI | Clínica/push/OAuth conservan sus recibos anteriores. SQL 41875359541 protege observaciones/retiro/métricas (48 carreras/dos contraejemplos FK); consumidores y PDF con fast 41876511206 (1896/281, cero errores/avisos). UID/recibo de dispositivo preservados. Browser ampliado 41877197500 aprobado para calendario/PDF/clínica; lectores modificados después conservan su prueba dirigida sin browser todavía. Distribución/contacto/cola/correo pendientes. E1.58–E1.101. |
 | AC10 | Parcial CI | Cancelación nativa sin JS en browser 41702920488; clínica nativa y respuesta de POST ilegible tras commit/recuperación probadas en 41793557725. Sin prueba de red física o lector integral. E2.10–E2.11/E1.70. |
 | RP01 | Parcial CI | SQL del comando y carreras en 41614887283 (E1.28); faltan integración, UX y restantes condiciones del caso. |
 | RP02 | Parcial CI | SQL del comando y carreras en 41614887283 (E1.28); faltan integración, UX y restantes condiciones del caso. |
 | RP03 | Parcial CI | Comando SQL 29/29 en 41609778146; alcance específico E1.22. Faltan carreras completas, consumidores y prueba integral. |
-| RP04 | Pendiente | Sin prueba funcional de E. |
-| RP05 | Pendiente | Sin prueba funcional de E. |
-| RP06 | Pendiente | Sin prueba funcional de E. |
-| RP07 | Pendiente | Sin prueba funcional de E. |
+| RP04 | CI actual | Calculadora compartida: `availability.test.ts` «elimina el horario conjunto si uno solo de los profesionales está ocupado»; verificación previa del horario en `patient-management.test.ts`; exclusión real en `staff_appointment_management.sql` 16; fast 42148450076, SQL 42147347019. |
+| RP05 | CI actual | El turno excluido sale de la vista del servidor (`excludeAppointmentId: view.appointment.id`), nunca del formulario; el formulario admite sólo campos fijos (`submitPatientManagementAction`); fast 42148450076. |
+| RP06 | CI actual | El comando del paciente no recibe prestación, profesional ni modalidad; SQL `patient_appointment_management_commands.sql` 27 y equipo bloqueado por profesional; SQL 42147347019. |
+| RP07 | CI actual | Antes de mutar, el servidor recalcula los horarios del día y rechaza uno no ofrecido o con otra versión de disponibilidad: `patient-management.test.ts` «rejects a changed availability version and an unavailable chosen slot» y «rejects a sub-millisecond forged slot»; SQL exige anticipación, servicio activo y versión; fast 42148450076, SQL 42147347019. |
 | RP08 | Parcial CI | SQL/adaptador de duración vigente y precisión, lectura/selección integradas y browser con 45 min; cambio concurrente de duración y UX íntegra aún por cerrar. E1.40/E2.10. |
 | RP09 | Parcial CI | SQL del comando y carreras en 41614887283 (E1.28); faltan integración, UX y restantes condiciones del caso. |
-| RP10 | Pendiente | Sin prueba funcional de E. |
-| RP11 | Pendiente | Sin prueba funcional de E. |
+| RP10 | CI actual | `staff_appointment_management.sql` 4, 5, 12 y `patient_appointment_management_commands.sql` 27: el consultorio conserva el pago aplicable y registra actor y origen; el paciente no puede declararse personal; SQL 42147347019. |
+| RP11 | CI actual | `patient_appointment_management_commands.sql` 22 (segunda reprogramación paga consume sólo su anticipo) y 20 (una pausa técnica no impide cancelar); sin tope comercial; SQL 42147347019. |
 | RP12 | Parcial CI | Recuperación SQL de recibo antes del preflight 41660810130 y repetición HTTP en browser 41702920488; respuesta ilegible clasificada como incierta con adaptador/controlador reales y RPC simulado (fast 41710295801); sin desconexión real integral. |
-| RP13 | Pendiente | Sin prueba funcional de E. |
+| RP13 | CI actual | El comando acepta `reschedule_requested` para cancelar o mover; abrir la página no escribe (AC02); ninguna migración de E cambia esos turnos; SQL 42147347019. |
 | SN01 | Parcial CI | SQL de pérdida/nueva obligación 41660810130 y browser 41702920488 con lectura posterior de historia/proyección; faltan alta informada real/correo/producción. |
 | SN02 | Parcial CI | Comando SQL 29/29 en 41609778146; alcance específico E1.22. Faltan carreras completas, consumidores y prueba integral. |
 | SN03 | Parcial CI | Comando SQL 29/29 en 41609778146; alcance específico E1.22. Faltan carreras completas, consumidores y prueba integral. |
@@ -87,61 +87,61 @@ La regla de cada caso se lee en la especificación; esta tabla registra su acept
 | SN05 | Parcial CI | Comando SQL 29/29 en 41609778146; alcance específico E1.22. Faltan carreras completas, consumidores y prueba integral. |
 | SN06 | Parcial CI | Comando SQL 29/29 en 41609778146; alcance específico E1.22. Faltan carreras completas, consumidores y prueba integral. |
 | SN07 | Parcial CI | Comando SQL 29/29 en 41609778146; alcance específico E1.22. Faltan carreras completas, consumidores y prueba integral. |
-| SN08 | Pendiente | Sin prueba funcional de E. |
-| SN09 | Pendiente | Sin prueba funcional de E. |
-| SN10 | Pendiente | Sin prueba funcional de E. |
+| SN08 | CI actual | `appointment_reschedule_financial_terms.sql` 8, 9 y 10; SQL 42147347019. |
+| SN09 | CI actual | `appointment_reschedule_financial_terms.sql` 11 y 17; SQL 42147347019. |
+| SN10 | CI actual | `appointment_reschedule_financial_terms.sql` 6 y 15; SQL 42147347019. |
 | SN11 | Parcial CI | Comando SQL 29/29 en 41609778146; alcance específico E1.22. Faltan carreras completas, consumidores y prueba integral. |
-| SN12 | Pendiente | Sin prueba funcional de E. |
+| SN12 | CI actual | `appointment_reschedule_financial_terms.sql` 13 y `patient_appointment_management_commands.sql` 38; SQL 42147347019. |
 | SN13 | Parcial CI | SQL del comando y carreras en 41614887283 (E1.28); faltan integración, UX y restantes condiciones del caso. |
-| SN14 | Parcial CI | SQL30 42073541134: veinte grupos/nueve carreras, hechos/correcciones/identidad/replay/auditoría y tipos oficiales. Fast 42076262537: 2038 servidor/300 cliente. Browser 42080552190 fallido después de completar rechazo/borrador/registro nativos 10.000; recuperación JS, corrección, visuales, publicación e integración de correo pendientes. E3.50. |
-| SN15 | Pendiente | Sin prueba funcional de E. |
+| SN14 | CI actual; falta navegador del paquete | Causa del fallo 42080552190 hallada y corregida (`7879258d`): la hidratación cerraba el `<details>` abierto. Prueba de navegador ampliada en `late-deposits.spec.ts`; SQL y fast 42148450076. |
+| SN15 | CI actual | No existe acreditación automática: el dinero sólo lo registra el personal autorizado (`late_deposit`, `deposit`); E no agrega pasarela ni lectura bancaria. |
 | SN16 | Parcial CI | Comando SQL 29/29 en 41609778146; alcance específico E1.22. Faltan carreras completas, consumidores y prueba integral. |
 | SN17 | Parcial CI | Cancelación conserva pago como unresolved en SQL 41600939474; falta comando público/UX/correo y comprobaciones integrales. |
 | SN18 | Parcial CI | SQL personal, grupo 11 de 25: cancelación conserva pago como unresolved y no forfeited (41759448286, regresión 41762069407). Browser personal 41757455635 cancela sin JS un turno sin pago; falta recorrido integrado con dinero/correo y política de resolución. |
 | SN19 | Parcial CI | Actualización real desde cinco estados anteriores, 8/8 en 41600939474; sin aplicación productiva ni UI de historia. |
-| RM01 | Pendiente | Sin prueba funcional de E. |
-| RM02 | Pendiente | Sin prueba funcional de E. |
-| RM03 | Pendiente | Sin prueba funcional de E. |
-| RM04 | Pendiente | Sin prueba funcional de E. |
-| RM05 | Pendiente | Sin prueba funcional de E. |
-| RM06 | Parcial CI | Contrato puro: 44 casos en fast 41578321181 y cuatro mutaciones locales; faltan integración y recorridos reales. Ver E1.1/E1.15. |
-| RM07 | Parcial CI | Contrato puro: 44 casos en fast 41578321181 y cuatro mutaciones locales; faltan integración y recorridos reales. Ver E1.1/E1.15. |
-| RM08 | Pendiente | Sin prueba funcional de E. |
-| RM09 | Parcial CI | Contrato puro: 44 casos en fast 41578321181 y cuatro mutaciones locales; faltan integración y recorridos reales. Ver E1.1/E1.15. |
-| RM10 | Pendiente | Sin prueba funcional de E. |
-| RM11 | Parcial CI | Contrato puro: 44 casos en fast 41578321181 y cuatro mutaciones locales; faltan integración y recorridos reales. Ver E1.1/E1.15. |
-| RM12 | Pendiente | Sin prueba funcional de E. |
-| RM13 | Pendiente | Sin prueba funcional de E. |
-| RM14 | Pendiente | Sin prueba funcional de E. |
-| RM15 | Pendiente | Sin prueba funcional de E. |
-| ZH01 | Pendiente | Sin prueba funcional de E. |
-| ZH02 | Pendiente | Sin prueba funcional de E. |
-| ZH03 | Pendiente | Sin prueba funcional de E. |
-| ZH04 | Pendiente | Sin prueba funcional de E. |
-| ZH05 | Pendiente | Sin prueba funcional de E. |
-| ZH06 | Pendiente | Sin prueba funcional de E. |
-| ZH07 | Pendiente | Sin prueba funcional de E. |
-| ZH08 | Pendiente | Sin prueba funcional de E. |
-| ZH09 | Pendiente | Sin prueba funcional de E. |
-| ZH10 | Pendiente | Sin prueba funcional de E. |
-| ZH11 | Pendiente | Sin prueba funcional de E. |
-| ZH12 | Pendiente | Sin prueba funcional de E. |
-| ZH13 | Pendiente | Sin prueba funcional de E. |
-| UI01 | Pendiente | Sin prueba funcional de E. |
-| UI02 | Pendiente | Sin prueba funcional de E. |
-| UI03 | Pendiente | Sin prueba funcional de E. |
-| UI04 | Pendiente | Sin prueba funcional de E. |
-| UI05 | Pendiente | Sin prueba funcional de E. |
-| UI06 | Pendiente | Sin prueba funcional de E. |
-| UI07 | Pendiente | Sin prueba funcional de E. |
-| UI08 | Pendiente | Sin prueba funcional de E. |
+| RM01 | CI actual; falta recepción real | SQL 11 y 12; SQL 42147347019. |
+| RM02 | CI actual | SQL 29 (frontera exacta: comprobante, no recordatorio); SQL 42147347019. |
+| RM03 | CI actual | `covered_by_receipt` exige misma revisión, mismo contacto y aceptación conocida dentro de los 30 minutos; nunca sólo cercanía; SQL del reclamo; SQL 42147347019. |
+| RM04 | CI actual | SQL 13; carreras escenarios 4 y 5; SQL 42147347019. |
+| RM05 | CI actual | La evidencia del proveedor sólo actualiza su mensaje: SQL 22 y 23; carreras escenarios 6 y 7; SQL 42147347019. |
+| RM06 | CI actual; falta recepción real | `appointment-email-content.test.ts` «says reserved and explains the deposit» y «says confirmed only when it is»; fast 42148450076. |
+| RM07 | CI actual | El reclamo descarta el pedido de seña si ya no está pendiente (`deposit_not_pending`) y conserva el recordatorio; SQL 42147347019. |
+| RM08 | CI actual | No se combinan: el pedido de seña sale solo únicamente si ningún comprobante de esa revisión lo lleva; un destinatario por mensaje; SQL 42147347019. |
+| RM09 | CI actual | El recordatorio con seña pendiente lleva su plazo; un turno cancelado no recibe recordatorio (`appointment_cancelled`); contenido: «does not build a reminder for a started or cancelled appointment»; fast 42148450076, SQL 42147347019. |
+| RM10 | CI actual | SQL 30 (fuera de la ventana de 30 minutos no se envía) y el reclamo nunca envía un turno empezado; SQL 42147347019. |
+| RM11 | CI actual | SQL 14; SQL 42147347019. |
+| RM12 | CI actual | Revalidación al reclamar y carreras en ambos órdenes (escenarios 2 a 5 y 9); la aceptación externa ya ocurrida no se deshace (D4); carreras `run_appointment_email_concurrency.sh` (42145630681, 42147347019; mutaciones 42144983908 y 42145538367 la hacen fallar). |
+| RM13 | CI actual | Instantes absolutos en SQL; fechas en la zona del consultorio: «uses the time zone of the practice»; fast 42148450076. |
+| RM14 | CI actual | SQL 2 y 3: instalar no envía nada y activar marca desde cuándo; sólo avisos futuros útiles; SQL 42147347019. |
+| RM15 | CI actual | Push y calendario conservan sus reglas; la página sigue ofreciendo el aviso del teléfono aunque haya correo; pruebas de cliente de la página del turno; fast 42148450076. |
+| ZH01 | Registrado | Plan integral 4.3: cuenta, crédito y envíos medidos; la integración no se atribuye a los envíos previos de Juan. |
+| ZH02 | CI actual | La configuración muestra el estado del dominio y no dice «Listo» mientras algo impide enviar: prueba de cliente de `/odonto/configuracion/correo`; fast 42148450076. |
+| ZH03 | CI actual | SQL 28: contador propio y reserva; límite ajustable por el operador (`appointment_email_operations.sql`); SQL 42147347019. |
+| ZH04 | CI actual | Implementado el 6 de noviembre: el operador registra cada crédito y la app avisa antes de vencer o agotarse, sin depender de Zoho (`/odonto/maestro/correo` y aviso en el panel); `appointment_email_operations.sql` 1–10 y pruebas unitarias, de servidor y de cliente; SQL 42147347019, fast 42148450076. |
+| ZH05 | CI actual | Cupo y prioridad (comprobantes, seña, recordatorios) en el reclamo; SQL 26 y 28; SQL 42147347019. |
+| ZH06 | CI actual | SQL 25 y `zoho-email.test.ts` «retries a limit»; SQL 42147347019, fast 42148450076. |
+| ZH07 | CI actual; falta conciliación real | SQL 21 y 22; `appointment-email.test.ts` «records a lost answer as uncertain»; decisión explícita del personal con riesgo de duplicado (pruebas del detalle del turno); SQL 42147347019, fast 42148450076. |
+| ZH08 | CI actual | SQL 23 y `zoho-email.test.ts`; carreras escenario 7; SQL 42147347019. |
+| ZH09 | CI actual | La baja se revisa en cada reclamo, también en reenvíos y recuperaciones; SQL 20; SQL 42147347019. |
+| ZH10 | CI actual; falta envío de prueba del panel | Firma, límite de cuerpo, repetición y referencia: prueba de servidor del webhook (11 casos), SQL 22 y 24, carreras escenario 8; SQL 42147347019, fast 42148450076. La forma real se confirma con «Send Test» al configurar el webhook. |
+| ZH11 | CI actual | Estados con nombre propio en el detalle del turno: prueba de cliente «names what the provider proved, never that the patient read it»; fast 42148450076. |
+| ZH12 | CI actual | SQL 26 y 27; pausa visible y levantable sólo por decisión explícita (`appointment_email_operations.sql` 9); SQL 42147347019. |
+| ZH13 | CI actual | SQL 20 y 31; SQL 42147347019. |
+| UI01 | CI actual; falta recepción real | «carries the practice identity and never the name of the software» y «shows the name in text when there is no logo»; fast 42148450076. |
+| UI02 | CI parcial; falta recepción real | Versión de texto con las mismas acciones; HTML con tabla simple y colores de la paleta. La lectura en clientes reales se comprueba con la recepción en el buzón acordado. |
+| UI03 | CI actual | «escapes markup and removes line breaks from headers»; fast 42148450076. |
+| UI04 | CI actual | «does not include the service or the professional anywhere»; un destinatario por mensaje; fast 42148450076. |
+| UI05 | CI actual | SQL 6: sin contacto de respuesta no hay remitente listo; SQL 42147347019. |
+| UI06 | CI actual | Remitente sólo en subdominios verificados de `cita-suite.com.ar` (SQL 5a, 5b); enlaces al dominio oficial; SQL 42147347019. |
+| UI07 | CI actual | «asks for no open or click tracking and sends the reference»; fast 42148450076. |
+| UI08 | CI actual; falta físico | UID y SEQUENCE del archivo conservados; la página y el correo piden reemplazar el evento guardado tras un cambio («asks to replace a saved calendar event after a change»); medición física en plan 4.2. |
 | OP01 | Parcial CI | Fallas provocadas de auditoría/evento revierten SQL en 41614887283; falta recuperación de cola/proveedor y UX. |
 | OP02 | Parcial CI | SQL 41762069407: agenda/alta/reparación, 18 grupos ayuda y doce esperas, editor/historia con pérdida de alcance de Administración al vencer Ayuda. Configuración nueva, auxiliares y revisión integral siguen pendientes; no hay cambio productivo. E1.59. |
 | OP03 | Parcial CI | Contrato puro: 44 casos en fast 41578321181 y cuatro mutaciones locales; faltan integración y recorridos reales. Ver E1.1/E1.15. |
-| OP04 | Pendiente | Sin prueba funcional de E. |
-| OP05 | Pendiente | Sin prueba funcional de E. |
-| OP06 | Pendiente | Sin prueba funcional de E. |
-| OP07 | Pendiente | Sin prueba funcional de E. |
+| OP04 | CI actual | Mensajes humanos con acción siguiente en correo, configuración, detalle y operador; los códigos del proveedor no llegan al consultorio (SQL 32); fast 42148450076. |
+| OP05 | Diseñado; falta publicar | Migraciones aditivas con productores apagados; recuperación compatible D7 en el plan integral y orden exacto en la guía de publicación. |
+| OP06 | CI actual | Datos sintéticos propios, buzón acordado `citasuite@gmail.com`, separación entre simulación, proveedor y recepción real. |
+| OP07 | Diseñado; falta medir en producción | Cadena propia de correo (`3-59/5`), tramos de 4 y presupuesto calculado antes de reclamar (`appointment-email.test.ts` «stays within the budget of its chain»). Falta medir CPU y llamadas en producción. |
 
 ## Registro cronológico
 
@@ -1505,3 +1505,20 @@ Pedido vigente en plan 12.24. Se revisaron los ocho SQL E, sus lectores/comandos
 - Pasaron, por el punto alcanzado en el spec, las aserciones nativas de POST 400/borrador conservado/cero recibos, registro válido 10.000/un hecho-recibo-auditoría y estado cerrado intacto. En JS alcanzó llenado del nuevo formulario y detección de submit listener. Falló en `late-deposits.spec.ts:64`, llamado en línea 145: clic del botón dentro de `#late-deposit-record form` agotó 15000 ms. Snapshot conserva total 10.000 y muestra el grupo de registro sin controles en el árbol accesible. No se establece su causa ni se afirma commit de 25.000/recepción de respuesta ilegible. Falta recuperación/corrección, neto público posterior, contraste/matriz visual y health/late-deposit-proof finales. No confundir este avance parcial con caso aprobado ni pérdida demostrada de dinero.
 - SQL30/fast/público/personal conservan sus resultados y revisiones exactas; no se repiten por la documentación. El traspaso conserva el mapa de las treinta migraciones, archivos/commits del último trabajo, decisiones y su fundamento, fallas de producto frente a arnés, conexiones persistentes sin secretos, límites de evidencia, hipótesis y alternativas abiertas. Pendientes: contacto/consumidor/outbox, retención/cuarentena física, Zoho/plantillas/webhook/cuota/bajas/72–24, regresiones integradas/recuperación compatible/publicación E. P1/P2/P3 siguen pospuestas. No hay cierre de E.
 - El commit propio exclusivamente documental se sincroniza con origin/main sin incluir cambios ajenos; guardia y comprobaciones documentales se conservan en `.verification/etapa-e-20261103/traspaso-documental-20261105/`. Su SHA final se obtiene del historial del traspaso y del recibo privado, sin atribuirlo como fuente de las pruebas funcionales anteriores.
+
+### Encargo integral — 5 y 6 de noviembre (mandato `mandato-integral-avisos-20261105.md`)
+
+- **Fuentes y estado:** plan canónico y decisiones D1–D7 en `plan-integral-avisos-20261105.md`; producción sigue en V12b hasta publicar.
+- **Commits sobre `main`:** `7879258d` (SN14), `a87a99d3` (correo), `b5118ca0` (recorrido Android), `51f17310`, `f56132c0`, `b177068b`, `d1aef31b`, `223b0f38`, `1fff6810` (operación del correo, migración `20261106020000`), `d45af785` (aviso de crédito ZH04 y tipos oficiales de SQL 42147347019).
+- **Corridas:** SQL 42138251057, 42144290542, 42145630681 y 42147347019 aprobadas; fast 42138891773, 42140758143 y 42143173907 fallidas por errores de tipos propios, corregidos; fast 42143784637 y 42148450076 aprobadas. Mutaciones de `skip locked`: 42144983908 (detectada en el escenario 2) y 42145538367 (detectada en el escenario 1 corregido).
+- **Defectos hallados y su causa:**
+  - SN14: la hidratación cerraba el `<details>` que la persona había abierto (`open={expr}` compila a una asignación sin condición).
+  - Configuración de correo: decía «Listo» con dominio verificado aunque faltara el contacto de respuesta o estuviera apagada la preferencia.
+  - Tareas: una falla del control de almacenamiento impedía la retención de enlaces y direcciones; ahora corren independientes y la corrida informa la falla.
+  - Detalle del turno: para un profesional, la lista de correos se pedía y fallaba en cada visita; ahora sólo la piden los roles que SQL admite.
+  - Prueba de carreras: el escenario 1 planificaba dentro del reclamo retenido y no demostraba el salto de filas bloqueadas; la mutación 42144983908 lo puso en evidencia y se corrigió.
+  - ZH04 no estaba implementado: se agregó el registro del crédito y su aviso.
+  - Clases inexistentes (`ux-btn`) y colores sin uso que dejó el recorrido viejo.
+- **Falsa alarma registrada:** se sospechó que un paciente podía mover su turno a una hora fuera de agenda. El servidor recalcula los horarios del día y rechaza uno no ofrecido; ya tenía pruebas.
+- **Pendiente:** paquete y navegador completo sobre el paquete, publicación según D7, webhook de Zoho (la clave la pega Juan), recepción real por propósito, pruebas físicas y verificación de Google.
+
