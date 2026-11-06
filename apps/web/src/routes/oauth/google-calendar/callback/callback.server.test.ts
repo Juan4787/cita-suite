@@ -46,6 +46,26 @@ beforeEach(() => {
 });
 
 describe('callback OAuth Google Calendar', () => {
+	it('pide el consentimiento si Google no entrega el permiso duradero: elegir la cuenta otra vez daría lo mismo', async () => {
+		mocks.authorizeGoogleCalendarAppointment.mockRejectedValue({ message: 'GOOGLE_CALENDAR_REAUTH_REQUIRED' });
+
+		const response = await callGet('state=opaque-state&code=authorization-code');
+
+		expect(response.status).toBe(303);
+		expect(response.headers.get('location')).toBe(`/gestion/${token}/google-calendar/connect?reauthorize=1`);
+	});
+
+	it('no entra en un bucle si ni con el consentimiento Google entrega el permiso duradero', async () => {
+		mocks.consumeGoogleCalendarOAuthAttempt.mockResolvedValue({
+			attemptId: 'attempt', access, businessId: 'business', appointmentId: 'appointment', codeVerifier: 'verifier', forceConsent: true
+		});
+		mocks.authorizeGoogleCalendarAppointment.mockRejectedValue({ message: 'GOOGLE_CALENDAR_REAUTH_REQUIRED' });
+
+		const response = await callGet('state=opaque-state&code=authorization-code');
+
+		expect(response.headers.get('location')).toBe(`/gestion/${token}?calendar=reconnect`);
+	});
+
 	it('consume state antes de intercambiar el código y vuelve sin credenciales en la URL', async () => {
 		const response = await callGet('state=opaque-state&code=authorization-code');
 		expect(response.status).toBe(303);
