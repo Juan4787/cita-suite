@@ -563,6 +563,8 @@ test.describe('Pacientes, próximos turnos y teléfono — UX integrada', () => 
 		await expect(wizard.getByLabel('Nombre del paciente')).toHaveValue(patientName);
 		await phone.fill('351 123 4567');
 		await wizard.getByRole('button', { name: 'Confirmar turno', exact: true }).click();
+		// Reception may go on without an address, but only after the explicit notice.
+		await page.getByRole('button', { name: 'Continuar sin email', exact: true }).click();
 		await expect(page).toHaveURL(
 			(url) =>
 				/\/odonto\/turnos\/[0-9a-f-]+$/.test(url.pathname) &&

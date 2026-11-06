@@ -1,3 +1,4 @@
+import { FORM_PAGE_REFERRER_POLICY } from '$lib/server/platform/cross-site-form';
 import type { CitaSupabaseClient } from '$lib/types/database';
 import { loadAppointmentEmailDeliveries, resolveAppointmentEmailDelivery } from '$lib/server/scheduling/public/email-status';
 import { todayInTimeZone } from '$lib/availability/calculate';
@@ -236,7 +237,7 @@ export const actions: Actions = {
   if (!event.locals.auth) throw redirect(303,'/login');
   if (env.DEMO_MODE === 'true') return fail(400,{ message: 'No disponible en modo demo.' });
   if (!isUuid(event.params.appointmentId)) return fail(404,{ message: 'No encontramos ese turno.' });
-  event.setHeaders({ 'cache-control': 'no-store','referrer-policy': 'no-referrer' });
+  event.setHeaders({ 'cache-control': 'no-store','referrer-policy': FORM_PAGE_REFERRER_POLICY });
   const { supabase,business } = await getOdontoContext(event);
   if (!business.canOperate || !DEPOSIT_ROLES.has(business.role)) return fail(403,{ message: 'No tenés permiso para registrar dinero en este consultorio.' });
   let form: FormData;
@@ -289,7 +290,7 @@ export const actions: Actions = {
   if (!event.locals.auth) throw redirect(303, '/login');
   if (env.DEMO_MODE === 'true') return fail(400, { message: 'No disponible en modo demo.' });
   if (!isUuid(event.params.appointmentId)) return fail(404, { message: 'No encontramos ese turno.' });
-  event.setHeaders({ 'cache-control': 'no-store', 'referrer-policy': 'no-referrer' });
+  event.setHeaders({ 'cache-control': 'no-store', 'referrer-policy': FORM_PAGE_REFERRER_POLICY });
   let form: FormData;
   try { form = await readBoundedBookingForm(event.request, []); }
   catch { return fail(400, { message: 'No pudimos leer esta acción. Actualizá el turno antes de seguir.' }); }

@@ -108,7 +108,7 @@ for (const brand of ['cita-suite', 'natalia'] as const) {
    phase='read_and_navigation';
    const response=await request.get(`${path}/informacion`);
    expect(response.status()).toBe(200);expect(response.headers()['cache-control']).toContain('no-store');
-   expect(response.headers()['referrer-policy']).toBe('no-referrer');expect(response.headers()['x-robots-tag']).toContain('noindex');
+   expect(response.headers()['referrer-policy']).toBe('same-origin');expect(response.headers()['x-robots-tag']).toContain('noindex');
    expect((await request.get(`/turno/${legacy}/informacion`)).status()).toBe(404);
    await page.goto(path);
    await expect(page.getByRole('link',{name:'Ver y ampliar mis datos'})).toHaveAttribute('href',`${path}/informacion`);

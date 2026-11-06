@@ -66,8 +66,8 @@ test('@candidate-behavior staff delivery: explicit preparation, contact revocati
    insert into public.appointments(id,business_id,patient_id,service_id,professional_id,starts_at,ends_at,status,source,created_at,service_name_snapshot,professional_name_snapshot,duration_minutes_snapshot)
     select '${cancelledId}','${f.businessId}','${patientId}','${assignment.service_id}','${assignment.professional_id}',t.starts,t.starts+make_interval(mins=>s.duration_minutes),'reserved','manual',now()-interval '7 days','Consulta sintética','Profesional sintético',s.duration_minutes
     from public.businesses b,public.services s,lateral(select case when extract(hour from now() at time zone b.timezone)<15
-     then ((now() at time zone b.timezone)::date+1+time '16:00') at time zone b.timezone
-     else ((now() at time zone b.timezone)::date+2+time '09:00') at time zone b.timezone end as starts)t where b.id='${f.businessId}' and s.id='${assignment.service_id}';
+     then ((now() at time zone b.timezone)::date+1+time '20:00') at time zone b.timezone
+     else ((now() at time zone b.timezone)::date+2+time '07:00') at time zone b.timezone end as starts)t where b.id='${f.businessId}' and s.id='${assignment.service_id}';
    commit;
    select private.expire_unpaid_deposits();`);
   expect(f.sql(`select a.status||':'||d.status from public.appointments a join public.appointment_deposits d on d.appointment_id=a.id where a.id='${cancelledId}';`)).toBe('cancelled:expired');

@@ -47,6 +47,8 @@ test('appointment slots released: real cancellation, reassignment, occupation an
   await page.locator('summary').filter({ hasText: /^Cancelar turno$/ }).click();
   await page.getByRole('checkbox', { name: 'Confirmo que quiero cancelar este turno.', exact: true }).check();
   await page.getByRole('button', { name: 'Cancelar turno', exact: true }).click();
+  // The form posts in the background: the answer, not the click, says the change was saved.
+  await expect(page.getByRole('status').filter({ hasText: 'El cambio del turno quedó registrado.' })).toBeVisible();
   expect((await must(f.admin.from('appointments').select('status').eq('business_id', f.businessId).eq('id', id).single())).status).toBe('cancelled');
  };
  try {
