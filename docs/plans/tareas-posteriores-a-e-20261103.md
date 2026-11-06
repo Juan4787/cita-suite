@@ -7,9 +7,9 @@
 | Orden | Trabajo | Estado | Condición de avance |
 |---|---|---|---|
 | Previo | E completa: correo, autogestión, señas y sus 97 casos | Publicada el 6 de noviembre | [Registro de E](ejecucion-etapa-e-20261103.md) |
-| P1 | Habilitar cancelar turnos desde recepción | En curso | Ver [punto de trabajo](#punto-de-trabajo) |
-| P2 | Estilar todos los controles y superficies de la app, en claro y oscuro, y revisar el diseño y la experiencia de toda la app | En relevamiento | Después de P1 |
-| P3 / nueva D | Avisos internos generales para horarios liberados, con patrón similar a Seguimientos | Sin iniciar | Después de P2 |
+| P1 | Habilitar cancelar turnos desde recepción | Implementada, en verificación | Ver [punto de trabajo](#punto-de-trabajo) |
+| P2 | Estilar todos los controles y superficies de la app, en claro y oscuro, y revisar el diseño y la experiencia de toda la app | Implementada, en verificación | Ver [punto de trabajo](#punto-de-trabajo) |
+| P3 / nueva D | Avisos internos generales para horarios liberados, con patrón similar a Seguimientos | Implementada, en verificación | Ver [punto de trabajo](#punto-de-trabajo) |
 
 Cada tarea conserva cambios, reproducción/contraste, pruebas, auditoría, publicación y documentación propios. Conservar sus límites e incidencias, y no atribuirles evidencia de otra revisión.
 
@@ -48,3 +48,13 @@ Después de una compactación: leer AGENTS, estado vigente, [12.34](propuesta-se
 - Detalle del turno: «Cancelar turno» sale del final de la página y queda arriba, en `StaffCancelPanel.svelte`, con lo que pasa con el horario, la seña y el aviso al paciente antes de confirmar. Sólo lo ven los roles que operan.
 - Turno pasado o en curso: etiqueta «Turno pasado» o «En curso» y un aviso que explica por qué no se cancela. La agenda y «Mis turnos» usan la misma etiqueta, en reemplazo de «Expirado».
 - Pruebas: `e2e/reception-cancel.spec.ts`, casos 11a a 11c de `supabase/tests/staff_appointment_management.sql`, y pruebas de cliente y servidor.
+- Corridas: SQL 42307475373 aprobada. Navegador 42308051622: toda la conducta aprobada; falló sólo el control de diseño a 320 px por una palabra partida en el título anterior, reemplazado en P2.
+
+**P2, lo implementado:**
+- Detalle del turno rehecho: datos clave arriba, acciones visibles y grupos a todo el ancho. Se fue la grilla de cuatro columnas que dejaba el vacío.
+- Desplegables con `ux-disclosure`: resuelve las dos flechas y los títulos corridos de Reprogramar, Historial y Horarios que se liberaron.
+- Nada nativo: selectores, fechas, archivo, avisos de validación y ayudas emergentes son de la app. `native-controls.test.mjs` lo controla y `theme-modes.spec.ts` lo mide en pantalla.
+- Diálogos de pacientes con los botones y campos del sistema: se va el azul de una paleta vieja. Configuración con encabezado y ancho únicos. Pestañas iguales en todo el editor del profesional.
+- Defectos corregidos: «Último paso» oscuro e ilegible en modo claro, fechas como «6 De Noviembre De 2026», «Odontología» como título en celular, «Página no encontrada» con un mensaje de error de otra cosa, botón rojo de «Reportar problema», clases sin definir (`ux-success`, `ux-error`, `ux-link`, `ux-alert-danger`).
+
+**P3, lo implementado:** `SlotReleasesNotice.svelte` en la parte superior de la app, con `loadSlotReleaseNotice`. Sin migraciones: reusa `get_appointment_slot_releases`. Sólo para dueño, administración y recepción, y no en la agenda. Detalle en el [contrato funcional](../architecture/functional-contracts.md).

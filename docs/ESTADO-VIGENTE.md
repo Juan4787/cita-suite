@@ -57,6 +57,8 @@ M	apps/web/src/lib/components/Modal.svelte
 M	apps/web/src/lib/components/agenda/ManualAppointmentWizard.svelte
 M	apps/web/src/lib/components/agenda/SlotReleaseAlerts.client.test.ts
 M	apps/web/src/lib/components/agenda/SlotReleaseAlerts.svelte
+A	apps/web/src/lib/components/agenda/SlotReleasesNotice.client.test.ts
+A	apps/web/src/lib/components/agenda/SlotReleasesNotice.svelte
 M	apps/web/src/lib/components/appointments/PatientManagementPanel.client.test.ts
 M	apps/web/src/lib/components/appointments/PatientManagementPanel.svelte
 A	apps/web/src/lib/components/appointments/StaffCancelPanel.svelte
@@ -70,7 +72,10 @@ M	apps/web/src/lib/components/patients/PatientProfilePanel.svelte
 M	apps/web/src/lib/components/patients/RadiographsPanel.svelte
 M	apps/web/src/lib/components/seguimientos/FollowUpComposer.svelte
 M	apps/web/src/lib/components/team/TeamMemberWizard.svelte
+M	apps/web/src/lib/scheduling/slot-releases.ts
+M	apps/web/src/lib/server/patients/public/follow-ups.ts
 M	apps/web/src/lib/server/scheduling/public/appointments.ts
+M	apps/web/src/lib/server/scheduling/public/slot-releases.ts
 M	apps/web/src/lib/server/scheduling/public/staff-management-flow.test.ts
 M	apps/web/src/lib/server/scheduling/public/staff-management-flow.ts
 M	apps/web/src/lib/theme/palette.js
@@ -79,10 +84,12 @@ A	apps/web/src/lib/ui/field-validation.ts
 M	apps/web/src/lib/utils/agenda-dates.ts
 M	apps/web/src/lib/utils/appointment-visibility.test.ts
 M	apps/web/src/lib/utils/appointment-visibility.ts
+M	apps/web/src/lib/utils/notice-dismissal.ts
 M	apps/web/src/routes/+error.svelte
 M	apps/web/src/routes/+layout.svelte
 M	apps/web/src/routes/api/zoho/webhook/+server.ts
 M	apps/web/src/routes/api/zoho/webhook/webhook.server.test.ts
+M	apps/web/src/routes/odonto/+layout.server.ts
 M	apps/web/src/routes/odonto/+layout.svelte
 M	apps/web/src/routes/odonto/agenda/+page.svelte
 M	apps/web/src/routes/odonto/agenda/page.client.test.ts
@@ -96,6 +103,7 @@ M	apps/web/src/routes/odonto/configuracion/reserva-online/webs/+page.svelte
 M	apps/web/src/routes/odonto/configuracion/senas/+page.svelte
 M	apps/web/src/routes/odonto/configuracion/suscripcion/+page.svelte
 M	apps/web/src/routes/odonto/configuracion/usuarios/+page.svelte
+M	apps/web/src/routes/odonto/layout-notices.server.test.ts
 M	apps/web/src/routes/odonto/maestro/+page.svelte
 M	apps/web/src/routes/odonto/maestro/correo/+page.svelte
 M	apps/web/src/routes/odonto/maestro/correo/page.client.test.ts

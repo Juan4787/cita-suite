@@ -1,3 +1,4 @@
+import { noticeFingerprint } from '$lib/utils/notice-dismissal';
 import type { CitaSupabaseClient, CitaRow } from '$lib/types/database';
 import { readArray, readChoice, readRecord, readText } from '$lib/contracts/json';
 import type { BusinessRole } from '$lib/server/access/public/business';
@@ -119,15 +120,7 @@ export const roleParticipatesInFollowUps = (role: BusinessRole): boolean =>
 /** Ejecutándose = pending AND remind_on <= hoy (comparación lexicográfica válida para ISO). */
 export const isExecuting = (remindOn: string, todayISO: string): boolean => remindOn <= todayISO;
 
-export const followUpNoticeFingerprint = (ids: string[], count: number): string => {
-	let hash = 2166136261;
-	const source = `${count}:${ids.join('|')}`;
-	for (let index = 0; index < source.length; index += 1) {
-		hash ^= source.charCodeAt(index);
-		hash = Math.imul(hash, 16777619);
-	}
-	return `${count}-${(hash >>> 0).toString(36)}`;
-};
+export const followUpNoticeFingerprint = noticeFingerprint;
 
 export const buildNotice = (
 	rows: FollowUpListItem[],

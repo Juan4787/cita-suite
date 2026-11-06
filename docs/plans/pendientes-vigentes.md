@@ -39,7 +39,7 @@ Fuente: `docs/clientes/natalia-frutos/informacion-20261029.md`, secciones 4 y 5,
 
 ## 3. Etapas D y E: alcance actual
 
-1. **D celular reemplazada, sin implementar:** avisos internos generales de horarios liberados, con patrón similar a Seguimientos. Es P3 de las [tareas posteriores a E](tareas-posteriores-a-e-20261103.md), después de P1 cancelación desde recepción y P2 estilos y experiencia de toda la app. Las tres se reanudaron el 6 de noviembre ([12.34](propuesta-senas-avisos-natalia.md#reanudacion-p1-p2-p3-20261106)). No retomar push al personal ni pedir tipos de teléfono para esta D.
+1. **D celular reemplazada:** avisos internos generales de horarios liberados, con patrón similar a Seguimientos. Es P3 de las [tareas posteriores a E](tareas-posteriores-a-e-20261103.md), junto con P1 cancelación desde recepción y P2 estilos y experiencia de toda la app, reanudadas el 6 de noviembre ([12.34](propuesta-senas-avisos-natalia.md#reanudacion-p1-p2-p3-20261106)). Su estado está en ese documento. No retomar push al personal ni pedir tipos de teléfono para esta D.
 
 <a id="etapa-e-pendientes"></a>
 

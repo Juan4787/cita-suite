@@ -12,6 +12,7 @@
 	import { assistanceNoticeMode as assistanceNoticeModeFor } from '$lib/access/assistance-notice';
 	import OdontoRouteSkeleton from '$lib/components/skeleton/OdontoRouteSkeleton.svelte';
 	import FollowUpsNotice from '$lib/components/seguimientos/FollowUpsNotice.svelte';
+	import SlotReleasesNotice from '$lib/components/agenda/SlotReleasesNotice.svelte';
 	import { createStalledNavigationRecovery } from '$lib/client/stalled-navigation-recovery';
 	import { createClientReadiness } from '$lib/client/readiness.svelte';
 	import { formatAccessRemaining, formatDateTime } from '$lib/utils/format';
@@ -247,11 +248,16 @@
 			message: 'No pudimos comprobar si el consultorio pide señas.',
 			href: '/odonto/senas',
 			link: 'Ver señas'
+		},
+		'slot-releases': {
+			message: 'No pudimos comprobar si se liberaron horarios.',
+			href: '/odonto/agenda#horarios-liberados',
+			link: 'Ver en la agenda'
 		}
 	} as const;
 	const unavailableNotices = $derived(
 		(data?.unavailableNotices ?? []).filter(
-			(notice) => notice !== 'follow-ups' || !commercialAccessRestricted
+			(notice) => (notice !== 'follow-ups' && notice !== 'slot-releases') || !commercialAccessRestricted
 		)
 	);
 	const restrictedClinicalReadContext = $derived({
@@ -859,7 +865,7 @@
 							Reportar problema
 						</button>
 						{#if showReportHelp}
-							<div class="mt-3 rounded-xl border border-danger-400-30 bg-danger-430a0a p-3 text-xs text-fg">
+							<div class="mt-3 rounded-xl border border-line bg-fill-04 p-3 text-xs text-fg">
 								<p class="font-semibold">Soporte</p>
 								<p>
 									Para reportar errores, escribí a
@@ -1024,11 +1030,11 @@
 							<span class="block truncate text-sm font-semibold text-fg" data-truncation="allowed">
 								{isMasterPage ? 'Panel maestro' : (activeBusiness?.business?.name ?? 'Cuenta')}
 							</span>
-						<span class="flex items-center gap-2 truncate text-xs text-fg-n300" data-truncation="allowed">
-							<span>{isMasterPage ? 'Administrador del sistema' : roleLabel}</span>
+						<span class="flex items-center gap-2 text-xs text-fg-n300">
+							<span class="min-w-0 truncate" data-truncation="allowed">{isMasterPage ? 'Administrador del sistema' : roleLabel}</span>
 							{#if shouldShowAccessChip}
 								<span
-									class={`rounded-full px-2 py-0.5 text-micro font-bold ${
+									class={`shrink-0 rounded-full px-2 py-0.5 text-micro font-bold ${
 										accessTone === 'danger'
 											? 'bg-danger-500-15 text-danger'
 											: accessTone === 'warning'
@@ -1102,7 +1108,7 @@
 				{data.businessError}
 			</div>
 		{/if}
-		{#if (commercialNotice && !commercialAccessRestricted) || masterAssistanceRequests.length > 0 || shouldShowMissingAddress || assistanceNoticeMode !== null || (!commercialAccessRestricted && data?.followUps?.count > 0) || unavailableNotices.length > 0}
+		{#if (commercialNotice && !commercialAccessRestricted) || masterAssistanceRequests.length > 0 || shouldShowMissingAddress || assistanceNoticeMode !== null || (!commercialAccessRestricted && (data?.followUps?.count > 0 || data?.slotReleases?.count > 0)) || unavailableNotices.length > 0}
 			<div class="mb-6 grid gap-3" aria-label="Avisos importantes">
 				{#if commercialNotice && !commercialAccessRestricted}
 					<div
@@ -1203,6 +1209,14 @@
 					<FollowUpsNotice
 						notice={data.followUps}
 						todayISO={data.followUpsTodayISO}
+						storageKeyPrefix={businessNoticeStoragePrefix}
+					/>
+				{/if}
+
+				{#if !commercialAccessRestricted && data?.slotReleases?.count > 0 && activeBusiness}
+					<SlotReleasesNotice
+						notice={data.slotReleases}
+						timezone={activeBusiness.business.timezone}
 						storageKeyPrefix={businessNoticeStoragePrefix}
 					/>
 				{/if}

@@ -2,6 +2,7 @@ import { isUuid } from '@cita-suite/shared/uuid';
 import { InvalidDataContractError, readArray, readChoice, readRecord, readText } from '$lib/contracts/json';
 import { formatInTimeZone } from '$lib/utils/format';
 import { zonedDate } from '$lib/availability/calculate';
+import { noticeFingerprint } from '$lib/utils/notice-dismissal';
 
 export const SLOT_RELEASE_REASONS = {
  patient_cancelled: 'Canceló la persona',
@@ -17,13 +18,20 @@ export type SlotRelease = {
 export type SlotReleaseWindow = { days: number; page: number; offset: number };
 export type SlotReleaseListView = { items: SlotRelease[] | null; days: number; page: number; truncated: boolean };
 export const SLOT_RELEASE_PAGE_SIZE = 50;
+export const SLOT_RELEASE_DEFAULT_DAYS = 14;
+/** The internal notice of the shell. `truncated` means «more than `count`», never an exact total. */
+export type SlotReleaseNotice = { count: number; truncated: boolean; single: SlotRelease | null; dismissalKey: string };
+export const buildSlotReleaseNotice = (items: SlotRelease[], truncated: boolean): SlotReleaseNotice => ({
+ count: items.length, truncated, single: items.length === 1 && !truncated ? items[0] : null,
+ dismissalKey: noticeFingerprint(items.map(item => item.id), items.length)
+});
 export const slotReleaseWindow = (params: URLSearchParams): SlotReleaseWindow => {
  const integer = (key: string, fallback: number, max: number) => {
   const raw = params.get(key) ?? '';
   const value = /^\d{1,4}$/.test(raw) ? Number(raw) : 0;
   return value >= 1 && value <= max ? value : fallback;
  };
- const days = integer('dias_liberados', 14, 60);
+ const days = integer('dias_liberados', SLOT_RELEASE_DEFAULT_DAYS, 60);
  const page = integer('pagina_liberados', 1, 1001);
  return { days, page, offset: (page - 1) * SLOT_RELEASE_PAGE_SIZE };
 };

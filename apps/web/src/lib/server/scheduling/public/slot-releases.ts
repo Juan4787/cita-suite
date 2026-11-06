@@ -1,6 +1,6 @@
 import type { CitaSupabaseClient } from '$lib/types/database';
 import { isRecord, InvalidDataContractError } from '$lib/contracts/json';
-import { parseSlotReleaseRows, SLOT_RELEASE_PAGE_SIZE, type SlotReleaseWindow } from '$lib/scheduling/slot-releases';
+import { buildSlotReleaseNotice, parseSlotReleaseRows, SLOT_RELEASE_DEFAULT_DAYS, SLOT_RELEASE_PAGE_SIZE, type SlotReleaseWindow } from '$lib/scheduling/slot-releases';
 
 export const loadAppointmentSlotReleases = async (supabase: CitaSupabaseClient, businessId: string, window: SlotReleaseWindow) => {
  if (!Number.isInteger(window.days) || window.days < 1 || window.days > 60 || !Number.isInteger(window.page)
@@ -13,6 +13,11 @@ export const loadAppointmentSlotReleases = async (supabase: CitaSupabaseClient, 
  if (error) throw error;
  const rows = parseSlotReleaseRows(data);
  return { items: rows.slice(0, SLOT_RELEASE_PAGE_SIZE), truncated: rows.length > SLOT_RELEASE_PAGE_SIZE };
+};
+/** The first page of what the agenda lists by default: one source for the list and the notice. */
+export const loadSlotReleaseNotice = async (supabase: CitaSupabaseClient, businessId: string) => {
+ const { items, truncated } = await loadAppointmentSlotReleases(supabase, businessId, { days: SLOT_RELEASE_DEFAULT_DAYS, page: 1, offset: 0 });
+ return buildSlotReleaseNotice(items, truncated);
 };
 export const hideAppointmentSlotRelease = async (supabase: CitaSupabaseClient, businessId: string, releaseId: string): Promise<boolean> => {
  const { data, error } = await supabase.rpc('hide_appointment_slot_release', { p_business_id: businessId, p_release_id: releaseId });
