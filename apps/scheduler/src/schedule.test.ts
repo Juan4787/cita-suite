@@ -24,8 +24,11 @@ describe('programación versionada', () => {
 
 	it('cubre todas las categorías y rechaza una expresión no versionada', () => {
 		const scheduled = new Set<string>(Object.values(CRON_SCHEDULE));
+		// The two shared triggers each stand for the pair they alternate.
 		scheduled.delete('maintenance');
 		scheduled.add('commercial').add('storage');
+		scheduled.delete('upkeep');
+		scheduled.add('reviews').add('uploads');
 		assert.deepEqual([...scheduled].sort(), [...SCHEDULED_JOB_KINDS].sort());
 		assert.throws(() => jobForEvent('*/1 * * * *', at('2026-10-19T12:00:00Z')), /Unscheduled/);
 	});

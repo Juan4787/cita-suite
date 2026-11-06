@@ -5,6 +5,7 @@ const mocks = vi.hoisted(() => ({
 	createSupabaseAdminClient: vi.fn(),
 	sendPushReminderBatch: vi.fn(),
 	processGoogleCalendarSyncBatch: vi.fn(),
+	sendAppointmentEmailBatch: vi.fn(),
 	sendGoogleReviewRequestBatch: vi.fn(),
 	reconcileMercadoPago: vi.fn(),
 	cleanupAbandonedClinicalUploads: vi.fn(),
@@ -16,6 +17,9 @@ vi.mock('$lib/server/platform/supabase', () => ({ createSupabaseAdminClient: moc
 vi.mock('$lib/server/integrations/public/push', () => ({ sendPushReminderBatch: mocks.sendPushReminderBatch }));
 vi.mock('$lib/server/integrations/public/google-calendar', () => ({
 	processGoogleCalendarSyncBatch: mocks.processGoogleCalendarSyncBatch
+}));
+vi.mock('$lib/server/integrations/public/appointment-email', () => ({
+	sendAppointmentEmailBatch: mocks.sendAppointmentEmailBatch
 }));
 vi.mock('$lib/server/integrations/public/google-reviews', () => ({
 	sendGoogleReviewRequestBatch: mocks.sendGoogleReviewRequestBatch
@@ -63,12 +67,13 @@ describe('ejecución de una tarea programada', () => {
 
 	it.each([
 		['calendar', 'processGoogleCalendarSyncBatch'],
+		['email', 'sendAppointmentEmailBatch'],
 		['reviews', 'sendGoogleReviewRequestBatch']
 	] as const)('la categoría %s ejecuta sólo su propia tarea', async (kind, job) => {
 		mocks[job].mockResolvedValue({ configured: true, claimed: 0 });
 		const receipt = await runScheduledJob(kind, okFetch);
 		expect(receipt).toMatchObject({ ok: true, kind });
-		for (const other of ['sendPushReminderBatch', 'processGoogleCalendarSyncBatch', 'sendGoogleReviewRequestBatch'] as const)
+		for (const other of ['sendPushReminderBatch', 'processGoogleCalendarSyncBatch', 'sendAppointmentEmailBatch', 'sendGoogleReviewRequestBatch'] as const)
 			expect(mocks[other]).toHaveBeenCalledTimes(other === job ? 1 : 0);
 	});
 
@@ -95,11 +100,34 @@ describe('ejecución de una tarea programada', () => {
 
 	it('informa un almacenamiento por encima de su límite sin datos del consultorio', async () => {
 		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+		const rpc = vi.fn(async () => ({ data: { capabilities: 2, recipients: 1, unsubscribe_tokens: 0 }, error: null }));
+		mocks.createSupabaseAdminClient.mockResolvedValue({ rpc });
 		mocks.reconcileClinicalStorage.mockResolvedValue({ unattributedBytes: 0, unknownSizeObjects: 0, overGlobalLimit: false, overBusinessLimit: 1 });
-		const receipt = await runScheduledJob('storage', okFetch);
-		expect(receipt).toMatchObject({ ok: true, result: { overBusinessLimit: 1 } });
+		const receipt = await runScheduledJob('storage', okFetch, { now: new Date('2026-10-19T03:17:00Z') });
+		expect(receipt).toMatchObject({ ok: true, result: { overBusinessLimit: 1, expiredLinksRemoved: 2, mailRecipientsCleared: 1 } });
+		expect(rpc).toHaveBeenCalledWith('run_appointment_email_retention', { p_now: '2026-10-19T03:17:00.000Z' });
 		expect(warn).toHaveBeenCalledOnce();
 		warn.mockRestore();
+	});
+
+	it('la retención de enlaces y direcciones corre aunque falle el control de almacenamiento', async () => {
+		const log = vi.spyOn(console, 'error').mockImplementation(() => {});
+		const rpc = vi.fn(async () => ({ data: { capabilities: 0, recipients: 0 }, error: null }));
+		mocks.createSupabaseAdminClient.mockResolvedValue({ rpc });
+		mocks.reconcileClinicalStorage.mockRejectedValue(new Error('storage unavailable'));
+		const receipt = await runScheduledJob('storage', okFetch);
+		expect(rpc).toHaveBeenCalledOnce();
+		// The run still reports the failure instead of hiding it behind the cleanup that worked.
+		expect(receipt).toMatchObject({ ok: false, kind: 'storage', result: null });
+		log.mockRestore();
+	});
+
+	it('una retención que falla deja la corrida en error', async () => {
+		const log = vi.spyOn(console, 'error').mockImplementation(() => {});
+		mocks.createSupabaseAdminClient.mockResolvedValue({ rpc: async () => ({ data: null, error: { message: 'retention failed' } }) });
+		mocks.reconcileClinicalStorage.mockResolvedValue({ unattributedBytes: 0, unknownSizeObjects: 0, overGlobalLimit: false, overBusinessLimit: 0 });
+		await expect(runScheduledJob('storage', okFetch)).resolves.toMatchObject({ ok: false, kind: 'storage', result: null });
+		log.mockRestore();
 	});
 
 	it('usa el perfil Paid sólo cuando está configurado explícitamente', async () => {

@@ -106,8 +106,6 @@
 	:global(.booking-natalia .bk-notice-fill) { background: var(--notice-bg) !important; }
 	:global(.booking-natalia .bk-notice-line) { border-color: var(--notice-border) !important; }
 	:global(.booking-natalia .bk-warning-text) { color: var(--warning-text) !important; }
-	:global(.booking-natalia .bk-warning-fill) { background: var(--warning-bg) !important; }
-	:global(.booking-natalia .bk-warning-line) { border-color: var(--warning-border) !important; }
     :global(.booking-natalia a:focus-visible), :global(.booking-natalia button:focus-visible) { outline: 2px solid var(--accent); outline-offset: 3px; }
     :global(.booking-natalia ::selection) { background: var(--accent-soft); color: var(--text); }
     :global(.booking-natalia *) { scrollbar-color: var(--accent) var(--paper); }
