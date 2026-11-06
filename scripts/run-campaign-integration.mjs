@@ -166,6 +166,11 @@ try {
 		if (listed.status !== 0) throw new Error('Could not list the tests of new behavior left out of rollback compatibility.');
 		writeFileSync(join(evidence, 'excluded-candidate-behavior.txt'), listed.stdout);
 	}
+	// The switches stay as production has them: a suite that passes with them off proves nothing
+	// about what production runs. The specs that need another value set and restore it.
+	const switches = spawnSync('docker', ['exec', '-i', database, 'psql', '-X', '-U', 'supabase_admin', '-d', 'postgres', '-v', 'ON_ERROR_STOP=1', '-q'],
+		{ input: 'update private.appointment_management_runtime set reschedule_enabled=true,email_producer_enabled=true;', encoding: 'utf8' });
+	if (switches.status !== 0) throw new Error('Could not set the production switches for the browser profile.');
 	await run('pnpm', ['exec', 'playwright', 'test', '--workers=1', ...(diagnostic ? [] : ['--max-failures=1']), '--retries=0', '--forbid-only', '--reporter=line,json',
 		'--grep-invert', browserGrepInvert(rollback), ...(diagnostic ? ['--grep', diagnostic] : [])],
 		{ cwd: join(root, 'apps/web'), env });
