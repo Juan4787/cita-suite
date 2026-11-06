@@ -292,7 +292,7 @@ begin
  for d in select x.* from private.appointment_email_deliveries x
   where x.state in ('pending','retry') and coalesce(x.next_attempt_at,x.due_at)<=v_now and private.email_sender_ready(x.business_id)
   order by case when x.purpose in ('booking_receipt','reschedule_receipt','cancellation_receipt') then 0 when x.purpose='deposit_request' then 1 else 2 end,x.due_at,x.id
-  limit p_limit*3 for update of x loop
+  limit p_limit*3 for update of x skip locked loop
   exit when v_taken>=p_limit or v_budget<=0;
   select * into a from public.appointments where business_id=d.business_id and id=d.appointment_id for no key update skip locked;
   continue when not found;
