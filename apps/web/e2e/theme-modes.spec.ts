@@ -1,5 +1,5 @@
 import { expect, test, type Page, type TestInfo } from '@playwright/test';
-import { randomUUID } from 'node:crypto';
+import { randomInt, randomUUID } from 'node:crypto';
 import { must } from './helpers/fixture-db';
 import { ownedAppointmentFixture } from './helpers/owned-appointment-fixture';
 import { loginWithSharedSession, signInWithPassword } from './helpers/shared-auth';
@@ -278,6 +278,61 @@ test.describe('color modes', () => {
 				expect(await must(f.admin.from('patients').select('id').eq('business_id', f.businessId).eq('id', patientId))).toHaveLength(0);
 				expect(await must(f.admin.from('appointments').select('id').eq('business_id', f.businessId).eq('patient_id', patientId))).toHaveLength(0);
 			}
+		}
+	});
+
+	// The patient's reminder card on an Android phone. This fixture has no Web Push keys, so the page is
+	// in the state where the phone cannot warn: the way out must still be visible, readable and work.
+	// The permission states themselves are covered by the client tests and on physical phones.
+	test('the Android reminder card offers a working calendar in both modes', async ({ browser }, info) => {
+		test.setTimeout(300_000);
+		const f = ownedAppointmentFixture();
+		const link = await must(f.admin.from('professional_services').select('professional_id, service_id').eq('business_id', f.businessId).limit(1).single());
+		const service = await must(f.admin.from('services').select('name, duration_minutes').eq('id', link.service_id).eq('business_id', f.businessId).single());
+		const professional = await must(f.admin.from('professionals').select('name').eq('business_id', f.businessId).eq('id', link.professional_id).single());
+		const owner = await must(f.admin.from('business_users').select('user_id').eq('business_id', f.businessId).eq('role', 'owner').single());
+		// A half hour of its own, nine to ten days ahead, so no other spec's appointment overlaps it.
+		const startsAt = new Date(Math.ceil((Date.now() + 9 * 86_400_000) / 3_600_000) * 3_600_000 + randomInt(0, 48) * 1_800_000).toISOString();
+		const endsAt = new Date(Date.parse(startsAt) + service.duration_minutes * 60_000).toISOString();
+		const patientName = `Paciente Android ${randomUUID().slice(0, 8)}`;
+		const context = await browser.newContext({
+			userAgent: 'Mozilla/5.0 (Linux; Android 13; SM-A715F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Mobile Safari/537.36',
+			isMobile: true, hasTouch: true, viewport: { width: 390, height: 900 }
+		});
+		let patientId: string | null = null;
+		try {
+			const patient = await must(f.admin.from('patients').insert({ business_id: f.businessId, owner_id: owner.user_id, full_name: patientName }).select('id').single());
+			patientId = patient.id;
+			const appointment = await must(f.admin.from('appointments').insert({ business_id: f.businessId, patient_id: patient.id,
+				service_id: link.service_id, professional_id: link.professional_id, starts_at: startsAt, ends_at: endsAt,
+				blocking_starts_at: startsAt, blocking_ends_at: endsAt, status: 'reserved', source: 'manual',
+				service_name_snapshot: service.name, professional_name_snapshot: professional.name, duration_minutes_snapshot: service.duration_minutes,
+				patient_name_at_booking: patientName }).select('id, confirmation_token').single());
+			const page = await context.newPage();
+			const route = `/turno/${appointment.confirmation_token}`;
+			await sweep(page, info, [{ route, state: 'Android sin avisos del navegador', viewports: [320, 390], open: async () => {
+				await expect(page.getByText('Este navegador no puede avisarte en el teléfono. Guardá el turno en tu calendario.')).toBeVisible();
+				// Never the same dead button as the only option.
+				await expect(page.getByRole('button', { name: 'Activar recordatorio' })).toHaveCount(0);
+				await expect(page.getByRole('link', { name: 'Guardar en mi calendario' })).toBeVisible();
+				return undefined;
+			} }], 'android');
+			const href = await page.getByRole('link', { name: 'Guardar en mi calendario' }).getAttribute('href');
+			expect(href).toBe(`${route}/calendario.ics?p=phone`);
+			const ics = await page.request.get(href!);
+			expect(ics.status()).toBe(200);
+			expect(ics.headers()['content-type']).toContain('text/calendar');
+			const body = await ics.text();
+			expect(body).toContain('BEGIN:VEVENT');
+			expect(body).toContain('BEGIN:VALARM');
+			expect(body).not.toContain(patientName);
+		} finally {
+			await context.close();
+			f.sql(`begin;
+				delete from public.audit_logs where business_id=:'business'::uuid and (entity_id=:'patient'::uuid or entity_id in (select id from public.appointments where business_id=:'business'::uuid and patient_id=:'patient'::uuid));
+				delete from public.appointments where business_id=:'business'::uuid and patient_id=:'patient'::uuid;
+				delete from public.patients where business_id=:'business'::uuid and id=:'patient'::uuid;
+				commit;`, { patient: patientId ?? '00000000-0000-0000-0000-000000000000' });
 		}
 	});
 
