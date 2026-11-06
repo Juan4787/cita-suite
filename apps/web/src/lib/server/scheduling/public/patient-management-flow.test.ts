@@ -32,6 +32,16 @@ describe('patient management screen/controller', () => {
   const screen = await loadPatientManagementScreen({} as never, access, new URL('https://app.test/gestion/token?accion=reprogramar&horario=2026-12-02T12%3A00%3A00Z'));
   expect(screen?.panel.selectedStart).toBeNull();
  });
+ it('does not call the time the patient just moved to unavailable: after saving, the page reloads with that same address', async () => {
+  vi.mocked(loadPatientManagementView).mockResolvedValue(view() as never);
+  vi.mocked(listPatientManagementSlots).mockResolvedValue({ slots: [{ starts_at: '2026-12-01T12:00:00Z', ends_at: '2026-12-01T12:45:00Z' }], availabilityRevision: 9 } as never);
+  const moved = await loadPatientManagementScreen({} as never, access, new URL('https://app.test/gestion/token?accion=reprogramar&fecha=2026-12-01&horario=2026-12-01T12%3A00%3A00Z'));
+  expect(moved?.panel.selectedStart).toBeNull();
+  expect(moved?.panel.unavailableMessage).toBeNull();
+  vi.mocked(listPatientManagementSlots).mockResolvedValue({ slots: [], availabilityRevision: 9 } as never);
+  const taken = await loadPatientManagementScreen({} as never, access, new URL('https://app.test/gestion/token?accion=reprogramar&fecha=2026-12-02&horario=2026-12-02T12%3A00%3A00Z'));
+  expect(taken?.panel.unavailableMessage).toMatch(/no está disponible/);
+ });
  it('requires the explicit cancellation confirmation and does not call the command on an incomplete form', async () => {
   vi.mocked(applyPatientManagementCommand).mockClear();
   const result = await submitPatientManagementAction({} as never, access, 'cancel', request({ ...fields(), confirm_cancel: 'false' }));
