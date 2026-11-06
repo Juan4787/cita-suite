@@ -39,7 +39,9 @@ export const loadPatientManagementScreen = async (client: CitaSupabaseClient, ac
     .map(slot => ({ starts_at: slot.starts_at, ends_at: slot.ends_at }));
    panel.availabilityRevision = selection.availabilityRevision;
    panel.selectedStart = target ? panel.slots.find(slot => sameManagementInstant(slot.starts_at, target))?.starts_at ?? null : null;
-   if (requestedStart && panel.selectedStart === null) panel.unavailableMessage = 'Ese horario no está disponible. Elegí otro; tu turno actual se conserva.';
+   // After saving, the page reloads with the same address: that time is now the appointment's own.
+   const alreadyThere = target !== null && sameManagementInstant(target, appointment.starts_at);
+   if (requestedStart && panel.selectedStart === null && !alreadyThere) panel.unavailableMessage = 'Ese horario no está disponible. Elegí otro; tu turno actual se conserva.';
   } catch (error) {
    logServerFailure('Error consultando horarios de autogestión', error);
    panel.unavailableMessage = 'No pudimos consultar los horarios. Tu turno se conserva; volvé a intentar en unos momentos.';
