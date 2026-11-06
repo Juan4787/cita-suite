@@ -556,6 +556,12 @@
 		return 'Cita Suite';
 	});
 
+	// A page without its own title kept the one of the page before it. A patient's name stays out of
+	// the tab and of the browser history.
+	const documentTitle = $derived(
+		$page.url.pathname.startsWith('/odonto/pacientes') ? 'Pacientes · Cita Suite' : `${mobileTitle === 'Cita Suite' ? '' : `${mobileTitle} · `}Cita Suite`
+	);
+
 	const showBack = $derived.by(() => {
 		const path = $page.url.pathname;
 		return path !== '/odonto/pacientes' && path.startsWith('/odonto');
@@ -670,6 +676,8 @@
 		stalledNavigationRecovery?.clear();
 	});
 </script>
+
+<svelte:head><title>{documentTitle}</title></svelte:head>
 
 <div class="min-h-screen bg-canvas text-copy">
 	<header class="sticky top-0 z-40 border-b border-line-1f2b45 bg-fill-0f1f36-95">

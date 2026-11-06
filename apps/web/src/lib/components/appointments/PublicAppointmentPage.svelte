@@ -1487,6 +1487,8 @@
    {/if}
 {/snippet}
 
+<svelte:head><title>Tu turno{appointment?.business?.name ? ` · ${appointment.business.name}` : ''}</title></svelte:head>
+
 <BookingAppearance theme={appointment?.booking_context?.theme ?? 'cita-suite'}>
 <main class="min-h-screen bg-fill-06111f px-4 py-6 text-fg sm:py-10 bk-text">{#if !managementDecision && data.appointment?.price_quote_snapshot}<section class="ux-card mb-5"><h2 class="ux-section-title">Arancel registrado al reservar</h2><p class="mt-2 font-bold">{formatQuotedPrice(data.appointment.price_quote_snapshot)}</p></section>{/if}{#if !managementDecision && data.appointment?.patient_instructions_snapshot}<section class="ux-card mb-5"><h2 class="ux-section-title">Indicaciones para tu turno</h2><p class="mt-2 whitespace-pre-wrap break-words">{data.appointment.patient_instructions_snapshot}</p></section>{/if}
 	<div class="mx-auto flex w-full max-w-3xl flex-col gap-5">

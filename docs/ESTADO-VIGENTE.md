@@ -67,6 +67,7 @@ A	apps/web/src/lib/components/agenda/SlotReleasesNotice.client.test.ts
 A	apps/web/src/lib/components/agenda/SlotReleasesNotice.svelte
 M	apps/web/src/lib/components/appointments/PatientManagementPanel.client.test.ts
 M	apps/web/src/lib/components/appointments/PatientManagementPanel.svelte
+M	apps/web/src/lib/components/appointments/PublicAppointmentPage.svelte
 A	apps/web/src/lib/components/appointments/StaffCancelPanel.svelte
 M	apps/web/src/lib/components/notices/DismissibleNotice.svelte
 M	apps/web/src/lib/components/patients/ClinicalEntryDialog.client.test.ts

@@ -1098,6 +1098,11 @@ summary:focus-visible {
   outline-offset: 3px;
   border-radius: 0.4rem;
 }
+/* Inside its card: an outline around the whole row would touch the card's own border. */
+.ux-disclosure > summary:focus-visible {
+  outline-offset: -3px;
+  border-radius: var(--radius-lg);
+}
 .ux-textarea {
   resize: none;
   field-sizing: content;
