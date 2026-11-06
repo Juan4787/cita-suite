@@ -66,14 +66,17 @@ do $$
 declare v_owner uuid:=gen_random_uuid(); v_business uuid; v_service uuid; v_professional uuid;
 begin
  insert into auth.users(id,email) values(v_owner,'${slug}@example.test');
- insert into public.businesses(name,slug,industry,timezone,address)
- values('Consultorio de prueba de correo','${slug}','other','America/Argentina/Buenos_Aires','Calle Sintética 123') returning id into v_business;
+ insert into public.businesses(name,slug,industry,timezone,address,public_booking_enabled,max_booking_days_ahead)
+ values('Consultorio de prueba de correo','${slug}','other','America/Argentina/Buenos_Aires','Calle Sintética 123',true,30) returning id into v_business;
  update public.business_subscriptions set commercial_access_enabled=true,is_permanent=true,subscription_status='active',
   paid_until=null,grace_until=null,restricted_until=null,archived_at=null where business_id=v_business;
  insert into public.business_users(business_id,user_id,role,status,accepted_at) values(v_business,v_owner,'owner','active',now());
- insert into public.services(business_id,name,duration_minutes) values(v_business,'Consulta',30) returning id into v_service;
- insert into public.professionals(business_id,name) values(v_business,'Profesional sintético') returning id into v_professional;
+ insert into public.services(business_id,name,duration_minutes,is_public) values(v_business,'Consulta',30,true) returning id into v_service;
+ insert into public.professionals(business_id,name,is_public) values(v_business,'Profesional sintético',true) returning id into v_professional;
  insert into public.professional_services(business_id,professional_id,service_id) values(v_business,v_professional,v_service);
+ -- Every day from 7 to 21, so the patient's own reschedule always has a time to offer.
+ insert into public.availability_rules(business_id,professional_id,weekday,start_time,end_time,slot_interval_minutes,break_minutes)
+ select v_business,v_professional,weekday,'07:00','21:00',30,0 from generate_series(0,6) weekday;
  insert into public.patients(owner_id,business_id,full_name,email) values(v_owner,v_business,'Paciente sintético de correo','${TEST_MAILBOX}');
  perform public.operator_set_business_email_sender(v_business,'${SENDER_DOMAIN}','verified',null,'${TEST_MAILBOX}');
 end $$;
