@@ -1382,3 +1382,13 @@ Precisó registrar el encargo y requisitos originales/vigentes, implementación 
 Juan encargó, después de 12.31, dejar completo, integrado, publicado y auditado todo el sistema de notificaciones, comunicaciones, recordatorios y calendarios, cerrando E. [Texto literal](mandato-integral-avisos-20261105.md).
 
 **Aplicación y precedencia:** sustituye la detención de 12.31 y reanuda la implementación con autorización de publicación. No obliga a seguir E0–E6 ni el traspaso: los requisitos aprobados se cumplen íntegros, la evidencia histórica vale dentro de sus límites y las decisiones técnicas registradas pueden reemplazarse con fundamento. Amplía el alcance con el recorrido de Chrome Android, la estrategia de calendarios para Samsung, otros Android y Apple, la entrada visible a Google gestionado y la preparación del video de verificación. Conserva P1/P2/P3 pospuestas, la protección de la configuración de Natalia y la prohibición de compras. [Plan canónico](plan-integral-avisos-20261105.md).
+
+<a id="webhook-zoho-20261106"></a>
+
+### 12.33 Webhook de Zoho: verificación sin firma y formas reales (6 de noviembre)
+
+El panel de Zoho verifica la URL con un POST de ejemplo sin firma, sólo acepta `200` y ofrece la clave recién cuando el webhook existe. Por eso un pedido **sin firma** recibe `200` y no se guarda; una firma inválida recibe `401`, y sólo una firma válida llega a la base. Sustituye el `401` sin firma de la implementación anterior.
+
+**Costo aceptado:** si la clave falta o queda mal cargada, los eventos sin firma se pierden sin reintento, y sólo queda un aviso en el registro de la app.
+
+El lector reconoce las formas reales `email_delivery` y `fbl_compliant`, y usa `processed_time` cuando el evento no trae hora propia. Evidencia en el [registro](ejecucion-etapa-e-20261103.md#webhook-de-zoho-6-de-noviembre-tarde).

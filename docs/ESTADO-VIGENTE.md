@@ -23,12 +23,12 @@ Autorización de implementación, pruebas y publicación vigente: [plan 12.32](p
 
 | Dato | Valor comprobado en el destino |
 |---|---|
-| Worker `app` | Versión `eb1e8cf8-a8bd-4964-bfc0-66bd6c63a1f2`. Vuelta atrás válida: `a8e1bea1-7aab-47fe-ba2d-e60176c702f3`, la cuarta versión de E con la clave vigente del webhook; su lector no reconoce entregas ni quejas reales |
+| Worker `app` | Versión `eb1e8cf8-a8bd-4964-bfc0-66bd6c63a1f2`. Vuelta atrás válida: `a8e1bea1-7aab-47fe-ba2d-e60176c702f3`, código de la cuarta versión con la clave vigente del webhook; su lector no reconoce entregas ni quejas reales. No se ensayó |
 | Worker `cita-suite-scheduler` | Versión `853b9020-5738-4a66-be5e-acf1b1d6cb09`, cinco cron: `*/5`, `1-59/5`, `2-59/5`, `3-59/5` y `17 */3` |
 | Migraciones | 164 en la historia de producción: las 32 de E entraron en una transacción de 18 s, y la correctiva `20261106030000` en otra de 1 s |
 | Interruptores | `reschedule_enabled` y `email_producer_enabled` encendidos; `GOOGLE_CALENDAR_MANAGED_ENABLED=true`; tope diario de correo 100, reserva 10; `private.deposit_automation` sin cambios |
 | Crédito de Zoho registrado | 9.997 correos desde el 6 de noviembre, vencimiento 3 de diciembre de 2026 |
-| Cloudflare | Configuration Rule activa «Webhook de Zoho»: apaga Browser Integrity Check sólo en `/api/zoho/webhook`. El resto del sitio conserva la comprobación |
+| Cloudflare | Configuration Rule activa «Webhook de Zoho»: apaga Browser Integrity Check sólo en `/api/zoho/webhook`. No fue la causa del fallo de verificación y, medido desde esta máquina, el agente `Webhook` de Zoho pasa sin ella. Se conserva por precaución y puede retirarse |
 | Webhook de Zoho | Creado el 6 de noviembre en `agent_1`, verificado por el panel, con entregado, devoluciones temporales y permanentes y bucle de retroalimentación. Clave cargada. Entrega real comprobada: ZH10 acreditado. Sin un rebote ni una queja reales |
 | Remitente de Natalia | Sin configurar por decisión de Juan: no salen correos de su consultorio |
 
@@ -37,9 +37,15 @@ Autorización de implementación, pruebas y publicación vigente: [plan 12.32](p
 El chequeo compara esta lista con `git diff --name-status <produccion_revision> HEAD` sobre el código (`apps`, `packages`, `scripts`, `supabase` y los archivos de configuración de la raíz, sin `apps/web/output`). Tiene que coincidir exactamente.
 
 ```codigo-distinto-de-produccion
+M	apps/web/.impeccable/surfaces/gestion-del-turno.md
+M	apps/web/DESIGN.md
+M	apps/web/src/routes/api/zoho/webhook/+server.ts
+M	apps/web/src/routes/api/zoho/webhook/webhook.server.test.ts
 ```
 
 `supabase/templates/recovery.html` no se despliega con la app: se carga aparte en Supabase. **No está verificado** si la versión de Supabase coincide con ese archivo.
+
+Estos dos archivos sólo cambian comentarios, para que digan lo que el código hace. Entran en la próxima publicación.
 
 ## Historia
 

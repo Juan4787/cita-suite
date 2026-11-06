@@ -2,7 +2,7 @@
 
 **Estado: E publicada en producción el 6 de noviembre.** [Estado vigente](../ESTADO-VIGENTE.md), [plan canónico y checkpoint](plan-integral-avisos-20261105.md), [pendientes que quedan](pendientes-vigentes.md#etapa-e-pendientes). El [traspaso del 5 de noviembre](traspaso-etapa-e-20261105.md) queda como historia.
 
-Juan pidió entregar, al terminar E, la ubicación exacta y enlaces directos desde la interfaz a toda la documentación detallada. Este índice se conserva durante el trabajo y se actualizará para la entrega final. P1, P2 y P3 continúan pospuestas.
+Juan pidió entregar, al terminar E, la ubicación exacta y enlaces directos desde la interfaz a toda la documentación detallada. Este índice es esa entrega y se mantiene al día. P1, P2 y P3 continúan pospuestas.
 
 ## Por dónde empezar
 
@@ -54,8 +54,8 @@ Procedimientos compartidos: [verificación](../architecture/verificacion.md), [m
 
 ## Publicación, recuperación y asuntos todavía abiertos
 
-La entrega final debe enlazar la revisión exacta, migraciones aplicadas, configuración e interruptores, pruebas del destino, integración real de correo y recuperación compatible. Se documenta en [publicación y reversión](../architecture/publicacion-y-reversion.md), [respaldo y recuperación](../architecture/respaldo-y-recuperacion.md), estado vigente y registro E. **La publicación de E todavía está pendiente; las instrucciones históricas de volver a una aplicación anterior no son una recuperación compatible con E demostrada.**
+Lo publicado se comprueba con la revisión exacta, migraciones aplicadas, configuración e interruptores, pruebas del destino, integración real de correo y recuperación compatible. Se documenta en [publicación y reversión](../architecture/publicacion-y-reversion.md), [respaldo y recuperación](../architecture/respaldo-y-recuperacion.md), estado vigente y registro E. **E está publicada. Ninguna versión anterior a E es una vuelta atrás válida:** la única vigente es la del primer apartado de la [guía](../architecture/publicacion-y-reversion.md).
 
-Los pendientes de implementación y verificación se mantienen en el checkpoint/matriz del registro y en la lista única de pendientes. No se ocultan en una conclusión de auditoría ni se presentan pruebas parciales como garantías integrales. Los datos comerciales faltantes de Natalia conservan su tratamiento separado y no se inventan para completar una prueba.
+Los pendientes de implementación y verificación se mantienen en la matriz del registro, el checkpoint del plan canónico y la lista única de pendientes. No se ocultan en una conclusión de auditoría ni se presentan pruebas parciales como garantías integrales. Los datos comerciales faltantes de Natalia conservan su tratamiento separado y no se inventan para completar una prueba.
 
 Las [tres tareas posteriores](tareas-posteriores-a-e-20261103.md) conservan sus alcances y orden, pero están **pospuestas por Juan**. No se ejecutan al terminar E. El [registro histórico de señas y avisos](registro-senas-avisos-natalia.md) conserva A/B/C y las decisiones previas; las pausas o proveedores anteriores sustituidos no gobiernan la ejecución actual.

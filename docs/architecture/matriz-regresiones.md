@@ -119,7 +119,9 @@ El plan pide distinguir viajes HTTP a la base, llamadas a proveedores y trabajo 
 - **Contenido de los registros:** `platform/logging.ts` registra una etiqueta fija y sólo el SQLSTATE y el estado HTTP del error; `logging.test.ts` comprueba que excluye datos clínicos, tokens, URLs y metadatos arbitrarios. La guarda `scripts/lib/server-logging.test.mjs` recorre el árbol sintáctico del servidor y rechaza cualquier `console` con un error, una plantilla o un alias. `worker-tail` descarta encabezados, consultas y otros registros al recibirlos.
 - **Retención:** la telemetría push se conserva 90 días por pg_cron (`scheduled_job_batches.sql`), los eventos de límites de servidor 7 días, y los límites de lectura de integraciones y los intentos de OAuth se depuran. Los intentos de reserva pública (`public_booking_attempts`: teléfono, hash de la dirección y agente de usuario), que nada borraba, se conservan 7 días desde `20261020040000` (`public_booking_attempts_retention.sql`); el limitador sólo lee los últimos 10 y 30 minutos. Los eventos de webhooks de Mercado Pago y de WhatsApp se conservan 180 días (`webhook_events_retention.sql`); `audit_logs` y `patient_profile_change_events` son historia del producto y no se depuran ([control de consumo](control-de-consumo.md)).
 
-## E — aceptación integral pendiente, con pruebas parciales en desarrollo (3 de noviembre)
+## E — pruebas parciales en desarrollo (3 de noviembre; antecedente, E se publicó el 6)
+
+Las notas de E de esta sección y la siguiente conservan su fecha y su estado de entonces: donde dicen «sin publicar», hoy ya está publicado. La aceptación vigente está en la [matriz de E](../plans/ejecucion-etapa-e-20261103.md#matriz-de-seguimiento).
 
 La [matriz identificada de E](../plans/etapa-e-correo-autogestion.md#4-matriz-completa-de-casos-y-aceptación) es la fuente única de casos EM/AC/RP/SN/RM/ZH/UI/OP. El [contraste C01–C13](../plans/etapa-e-correo-autogestion.md#2-contraste-con-el-código-qué-se-reutiliza-y-qué-debe-cambiar) es una revisión estática, no una corrida.
 
@@ -127,7 +129,7 @@ Al implementar: pruebas negativas antes de la corrección, SQL de atomicidad/his
 
 Los casos de E no se marcan aprobados por actualizar este documento ni por reutilizar los verdes históricos de A/B/C o de Auth. La ejecución está autorizada en [12.20](../plans/propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada); el [registro activo](../plans/ejecucion-etapa-e-20261103.md) conserva los 97 casos sin aceptación integral y sus pruebas parciales por fuente, sin atribuir ejecución a lo que aún no se probó.
 
-## E — cobertura en desarrollo del 3 de noviembre
+## E — cobertura en desarrollo del 3 de noviembre (antecedente)
 
 El [registro activo de E](../plans/ejecucion-etapa-e-20261103.md) conserva resultados por fuente/capa y los 97 casos. SQL parcial aprobado no acredita correo ni app completa. El spec `patient-management.spec.ts` usa fixtures descartables propios y etiqueta candidate-behavior para movimiento/dinero/repetición/revocación/sin JS y matrices de tema/ancho; dos recorridos aprobados en 41708652093, incluida la pregunta antes de desplazar y el resultado guardado en viewport; fuentes y límites en el registro. No cambia la compatibilidad de recuperación ni certifica producción. Personal/ayuda/contacto/cola y proveedor permanecen pendientes.
 
@@ -155,6 +157,8 @@ E3.45 actualiza la verificación de interfaz SN14: fast **42076262537 aprobado**
 **Actualización E3.50, interrupción documental:** personal conserva su caso aprobado en **42078792126** (corrida completa fallida por SN14), con las capas descritas en el registro. Browser **42080552190 terminó fallido** después del rechazo/borrador y registro nativos de 10.000; se detuvo en el clic JS antes de comprobar respuesta ilegible. Recuperación/corrección y visuales SN14 siguen pendientes. No queda esa corrida en curso, ni hay banco/correo/publicación E. Implementación detenida por pedido de Juan; [traspaso técnico, revisiones y evidencia](../plans/traspaso-etapa-e-20261105.md). Los estados de corridas de párrafos anteriores corresponden a sus checkpoints históricos.
 
 ## E — regresiones encontradas en este encargo (6 de noviembre)
+
+- **Webhook de Zoho:** `webhook.server.test.ts` cubre la muestra sin firma que no se guarda y el rechazo de firmas inválidas; `zoho-email.test.ts`, las cuatro formas del panel, incluidas `email_delivery` y `fbl_compliant`.
 
 | Regresión | Causa | Qué la protege |
 |---|---|---|

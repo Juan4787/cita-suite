@@ -10,7 +10,7 @@ Repositorio principal: [Juan4787/cita-suite](https://github.com/Juan4787/cita-su
 
 **Etapa E, estado al 6 de noviembre:** publicada y comprobada en producción. [Mandato](docs/plans/mandato-integral-avisos-20261105.md), [plan canónico y checkpoint](docs/plans/plan-integral-avisos-20261105.md), [índice](docs/plans/indice-etapa-e.md).
 
-**Vigente desde el 6 de noviembre a las 12:12 UTC:** tercera versión de E, `fed61f5d9d81f821df180486c73aa07d04408f56`, Worker `app`; la versión de Cloudflare y los interruptores están en el [estado vigente](docs/ESTADO-VIGENTE.md).
+**Producción:** la revisión, la versión de Cloudflare y los interruptores figuran sólo en el [estado vigente](docs/ESTADO-VIGENTE.md), para que este texto no envejezca.
 
 **Antes, desde el 2 de noviembre a las 15:33 UTC:** V12b `771fac5950c532b1123f11d4dde93eef9b42ceba`, versión `277d332d-1794-4367-8ef0-567ced159f1b`. Ya no es una vuelta atrás válida.
 - Es V12 con el fondo general del modo claro apenas más cálido (`#f6f5f3`), a pedido de Juan.

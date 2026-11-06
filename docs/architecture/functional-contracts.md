@@ -95,7 +95,11 @@ Fuente: [plan aprobado de señas y avisos](../plans/propuesta-senas-avisos-natal
 - «Dar este horario» precarga día local, profesional, prestación y hora. Una prestación retirada exige elegir otra vigente; una hora ya ocupada vuelve a las opciones actuales. Los filtros de agenda se conservan al cambiar rango, página u ocultar; un resultado de ocultar no abre crear turno. Demo no escribe ni ofrece reasignación real.
 - Pruebas: `appointment_slot_releases.sql`, `slot-releases.test.ts`, `SlotReleaseAlerts.client.test.ts`, `ManualAppointmentWizard.client.test.ts` y `appointment-slot-releases.spec.ts`. La existencia del spec no acredita su ejecución: evidencia y pendientes en el registro de la campaña. Release, staging y producción siguen separados de la prueba descartable.
 
-## E — implementación parcial, todavía sin publicar (3 de noviembre)
+## E — notas de desarrollo (3 a 5 de noviembre; publicadas el 6 de noviembre)
+
+Las notas siguientes conservan su fecha y su estado de entonces: donde dicen «sin publicar», hoy ya está publicado. Vigente en el [estado](../ESTADO-VIGENTE.md).
+
+**Webhook de Zoho:** `/api/zoho/webhook`. Sin firma responde `200` y no guarda, porque el panel verifica la URL así; con firma inválida responde `401`; sólo una firma válida llega a `record_email_provider_event`. Si la clave falta o queda mal cargada, los eventos se pierden sin reintento y sólo queda un aviso en el registro. [Plan 12.33](../plans/propuesta-senas-avisos-natalia.md#webhook-zoho-20261106).
 
 Fuente única: [especificación de E](../plans/etapa-e-correo-autogestion.md), incorporada por [plan 12.18](../plans/propuesta-senas-avisos-natalia.md#etapa-e-vigente). Los contratos de A/B/C anteriores describen lo publicado; la nueva exigencia y el destino de señas al reprogramar por iniciativa del paciente no están activos.
 

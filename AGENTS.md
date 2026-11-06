@@ -16,7 +16,7 @@
 ## Tareas posteriores a E pospuestas (3 de noviembre)
 
 - Juan encargó continuar, **después de terminar/publicar/auditar E**, con tareas separadas y en orden: P1 cancelar desde recepción; P2 estilar todos los controles/superficies en claro/oscuro; P3 reemplazar D por notificaciones internas de horarios liberados con patrón similar a Seguimientos. [Literal y precedencia, 12.23](docs/plans/propuesta-senas-avisos-natalia.md#tareas-posteriores-a-e); [seguimiento separado](docs/plans/tareas-posteriores-a-e-20261103.md).
-- E sigue incompleta; las tres tareas posteriores conservan sus alcances en su documento separado, pero su continuación automática quedó sustituida por el pedido posterior 12.26.
+- E quedó publicada el 6 de noviembre; las tres tareas posteriores conservan sus alcances en su documento separado, pero su continuación automática quedó sustituida por el pedido posterior 12.26.
 - **Pedido posterior de Juan, vigente (plan 12.26):** P1/P2/P3 quedan pospuestas. No iniciar ninguna al cerrar E; avisar y entregar su documentación detallada. Sustituye la continuación automática de los dos puntos anteriores. La autorización de publicación E se conserva y el mandato vigente la confirma.
 - Las menciones históricas a D en pausa son del antiguo push al celular del consultorio, **reemplazado**, no un trabajo de push pendiente de retomar. La nueva D interna se hará como P3. No cambia el push/calendario del paciente ni el correo E.
 
@@ -128,7 +128,7 @@ Las exigencias históricas de entornos, copias y ensayos de esta sección están
   - la pregunta de obra social de 24 opciones.
 
   Se cargó como operador, directamente en la base y con la autorización de Juan, replicando las funciones de guardado de la app. La historia dice que lo hizo el operador. **Faltan datos de Natalia** (dirección, instrucciones online, honorarios, seña y más): lista en `docs/plans/pendientes-vigentes.md`. No se inventan.
-- **Producción sirve V10b** `68f31741f6ff7f2253c036800b1369f1eda16510` (versión `1d2b4acd-7dd8-4cb7-81e3-a205bafe9f8d`). **Volver a V9 exige antes `revertir-para-v9.mjs`**, porque V9 no lee «medicina» ni preguntas de más de 20 opciones; detalle en `docs/architecture/publicacion-y-reversion.md`.
+- **Historia: V10b** `68f31741f6ff7f2253c036800b1369f1eda16510` (versión `1d2b4acd-7dd8-4cb7-81e3-a205bafe9f8d`) sirvió producción desde el 1 de noviembre. Ni V9 ni V10b son hoy una vuelta atrás válida: ninguna versión anterior a E se puede usar. Detalle en `docs/architecture/publicacion-y-reversion.md`.
 - **La web de Natalia** reserva en su consultorio real por `app.cita-suite.com.ar`. Pide no ser indexada hasta que tenga dominio propio (`PRODUCTION_NATALIA_SITE_URL`); entonces la misma compilación produce las direcciones canónicas y el mapa del sitio.
 - **Pruebas en su consultorio real:** se hicieron dos reservas marcadas, presencial y online, y se borraron con controles. El consultorio quedó con conteos idénticos a la foto previa; no dejar datos de prueba allí sin limpiarlos de la misma forma.
 

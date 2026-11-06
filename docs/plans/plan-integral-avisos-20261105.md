@@ -252,10 +252,10 @@ Orden por dependencias: primero lo que aporta hechos (dispositivos, Zoho real), 
 | Push | Defecto reproducido antes y corregido después en teléfono físico; recepción observada en el dispositivo; cada estado sin salida tiene alternativa | **Cumplido.** Reproducido en el Xiaomi con Chrome apagado en Android; salida en indeterminado y bloqueado; recepción real con Chrome abierto, en segundo plano y cerrado con pantalla apagada |
 | Calendarios | Samsung Calendar, Xiaomi y Apple Calendar comprobados con sus condiciones y límites por escrito; lo no comprobable, declarado | **Cumplido en Android.** Apple: importación comprobada; alerta y actualización **sin comprobar**, por límite de TestKase y falta de minutos |
 | Google OAuth | Entrada visible, consentimiento, crear, actualizar y retirar desde la interfaz publicada; guion y datos del video listos | **Cumplido.** En los dos teléfonos, con turno y guion listos |
-| Correo | Recepción real leída en el buzón acordado para cada propósito; enlaces abiertos y consecuencia en la base; baja, rebote y estado incierto comprobados | **Cumplido, salvo el rebote real:** seis propósitos recibidos, enlaces, baja, corrección de contacto y estado incierto. El rebote y «entregado» dependen del webhook que configura Juan |
+| Correo | Recepción real leída en el buzón acordado para cada propósito; enlaces abiertos y consecuencia en la base; baja, rebote y estado incierto comprobados | **Cumplido, salvo rebote y queja reales:** seis propósitos recibidos, enlaces, baja, corrección de contacto y estado incierto. «Entregado» comprobado con un evento real del webhook (ZH10). Rebote y queja se leen según las muestras del panel, sin un hecho real |
 | Integración y requisitos E | Matriz de 97 casos con evidencia por capa sobre la revisión final | **Cumplido,** con los límites que cada fila declara |
 | Seguridad y fiabilidad | Carreras en ambos órdenes, fallas provocadas, aislamiento, reintentos y lecturas posteriores | **Cumplido** en la suite SQL y el navegador final |
-| Publicación | Revisión, versión, migraciones, cron, secretos e interruptores comprobados en el destino | **Cumplido.** `docs/ESTADO-VIGENTE.md`. Vuelta atrás ensayada |
+| Publicación | Revisión, versión, migraciones, cron, secretos e interruptores comprobados en el destino | **Cumplido.** `docs/ESTADO-VIGENTE.md`. Vuelta atrás ensayada con la tercera versión; la vigente no se ensayó |
 | Documentación | Índice con enlaces directos y sin instrucciones vigentes contradictorias | **Cumplido.** [Índice de E](indice-etapa-e.md) |
 
 ## 9. Autorizaciones y decisiones de Juan en este encargo
@@ -265,6 +265,7 @@ Dadas en la conversación del 5 de noviembre, después de que el control de perm
 - **Autorizado expresamente:** leer y escribir datos sintéticos en la base de producción, aplicar las migraciones de E, detener y reactivar el programador, publicar la app y el programador, cargar sus secretos, ensayar la vuelta atrás, y enviar correos de prueba por Zoho a citasuite@gmail.com.
 - **Autorizado después, las cuatro cosas:** en Zoho agregar dominios de envío, crear claves de envío y configurar el webhook; en Cloudflare crear sólo registros DNS de correo para subdominios de `cita-suite.com.ar`; en producción encender los interruptores de reprogramación autónoma, correo y Google Calendar gestionado; en los teléfonos aceptar el permiso de Google Calendar de Cita Suite y crear, mover y borrar eventos de prueba.
 - **Cuenta Google de las pruebas en teléfonos:** Juan agrega `citasuite@gmail.com` en los dos. No se usan sus calendarios personales.
+- **6 de noviembre, tarde:** Juan autorizó mirar los registros en vivo, publicar los dos arreglos del webhook y seguir con lo pendiente. Él creó la regla de Cloudflare y cargó la clave, porque el control de permisos no dejó escribir ese secreto al agente.
 - **Natalia:** su remitente queda pendiente. No se toca su configuración, no salen correos de su consultorio hasta que Juan lo decida, y todo se prueba con un consultorio sintético.
 
 ## 10. Accesos que pueden necesitar a Juan
