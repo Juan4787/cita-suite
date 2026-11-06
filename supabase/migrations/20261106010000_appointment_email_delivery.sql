@@ -294,7 +294,7 @@ begin
   order by case when x.purpose in ('booking_receipt','reschedule_receipt','cancellation_receipt') then 0 when x.purpose='deposit_request' then 1 else 2 end,x.due_at,x.id
   limit p_limit*3 for update of x loop
   exit when v_taken>=p_limit or v_budget<=0;
-  select * into a from public.appointments where business_id=d.business_id and id=d.appointment_id for no key update;
+  select * into a from public.appointments where business_id=d.business_id and id=d.appointment_id for no key update skip locked;
   continue when not found;
   select * into m from public.appointment_management_states where business_id=d.business_id and appointment_id=d.appointment_id;
   select * into pol from public.appointment_email_policies where business_id=d.business_id;
