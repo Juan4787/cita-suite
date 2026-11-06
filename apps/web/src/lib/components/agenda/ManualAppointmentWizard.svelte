@@ -830,10 +830,10 @@
 						type="button"
 						disabled={!canOperate}
 						onclick={() => selectService(service.id)}
-						class="ux-choice flex min-h-28 min-w-0 w-full items-center justify-between gap-4 p-5 text-left disabled:cursor-not-allowed disabled:opacity-60"
+						class="ux-choice flex min-h-28 min-w-0 w-full flex-wrap items-center justify-between gap-x-4 gap-y-2 p-4 text-left disabled:cursor-not-allowed disabled:opacity-60 sm:p-5"
 						class:ux-choice-active={selectedServiceId === service.id}
 					>
-						<span class="min-w-0">
+						<span class="min-w-0 flex-[1_1_10rem]">
 							<span class="block text-lg font-bold leading-tight text-fg">{service.name}</span>
 						</span>
 						<span class="ux-badge shrink-0 text-sm">{formatDuration(service.duration_minutes)}</span>

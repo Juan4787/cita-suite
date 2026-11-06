@@ -754,7 +754,7 @@
 				<span class="h-px flex-1 bg-fill-10"></span>
 			</div>
 
-			<form method="GET" class="grid gap-4 lg:grid-cols-[1.15fr_1fr_1fr_1fr_auto]">
+			<form method="GET" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-[1.15fr_1fr_1fr_1fr_auto]">
 				<div>
 					<span class="ux-label">Día</span>
 					<DayFilterPicker value={data.anyDay ? 'any' : data.date} />

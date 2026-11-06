@@ -49,7 +49,7 @@
     <p class="text-sm text-copy-subtle">Sin este dato no se envían correos: los pacientes no tendrían a dónde responder.</p>
     <div><button class="ux-btn-secondary" disabled={saving || data.demo}>Guardar contacto</button></div>
    </form>
-   <p class="text-sm text-copy-subtle">Enviados en las últimas 24 horas: {status.used24h} de {status.dailyLimit}.</p>
+   <p class="text-sm text-copy-subtle">Enviados en las últimas 24&nbsp;horas: {status.used24h}&nbsp;de&nbsp;{status.dailyLimit}.</p>
    {#if status.needsReview > 0}<p class="ux-alert" role="status">Hay {status.needsReview === 1 ? 'un correo' : `${status.needsReview} correos`} en comprobación. Se revisa en el detalle de cada turno.</p>{/if}
    {#if status.failed7d > 0}<p class="text-sm text-copy-subtle">Correos sin entregar en los últimos 7 días: {status.failed7d}.</p>{/if}
   </section>
@@ -71,7 +71,7 @@
    <legend class="ux-section-title mb-3">Correo del paciente</legend>
    <label class="ux-choice flex items-start gap-3 px-4 py-3">
     <input class="accent-check-accent-600 mt-1" type="checkbox" name="email_enabled" value="true" checked={values.email_enabled} />
-    <span><strong>Enviar comprobantes y recordatorios por email</strong><span class="mt-1 block text-sm text-copy-subtle">Los recordatorios se envían 72 y 24 horas antes del turno, cuando corresponde.</span></span>
+    <span><strong>Enviar comprobantes y recordatorios por email</strong><span class="mt-1 block text-sm text-copy-subtle">Los recordatorios se envían 72 y 24&nbsp;horas antes del turno, cuando corresponde.</span></span>
    </label>
    <label class="ux-choice flex items-start gap-3 px-4 py-3">
     <input class="accent-check-accent-600 mt-1" type="checkbox" name="require_email" value="true" checked={values.require_email} />

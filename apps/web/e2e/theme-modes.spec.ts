@@ -62,7 +62,7 @@ async function sweep(page: Page, info: TestInfo, screens: Screen[], label: strin
 				layout.push(...(await layoutIssues(page, CONTROLS, 'main')).map((issue) => ({ ...issue, route, theme, viewport })));
 				native.push(...(await nativeControls(page)).map((control) => ({ control, route, theme, viewport })));
 				const name = `${label}-${route.replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').slice(0, 60)}-${theme}-${viewport}.jpg`;
-				await page.screenshot({ path: info.outputPath(name), type: 'jpeg', quality: 55, fullPage: true, animations: 'disabled' });
+				await page.screenshot({ path: info.outputPath(name), type: 'jpeg', quality: 42, fullPage: true, animations: 'disabled' });
 				coverage.push({ route, theme, viewport, finalPath: new URL(page.url()).pathname, passes: result.passes, incomplete: result.incomplete, worstCase: result.worstCase });
 			}
 	}

@@ -47,6 +47,7 @@ M	apps/web/e2e/clinical-files.spec.ts
 M	apps/web/e2e/helpers/layout-usability.ts
 M	apps/web/e2e/patient-management.spec.ts
 A	apps/web/e2e/reception-cancel.spec.ts
+A	apps/web/e2e/resolutions.spec.ts
 M	apps/web/e2e/staff-management.spec.ts
 M	apps/web/e2e/theme-modes.spec.ts
 M	apps/web/playwright.config.ts
@@ -55,6 +56,7 @@ M	apps/web/src/hooks.server.ts
 M	apps/web/src/lib/booking/BookingShareLink.svelte
 M	apps/web/src/lib/booking/PatientDocumentUpload.svelte
 M	apps/web/src/lib/booking/PublicBookingConfirmation.svelte
+M	apps/web/src/lib/booking/PublicBookingFlow.svelte
 M	apps/web/src/lib/booking/PublicBookingProfessionals.svelte
 M	apps/web/src/lib/booking/PublicInformationPage.svelte
 M	apps/web/src/lib/components/DatePartsInput.svelte
@@ -70,6 +72,7 @@ M	apps/web/src/lib/components/appointments/PatientManagementPanel.svelte
 M	apps/web/src/lib/components/appointments/PublicAppointmentPage.svelte
 A	apps/web/src/lib/components/appointments/StaffCancelPanel.svelte
 M	apps/web/src/lib/components/notices/DismissibleNotice.svelte
+M	apps/web/src/lib/components/patient-export/PatientExportPanel.svelte
 M	apps/web/src/lib/components/patients/ClinicalEntryDialog.client.test.ts
 M	apps/web/src/lib/components/patients/ClinicalEntryDialog.svelte
 M	apps/web/src/lib/components/patients/ClinicalImageViewer.svelte
@@ -79,6 +82,7 @@ M	apps/web/src/lib/components/patients/PatientProfilePanel.svelte
 M	apps/web/src/lib/components/patients/RadiographsPanel.svelte
 M	apps/web/src/lib/components/seguimientos/FollowUpComposer.svelte
 M	apps/web/src/lib/components/seguimientos/FollowUpsNotice.svelte
+M	apps/web/src/lib/components/team/ProfessionalSchedulePanel.svelte
 M	apps/web/src/lib/components/team/TeamMemberWizard.svelte
 M	apps/web/src/lib/scheduling/slot-releases.ts
 M	apps/web/src/lib/server/patients/public/follow-ups.ts
@@ -120,6 +124,7 @@ M	apps/web/src/routes/odonto/pacientes/+page.svelte
 M	apps/web/src/routes/odonto/pacientes/[id]/+page.svelte
 M	apps/web/src/routes/odonto/profesionales/[professionalId]/aranceles/+page.svelte
 M	apps/web/src/routes/odonto/profesionales/[professionalId]/preguntas/+page.svelte
+M	apps/web/src/routes/odonto/recordatorios/+page.svelte
 M	apps/web/src/routes/odonto/seguimientos/+page.svelte
 M	apps/web/src/routes/odonto/turnos/[appointmentId]/+page.svelte
 M	apps/web/src/routes/odonto/turnos/[appointmentId]/page.client.test.ts

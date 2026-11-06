@@ -29,7 +29,7 @@
 		day.stats
 			.filter((stat) => stat.count > 0)
 			.map((stat) => `${statusLabels[stat.status] ?? stat.status}: ${stat.count}`)
-			.join(' · ');
+			.join(' ·\u00a0');
 	const shiftedWeekHref = (days: number) => {
 		const date = new Date(`${data.selectedDate}T00:00:00.000Z`);
 		date.setUTCDate(date.getUTCDate() + days);

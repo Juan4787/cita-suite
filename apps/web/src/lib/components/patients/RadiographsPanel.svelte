@@ -559,7 +559,7 @@
 			</p>
 		</div>
 		{#if canUpload}
-			<div class="flex flex-col gap-2 sm:flex-row">
+			<div class="flex shrink-0 flex-col gap-2 sm:flex-row">
 				<input
 					bind:this={cameraInput}
 					type="file"

@@ -1106,5 +1106,6 @@ summary:focus-visible {
 .ux-textarea {
   resize: none;
   field-sizing: content;
+  min-height: 4.75rem;
   max-height: 16rem;
 }

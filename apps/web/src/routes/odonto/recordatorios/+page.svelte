@@ -118,7 +118,7 @@
 					de WhatsApp ya sale escrito: solo revisás y enviás.
 				</p>
 			</div>
-			<div class="flex gap-2">
+			<div class="flex shrink-0 gap-2">
 				<a href="?dia=manana" class={data.day === 'manana' ? 'ux-btn-primary' : 'ux-btn-secondary'}>Mañana</a>
 				<a href="?dia=hoy" class={data.day === 'hoy' ? 'ux-btn-primary' : 'ux-btn-secondary'}>Hoy</a>
 			</div>

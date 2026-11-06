@@ -64,3 +64,13 @@ Después de una compactación: leer AGENTS, estado vigente, [12.34](propuesta-se
 **Hallado y corregido por esa prueba:** los avisos ocupaban casi toda la pantalla del celular, las fechas apilaban un campo por fila, «Ocultar búsqueda» se partía, el título de la pestaña quedaba desactualizado y el recuadro de «Reportar problema» parecía un error.
 
 **Corrida 42310115660, servidor de desarrollo, 24 fallos:** no sirve como evidencia de conducta. El servidor de desarrollo hidrata tarde: las pruebas actuaron antes de que la página estuviera lista, y los reintentos de sesión dispararon el límite de ingresos. Dejó defectos reales ya corregidos: nombre accesible del campo de archivo, teléfono partido a 320 px y pruebas que medían los controles nativos ocultos. La evidencia válida usa el paquete real.
+
+**Resoluciones, pedido de Juan del 6 de noviembre.** `e2e/resolutions.spec.ts` recorre 32 pantallas y estados en 21 resoluciones reales, de 320×568 a 2560×1440, con celulares, tabletas, notebooks y monitores. Primero se corrió con Chromium local y halló lo que 390 y 1280 no mostraban:
+- tabla de pacientes apretada en tableta y a 1024: ahora es tarjetas hasta 1023 px;
+- botones partidos en Estudios, Turnos para recordar y Reseña de Google;
+- filtros de la agenda partidos a 1024;
+- tarjetas de prestación del asistente con palabras partidas en celulares chicos;
+- separadores «·» colgando y cantidades separadas de su unidad;
+- textos de ejemplo cortados a 320 px.
+
+Después de corregir: cero problemas en todas las pantallas y estados.

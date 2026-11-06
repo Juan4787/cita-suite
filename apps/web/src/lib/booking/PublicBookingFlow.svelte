@@ -270,9 +270,9 @@
 					<h1 class="text-2xl font-bold text-fg sm:text-3xl bk-text">{business?.name ?? 'Reserva online'}</h1>
 					{#if (modality !== 'video' && business?.address) || business?.phone}
 						<p class="mt-2 text-sm text-fg-55 bk-muted">
-							{modality !== 'video' ? business.address ?? '' : ''}{modality !== 'video' && business.address && business.phone ? ' · ' : ''}{business.phone ?? ''}
+							{modality !== 'video' ? business.address ?? '' : ''}{modality !== 'video' && business.address && business.phone ? ' ·\u00a0' : ''}{business.phone ?? ''}
 							{#if modality !== 'video' && data.mapsLink && business.address}
-								· <a href={data.mapsLink} target="_blank" rel="noreferrer" class="font-bold text-fg-80 underline bk-muted">Cómo llegar</a>
+								·&nbsp;<a href={data.mapsLink} target="_blank" rel="noreferrer" class="font-bold text-fg-80 underline bk-muted">Cómo llegar</a>
 							{/if}
 						</p>
 					{/if}
