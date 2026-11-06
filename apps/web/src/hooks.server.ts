@@ -1,3 +1,4 @@
+import { isForbiddenCrossSiteForm } from '$lib/server/platform/cross-site-form';
 import { authUnavailableResponse } from '$lib/server/access/public/auth-unavailable';
 import { THEME_COOKIE, applyThemeToDocument, parseThemePreference, themeClass } from '$lib/theme/preference';
 import { dev } from '$app/environment';
@@ -65,6 +66,9 @@ export const handle: Handle = async ({ event, resolve }) => {
 		secure.port = '';
 		return new Response(null, { status: 308, headers: { location: secure.href, 'cache-control': 'no-store' } });
 	}
+	if (!dev && isForbiddenCrossSiteForm(event.request, event.url)) {
+		return new Response(`Cross-site ${event.request.method} form submissions are forbidden`, { status: 403 });
+	}
 	// Color mode chosen on this device: every document is rendered in it from the server.
 	const themePreference = parseThemePreference(event.cookies.get(THEME_COOKIE));
 	// Assigned only after this request's Auth response is verified. A decoded
@@ -115,9 +119,9 @@ export const handle: Handle = async ({ event, resolve }) => {
 	// signature or job credential. Unrelated user cookies must neither identify
 	// their actor nor prevent their authorization from running.
 	const path = event.url.pathname;
-	const independentAuthorization = ['/reservar/', '/embed/v1/', '/turno/', '/gestion/', '/api/public/', '/internal/jobs/']
+	const independentAuthorization = ['/reservar/', '/embed/v1/', '/turno/', '/gestion/', '/correo/baja/', '/api/public/', '/internal/jobs/']
 		.some(prefix => path.startsWith(prefix)) ||
-		['/api/mercadopago/webhook', '/api/whatsapp/webhook', '/oauth/google-calendar/callback'].includes(path);
+		['/api/mercadopago/webhook', '/api/whatsapp/webhook', '/api/zoho/webhook', '/oauth/google-calendar/callback'].includes(path);
 
 	event.locals.auth =
 		!independentAuthorization && moduleCookie && accessToken && refreshToken

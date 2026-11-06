@@ -25,6 +25,9 @@ Autorización de implementación, pruebas y publicación vigente: [plan 12.32](p
 El chequeo compara esta lista con `git diff --name-status <produccion_revision> HEAD` sobre el código (`apps`, `packages`, `scripts`, `supabase` y los archivos de configuración de la raíz, sin `apps/web/output`). Tiene que coincidir exactamente.
 
 ```codigo-distinto-de-produccion
+M	apps/scheduler/src/schedule.test.ts
+M	apps/scheduler/src/schedule.ts
+M	apps/scheduler/wrangler.jsonc
 A	apps/web/.impeccable/surfaces/gestion-del-turno.md
 M	apps/web/DESIGN.md
 M	apps/web/e2e/booking-embed.spec.ts
@@ -72,6 +75,10 @@ A	apps/web/src/lib/scheduling/reschedule-terms.test.ts
 A	apps/web/src/lib/scheduling/reschedule-terms.ts
 A	apps/web/src/lib/scheduling/staff-management.ts
 M	apps/web/src/lib/server/google-calendar-sync.test.ts
+A	apps/web/src/lib/server/integrations/public/appointment-email-content.test.ts
+A	apps/web/src/lib/server/integrations/public/appointment-email-content.ts
+A	apps/web/src/lib/server/integrations/public/appointment-email.test.ts
+A	apps/web/src/lib/server/integrations/public/appointment-email.ts
 A	apps/web/src/lib/server/integrations/public/calendar-tracking.test.ts
 M	apps/web/src/lib/server/integrations/public/calendar-tracking.ts
 A	apps/web/src/lib/server/integrations/public/google-calendar-leases.test.ts
@@ -82,6 +89,9 @@ A	apps/web/src/lib/server/integrations/public/patient-google-calendar.ts
 A	apps/web/src/lib/server/integrations/public/patient-push.ts
 M	apps/web/src/lib/server/integrations/public/push.test.ts
 M	apps/web/src/lib/server/integrations/public/push.ts
+M	apps/web/src/lib/server/integrations/public/scheduled-jobs.ts
+A	apps/web/src/lib/server/integrations/public/zoho-email.test.ts
+A	apps/web/src/lib/server/integrations/public/zoho-email.ts
 A	apps/web/src/lib/server/patients/public/booking-documents.test.ts
 A	apps/web/src/lib/server/patients/public/booking-documents.ts
 A	apps/web/src/lib/server/patients/public/booking-information-page.test.ts
@@ -92,6 +102,8 @@ M	apps/web/src/lib/server/patients/public/patient-archive.test.ts
 M	apps/web/src/lib/server/patients/public/patient-archive.ts
 M	apps/web/src/lib/server/patients/public/patient-detail.test.ts
 M	apps/web/src/lib/server/patients/public/patient-detail.ts
+A	apps/web/src/lib/server/platform/cross-site-form.test.ts
+A	apps/web/src/lib/server/platform/cross-site-form.ts
 M	apps/web/src/lib/server/public-booking-navigation.test.ts
 A	apps/web/src/lib/server/scheduling/internal/management-contract.ts
 A	apps/web/src/lib/server/scheduling/public/appointment-reader-authority.test.ts
@@ -132,6 +144,9 @@ A	apps/web/src/lib/server/scheduling/public/staff-management-flow.test.ts
 A	apps/web/src/lib/server/scheduling/public/staff-management-flow.ts
 A	apps/web/src/lib/server/scheduling/public/staff-management.test.ts
 A	apps/web/src/lib/server/scheduling/public/staff-management.ts
+A	apps/web/src/routes/api/zoho/webhook/+server.ts
+A	apps/web/src/routes/correo/baja/[token]/+page.server.ts
+A	apps/web/src/routes/correo/baja/[token]/+page.svelte
 M	apps/web/src/routes/embed/v1/[integrationKey]/turno/[token]/+page.server.ts
 M	apps/web/src/routes/embed/v1/[integrationKey]/turno/[token]/+page.svelte
 A	apps/web/src/routes/gestion/[token]/+page.server.ts
@@ -202,7 +217,9 @@ M	apps/web/src/routes/turno/[token]/push/+server.ts
 M	apps/web/src/routes/turno/[token]/push/push.server.test.ts
 M	apps/web/src/routes/turno/[token]/reprogramado/+page.server.ts
 M	apps/web/src/routes/turno/[token]/reprogramado/+page.svelte
+M	apps/web/svelte.config.js
 M	packages/shared/src/database.types.ts
+M	packages/shared/src/scheduled-jobs.ts
 A	scripts/check-repo-sync.mjs
 M	scripts/package-verification-evidence.py
 M	scripts/test-booking-foundation.mjs
@@ -239,9 +256,11 @@ A	supabase/migrations/20261104140000_informed_public_booking_reschedule_policy.s
 A	supabase/migrations/20261105010000_informed_staff_booking_reschedule_policy.sql
 A	supabase/migrations/20261105020000_staff_appointment_delivery.sql
 A	supabase/migrations/20261105030000_late_deposit_records.sql
+A	supabase/migrations/20261106010000_appointment_email_delivery.sql
 M	supabase/templates/recovery.html
 M	supabase/tests/appointment_actor_revalidation.sql
 M	supabase/tests/appointment_deposits.sql
+A	supabase/tests/appointment_email_delivery.sql
 A	supabase/tests/appointment_email_policy_settings.sql
 A	supabase/tests/appointment_management_capabilities.sql
 A	supabase/tests/appointment_management_foundation.sql

@@ -759,6 +759,7 @@ export type Database = {
           legacy_management_allowed: boolean
           previous_deposit_disposition: string
           require_deposit_on_reschedule: boolean
+          schedule_changed_at: string
           schedule_revision: number
           terms_acknowledged: boolean
           terms_snapshot: Json
@@ -774,6 +775,7 @@ export type Database = {
           legacy_management_allowed?: boolean
           previous_deposit_disposition?: string
           require_deposit_on_reschedule?: boolean
+          schedule_changed_at?: string
           schedule_revision?: number
           terms_acknowledged?: boolean
           terms_snapshot?: Json
@@ -789,6 +791,7 @@ export type Database = {
           legacy_management_allowed?: boolean
           previous_deposit_disposition?: string
           require_deposit_on_reschedule?: boolean
+          schedule_changed_at?: string
           schedule_revision?: number
           terms_acknowledged?: boolean
           terms_snapshot?: Json
@@ -4248,6 +4251,7 @@ export type Database = {
           status: string
         }[]
       }
+      apply_email_unsubscribe: { Args: { p_token: string }; Returns: Json }
       apply_patient_appointment_management: {
         Args: {
           p_action: string
@@ -4510,6 +4514,10 @@ export type Database = {
       }
       claim_abandoned_clinical_uploads: {
         Args: { p_limit: number }
+        Returns: Json
+      }
+      claim_appointment_email_batch: {
+        Args: { p_limit: number; p_now?: string }
         Returns: Json
       }
       claim_due_google_review_requests: {
@@ -5191,6 +5199,10 @@ export type Database = {
         }
         Returns: Json
       }
+      get_business_email_status: {
+        Args: { p_business_id: string }
+        Returns: Json
+      }
       get_clinical_file_daily_transfer_estimates: {
         Args: { p_local_day?: string }
         Returns: {
@@ -5225,6 +5237,7 @@ export type Database = {
         }
         Returns: Json
       }
+      get_email_unsubscribe: { Args: { p_token: string }; Returns: Json }
       get_integrated_public_availability_snapshot: {
         Args: {
           p_business_id: string
@@ -5476,6 +5489,10 @@ export type Database = {
           search_rank: number
         }[]
       }
+      list_appointment_email_deliveries: {
+        Args: { p_appointment_id: string; p_business_id: string }
+        Returns: Json
+      }
       list_business_role_access: {
         Args: { target_business_id: string }
         Returns: {
@@ -5585,6 +5602,16 @@ export type Database = {
           previously_opened_at: string
         }[]
       }
+      operator_set_business_email_sender: {
+        Args: {
+          p_business_id: string
+          p_domain: string
+          p_provider_domain_key?: string
+          p_reply_to?: string
+          p_state: string
+        }
+        Returns: Json
+      }
       patient_document_in_appointment_scope: {
         Args: {
           p_actor_id: string
@@ -5681,9 +5708,22 @@ export type Database = {
         Args: { p_max_businesses?: number }
         Returns: Json
       }
+      record_appointment_email_results: {
+        Args: { p_now?: string; p_results: Json }
+        Returns: Json
+      }
       record_calendar_action: {
         Args: { p_action: string; p_appointment_id: string; p_provider: string }
         Returns: undefined
+      }
+      record_email_provider_event: {
+        Args: {
+          p_client_reference: string
+          p_event: string
+          p_occurred_at?: string
+          p_webhook_request_id: string
+        }
+        Returns: Json
       }
       record_google_review_click: {
         Args: { click_time?: string; target_click_token_hash: string }
@@ -5837,6 +5877,14 @@ export type Database = {
         Args: { p_legacy: boolean; p_token: string }
         Returns: Json
       }
+      resolve_appointment_email_delivery: {
+        Args: {
+          p_business_id: string
+          p_decision: string
+          p_delivery_id: string
+        }
+        Returns: Json
+      }
       resolve_appointment_management_access: {
         Args: { p_legacy?: boolean; p_token: string }
         Returns: Json
@@ -5872,6 +5920,10 @@ export type Database = {
           p_expected_revision: string
           p_operation_id: string
         }
+        Returns: Json
+      }
+      run_appointment_email_retention: {
+        Args: { p_now?: string }
         Returns: Json
       }
       save_appointment_email_policy: {
@@ -5918,6 +5970,10 @@ export type Database = {
           p_expected_revision: number
           p_integration_id: string
         }
+        Returns: Json
+      }
+      save_business_email_contact: {
+        Args: { p_business_id: string; p_reply_to: string }
         Returns: Json
       }
       save_deposit_policy: {

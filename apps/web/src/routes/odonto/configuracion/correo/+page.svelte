@@ -3,12 +3,22 @@
  import BackLink from '$lib/components/BackLink.svelte';
  import type { PageData } from './$types';
  import type { AppointmentEmailPreferences } from '$lib/scheduling/email-policy';
- type FormState = { success?: boolean; message?: string; values?: AppointmentEmailPreferences; expectedRevision?: number; changed?: boolean };
+ type FormState = { success?: boolean; message?: string; values?: AppointmentEmailPreferences; expectedRevision?: number; changed?: boolean; replyTo?: string };
  let { data, form }: { data: PageData; form?: FormState | null } = $props();
  let saving = $state(false);
  const values = $derived(form?.values ?? data.policy);
  const expectedRevision = $derived(form?.expectedRevision ?? data.policy.revision);
  const changed = $derived(form?.changed ?? false);
+ const status = $derived(data.status);
+ const domainMessage = $derived.by(() => {
+  switch (status?.domainState) {
+   case 'verified': return `Listo. Los correos salen desde ${status.fromAddress}.`;
+   case 'dns_pending': return 'Estamos preparando el dominio de envío del consultorio. Todavía no salen correos.';
+   case 'failed': return 'El proveedor rechazó el dominio de envío. Los correos están detenidos hasta revisarlo.';
+   case 'disabled': return 'El dominio de envío está desactivado. No salen correos.';
+   default: return 'Todavía no se preparó el dominio de envío de este consultorio. No salen correos.';
+  }
+ });
 </script>
 
 <svelte:head><title>Correo y autogestión · Cita Suite</title></svelte:head>
@@ -18,7 +28,27 @@
   <h1 class="ux-title">Correo y autogestión</h1>
   <p class="ux-subtitle">Comprobantes, recordatorios y condiciones para cambiar un turno.</p>
  </header>
- {#if !data.policy.sender_verified}
+ {#if status}
+  <section class="ux-card grid gap-4" aria-labelledby="email-readiness-title">
+   <h2 id="email-readiness-title" class="ux-section-title">Estado del envío</h2>
+   <p class={status.ready && !status.paused ? 'ux-alert ux-alert-success' : 'ux-alert'} role="status">
+    {status.ready ? (status.paused ? 'Los envíos están en pausa por un problema con el proveedor. Se retoman solos cuando se resuelve.' : domainMessage) : domainMessage}
+   </p>
+   {#if status.ready && !status.producerEnabled}<p class="ux-alert" role="status">El envío automático todavía no está activado.</p>{/if}
+   <form method="post" action="?/contact" class="grid gap-2" use:enhance={() => {
+    saving = true;
+    return async ({ update }) => { try { await update({ reset: false }); } finally { saving = false; } };
+   }}>
+    <label class="ux-label" for="email-reply-to">Correo donde recibir las respuestas de los pacientes</label>
+    <input id="email-reply-to" class="ux-input" type="email" name="reply_to" maxlength="254" autocomplete="email" value={form?.replyTo ?? status.replyTo ?? ''} disabled={saving || data.demo} />
+    <p class="text-sm text-copy-subtle">Sin este dato no se envían correos: los pacientes no tendrían a dónde responder.</p>
+    <div><button class="ux-btn ux-btn-secondary" disabled={saving || data.demo}>Guardar contacto</button></div>
+   </form>
+   <p class="text-sm text-copy-subtle">Enviados en las últimas 24 horas: {status.used24h} de {status.dailyLimit}.</p>
+   {#if status.needsReview > 0}<p class="ux-alert" role="status">Hay {status.needsReview === 1 ? 'un correo' : `${status.needsReview} correos`} en comprobación. Se revisa en el detalle de cada turno.</p>{/if}
+   {#if status.failed7d > 0}<p class="text-sm text-copy-subtle">Correos sin entregar en los últimos 7 días: {status.failed7d}.</p>{/if}
+  </section>
+ {:else if !data.policy.sender_verified}
   <p class="ux-alert" role="status">Falta completar el remitente del consultorio. Mientras tanto, no se enviarán correos.</p>
  {/if}
  {#if form?.message}

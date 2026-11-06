@@ -39,6 +39,8 @@ const config = {
 			name: buildVersion || 'development',
 			pollInterval: 0
 		},
+		// Replaced by src/lib/server/platform/cross-site-form.ts, with the same rule and two exact exceptions.
+		csrf: { checkOrigin: false },
 		csp: isProd
 			? {
 					mode: 'auto',
