@@ -112,8 +112,8 @@ Samsung SM-A715F, Android 13, Chrome 156, con Calendario Samsung, Proton Calenda
 | `.ics`: apertura | Chrome descarga y ofrece «Abrir»; Android muestra sus apps reales (Proton, Outlook, Calendario) | Igual (Calendario de Google, otras apps que aceptan el archivo) | **Muestra lo que el teléfono tiene de verdad. No hace falta inferir nada por la marca** |
 | `.ics`: alarmas | Calendario Samsung respeta las dos (`VALARM`) | Google Calendar las **ignora** y usa «30 minutos antes» | La página no puede prometer «24 y 2 horas antes» para el archivo |
 | `.ics`: alarma real | Saltó a las 21:03:00 exactas con la pantalla apagada, como pantalla completa «Próximo evento» | Sin probar | Alternativa fuerte al push, sin cuenta ni sincronización |
-| `.ics`: destino | Propone el calendario predeterminado de la persona | Propone su cuenta | Decide la persona |
-| `.ics`: reprogramar con igual UID y `SEQUENCE` mayor | Abre el evento viejo, con la hora vieja, sin ofrecer guardar | Sin probar | **No actualiza ni duplica.** Hay que pedir borrar y guardar el nuevo |
+| `.ics`: destino | Propone el calendario predeterminado de la persona | Google Calendar muestra todos los calendarios de las cuentas del teléfono antes de guardar | Decide la persona |
+| `.ics`: reprogramar con igual UID y `SEQUENCE` mayor | Abre el evento viejo, con la hora vieja, sin ofrecer guardar | Google Calendar ofrece «Actualizar el evento actual» y mueve el mismo evento, sin duplicar (medido el 6 de noviembre, dos veces) | **Depende del calendario.** El texto pide borrar y guardar el nuevo porque es lo único que sirve en los dos |
 | `.ics`: `METHOD:CANCEL` | Abre el evento viejo; no lo quita | Sin probar | Hay que pedir borrarlo a mano |
 
 Google gestionado, medido el 6 de noviembre sobre producción con la cuenta `citasuite`:
