@@ -1,8 +1,18 @@
 # Publicación y reversión
 
-## Último estado comprobado — E: 6 de noviembre de 2026, 04:41 hora argentina (07:41 UTC)
+## Último estado comprobado — segunda versión de E: 6 de noviembre de 2026, 08:34 hora argentina (11:34 UTC)
 
-**Producción sirve la primera versión de E:** instantánea `dfec47747daabf0196dc5f2341eae3725088953f` de `main` `101c74dc`, Worker `app`, versión de Cloudflare **`9ae1a573-7b50-4a8a-b9e7-0473042bc216`**, en los dos orígenes. Esa versión tiene el código de `28258baa-6aaf-470a-b917-518499f55532` y sólo cambió el secreto de Google gestionado. Programador `853b9020-5738-4a66-be5e-acf1b1d6cb09`, con cinco cron.
+**Producción sirve** la instantánea `36d8fe9cc1d191f684f8ebd80f99eecf40eba293` de `main` `7f16f5cd`, Worker `app`, versión de Cloudflare **`5a05383b-cb99-49e4-bdaa-01aeb83c5490`**. Sin migraciones ni cambios en el programador.
+
+**Qué corrige:** el envío de correo desde Workers, el orden de la guía de permisos, el estado después de restablecer un permiso, el mensaje contradictorio al reprogramar, el rojo de error en pasos normales, los textos de calendario y el bucle de reconexión de Google. Detalle en el [registro](../plans/ejecucion-etapa-e-20261103.md).
+
+**Verificación sobre la revisión exacta:** paquete 42208846180, navegador 42209101549 con 76 de 76, y `fast` 42208860158. SQL 42147347019 sigue valiendo: `supabase` no cambió. `verify-production-release.mjs` aprobado con 148 archivos idénticos y 78 relaciones sin exposición anónima.
+
+**Vuelta atrás:** `wrangler rollback 9ae1a573-7b50-4a8a-b9e7-0473042bc216`, la primera versión de E. Comparte el esquema, pero con ella ningún correo puede salir. Nunca una versión anterior a E.
+
+## Estado anterior — primera versión de E: 6 de noviembre de 2026, 04:41 hora argentina (07:41 UTC)
+
+**Sirvió la primera versión de E:** instantánea `dfec47747daabf0196dc5f2341eae3725088953f` de `main` `101c74dc`, Worker `app`, versión de Cloudflare **`9ae1a573-7b50-4a8a-b9e7-0473042bc216`**, en los dos orígenes. Esa versión tiene el código de `28258baa-6aaf-470a-b917-518499f55532` y sólo cambió el secreto de Google gestionado. Programador `853b9020-5738-4a66-be5e-acf1b1d6cb09`, con cinco cron.
 
 **Verificación antes de publicar, sobre la revisión exacta:** SQL 42147347019, paquete 42179941722, navegador completo 42179970561 con 76 de 76, y `fast` 42181404563. Ensayo de la transacción contra producción sin fallas. Respaldo `production-2026-11-06T06-38-12-487Z`, de 131 migraciones.
 

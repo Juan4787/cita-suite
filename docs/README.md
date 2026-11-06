@@ -8,7 +8,7 @@
 
 **Qué historia y qué cambios están vigentes:** [estado vigente](ESTADO-VIGENTE.md), el registro único; lo comprueba `node scripts/check-repo-sync.mjs`.
 
-**Producción sirve la primera versión de E** `dfec47747daabf0196dc5f2341eae3725088953f` desde el 6 de noviembre a las 07:41 UTC; versión de Cloudflare e interruptores en el [estado vigente](ESTADO-VIGENTE.md). [Índice de E](plans/indice-etapa-e.md), [plan canónico](plans/plan-integral-avisos-20261105.md).
+**Producción sirve la segunda versión de E** `36d8fe9cc1d191f684f8ebd80f99eecf40eba293` desde el 6 de noviembre a las 11:34 UTC; versión de Cloudflare e interruptores en el [estado vigente](ESTADO-VIGENTE.md). [Índice de E](plans/indice-etapa-e.md), [plan canónico](plans/plan-integral-avisos-20261105.md).
 
 Antes, V12b `771fac5950c532b1123f11d4dde93eef9b42ceba` (versión `277d332d-1794-4367-8ef0-567ced159f1b`) desde el 2 de noviembre a las 15:33 UTC, que ya no es vuelta atrás válida. Es V12 (`c21a1983…`, 14:46 UTC) con el fondo general del modo claro apenas más cálido.
 - Es V11f más el modo claro predeterminado, con el oscuro conservado y el selector Claro, Oscuro y Automático.

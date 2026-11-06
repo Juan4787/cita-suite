@@ -2,18 +2,18 @@
 
 **Este es el registro único de qué historia y qué cambios están vigentes.** Se actualiza en el mismo paso de trabajo que cambia cualquiera de estos datos, nunca después. Eso incluye publicar, cambiar de rama, integrar, o dejar código distinto de producción. `node scripts/check-repo-sync.mjs`, desde la raíz, lo compara con Git, con GitHub y con la revisión que sirve producción, y falla ante cualquier diferencia.
 
-Última actualización: 6 de noviembre de 2026, 04:45 hora argentina. E publicada en producción; el encargo sigue abierto hasta terminar las comprobaciones posteriores del [mandato integral](plans/mandato-integral-avisos-20261105.md). [Plan canónico y checkpoint](plans/plan-integral-avisos-20261105.md).
+Última actualización: 6 de noviembre de 2026, 08:35 hora argentina. Segunda versión de E publicada en producción; el encargo sigue abierto hasta terminar las comprobaciones posteriores del [mandato integral](plans/mandato-integral-avisos-20261105.md). [Plan canónico y checkpoint](plans/plan-integral-avisos-20261105.md).
 
 ## Datos verificables
 
 ```estado
 rama_de_trabajo: main
-produccion_revision: dfec47747daabf0196dc5f2341eae3725088953f
-produccion_version_cloudflare: 9ae1a573-7b50-4a8a-b9e7-0473042bc216
+produccion_revision: 36d8fe9cc1d191f684f8ebd80f99eecf40eba293
+produccion_version_cloudflare: 5a05383b-cb99-49e4-bdaa-01aeb83c5490
 produccion_repositorio: github-secundaria:Juan4787/cita-suite-verificacion.git
 ```
 
-- **Producción** sirve la primera versión de E en `https://app.cita-suite.com.ar` y en `app.cita-suite.workers.dev`: la instantánea `dfec4774` de `main` `101c74dc`, con las 163 migraciones aplicadas.
+- **Producción** sirve la segunda versión de E en `https://app.cita-suite.com.ar` y en `app.cita-suite.workers.dev`: la instantánea `36d8fe9c` de `main` `7f16f5cd`, con las 163 migraciones aplicadas.
 - **La revisión publicada es antecesora de `main`.** Todo lo que corre en producción está en la historia de `main`.
 - **V12b dejó de ser una vuelta atrás válida** desde las 07:39 UTC del 6 de noviembre, cuando se confirmaron las migraciones. Nunca usar `wrangler rollback` a una versión anterior a E. Recuperación vigente: [guía de publicación](architecture/publicacion-y-reversion.md#e--publicación-y-recuperación-compatible-5-de-noviembre).
 
@@ -23,7 +23,7 @@ Autorización de implementación, pruebas y publicación vigente: [plan 12.32](p
 
 | Dato | Valor comprobado en el destino |
 |---|---|
-| Worker `app` | Versión `9ae1a573-7b50-4a8a-b9e7-0473042bc216`: el mismo código que `28258baa-6aaf-470a-b917-518499f55532`, que fue la instalación del paquete; sólo cambió el secreto de Google gestionado |
+| Worker `app` | Versión `5a05383b-cb99-49e4-bdaa-01aeb83c5490`. Vuelta atrás válida: `9ae1a573-7b50-4a8a-b9e7-0473042bc216`, la primera versión de E, que comparte el esquema pero **no puede enviar correo** |
 | Worker `cita-suite-scheduler` | Versión `853b9020-5738-4a66-be5e-acf1b1d6cb09`, cinco cron: `*/5`, `1-59/5`, `2-59/5`, `3-59/5` y `17 */3` |
 | Migraciones | 163 en la historia de producción: las 32 de E entraron en una transacción de 18 s |
 | Interruptores | `reschedule_enabled` y `email_producer_enabled` encendidos; `GOOGLE_CALENDAR_MANAGED_ENABLED=true`; tope diario de correo 100, reserva 10; `private.deposit_automation` sin cambios |
@@ -35,17 +35,6 @@ Autorización de implementación, pruebas y publicación vigente: [plan 12.32](p
 El chequeo compara esta lista con `git diff --name-status <produccion_revision> HEAD` sobre el código (`apps`, `packages`, `scripts`, `supabase` y los archivos de configuración de la raíz, sin `apps/web/output`). Tiene que coincidir exactamente.
 
 ```codigo-distinto-de-produccion
-M	apps/web/src/lib/components/appointments/PublicAppointmentPage.svelte
-M	apps/web/src/lib/server/integrations/public/appointment-email-content.test.ts
-M	apps/web/src/lib/server/integrations/public/appointment-email-content.ts
-M	apps/web/src/lib/server/integrations/public/zoho-email.test.ts
-M	apps/web/src/lib/server/integrations/public/zoho-email.ts
-M	apps/web/src/lib/server/scheduling/public/patient-management-flow.test.ts
-M	apps/web/src/lib/server/scheduling/public/patient-management-flow.ts
-M	apps/web/src/routes/oauth/google-calendar/callback/+server.ts
-M	apps/web/src/routes/oauth/google-calendar/callback/callback.server.test.ts
-M	apps/web/src/routes/turno/[token]/page.client.test.ts
-M	scripts/production-email-practice.mjs
 M	scripts/run-campaign-integration.mjs
 ```
 
