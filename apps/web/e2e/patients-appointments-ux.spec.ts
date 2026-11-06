@@ -570,7 +570,7 @@ test.describe('Pacientes, próximos turnos y teléfono — UX integrada', () => 
 				/\/odonto\/turnos\/[0-9a-f-]+$/.test(url.pathname) &&
 				url.searchParams.get('created') === '1'
 		);
-		await expect(page.getByRole('link', { name: 'Enviar enlace de activación' })).toBeVisible();
+		await expect(page.getByRole('button', { name: 'Enviar enlace de activación' })).toBeVisible();
 
 		const createdAppointmentId = new URL(page.url()).pathname.split('/').at(-1);
 		if (!createdAppointmentId) throw new Error('La confirmación no abrió el turno creado.');
@@ -632,6 +632,7 @@ test.describe('Pacientes, próximos turnos y teléfono — UX integrada', () => 
 
 		await originalPatient.click();
 		await wizard.getByRole('button', { name: 'Confirmar turno', exact: true }).click();
+		await page.getByRole('button', { name: 'Continuar sin email', exact: true }).click();
 		await expect(page).toHaveURL(
 			(url) =>
 				/\/odonto\/turnos\/[0-9a-f-]+$/.test(url.pathname) &&
@@ -667,6 +668,7 @@ test.describe('Pacientes, próximos turnos y teléfono — UX integrada', () => 
 		await wizard.getByRole('button', { name: 'Confirmar turno', exact: true }).click();
 		await expect(wizard.getByText('Falta el número de teléfono')).toBeVisible();
 		await wizard.getByRole('button', { name: 'Confirmar de todos modos' }).click();
+		await page.getByRole('button', { name: 'Continuar sin email', exact: true }).click();
 		await expect(page).toHaveURL(
 			(url) =>
 				/\/odonto\/turnos\/[0-9a-f-]+$/.test(url.pathname) &&
@@ -715,6 +717,7 @@ test.describe('Pacientes, próximos turnos y teléfono — UX integrada', () => 
 		await wizard.getByRole('button', { name: 'Confirmar turno', exact: true }).click();
 		await expect(wizard.getByText('El número de teléfono no es válido')).toBeVisible();
 		await wizard.getByRole('button', { name: 'Confirmar de todos modos' }).click();
+		await page.getByRole('button', { name: 'Continuar sin email', exact: true }).click();
 		await expect(page).toHaveURL(
 			(url) =>
 				/\/odonto\/turnos\/[0-9a-f-]+$/.test(url.pathname) &&

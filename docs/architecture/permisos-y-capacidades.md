@@ -153,3 +153,16 @@ E3.45 actualiza la verificación de interfaz SN14: fast **42076262537 aprobado**
 
 
 **Actualización E3.50, interrupción documental:** personal conserva su caso aprobado en **42078792126** (corrida completa fallida por SN14), con las capas descritas en el registro. Browser **42080552190 terminó fallido** después del rechazo/borrador y registro nativos de 10.000; se detuvo en el clic JS antes de comprobar respuesta ilegible. Recuperación/corrección y visuales SN14 siguen pendientes. No queda esa corrida en curso, ni hay banco/correo/publicación E. Implementación detenida por pedido de Juan; [traspaso técnico, revisiones y evidencia](../plans/traspaso-etapa-e-20261105.md). Los estados de corridas de párrafos anteriores corresponden a sus checkpoints históricos.
+
+## Correo de los turnos (6 de noviembre)
+
+Las tablas de correo están en `private` y nadie las lee directo: todo pasa por funciones.
+
+| Función | Quién | Para qué |
+|---|---|---|
+| `claim_appointment_email_batch`, `record_appointment_email_results`, `record_email_provider_event`, `run_appointment_email_retention`, `get_email_unsubscribe`, `apply_email_unsubscribe`, `operator_set_business_email_sender` | Sólo `service_role` | El programador, el webhook firmado y la página de baja |
+| `list_appointment_email_deliveries`, `resolve_appointment_email_delivery`, `get_business_email_status` | Dueña, administración y recepción de ese consultorio | Ver los correos de un turno y decidir uno en comprobación |
+| `save_business_email_contact` | Dueña y administración | Correo donde se reciben las respuestas |
+| `operator_get_email_operations`, `operator_set_email_operations` | Sólo `service_role`; la página admite únicamente la cuenta maestra verificada | Crédito, cupo, interruptor y pausas |
+
+Un profesional o una lectura sola no ven la sección de correos del turno. El operador ve estados y conteos, nunca la dirección de un paciente. Pruebas: `appointment_email_delivery.sql` 1 y 31, `appointment_email_operations.sql` 1, y las pruebas de servidor de cada ruta.

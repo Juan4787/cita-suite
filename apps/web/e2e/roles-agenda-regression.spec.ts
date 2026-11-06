@@ -686,7 +686,8 @@ test.describe('roles, profesionales y agenda - regresiones críticas', () => {
 				status: 'confirmed'
 			}
 		);
-		expect(confirmAttempt.text).toContain('La confirmación queda reservada al paciente');
+		// Staff cannot confirm in the patient's name: the form never offers it and a direct post is refused.
+		expect(confirmAttempt.text).toContain('Revisá el turno y confirmá la acción desde su detalle');
 
 		await admin.from('audit_logs').insert([
 			{
@@ -803,9 +804,10 @@ test.describe('roles, profesionales y agenda - regresiones críticas', () => {
 		await expect(searchPatientButton).toBeVisible({ timeout: 15_000 });
 		await searchPatientButton.click();
 		await wizard.getByText(`E2E Paciente ${fixture.suffix}`, { exact: true }).click();
+		await wizard.getByRole('button', { name: 'Confirmar turno conjunto', exact: true }).click();
 		await Promise.all([
 			page.waitForURL(/\/odonto\/turnos\/[0-9a-f-]+/),
-			wizard.getByRole('button', { name: 'Confirmar turno conjunto', exact: true }).click()
+			page.getByRole('button', { name: 'Continuar sin email', exact: true }).click()
 		]);
 
 		const jointId = page.url().match(/\/odonto\/turnos\/([0-9a-f-]+)/)?.[1];

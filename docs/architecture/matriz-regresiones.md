@@ -151,3 +151,15 @@ E3.45 actualiza la verificación de interfaz SN14: fast **42076262537 aprobado**
 
 
 **Actualización E3.50, interrupción documental:** personal conserva su caso aprobado en **42078792126** (corrida completa fallida por SN14), con las capas descritas en el registro. Browser **42080552190 terminó fallido** después del rechazo/borrador y registro nativos de 10.000; se detuvo en el clic JS antes de comprobar respuesta ilegible. Recuperación/corrección y visuales SN14 siguen pendientes. No queda esa corrida en curso, ni hay banco/correo/publicación E. Implementación detenida por pedido de Juan; [traspaso técnico, revisiones y evidencia](../plans/traspaso-etapa-e-20261105.md). Los estados de corridas de párrafos anteriores corresponden a sus checkpoints históricos.
+
+## E — regresiones encontradas en este encargo (6 de noviembre)
+
+| Regresión | Causa | Qué la protege |
+|---|---|---|
+| Un panel abierto antes de hidratar se cerraba solo | `open={expr}` asigna sin condición al hidratar | `e2e/late-deposits.spec.ts` |
+| Sin JavaScript, cancelar o guardar desde `/gestion` daba 403 | `Referrer-Policy: no-referrer` hace que el navegador envíe `Origin: null` | `e2e/patient-management.spec.ts` y `patient-management-clinical.spec.ts` sobre el paquete; constante `FORM_PAGE_REFERRER_POLICY` |
+| «Listo» con un remitente que no podía enviar | Se miraba sólo el dominio | Prueba de cliente de `/odonto/configuracion/correo` |
+| Una falla de almacenamiento frenaba la retención | Las dos limpiezas iban en serie | `scheduled-jobs.test.ts` |
+| Dos reclamos de correo se esperaban o repetían un mensaje | Protegido por `skip locked` | `run_appointment_email_concurrency.sh`, con mutaciones 42144983908 y 42145538367 |
+
+**Para correr la suite completa:** una falla reinicia el trabajador de Playwright y pierde la sesión en memoria, así que cada falla gasta un ingreso. Con el límite real de 5 cada 15 minutos, unas pocas fallas arrastran a todas las pruebas siguientes. Hay que leer primero las fallas más tempranas.
