@@ -403,6 +403,7 @@ test.describe('Dental Suite - flujo operativo completo', () => {
 				form.set('idempotency_key', idempotencyKey);
 				form.set('patient_name', overlapPatient);
 				form.set('patient_phone', overlapPhone);
+				form.set('email_warning_acknowledged', 'true');
 				const response = await fetch('/odonto/agenda?/create_appointment', {
 					method: 'POST',
 					body: form,

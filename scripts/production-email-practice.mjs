@@ -36,16 +36,18 @@ commit;`;
 const book = (deposit) => `begin;
 do $$
 declare v_business uuid:=${business}; v_starts timestamptz:=date_trunc('minute',now())+make_interval(secs=>${Number(hours()) * 3600});
- v_service uuid; v_professional uuid; v_patient uuid;
+ v_service uuid; v_professional uuid; v_patient uuid; v_appointment uuid;
 begin
  select id into v_service from public.services where business_id=v_business limit 1;
  select id into v_professional from public.professionals where business_id=v_business limit 1;
  select id into v_patient from public.patients where business_id=v_business limit 1;
- update public.deposit_policies set enabled=${deposit} where business_id=v_business;
  insert into public.appointments(business_id,patient_id,service_id,professional_id,starts_at,ends_at,blocking_starts_at,blocking_ends_at,
   status,source,service_name_snapshot,professional_name_snapshot,duration_minutes_snapshot)
  values(v_business,v_patient,v_service,v_professional,v_starts,v_starts+interval '30 minutes',v_starts,v_starts+interval '30 minutes',
-  'reserved','manual','Consulta','Profesional sintético',30);
+  'reserved','manual','Consulta','Profesional sintético',30) returning id into v_appointment;
+ -- The obligation is written on this synthetic appointment: the global deposit switch stays as it is.
+ ${deposit ? `insert into public.appointment_deposits(business_id,appointment_id,status,amount,request_days,deadline_hours,min_payment_hours,policy_revision,request_from,due_at,auto_cancel)
+ values(v_business,v_appointment,'pending',40000,7,48,24,1,now(),v_starts-interval '48 hours',false);` : ''}
 end $$;
 commit;`;
 const report = () => JSON.parse(execute(`select json_build_object('practice','${slug}','at',now(),
@@ -73,8 +75,6 @@ begin
  insert into public.professionals(business_id,name) values(v_business,'Profesional sintético') returning id into v_professional;
  insert into public.professional_services(business_id,professional_id,service_id) values(v_business,v_professional,v_service);
  insert into public.patients(owner_id,business_id,full_name,email) values(v_owner,v_business,'Paciente sintético de correo','${TEST_MAILBOX}');
- insert into public.deposit_policies(business_id,enabled,auto_cancel_enabled,amount_mode,fixed_amount,transfer_details)
- values(v_business,false,false,'fixed',40000,'Alias sintético sin cuenta bancaria');
  perform public.operator_set_business_email_sender(v_business,'${SENDER_DOMAIN}','verified',null,'${TEST_MAILBOX}');
 end $$;
 commit;`);

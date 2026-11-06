@@ -679,7 +679,7 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@cita-suite/share
           <input class="mt-1 shrink-0" type="checkbox" name="confirm_late_deposit" value="true" required />
           <span>Verifiqué el ingreso y que corresponde a este paciente</span>
          </label>
-         <button class="ux-btn-primary self-start">{submitting ? 'Registrando…' : 'Registrar dinero recibido'}</button>
+         <button class="ux-btn-primary w-full px-3 sm:w-auto sm:self-start sm:px-5">{submitting ? 'Registrando…' : 'Registrar dinero recibido'}</button>
         </fieldset>
        </form>
       </details>
