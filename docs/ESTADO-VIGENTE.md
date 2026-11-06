@@ -40,6 +40,7 @@ A	apps/web/e2e/patient-management.spec.ts
 A	apps/web/e2e/reception-email.spec.ts
 A	apps/web/e2e/staff-delivery.spec.ts
 A	apps/web/e2e/staff-management.spec.ts
+M	apps/web/e2e/theme-modes.spec.ts
 M	apps/web/src/hooks.server.test.ts
 M	apps/web/src/hooks.server.ts
 M	apps/web/src/lib/availability/contracts.test.ts

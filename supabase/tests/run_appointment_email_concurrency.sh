@@ -193,9 +193,18 @@ exception when raise_exception then
 end$$;
 SQL
 
-# 1. Two claims at once. The first holds what it took; the second must neither wait for it nor
-# take any of it, and nothing is lost once both commit.
+# 1. Two claims at once over messages that already exist. The first holds what it took; the second
+# must neither wait for it nor take any of it, and nothing is lost once both commit. Planning first
+# matters: messages planned inside the held claim would be invisible to the second one, and the
+# test would pass without the claim ever skipping a locked message.
 query -c "select email_race.book('c'||n,'e5500000-0000-4000-8000-000000000001',0,7+n) from generate_series(1,6) n;" >/dev/null
+query <<'SQL' >/dev/null
+select private.plan_appointment_email_work(clock_timestamp(),50);
+do $$begin
+ if (select count(*) from private.appointment_email_deliveries d join email_race.appointments a on a.id=d.appointment_id
+  where a.label ~ '^c[1-6]$' and d.purpose='booking_receipt' and d.state='pending')<>6 then raise exception 'CLAIM_RACE_NOT_PLANNED'; end if;
+end$$;
+SQL
 hold claim 951001 claim-held.log <<'SQL'
 select email_race.claim('claim-a',4);
 SQL

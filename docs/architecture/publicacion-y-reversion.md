@@ -298,6 +298,46 @@ La expansión/reconciliación/contracción, las versiones antiguas, sus comandos
 
 El principal se promovió a37f625b y se renombró a `Juan4787/cita-suite` manteniendoID1115936156, historia, otras ramas, tags, issues/PR y políticas. Origin apunta a `github-secundaria:Juan4787/cita-suite.git`; ambas direccionesGit se comprobaron. Plugin sinpermiso deescritura enprincipal: Git nativo usó expectativaexacta deHEAD y padre directo comprobado, con dry-run adversario rechazado; no se reescribió historia. App, programador y Natalia conservaron sus deploymentIDs después de la transición, sin builds reconectados. Directorio físicoCitaSuite con enlace anterior compatible. Los recibos de identidad identifican elSHA ejecutado; actualizaciones documentales posteriores conservan exactamente las fuentes verificadas.
 
+## E — publicación y recuperación compatible (5 de noviembre)
+
+Decisión y fundamento: [D7 del plan integral](../plans/plan-integral-avisos-20261105.md#d7-recuperación-compatible-con-e). Lo que sigue es el orden operativo. **V12b deja de ser una vuelta atrás válida en cuanto se confirman las migraciones.**
+
+**Precondiciones**, todas sobre la misma revisión `R` de `main`:
+- `fast` y `sql` aprobados en el repositorio auxiliar, con la prueba de carreras de correo.
+- Paquete: `gh workflow run staging-operations.yml --repo Juan4787/cita-suite-verificacion --ref <rama de R> -f operation=artifact`.
+- Navegador completo sobre ese paquete: `refactoring-verification.yml`, `level=browser`, `browser_grep=.`, `artifact_run=<corrida del paquete>`.
+- El nivel `release` no aplica: exige un paquete de vuelta atrás compatible, que para E no existe.
+- Desde esta máquina, el puerto 5432 del pooler debe responder; la VPN lo bloqueaba antes.
+
+**Orden**, un paso por vez y leyendo el resultado antes del siguiente:
+
+```bash
+# 1. Ensayo de la transacción completa contra el esquema real; siempre se revierte.
+node scripts/rehearse-production-migrations.mjs
+# 2. Respaldo previo (directorio privado fuera del repositorio).
+node scripts/backup-production.mjs
+# 3. Sin trabajos programados mientras cambian esquema y app.
+NODE_OPTIONS=--max-old-space-size=192 node scripts/deploy-production-workers.mjs scheduler-without-crons
+# 4. Las 31 migraciones de E en una sola transacción: todo o nada.
+node scripts/apply-production-migrations.mjs <directorio del respaldo del paso 2>
+# 5. Secretos de correo, leídos de archivos privados por la entrada estándar; nunca en argumentos ni registros.
+# 6. App: el paquete exacto, y su verificación.
+NODE_OPTIONS=--max-old-space-size=192 node scripts/deploy-production-workers.mjs app <paquete descargado>
+node scripts/verify-production-release.mjs <paquete descargado>
+# 7. Programador con los cinco cron nuevos (correo en 3-59/5; reseñas y cargas alternan en 2-59/5).
+NODE_OPTIONS=--max-old-space-size=192 node scripts/deploy-production-workers.mjs scheduler
+```
+
+8. Interruptores: `reschedule_enabled` y `email_producer_enabled` en `private.appointment_management_runtime`; `GOOGLE_CALENDAR_MANAGED_ENABLED` como secreto. El correo de Natalia no sale: su consultorio no tiene remitente hasta que Juan decida.
+9. Webhook de Zoho: la clave se genera en un archivo privado local y se carga como secreto del Worker. Juan la pega en el panel (agente → Webhooks → URL `https://app.cita-suite.com.ar/api/zoho/webhook` → clave → Configure) y usa «Send Test».
+10. `docs/ESTADO-VIGENTE.md` y `node scripts/check-repo-sync.mjs` en el mismo paso.
+
+**Si algo falla:**
+- **Antes del paso 4:** la base no cambió. Se reinstala el programador con `scheduler`. Ese comando instala el programador del árbol verificado, no el de V12b, pero V12b atiende todas sus categorías salvo `email`: a esa le responde 404, sin ningún efecto, hasta que se publique la app. Reseñas sigue cada 10 minutos y cargas pasa de 15 a 10.
+- **Si falla el paso 4:** la transacción se revierte entera y producción sigue en V12b. Se reinstala el programador igual que en el punto anterior.
+- **Después del paso 4:** no se vuelve a V12b. Se apaga el interruptor del canal afectado, o se detiene el programador, y se corrige hacia adelante con el mismo circuito. Desde la segunda versión de E, `wrangler rollback` a la versión E anterior verificada es válido.
+- **Último recurso:** restaurar el respaldo del paso 2 en un proyecto nuevo ([procedimiento](respaldo-y-recuperacion.md#restaurar-en-un-proyecto-nuevo)) con V12b. Pierde lo escrito después del respaldo e invalida las sesiones. Antes de elegirlo se cuentan los datos reales que se perderían.
+
 ## E — publicación futura, aún sin ejecutar (2 de noviembre)
 
 La [especificación de E](../plans/etapa-e-correo-autogestion.md) requiere migraciones aditivas, proyección actual de seña compatible y controles para productores/consumidores de correo. Los procedimientos anteriores no prueban recuperación con historia de varias señas o eventos de E. Al implementarse, comprobar específicamente ese estado y documentar qué automatización se detiene antes de volver; no elegir una recuperación antigua sólo por haber sido válida para A/B/C.

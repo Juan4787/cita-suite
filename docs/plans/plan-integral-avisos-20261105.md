@@ -203,12 +203,28 @@ Orden por dependencias: primero lo que aporta hechos (dispositivos, Zoho real), 
 - Calendario Samsung no tiene un botón propio: entra por `.ics` sin depender de una cuenta Google. Eso cierra la duda sobre `4d0905d`/`adf8ddc`: no se restaura aquella interfaz.
 - El enlace `intent://` no funciona en Chrome: la página ya no lo ofrece. La ruta `calendario-intent` queda sin enlaces desde la interfaz; retirarla es limpieza menor que no cambia ningún recorrido, y se decide al cerrar la auditoría de rutas.
 
+### D7. Recuperación compatible con E
+
+**Problema:** después de aplicar E, V12b ya no puede servir la agenda: `20261103100000` cierra las actualizaciones directas de turnos que V12b hace como usuario autenticado, y su programador usa la asignación vieja de cron. Volver a V12b deja de ser una recuperación. El único procedimiento de restauración documentado ([respaldo y recuperación](../architecture/respaldo-y-recuperacion.md#restaurar-en-un-proyecto-nuevo)) restaura en un proyecto **nuevo**, y se ensayó en la pila local, no en un proyecto alojado.
+
+**Decisión: recuperación por capas, cada una con su disparador.**
+
+1. **Antes de tocar producción**, para no necesitar recuperación: CI sobre la revisión exacta (fast, SQL con carreras, paquete y navegador completo sobre el paquete); ensayo de la transacción de migraciones contra el esquema real de producción con `rehearse-production-migrations.mjs`, que siempre se revierte; respaldo `backup-production.mjs` comprobado.
+2. **Durante la publicación:** las 31 migraciones van en **una sola transacción**. Si falla, producción queda en V12b sin cambios. El programador se detiene antes y vuelve con los cron nuevos sólo después de verificar la app. La app nueva se instala enseguida de confirmar las migraciones: esa ventana, de minutos, es la única en que V12b corre sobre el esquema nuevo.
+3. **Defecto en un canal nuevo:** se apaga su interruptor, sin desplegar. Correo: `email_producer_enabled=false` (no registra eventos ni reclama) o `email_paused_until`. Reprogramación autónoma: `reschedule_enabled=false`. Google gestionado: secreto `GOOGLE_CALENDAR_MANAGED_ENABLED=false`. Todo lo programado: `deploy-production-workers.mjs scheduler-without-crons`.
+4. **Defecto de la app fuera de esos interruptores:** corrección hacia adelante por el mismo circuito de CI. Desde la segunda versión de E, `wrangler rollback` a la versión E anterior verificada es válido, porque comparten el esquema.
+5. **Datos:** el respaldo previo sirve para reparar filas puntuales con evidencia. Restaurarlo entero implica un proyecto nuevo, nuevas claves, sesiones invalidadas y perder lo escrito después; es un recurso de desastre, no una vuelta atrás, y antes de usarlo se cuenta qué datos reales se perderían.
+
+**Alternativas descartadas:** volver a V12b (incompatible tras `.100`); reabrir las actualizaciones directas para que V12b funcione (rompe la auditoría y la identidad de E; la guía de publicación lo prohíbe); restaurar sobre el proyecto de producción (no ensayado, sin PITR en Free); publicar las migraciones semanas antes que la app (deja a V12b sobre un esquema que no entiende). El nivel `release` de CI exige un paquete de vuelta atrás compatible, que por esto no existe: se usa el criterio de V12b, navegador completo (`browser_grep=.`) sobre el paquete exacto.
+
+**Riesgo residual aceptado:** un defecto grave de la app E en agenda o reserva que ningún interruptor apague se resuelve hacia adelante; mientras tanto podría verlo el consultorio real. Hoy no hay pacientes reales. **Se invalida si** aparecen pacientes reales antes de publicar o si alguna corrida sobre el paquete exacto no aprueba.
+
 ## 7. Integración y publicación
 
 - Migraciones aditivas, con productores apagados al instalar y activación explícita por interruptor.
-- Orden previsto: detener el programador, aplicar migraciones, instalar la app, instalar el programador con los cron nuevos, comprobar, activar productores.
-- Secretos sólo en Workers: clave de agente y clave de autenticación del webhook.
-- Antes de publicar se escribe y se ensaya una recuperación compatible. No se usa V12b ni `59f81e89` por inercia.
+- Orden: CI completo, paquete, ensayo de migraciones, respaldo, detener el programador, aplicar migraciones, cargar secretos de Zoho, instalar la app, verificarla, instalar el programador con los cron nuevos, activar interruptores. Comandos exactos en la [guía de publicación](../architecture/publicacion-y-reversion.md#e--publicación-y-recuperación-compatible-5-de-noviembre).
+- Secretos sólo en Workers: clave de envío del agente, desde el archivo privado, y clave de autenticación del webhook, generada en un archivo privado local. Esa clave la pega Juan en el panel de Zoho: el agente no escribe claves en formularios de terceros.
+- Recuperación: D7. No se usa V12b ni `59f81e89` por inercia.
 - Pruebas pesadas sólo en el repositorio auxiliar, secuenciales. Nada de datos privados en sus snapshots: es público.
 
 ## 8. Cómo se acredita el cierre

@@ -1,6 +1,6 @@
 # Verificación en Google del permiso de Calendar (proyecto «Cita Suite Calendar»)
 
-**Estado al 2 de noviembre de 2026:**
+**Estado al 5 de noviembre de 2026:** permiso declarado el 3 de noviembre; verificación del acceso a datos todavía no enviada. Lo que falta de parte de Juan es grabar el video con el guion de abajo, subirlo y enviarlo. **Estado anterior, 2 de noviembre:**
 - **Proyecto:** `cita-suite-calendar-513502`, publicado («En producción»).
 - **Cliente:** en uso por la app desde las 03:03 UTC.
 - **Marca:** Google ya la verificó.
@@ -34,27 +34,17 @@ Fuentes:
 
 ## Qué es cada cosa que dice «Google Calendar»
 
-Hay dos funciones distintas en la página del turno, y sólo una usa el permiso que se verifica:
+Hay tres formas de guardar un turno en un calendario, y sólo una usa el permiso que se verifica:
 
-| Función | Qué hace | Permiso de Google |
-|---|---|---|
-| **Enlace «Google Calendar»** (`calendar.google.com/calendar/render?…`) | Abre Google Calendar con el turno ya cargado, y el paciente lo guarda él mismo. | Ninguno. No hay conexión ni API. |
-| **«Agregar al calendario» gestionado** (sólo Android, con `GOOGLE_CALENDAR_MANAGED_ENABLED`) | La app crea el evento, lo actualiza si cambia el turno y lo borra si se cancela. El aviso dice «El turno está guardado en tu cuenta Google». | `calendar.events.owned`, el permiso que se verifica. |
+| Función | Dónde aparece desde E | Qué hace | Permiso de Google |
+|---|---|---|---|
+| **«Conectar mi cuenta Google»** (gestionado, con `GOOGLE_CALENDAR_MANAGED_ENABLED`) | En la tarjeta del recordatorio de la página del turno, en todos los dispositivos | La app crea el evento, lo actualiza si cambia el turno y lo borra si se cancela | `calendar.events.owned`, el que se verifica |
+| **Enlace «Google Calendar»** (`/turno/<token>/ir/google`) | Computadora y teléfonos que no son Android ni iPhone | Abre Google Calendar con el turno cargado; la persona lo guarda | Ninguno |
+| **Archivo `.ics`** («Guardar en mi calendario», «Agregar al calendario») | Android, iPhone y computadora | El sistema ofrece los calendarios reales del dispositivo | Ninguno |
 
-El botón «Agregar al calendario» que descarga un archivo `.ics` tampoco usa permisos: funciona con cualquier aplicación de calendario.
+**Historia, ya resuelta:** el botón gestionado existió del 4 al 5 de agosto (`4d0905d` → `adf8ddc`) atado a la pregunta por la marca del teléfono, y se retiró sin motivo documentado. El 3 de noviembre no había ninguna entrada visible. E lo devuelve como opción propia, sin depender de la marca: decisión D6 del [plan integral](../plans/plan-integral-avisos-20261105.md#d6-alternativas-de-calendario-sin-suponer-aplicaciones).
 
-**Corrección del 3 de noviembre: hoy la función gestionada no tiene ningún botón**, ni en producción (V12b) ni en `main`:
-- **Lo que queda:** el servidor la conserva (`/turno/[token]/google-calendar/connect`) y la página sólo muestra su estado cuando la conexión ya existe.
-- **Lo que falta:** nada la inicia.
-- **Historia:**
-  - **4 de agosto (`4d0905d`):** cuando el aviso de prueba no llegaba, la página ofrecía «¿Tu teléfono es Samsung? → Agregar a Calendario Samsung», que guardaba el evento con avisos en la cuenta de Google que sincroniza Calendario Samsung, y «¿Usás otro teléfono Android? → Agregar a Google Calendar». Los dos usaban la función gestionada.
-  - **5 de agosto (`adf8ddc`):** se reemplazaron por la guía de ajustes del teléfono y por el enlace manual. Una prueba exige desde entonces que en Samsung no aparezca Google Calendar. El motivo no quedó documentado.
-- **La prueba del 2 de noviembre** abrió la dirección de conexión a mano, no desde un botón.
-- **Error del agente:** dos respuestas del 3 de noviembre dijeron que esta guía ya estaba corregida, y no lo estaba.
-
-**Por qué coexisten:** en el diseño del 4 de agosto convivían. El enlace manual y el archivo servían para quien no conecta su cuenta, y la función gestionada, para Android cuando el aviso no llegaba. Hoy en producción sólo funcionan el enlace manual y el archivo. Restaurar el botón es un pendiente (`docs/plans/pendientes-vigentes.md`, sección 4, punto 7).
-
-**Por qué hay dos permisos de Calendar en Google:** el proyecto «Dashboard Odontologia» tiene su propio cliente de Calendar, de octubre, con el mismo permiso. Ese cliente ya no lo usa la app desde las 03:03 UTC del 2 de noviembre, y se conserva como vuelta atrás. El proyecto nuevo, «Cita Suite Calendar», es el que se verifica. Ver el cierre en la sección de pendientes.
+**Por qué hay dos permisos de Calendar en Google:** el proyecto «Dashboard Odontologia» tiene su propio cliente de Calendar, de octubre, con el mismo permiso. La app no lo usa desde el 2 de noviembre a las 03:03 UTC y se conserva como antecedente. El que se verifica es «Cita Suite Calendar».
 
 ## Declarar el permiso (pendiente, 3 de noviembre)
 
@@ -86,23 +76,34 @@ Google Cloud → proyecto **Cita Suite Calendar** → Google Auth Platform → *
 
 Si piden un texto corto en castellano, el sentido es el mismo: sólo si el paciente elige «Agregar al calendario» se crea un evento de su turno en su calendario principal, que se actualiza si el turno cambia y se borra si se cancela. No se leen ni se tocan sus demás eventos.
 
-## Video de demostración (sin audio alcanza; 1 a 2 minutos)
+## Video de demostración: guion exacto
 
-**No grabar todavía.** El video tiene que mostrar el recorrido que hace un paciente, y hoy la función gestionada no tiene botón (ver «Qué es cada cosa»). Se graba después de restaurarlo y publicarlo.
+**Requisitos oficiales**, leídos el 5 de noviembre en la [guía de permisos sensibles](https://developers.google.com/identity/protocols/oauth2/production-readiness/sensitive-scope-verification): mostrar en inglés el permiso tal como lo ve un usuario; que la pantalla de consentimiento muestre el nombre de la app; que la barra de direcciones de esa pantalla muestre el ID de cliente; mostrar cómo empieza la persona el pedido y el uso de cada permiso; subirlo a YouTube como **No listado**. La guía no fija una duración. La política de privacidad debe estar en el mismo dominio que la página principal y decir cómo se usan los datos de Google; desde E, `/privacidad` incluye además la frase de uso limitado.
 
-Grabarlo en la computadora, en inglés o en castellano con subtítulos o carteles breves en inglés. Subirlo a YouTube como **«No listado»** y pegar el enlace en el formulario.
+**Antes de grabar** (lo deja listo el agente después de publicar, y lo comprueba una vez de punta a punta):
+1. Producción con E publicada y `GOOGLE_CALENDAR_MANAGED_ENABLED` encendido.
+2. Un turno sintético futuro en un consultorio sintético de producción, con un nombre de paciente ficticio, y su enlace de gestión guardado en un archivo privado del equipo, no en el repositorio.
+3. Un perfil de Chrome en la computadora con **inglés como primer idioma** (Configuración → Idiomas), para que Google muestre la pantalla de permiso en inglés.
+4. En ese perfil, la cuenta `citasuite@gmail.com` ya iniciada **antes** de grabar: la contraseña no aparece en el video.
+5. Sin otras pestañas, marcadores ni notificaciones personales visibles.
 
-1. Mostrar `https://cita-suite.com.ar` (qué es Cita Suite) y la política `https://app.cita-suite.com.ar/privacidad`, en la sección «Google Calendar».
-2. Reservar un turno de prueba como paciente en un consultorio ficticio, por ejemplo el «Consultorio Ramirez». El agente puede dejar uno listo, con su enlace.
-3. En la página del turno, tocar **«Agregar al calendario»**.
-4. En la pantalla de Google, **mostrar la barra de direcciones** con el `client_id` (`702611060405-…`) y la pantalla de permiso con «Cita Suite», el logo y el permiso de Calendar. Aceptar.
-5. Volver a la página del turno: muestra «Recordatorio activado».
-6. Abrir Google Calendar y mostrar el evento del turno.
-7. Volver a la página del turno, **cancelarlo** y mostrar en Google Calendar que el evento desapareció.
+**Grabación**, con carteles breves en inglés (entre comillas, el texto sugerido):
+1. `https://cita-suite.com.ar`: «Cita Suite: appointment booking for healthcare practices».
+2. `https://app.cita-suite.com.ar/privacidad`, sección «Google Calendar»: «How Google data is used (Limited Use)».
+3. El enlace del turno sintético: «A patient opens their appointment page».
+4. En la tarjeta del recordatorio (en computadora, dentro de «Agregar al calendario»), tocar **«Conectar mi cuenta Google»**: «The patient chooses to save this appointment in their Google Calendar».
+5. Elegir `citasuite@gmail.com`. Si Google muestra que la app no está verificada, seguir con «Advanced» y continuar: es lo esperado hasta que Google apruebe.
+6. En la pantalla de permiso: mostrar el nombre **Cita Suite** y el permiso de Calendar; **hacer clic en la barra de direcciones** y mostrar `client_id=702611060405-…`: «App name and OAuth client ID». Aceptar.
+7. De vuelta en la página del turno, recargar hasta ver **«Recordatorio guardado en tu calendario»**: «The app created one event for this appointment».
+8. En `calendar.google.com`, abrir el evento del día del turno: «Neutral title, with reminders».
+9. En la página del turno, **Reprogramar** a otro horario y confirmar; recargar Google Calendar y mostrar el evento en el horario nuevo: «Rescheduling updates the same event».
+10. En la página del turno, **Cancelar** y confirmar; recargar Google Calendar y mostrar que el evento ya no está: «Cancelling deletes that event. No other event is read or changed».
 
-## Lo que Google suele pedir además
-
-Para permisos delicados, los revisores a veces piden que la política de privacidad diga expresamente que el uso de los datos de Google cumple la «Google API Services User Data Policy», incluido el «Limited Use». La política publicada hoy describe el uso, pero no nombra esa política. Si lo piden, se agrega en la app una frase en la sección «Google Calendar» de `/privacidad` y se publica: es un cambio chico.
+**Después de grabar:**
+1. Revisar el video completo: no deben verse contraseñas, códigos, correos privados ni otra cuenta.
+2. El agente invalida el enlace del turno sintético, que quedó en la barra de direcciones.
+3. Subirlo en `https://studio.youtube.com` con visibilidad **No listado**.
+4. En el Centro de verificación, pegar el enlace y la justificación de arriba. **No cambiar la marca** (nombre, logo, dominios) mientras Google revisa.
 
 ## Después de enviarla
 
