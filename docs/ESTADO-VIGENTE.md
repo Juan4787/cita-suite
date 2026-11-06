@@ -9,7 +9,7 @@
 ```estado
 rama_de_trabajo: main
 produccion_revision: 10e268177681940509f4d59b86fd104c9d01b6c7
-produccion_version_cloudflare: ea417ba0-4d1e-4e0b-a932-44de58f40bdd
+produccion_version_cloudflare: d9580343-7468-45dc-8a2d-beee21bfcbd5
 produccion_repositorio: github-secundaria:Juan4787/cita-suite-verificacion.git
 ```
 
@@ -23,7 +23,7 @@ Autorización de implementación, pruebas y publicación vigente: [plan 12.32](p
 
 | Dato | Valor comprobado en el destino |
 |---|---|
-| Worker `app` | Versión `ea417ba0-4d1e-4e0b-a932-44de58f40bdd`. Vuelta atrás válida: `50c8570c-149d-43ea-8f42-f0d2e1496d1b`, la tercera versión de E; sólo difiere en la respuesta del webhook sin firma |
+| Worker `app` | Versión `d9580343-7468-45dc-8a2d-beee21bfcbd5`: el mismo código de `ea417ba0`, con la clave nueva del webhook. Vuelta atrás válida: `50c8570c-149d-43ea-8f42-f0d2e1496d1b`, la tercera versión de E; difiere en la respuesta del webhook sin firma, y tras volver hay que comprobar la clave del webhook, porque esa versión es anterior al cambio |
 | Worker `cita-suite-scheduler` | Versión `853b9020-5738-4a66-be5e-acf1b1d6cb09`, cinco cron: `*/5`, `1-59/5`, `2-59/5`, `3-59/5` y `17 */3` |
 | Migraciones | 164 en la historia de producción: las 32 de E entraron en una transacción de 18 s, y la correctiva `20261106030000` en otra de 1 s |
 | Interruptores | `reschedule_enabled` y `email_producer_enabled` encendidos; `GOOGLE_CALENDAR_MANAGED_ENABLED=true`; tope diario de correo 100, reserva 10; `private.deposit_automation` sin cambios |
