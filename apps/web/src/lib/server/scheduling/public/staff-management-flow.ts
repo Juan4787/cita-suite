@@ -38,7 +38,8 @@ export const submitStaffManagementAction = async (reader: CitaSupabaseClient,
   }
   return { success: true, result, message: result.idempotentReplay ? 'Esta acción ya estaba guardada. Revisá el estado actual del turno.' :
    !result.changed ? 'El turno ya tenía ese horario; no fue necesario modificarlo.' :
-   action === 'reschedule' ? 'La reprogramación quedó registrada.' : 'El cambio del turno quedó registrado.' };
+   action === 'reschedule' ? 'La reprogramación quedó registrada.' :
+   result.status === 'cancelled' ? 'El turno quedó cancelado.' : 'El cambio del turno quedó registrado.' };
  } catch (error) {
   logServerFailure('Error en una acción del personal', error);
   const raw = error instanceof Error ? error.message : typeof error === 'object' && error !== null && 'message' in error ? String(error.message) : '';

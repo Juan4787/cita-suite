@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
 	ACTIVE_APPOINTMENT_STATUSES,
 	getAgendaExpiredCutoff,
+	hasAppointmentStarted,
 	isActiveAppointmentStatus,
 	isExpiredActiveAppointment,
 	splitActiveAppointmentGroups,
@@ -9,6 +10,19 @@ import {
 } from './appointment-visibility';
 
 const now = new Date('2026-08-22T15:00:00.000Z');
+
+describe('appointments that already started', () => {
+	it('is only about active appointments whose start time passed', () => {
+		const at = (starts_at: string, status = 'reserved') => hasAppointmentStarted({ starts_at, status }, now);
+		expect(at('2026-08-22T14:59:59.000Z')).toBe(true);
+		expect(at('2026-08-22T15:00:00.000Z')).toBe(false);
+		expect(at('2026-08-22T16:00:00.000Z')).toBe(false);
+		// Older than the agenda's three month window it still happened in the past.
+		expect(at('2025-01-01T12:00:00.000Z', 'confirmed')).toBe(true);
+		expect(at('2026-08-22T14:00:00.000Z', 'cancelled')).toBe(false);
+		expect(at('')).toBe(false);
+	});
+});
 
 describe('upcoming active appointments', () => {
 	it('defines the only statuses that remain operationally active', () => {

@@ -7,7 +7,8 @@ import {formatQuotedPrice} from '$lib/booking/pricing';
 	import { enhance } from '$app/forms';
 	import { onMount } from 'svelte';
 	import type { SubmitFunction } from '@sveltejs/kit';
-	import { isUpcomingActiveAppointment } from '$lib/utils/appointment-visibility';
+	import { hasAppointmentStarted, isUpcomingActiveAppointment } from '$lib/utils/appointment-visibility';
+	import StaffCancelPanel from '$lib/components/appointments/StaffCancelPanel.svelte';
 	import { agendaLongDate, agendaTime } from '$lib/utils/agenda-dates';
 	import { DEPOSIT_STATUS_LABELS, formatDepositAmount, type AppointmentDepositView } from '$lib/scheduling/deposits';
 	import { formatInTimeZone } from '$lib/utils/format';
@@ -92,7 +93,11 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@cita-suite/share
  const canOperate = $derived(data.context.canOperate && !data.demo);
 	const isClosed = $derived(data.appointment?.status === 'cancelled');
 	const canShowCancelAction = $derived(
-		!isClosed && data.appointment !== null && isUpcomingActiveAppointment(data.appointment)
+		canOperate && !isClosed && data.appointment !== null && isUpcomingActiveAppointment(data.appointment)
+	);
+	const appointmentStarted = $derived(data.appointment !== null && hasAppointmentStarted(data.appointment));
+	const appointmentInProgress = $derived(
+		appointmentStarted && data.appointment !== null && Date.parse(data.appointment.ends_at) > Date.now()
 	);
 	const appointmentProfessionals = $derived(data.appointment?.professionals ?? []);
 	const isJoint = $derived(appointmentProfessionals.length > 1);
@@ -513,10 +518,38 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@cita-suite/share
 						{/if}
 					</div>
 				</div>
-				<span class={`w-fit rounded-full px-5 py-3 text-sm font-bold ${headerTone}`}>
-					{statusLabels[data.appointment.status] ?? data.appointment.status}{depositSuffix}
-				</span>
+				<div class="flex flex-wrap gap-2 lg:justify-end">
+					{#if appointmentStarted}
+						<span class="ux-badge ux-badge-warning w-fit px-5 py-3 text-sm" data-started-badge>{appointmentInProgress ? 'En curso' : 'Turno pasado'}</span>
+					{/if}
+					<span class={`w-fit rounded-full px-5 py-3 text-sm font-bold ${headerTone}`}>
+						{statusLabels[data.appointment.status] ?? data.appointment.status}{depositSuffix}
+					</span>
+				</div>
 			</div>
+
+			{#if appointmentStarted}
+				<p class="ux-alert ux-alert-warning mt-5" data-started-notice>
+					{appointmentInProgress ? 'Este turno ya empezó.' : 'Este turno ya pasó.'}
+					{#if canOperate}
+						Por eso no se puede cancelar. Si el paciente necesita otro horario, podés reprogramarlo.
+					{/if}
+				</p>
+			{/if}
+			{#if canShowCancelAction && data.management}
+				<div class="mt-5">
+					<StaffCancelPanel
+						patientName={data.appointment.patients?.full_name ?? 'este paciente'}
+						when={`${dateOnly(data.appointment.starts_at)} a las ${timeOnly(data.appointment.starts_at)}`}
+						patientHasEmail={Boolean(data.appointment.patients?.email)}
+						deposit={data.deposit}
+						operationId={data.management.statusOperationId}
+						revision={data.management.revision}
+						disabled={!canUseStatusAction('cancelled')}
+						onsubmit={onStaffAction}
+					/>
+				</div>
+			{/if}
 
 			<div class="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
 				<div class="rounded-2xl border border-line bg-fill-04 p-5">
@@ -761,28 +794,6 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@cita-suite/share
      </ul>
     </section>
    {/if}
-
-			{#if canShowCancelAction}
-				<div class="mt-7 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-					<details class="rounded-2xl border border-danger-400-20 bg-danger-500-10 md:col-span-2 xl:col-span-3">
-						<summary class="cursor-pointer list-none px-5 py-5 text-lg font-bold text-danger-100">Cancelar turno</summary>
-						<form method="POST" action="?/update_status" use:enhance={onStaffAction} class="border-t border-danger-400-20 p-5">
-							<input type="hidden" name="status" value="cancelled" />
-       <input type="hidden" name="operation_id" value={data.management?.statusOperationId ?? ''} />
-       <input type="hidden" name="expected_revision" value={data.management?.revision ?? ''} />
-							<label>
-								<span class="ux-label">Motivo (opcional)</span>
-								<textarea name="reason" maxlength="500" rows="2" disabled={!canUseStatusAction('cancelled')} class="ux-textarea"></textarea>
-							</label>
-							<label class="mt-4 flex items-start gap-3 text-sm font-bold text-danger-100">
-								<input type="checkbox" name="confirm_cancel" value="true" required disabled={!canUseStatusAction('cancelled')} class="mt-1 h-4 w-4 accent-check-danger-600 disabled:opacity-60" />
-								<span>Confirmo que quiero cancelar este turno.</span>
-							</label>
-							<button disabled={!canUseStatusAction('cancelled')} class="ux-btn-danger mt-4 w-full">Cancelar turno</button>
-						</form>
-					</details>
-				</div>
-			{/if}
 
 			<div class="mt-7 grid gap-4 rounded-2xl border border-line bg-fill-04 p-5 lg:grid-cols-3">
 				<div>

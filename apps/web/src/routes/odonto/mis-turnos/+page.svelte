@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { formatDateTime } from '$lib/utils/format';
+	import { hasAppointmentStarted } from '$lib/utils/appointment-visibility';
 
 	type ProfessionalLink = {
 		professional_id: string;
@@ -106,7 +107,7 @@
 								{appointment.patients?.full_name ?? 'Paciente'}{appointment.patients?.phone_e164 ? ` · ${appointment.patients.phone_e164}` : ''}
 							</p>
 							<div class="mt-2">
-								<span class={statusTone[appointment.status] ?? 'ux-badge'}>{statusLabels[appointment.status] ?? appointment.status}</span>
+								<span class={hasAppointmentStarted(appointment) ? 'ux-badge ux-badge-warning' : (statusTone[appointment.status] ?? 'ux-badge')}>{hasAppointmentStarted(appointment) ? 'Turno pasado' : (statusLabels[appointment.status] ?? appointment.status)}</span>
 							</div>
 						</div>
 						<svg class="h-5 w-5 shrink-0 text-fg-30" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6" /></svg>

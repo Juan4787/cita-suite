@@ -39,8 +39,24 @@ El chequeo compara esta lista con `git diff --name-status <produccion_revision> 
 ```codigo-distinto-de-produccion
 M	apps/web/.impeccable/surfaces/gestion-del-turno.md
 M	apps/web/DESIGN.md
+M	apps/web/e2e/appointment-slot-releases.spec.ts
+A	apps/web/e2e/reception-cancel.spec.ts
+M	apps/web/e2e/staff-management.spec.ts
+A	apps/web/src/lib/components/appointments/StaffCancelPanel.svelte
+M	apps/web/src/lib/server/scheduling/public/appointments.ts
+M	apps/web/src/lib/server/scheduling/public/staff-management-flow.test.ts
+M	apps/web/src/lib/server/scheduling/public/staff-management-flow.ts
+M	apps/web/src/lib/utils/appointment-visibility.test.ts
+M	apps/web/src/lib/utils/appointment-visibility.ts
 M	apps/web/src/routes/api/zoho/webhook/+server.ts
 M	apps/web/src/routes/api/zoho/webhook/webhook.server.test.ts
+M	apps/web/src/routes/odonto/agenda/+page.svelte
+M	apps/web/src/routes/odonto/agenda/page.client.test.ts
+M	apps/web/src/routes/odonto/mis-turnos/+page.svelte
+M	apps/web/src/routes/odonto/turnos/[appointmentId]/+page.svelte
+M	apps/web/src/routes/odonto/turnos/[appointmentId]/page.client.test.ts
+A	supabase/migrations/20261106040000_staff_cancel_before_start.sql
+M	supabase/tests/staff_appointment_management.sql
 ```
 
 `supabase/templates/recovery.html` no se despliega con la app: se carga aparte en Supabase. **No está verificado** si la versión de Supabase coincide con ese archivo.

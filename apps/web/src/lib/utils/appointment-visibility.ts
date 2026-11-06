@@ -20,6 +20,16 @@ export const isUpcomingActiveAppointment = (
 	return Number.isFinite(startsAt) && startsAt >= now.getTime();
 };
 
+/** Still active in the records, but its start time passed: it can no longer be cancelled (plan 12.34). */
+export const hasAppointmentStarted = (
+	appointment: { starts_at?: string | null; status?: unknown },
+	now: Date = new Date()
+) => {
+	if (!isActiveAppointmentStatus(appointment.status)) return false;
+	const startsAt = Date.parse(String(appointment.starts_at ?? ''));
+	return Number.isFinite(startsAt) && startsAt < now.getTime();
+};
+
 // PostgreSQL usa meses calendario para `interval '3 months'`. Reproducimos
 // esa regla en el navegador y fijamos el día al último válido del mes destino
 // para que, por ejemplo, el 31 de mayo reste tres meses hasta el 28 de febrero.

@@ -41,4 +41,10 @@ Después de una compactación: leer AGENTS, estado vigente, [12.34](propuesta-se
 
 ## Punto de trabajo
 
-**6 de noviembre, noche.** Relevamiento hecho sobre las 665 capturas de la corrida 42290663360 (`main` `f459b95c`). P1 en implementación. Nada publicado todavía.
+**6 de noviembre, noche.** Relevamiento hecho sobre las 665 capturas de la corrida 42290663360 (`main` `f459b95c`). Nada publicado todavía.
+
+**P1, lo implementado:**
+- `supabase/migrations/20261106040000_staff_cancel_before_start.sql`: el comando rechaza cancelar un turno ya iniciado con `APPOINTMENT_ALREADY_STARTED`. Hasta acá sólo lo impedía la pantalla. Reprogramar un turno pasado sigue permitido.
+- Detalle del turno: «Cancelar turno» sale del final de la página y queda arriba, en `StaffCancelPanel.svelte`, con lo que pasa con el horario, la seña y el aviso al paciente antes de confirmar. Sólo lo ven los roles que operan.
+- Turno pasado o en curso: etiqueta «Turno pasado» o «En curso» y un aviso que explica por qué no se cancela. La agenda y «Mis turnos» usan la misma etiqueta, en reemplazo de «Expirado».
+- Pruebas: `e2e/reception-cancel.spec.ts`, casos 11a a 11c de `supabase/tests/staff_appointment_management.sql`, y pruebas de cliente y servidor.
