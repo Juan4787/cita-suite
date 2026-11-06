@@ -371,9 +371,10 @@ test.describe('Dental Suite - flujo operativo completo', () => {
 
 		await page.getByLabel('Nombre y apellido').fill(patientName);
 		await page.getByLabel('Teléfono').fill(patientPhone);
-		const optionalEmail = page.getByLabel(/^Correo electrónico/);
-		await expect(optionalEmail).not.toHaveAttribute('required');
-		await optionalEmail.fill(`paciente-${suffix}@example.com`);
+		// The public channel asks for the address by default; the practice can turn that off.
+		const requiredEmail = page.getByLabel(/^Correo electrónico/);
+		await expect(requiredEmail).toHaveAttribute('required');
+		await requiredEmail.fill(`paciente-${suffix}@example.com`);
 		await page.getByLabel('Obra social y plan', { exact: true }).fill('Particular de prueba');
 		await page.getByRole('button', { name: 'Confirmar reserva' }).click();
 		await expect(page).toHaveURL(/\/turno\/[^/?]+\?creado=1$/, { timeout: 60_000 });

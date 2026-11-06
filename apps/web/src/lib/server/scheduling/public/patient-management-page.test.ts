@@ -28,7 +28,7 @@ describe('public appointment route delegation', () => {
  it.each([false, true])('uses the explicit legacy channel %s without guessing from identical token formats', async legacy => {
   const e = event(); await createPatientManagementPage(legacy).load(e);
   expect(mock.screen).toHaveBeenCalledExactlyOnceWith(mock.client, { token, legacy }, e.url);
-  expect(e.setHeaders).toHaveBeenCalledWith(expect.objectContaining({ 'cache-control': 'no-store', 'referrer-policy': 'no-referrer', 'x-robots-tag': expect.stringContaining('noindex') }));
+  expect(e.setHeaders).toHaveBeenCalledWith(expect.objectContaining({ 'cache-control': 'no-store', 'referrer-policy': 'same-origin', 'x-robots-tag': expect.stringContaining('noindex') }));
  });
  it('does not fall back to the stable calendar token after a revoked management link', async () => {
   mock.screen.mockResolvedValue(null);

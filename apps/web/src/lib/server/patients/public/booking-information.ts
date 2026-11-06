@@ -1,3 +1,4 @@
+import { FORM_PAGE_REFERRER_POLICY } from '$lib/server/platform/cross-site-form';
 import { env } from '$env/dynamic/private';
 import { error, type RequestEvent } from '@sveltejs/kit';
 import type { CitaSupabaseClient } from '$lib/types/database';
@@ -7,7 +8,7 @@ import { hashRateLimitSubject } from '$lib/server/platform/rate-limits';
 import { readBoolean, readRecord, readText, isRecord } from '$lib/contracts/json';
 
 export const bookingInformationEnabled = () => env.BOOKING_INFORMATION_ENABLED === 'true';
-export const privateInformationHeaders = { 'cache-control': 'no-store', 'referrer-policy': 'no-referrer', 'x-content-type-options': 'nosniff', 'x-robots-tag': 'noindex, nofollow, noarchive' };
+export const privateInformationHeaders = { 'cache-control': 'no-store', 'referrer-policy': FORM_PAGE_REFERRER_POLICY, 'x-content-type-options': 'nosniff', 'x-robots-tag': 'noindex, nofollow, noarchive' };
 import type { PublicInformation } from '$lib/patients/public-booking-information';
 export type { PublicInformation } from '$lib/patients/public-booking-information';
 

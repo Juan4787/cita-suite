@@ -1,3 +1,4 @@
+import { FORM_PAGE_REFERRER_POLICY } from '$lib/server/platform/cross-site-form';
 import { logServerFailure } from '$lib/server/platform/logging';
 import { bookingInformationEnabled } from '$lib/server/patients/public/booking-information';
 import { env } from '$env/dynamic/private';
@@ -114,7 +115,7 @@ const load = async (event: RequestEvent) => {
  const token = params.token ?? "";
  const access: PatientManagementAccess = { token, legacy };
 	// La página expone datos del turno detrás del token: nunca debe quedar cacheada.
-	setHeaders({ 'cache-control': 'no-store', 'referrer-policy': 'no-referrer', 'x-robots-tag': 'noindex, nofollow, noarchive' });
+	setHeaders({ 'cache-control': 'no-store', 'referrer-policy': FORM_PAGE_REFERRER_POLICY, 'x-robots-tag': 'noindex, nofollow, noarchive' });
 	const userAgent = request.headers.get('user-agent');
 	const device = classifyUserAgent(userAgent);
 	const vapidPublicKey = publicEnv.PUBLIC_VAPID_PUBLIC_KEY?.trim() || env.VAPID_PUBLIC_KEY?.trim() || null;

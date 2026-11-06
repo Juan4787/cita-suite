@@ -5,7 +5,7 @@ import { applyThemeInPage, chooseTheme, expectRenderedTheme } from './helpers/th
 import { test, expect } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 import { createClient } from '@supabase/supabase-js';
-import { createFixtureClient } from './helpers/fixture-db';
+import { createFixtureClient, forgetPublicBookingAttempts } from './helpers/fixture-db';
 import type { CitaDatabase } from '../src/lib/types/database';
 import { randomUUID } from 'node:crypto';
 import { clinicalPdfFixture } from './helpers/clinical-pdf';
@@ -17,6 +17,7 @@ const fixture = path ? JSON.parse(readFileSync(path, 'utf8')) : null;
 test.describe('isolated booking integration', () => {
 	test.use({ actionTimeout: 15_000, navigationTimeout: 30_000 });
 	test.skip(!fixture, 'Requires an explicitly prepared disposable local booking fixture.');
+	test.beforeEach(() => forgetPublicBookingAttempts(createFixtureClient(fixture.apiOrigin, fixture.service)));
 	test('recovers a committed booking after a lost response and shares policy with the native page', async ({
 		browser,
 		request
@@ -234,7 +235,7 @@ test.describe('isolated booking integration', () => {
 			'frame-ancestors ' + fixture.hostOrigin
 		);
 		expect(allowed.headers()['cache-control']).toBe('no-store');
-		expect(allowed.headers()['referrer-policy']).toBe('no-referrer');
+		expect(allowed.headers()['referrer-policy']).toBe('same-origin');
 		const denied = await request.get(
 			fixture.appOrigin +
 				'/embed/v1/' +
@@ -340,7 +341,7 @@ test.describe('isolated booking integration', () => {
 		// navigation that may reuse its layout. Both must serve a private receipt.
 		const directVirtualReceipt = await request.get(phoneFrame.url());
 		expect(directVirtualReceipt.status()).toBe(200);
-		expect(directVirtualReceipt.headers()['referrer-policy']).toBe('no-referrer');
+		expect(directVirtualReceipt.headers()['referrer-policy']).toBe('same-origin');
 		expect(directVirtualReceipt.headers()['cache-control']).toContain('no-store');
 		expect(directVirtualReceipt.headers()['x-robots-tag']).toBe('noindex, nofollow, noarchive');
 		await expect(

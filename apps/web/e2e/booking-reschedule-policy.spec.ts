@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
+import { forgetPublicBookingAttempts } from './helpers/fixture-db';
 import { ownedAppointmentFixture } from './helpers/owned-appointment-fixture';
 import { layoutIssues, type LayoutIssue } from './helpers/layout-usability';
 import { applyThemeInPage, expectRenderedTheme } from './helpers/theme';
@@ -10,6 +11,7 @@ import { alignTaskForCapture } from './helpers/task-capture';
 test('@candidate-behavior isolated informed booking: stale policy, atomic retry and responsive disclosure', async ({ page, browser }, info) => {
  test.setTimeout(150_000);
  const f = ownedAppointmentFixture();
+ await forgetPublicBookingAttempts(f.admin);
  const businessId = randomUUID(), ownerId = randomUUID(), serviceId = randomUUID(), professionalId = randomUUID();
  const slug = `informed-booking-${businessId}`;
  const original: unknown = JSON.parse(f.sql(`select jsonb_build_object('deposit',(select enabled from private.deposit_automation where singleton),

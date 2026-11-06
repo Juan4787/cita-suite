@@ -634,6 +634,7 @@ test.describe('roles, profesionales y agenda - regresiones críticas', () => {
 				time: '10:30',
 				patient_mode: 'existing',
 				idempotency_key: randomUUID(),
+				email_warning_acknowledged: 'true',
 				patient_id: fixture.secondPatientId
 			}
 		);
@@ -646,6 +647,7 @@ test.describe('roles, profesionales y agenda - regresiones críticas', () => {
 			time: '09:00',
 			patient_mode: 'existing',
 			idempotency_key: randomUUID(),
+			email_warning_acknowledged: 'true',
 			patient_id: fixture.patientId
 		});
 		expectAppointmentCreated(createAppointment);
@@ -725,6 +727,7 @@ test.describe('roles, profesionales y agenda - regresiones críticas', () => {
 				time: '10:30',
 				patient_mode: 'new',
 				idempotency_key: randomUUID(),
+				email_warning_acknowledged: 'true',
 				patient_name: `E2E Bloqueo ${fixture.suffix}`,
 				patient_phone: `+54911${Math.floor(10000000 + Math.random() * 90000000)}`
 			}
@@ -850,6 +853,7 @@ test.describe('roles, profesionales y agenda - regresiones críticas', () => {
 			time: '09:45',
 			patient_mode: 'existing',
 			idempotency_key: randomUUID(),
+			email_warning_acknowledged: 'true',
 			patient_id: fixture.secondPatientId
 		});
 		expect(overlapAttempt.text).toContain(

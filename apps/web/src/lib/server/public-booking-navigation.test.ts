@@ -138,7 +138,7 @@ describe('one Cita Suite flow for shared and Natalia links', () => {
     mocks.resolve.mockResolvedValue({ integration, embed: { parentOrigin: 'https://natalia.example.test', instanceId } });
     const loads = order === 'layout-first' ? [embedLayoutLoad, receiptLoad] : [receiptLoad, embedLayoutLoad];
     for (const load of loads) await load(e);
-    expect(headers).toEqual({ 'cache-control': 'no-store', 'referrer-policy': 'no-referrer', 'x-robots-tag': 'noindex, nofollow, noarchive' });
+    expect(headers).toEqual({ 'cache-control': 'no-store', 'referrer-policy': 'same-origin', 'x-robots-tag': 'noindex, nofollow, noarchive' });
     expect(mocks.appointment).toHaveBeenCalledWith(expect.anything(), { token, legacy: true });
   });
 });

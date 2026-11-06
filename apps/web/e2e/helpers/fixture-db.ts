@@ -33,6 +33,16 @@ export async function must<T>(
 	return data;
 }
 
+/**
+ * Public booking counts attempts per connection, and every spec shares this one. A spec that books
+ * starts clean, like a separate visitor, so it measures only its own attempts. The limit itself is
+ * covered by the public booking tests and stays active inside each spec.
+ */
+export async function forgetPublicBookingAttempts(client: FixtureClient): Promise<void> {
+	const { error } = await client.from('public_booking_attempts').delete().gte('created_at', '1970-01-01T00:00:00Z');
+	if (error) throw fixtureFailure(error);
+}
+
 /** A fixture write without a selection, including cleanup: its error is never ignored. */
 export async function write(operation: PromiseLike<{ error: unknown }>): Promise<void> {
 	const { error } = await operation;

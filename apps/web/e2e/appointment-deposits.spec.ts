@@ -1,6 +1,6 @@
 import { expect, test, type Locator, type Page, type TestInfo } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
-import { must } from './helpers/fixture-db';
+import { must, forgetPublicBookingAttempts } from './helpers/fixture-db';
 import { ownedAppointmentFixture as ownedFixture } from './helpers/owned-appointment-fixture';
 import { loginWithSharedSession } from './helpers/shared-auth';
 import { layoutIssues, type LayoutIssue } from './helpers/layout-usability';
@@ -28,6 +28,7 @@ test('appointment deposits: booking terms, registration, agenda and automatic ca
 }, async ({ page, context }, info) => {
 	test.setTimeout(300_000);
 	const f = ownedFixture();
+	await forgetPublicBookingAttempts(f.admin);
 	// This spec owns the temporary policy, never a pre-existing configuration.
 	expect(f.sql("select count(*) from public.deposit_policies where business_id=:'business'::uuid;")).toBe('0');
 	const previousAutomation = f.sql('select enabled::text from private.deposit_automation where singleton;');
@@ -74,6 +75,7 @@ test('appointment deposits: booking terms, registration, agenda and automatic ca
 		}
 		await page.getByLabel('Nombre y apellido').fill(fullName);
 		await page.getByLabel('Teléfono').fill(patientPhone);
+		await page.getByLabel('Correo electrónico').fill(`deposit-${patientPhone}@example.test`);
 		await page.getByLabel('Obra social y plan').fill('Particular sintético');
 		await page.getByLabel('Edad', { exact: true }).fill('35');
 		await page.getByLabel('Obra social del perfil').fill('Particular sintético');
