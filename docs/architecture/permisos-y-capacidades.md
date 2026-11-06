@@ -150,3 +150,6 @@ E3.42 actualiza únicamente la evidencia SQL del párrafo anterior: **4207354113
 
 
 E3.45 actualiza la verificación de interfaz SN14: fast **42076262537 aprobado**, código f4eff44, 2038 servidor/300 cliente y cero errores/avisos. El formulario tardío pertenece al panel de importes; la obligación cerrada conserva su descripción sin acciones. Browser 42076886857 todavía en curso; no hay prueba de banco/correo ni publicación. [Revisión exacta, evidencia y límites](../plans/ejecucion-etapa-e-20261103.md#e345--consumidor-integrado-aprobado-browser-sobre-la-misma-revisión).
+
+
+**Actualización E3.50, interrupción documental:** personal conserva su caso aprobado en **42078792126** (corrida completa fallida por SN14), con las capas descritas en el registro. Browser **42080552190 terminó fallido** después del rechazo/borrador y registro nativos de 10.000; se detuvo en el clic JS antes de comprobar respuesta ilegible. Recuperación/corrección y visuales SN14 siguen pendientes. No queda esa corrida en curso, ni hay banco/correo/publicación E. Implementación detenida por pedido de Juan; [traspaso técnico, revisiones y evidencia](../plans/traspaso-etapa-e-20261105.md). Los estados de corridas de párrafos anteriores corresponden a sus checkpoints históricos.

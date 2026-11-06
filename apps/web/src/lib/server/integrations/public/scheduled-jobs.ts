@@ -12,6 +12,7 @@ import {
 	parseJobBudgetProfile,
 	type ScheduledJobRun
 } from '$lib/server/integrations/internal/job-budget';
+import { sendAppointmentEmailBatch } from '$lib/server/integrations/public/appointment-email';
 import { processGoogleCalendarSyncBatch } from '$lib/server/integrations/public/google-calendar';
 import { sendGoogleReviewRequestBatch } from '$lib/server/integrations/public/google-reviews';
 import { reconcileMercadoPago } from '$lib/server/integrations/public/mercadopago';
@@ -31,6 +32,7 @@ type JobResult = Record<string, number | boolean>;
 const jobs: Record<ScheduledJobKind, (run: ScheduledJobRun) => Promise<JobResult>> = {
 	push: sendPushReminderBatch,
 	calendar: processGoogleCalendarSyncBatch,
+	email: sendAppointmentEmailBatch,
 	reviews: sendGoogleReviewRequestBatch,
 	uploads: (run) => cleanupAbandonedClinicalUploads(run.supabase, UPLOAD_CLEANUP_LIMIT),
 	commercial: async (run) => {

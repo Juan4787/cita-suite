@@ -1,7 +1,7 @@
 // Contract between the scheduler Worker and the app's internal job endpoints.
 // The scheduler only names a category; every rule of the job lives in the app.
 
-export const SCHEDULED_JOB_KINDS = ['push', 'calendar', 'reviews', 'uploads', 'commercial', 'storage'] as const;
+export const SCHEDULED_JOB_KINDS = ['push', 'calendar', 'email', 'reviews', 'uploads', 'commercial', 'storage'] as const;
 export type ScheduledJobKind = (typeof SCHEDULED_JOB_KINDS)[number];
 
 export const isScheduledJobKind = (value: string): value is ScheduledJobKind =>

@@ -633,7 +633,7 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@cita-suite/share
     <section class="ux-soft-card mt-5 p-5" aria-labelledby="deposit-financials-title">
      <h2 id="deposit-financials-title" class="ux-section-title">Importes registrados</h2>
      {#if isClosed && data.deposit && data.canRecordDeposit && !data.demo && data.management}
-      <details id="late-deposit-record" class="mt-5 border-t border-line pt-4" open={!!feedback?.lateDepositDraft}>
+      <details id="late-deposit-record" class="mt-5 border-t border-line pt-4" {...(feedback?.lateDepositDraft ? { open: true } : {})}>
        <summary class="cursor-pointer text-base font-semibold text-accent">Registrar dinero después de cancelar</summary>
        <form method="POST" action="?/late_deposit" use:enhance={onStaffAction} class="mt-4">
         <fieldset class="flex flex-col gap-4" disabled={!canOperate || submitting || !!feedback?.retry}>

@@ -11,8 +11,9 @@ describe('programación versionada', () => {
 	it('asigna una sola categoría a cada disparador del plan', () => {
 		assert.equal(jobForEvent('*/5 * * * *', at('2026-10-19T12:05:00Z')), 'push');
 		assert.equal(jobForEvent('1-59/5 * * * *', at('2026-10-19T12:06:00Z')), 'calendar');
-		assert.equal(jobForEvent('2-59/10 * * * *', at('2026-10-19T12:12:00Z')), 'reviews');
-		assert.equal(jobForEvent('3-59/15 * * * *', at('2026-10-19T12:18:00Z')), 'uploads');
+		assert.equal(jobForEvent('2-59/5 * * * *', at('2026-10-19T12:12:00Z')), 'reviews');
+		assert.equal(jobForEvent('2-59/5 * * * *', at('2026-10-19T12:07:00Z')), 'uploads');
+		assert.equal(jobForEvent('3-59/5 * * * *', at('2026-10-19T12:18:00Z')), 'email');
 	});
 
 	it('alterna conciliación comercial y de almacenamiento, cada una cada seis horas UTC', () => {
