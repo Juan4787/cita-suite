@@ -12,7 +12,7 @@
 			<BackLink href="/login" label="Volver al ingreso" />
 			<h1 class="mt-2 text-2xl font-semibold">Política de privacidad</h1>
 			<p class="mt-1 text-xs text-fg-n300">
-				Última actualización: 2026-08-28
+				Última actualización: 2026-11-05
 			</p>
 
 			<section class="mt-6 space-y-3 text-sm leading-relaxed text-fg-n200">
@@ -27,6 +27,10 @@
 				<ul class="mt-2 list-disc space-y-2 pl-5 text-sm text-fg-n200">
 					<li>Datos de cuenta: correo electrónico y credenciales de acceso.</li>
 					<li>Datos de pacientes cargados por el usuario (nombre, DNI, teléfono, etc.).</li>
+					<li>
+						Datos de contacto que el paciente indica al reservar, como su teléfono y su correo electrónico, y, si
+						activa los recordatorios del navegador, la suscripción técnica de ese dispositivo.
+					</li>
 					<li>Historial clínico y notas registradas por el usuario.</li>
 					<li>Radiografías e imágenes clínicas, sus miniaturas y metadatos asociados (nombre, fecha, tipo, tamaño, estado e identificadores técnicos).</li>
 					<li>Datos técnicos mínimos para el funcionamiento (cookies de sesión y preferencias de tema).</li>
@@ -40,6 +44,11 @@
 					<li>Guardar imágenes clínicas, asociarlas a pacientes y mostrarlas únicamente a usuarios autorizados.</li>
 					<li>Registrar acciones relevantes, como cargas, accesos a originales, envíos a la papelera y restauraciones.</li>
 					<li>Preparar exportaciones Excel solicitadas por el dueño o un administrador autorizado.</li>
+					<li>
+						Enviar al paciente, con la identidad del consultorio, el comprobante de su turno, los cambios, los pedidos de
+						seña y los recordatorios por correo, y los recordatorios del navegador si los activó. Cada correo permite
+						dejar de recibir los de ese consultorio.
+					</li>
 					<li>Mejorar estabilidad y soporte técnico.</li>
 				</ul>
 			</section>
@@ -60,6 +69,18 @@
 					del paciente ni el servicio reservado. El paciente puede quitar el evento desde la página
 					del turno o revocar el acceso desde su cuenta de Google.
 				</p>
+				<p class="text-sm text-fg-n200">
+					El uso y la transferencia a cualquier otra aplicación de la información recibida de las API de Google se
+					ajustan a la
+					<a class="underline" href="https://developers.google.com/terms/api-services-user-data-policy" rel="noopener noreferrer" target="_blank">
+						política de datos del usuario de los servicios de API de Google</a>, incluidos sus requisitos de uso limitado.
+					Cita Suite no vende esos datos, no los usa para publicidad ni para entrenar modelos, y no los transfiere salvo
+					para prestar esta función, por seguridad o por obligación legal.
+				</p>
+				<p class="text-sm text-fg-n200" lang="en">
+					Cita Suite's use and transfer to any other app of information received from Google APIs will adhere to the
+					Google API Services User Data Policy, including the Limited Use requirements.
+				</p>
 			</section>
 
 			<section class="mt-6 space-y-3">
@@ -69,6 +90,11 @@
 					proveedores técnicos necesarios para operar Cita Suite. Las imágenes se guardan en un contenedor privado;
 					el navegador recibe accesos temporales y específicos sólo después de que Cita Suite verifica el permiso
 					del usuario sobre el paciente.
+				</p>
+				<p class="text-sm text-fg-n200">
+					Los correos de los turnos se envían mediante Zoho. Ese proveedor recibe la dirección del destinatario y el
+					contenido del mensaje para entregarlo, y nos informa si se entregó o rebotó. No usamos seguimiento de
+					aperturas ni de clics.
 				</p>
 			</section>
 

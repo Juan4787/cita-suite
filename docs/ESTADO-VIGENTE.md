@@ -206,6 +206,7 @@ M	apps/web/src/routes/odonto/turnos/[appointmentId]/appointment-detail.server.te
 M	apps/web/src/routes/odonto/turnos/[appointmentId]/page.client.test.ts
 M	apps/web/src/routes/odonto/turnos/[appointmentId]/reschedule.server.test.ts
 M	apps/web/src/routes/odonto/turnos/[appointmentId]/slots/+server.ts
+M	apps/web/src/routes/privacidad/+page.svelte
 M	apps/web/src/routes/turno/[token]/+page.server.ts
 M	apps/web/src/routes/turno/[token]/+page.svelte
 M	apps/web/src/routes/turno/[token]/calendar-openings.server.test.ts
@@ -231,6 +232,7 @@ M	apps/web/svelte.config.js
 M	packages/shared/src/database.types.ts
 M	packages/shared/src/scheduled-jobs.ts
 A	scripts/check-repo-sync.mjs
+M	scripts/lib/production-deploy.mjs
 M	scripts/package-verification-evidence.py
 M	scripts/test-booking-foundation.mjs
 M	scripts/test-verification-evidence.py
