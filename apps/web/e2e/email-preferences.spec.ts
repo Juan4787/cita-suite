@@ -32,7 +32,8 @@ test('@candidate-behavior isolated email preferences: independent settings, stal
   const before = policy();
   await page.goto('/odonto/configuracion/correo');
   await expect(page.getByRole('heading', { name: 'Correo y autogestión', exact: true })).toBeVisible();
-  await expect(page.getByRole('status')).toContainText('Falta completar el remitente');
+  // A new practice has no sending domain: the page says so and that nothing is sent.
+  await expect(page.locator('[data-email-readiness]')).toHaveText('Todavía no se preparó el dominio de envío de este consultorio. No salen correos.');
   expect(policy()).toEqual(before);
   await expect(page.getByLabel('Enviar comprobantes y recordatorios por email')).toBeChecked();
   await expect(page.getByLabel('Pedir email obligatorio al reservar online')).toBeChecked();

@@ -186,6 +186,7 @@ M	apps/web/src/routes/odonto/configuracion/+page.svelte
 A	apps/web/src/routes/odonto/configuracion/correo/+page.server.ts
 A	apps/web/src/routes/odonto/configuracion/correo/+page.svelte
 A	apps/web/src/routes/odonto/configuracion/correo/email-settings.server.test.ts
+A	apps/web/src/routes/odonto/configuracion/correo/page.client.test.ts
 M	apps/web/src/routes/odonto/pacientes/[id]/+page.svelte
 M	apps/web/src/routes/odonto/recordatorios/+page.server.ts
 M	apps/web/src/routes/odonto/recordatorios/+page.svelte

@@ -10,14 +10,22 @@
  const expectedRevision = $derived(form?.expectedRevision ?? data.policy.revision);
  const changed = $derived(form?.changed ?? false);
  const status = $derived(data.status);
- const domainMessage = $derived.by(() => {
-  switch (status?.domainState) {
-   case 'verified': return `Listo. Los correos salen desde ${status.fromAddress}.`;
-   case 'dns_pending': return 'Estamos preparando el dominio de envío del consultorio. Todavía no salen correos.';
-   case 'failed': return 'El proveedor rechazó el dominio de envío. Los correos están detenidos hasta revisarlo.';
-   case 'disabled': return 'El dominio de envío está desactivado. No salen correos.';
-   default: return 'Todavía no se preparó el dominio de envío de este consultorio. No salen correos.';
+ // One sentence for the first fact that stops sending, in the order they must be fixed. "Listo"
+ // only when every one of them holds: a verified domain alone does not send anything.
+ const readiness = $derived.by((): { ok: boolean; message: string } | null => {
+  if (!status) return null;
+  switch (status.domainState) {
+   case 'dns_pending': return { ok: false, message: 'Estamos preparando el dominio de envío del consultorio. Todavía no salen correos.' };
+   case 'failed': return { ok: false, message: 'El proveedor rechazó el dominio de envío. Los correos están detenidos hasta revisarlo.' };
+   case 'disabled': return { ok: false, message: 'El dominio de envío está desactivado. No salen correos.' };
+   case 'verified': break;
+   default: return { ok: false, message: 'Todavía no se preparó el dominio de envío de este consultorio. No salen correos.' };
   }
+  if (!status.ready) return { ok: false, message: 'El dominio de envío está listo, pero falta el correo donde recibir las respuestas. Hasta completarlo no salen correos.' };
+  if (status.paused) return { ok: false, message: 'Los envíos están en pausa por un problema con el proveedor. Se retoman solos cuando se resuelve.' };
+  if (!status.producerEnabled) return { ok: false, message: 'El remitente está listo. El envío automático todavía no está activado.' };
+  if (!data.policy.email_enabled) return { ok: false, message: `El remitente ${status.fromAddress} está listo, pero los envíos están apagados en las preferencias de abajo.` };
+  return { ok: true, message: `Listo. Los correos salen desde ${status.fromAddress}.` };
  });
 </script>
 
@@ -31,10 +39,7 @@
  {#if status}
   <section class="ux-card grid gap-4" aria-labelledby="email-readiness-title">
    <h2 id="email-readiness-title" class="ux-section-title">Estado del envío</h2>
-   <p class={status.ready && !status.paused ? 'ux-alert ux-alert-success' : 'ux-alert'} role="status">
-    {status.ready ? (status.paused ? 'Los envíos están en pausa por un problema con el proveedor. Se retoman solos cuando se resuelve.' : domainMessage) : domainMessage}
-   </p>
-   {#if status.ready && !status.producerEnabled}<p class="ux-alert" role="status">El envío automático todavía no está activado.</p>{/if}
+   {#if readiness}<p class={readiness.ok ? 'ux-alert ux-alert-success' : 'ux-alert'} role="status" data-email-readiness>{readiness.message}</p>{/if}
    <form method="post" action="?/contact" class="grid gap-2" use:enhance={() => {
     saving = true;
     return async ({ update }) => { try { await update({ reset: false }); } finally { saving = false; } };
