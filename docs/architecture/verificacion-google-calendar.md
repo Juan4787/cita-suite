@@ -86,14 +86,15 @@ Si piden un texto corto en castellano, el sentido es el mismo: sólo si el pacie
 3. Un perfil de Chrome en la computadora con **inglés como primer idioma** (Configuración → Idiomas), para que Google muestre la pantalla de permiso en inglés.
 4. En ese perfil, la cuenta `citasuite@gmail.com` ya iniciada **antes** de grabar: la contraseña no aparece en el video.
 5. Sin otras pestañas, marcadores ni notificaciones personales visibles.
+6. En `https://myaccount.google.com/connections`, con `citasuite@gmail.com`, quitar el acceso de Cita Suite. Si la cuenta ya lo dio, Google muestra «ya tiene acceso parcial» y ninguna casilla; sin ese acceso, muestra el permiso completo, como a un paciente nuevo.
 
 **Grabación**, con carteles breves en inglés (entre comillas, el texto sugerido):
 1. `https://cita-suite.com.ar`: «Cita Suite: appointment booking for healthcare practices».
 2. `https://app.cita-suite.com.ar/privacidad`, sección «Google Calendar»: «How Google data is used (Limited Use)».
 3. El enlace del turno sintético: «A patient opens their appointment page».
 4. En la tarjeta del recordatorio (en computadora, dentro de «Agregar al calendario»), tocar **«Conectar mi cuenta Google»**: «The patient chooses to save this appointment in their Google Calendar».
-5. Elegir `citasuite@gmail.com`. Si Google muestra que la app no está verificada, seguir con «Advanced» y continuar: es lo esperado hasta que Google apruebe.
-6. En la pantalla de permiso: mostrar el nombre **Cita Suite** y el permiso de Calendar; **hacer clic en la barra de direcciones** y mostrar `client_id=702611060405-…`: «App name and OAuth client ID». Aceptar.
+5. Elegir `citasuite@gmail.com`. Si Google muestra que la app no está verificada, seguir con «Advanced» y «Go to Cita Suite»: es lo esperado hasta que Google apruebe.
+6. Google pide dos pasos, comprobados en el teléfono el 6 de noviembre: primero el ingreso a Cita Suite, con «Continue»; después la pantalla de permisos, con el nombre **Cita Suite**, el permiso de Calendar y **una casilla que hay que marcar**. Mostrar el nombre y el permiso; **hacer clic en la barra de direcciones** y mostrar `client_id=702611060405-…`: «App name and OAuth client ID». Marcar la casilla y aceptar con «Continue».
 7. De vuelta en la página del turno, recargar hasta ver **«Recordatorio guardado en tu calendario»**: «The app created one event for this appointment».
 8. En `calendar.google.com`, abrir el evento del día del turno: «Neutral title, with reminders».
 9. En la página del turno, **Reprogramar** a otro horario y confirmar; recargar Google Calendar y mostrar el evento en el horario nuevo: «Rescheduling updates the same event».
