@@ -28,6 +28,8 @@ test('@candidate-behavior staff delivery: explicit preparation, contact revocati
   (select count(*) from public.audit_logs where business_id='${f.businessId}' and entity_id in ('${reminderId}','${depositId}','${cancelledId}')),
   (select count(*) from public.appointments where id='${reminderId}' and whatsapp_reminder_opened_at is not null),
   (select count(*) from public.appointment_deposits where appointment_id='${depositId}' and reminder_opened_at is not null));`);
+ // The packaged release sets Secure cookies, and the request API leaves them out on plain HTTP.
+ const session = async () => ({ cookie: (await context.cookies()).map(({ name, value }) => `${name}=${value}`).join('; ') });
  const openDraft = async (button: Locator) => {
   const next = context.waitForEvent('page');
   await button.click();
@@ -77,7 +79,7 @@ test('@candidate-behavior staff delivery: explicit preparation, contact revocati
   await expect(page.getByRole('button', { name: 'Enviar enlace de activación', exact: true })).toBeVisible();
   expect(await page.content()).not.toContain(legacy); expect(counts()).toBe(unchanged);
   for (const endpoint of [`/odonto/senas/abrir/${depositId}`, `/odonto/recordatorios/abrir/${reminderId}`]) {
-   const reply = await context.request.get(endpoint, { maxRedirects: 0 });
+   const reply = await context.request.get(endpoint, { maxRedirects: 0, headers: await session() });
    expect(reply.status()).toBe(303); expect(reply.headers().location).toContain('aviso=actualizar');
   }
   expect(counts()).toBe(unchanged);
@@ -116,7 +118,7 @@ test('@candidate-behavior staff delivery: explicit preparation, contact revocati
   expect(requested.message).toContain('Alias sintético de entrega'); expect(requested.message).not.toContain('se libera automáticamente');
   expect(f.sql(`select (reminder_opened_at is not null)::text from public.appointment_deposits where appointment_id='${depositId}';`)).toBe('true');
   const afterDeposit = counts();
-  const duplicate = await context.request.post(`/odonto/senas/abrir/${depositId}`, { form: { expected_revision: reviewedDeposit }, headers: { origin: origin.origin }, maxRedirects: 0 });
+  const duplicate = await context.request.post(`/odonto/senas/abrir/${depositId}`, { form: { expected_revision: reviewedDeposit }, headers: { origin: origin.origin, ...await session() }, maxRedirects: 0 });
   expect(duplicate.status()).toBe(303); expect(duplicate.headers().location).toContain('aviso=ya_abierto'); expect(counts()).toBe(afterDeposit);
 
   await page.reload();
@@ -139,7 +141,7 @@ test('@candidate-behavior staff delivery: explicit preparation, contact revocati
   await expect(reminderRow.getByText(/^Enviado /)).toBeVisible();
   expect(f.sql(`select (whatsapp_reminder_marked_sent_at is not null and whatsapp_reminder_marked_sent_by='${owner}')::text from public.appointments where id='${reminderId}';`)).toBe('true');
   const afterMark = counts();
-  const replay = await context.request.post('/odonto/recordatorios?/mark_sent&dia=manana', { form: { appointment_id: reminderId, expected_revision: review }, headers: { origin: origin.origin } });
+  const replay = await context.request.post('/odonto/recordatorios?/mark_sent&dia=manana', { form: { appointment_id: reminderId, expected_revision: review }, headers: { origin: origin.origin, ...await session() } });
   expect(replay.status()).toBe(200); expect(counts()).toBe(afterMark);
   expect(f.sql(`select count(*) from public.audit_logs where entity_id='${reminderId}' and action='reminder.whatsapp_marked_sent' and user_id='${owner}';`)).toBe('1');
   for (const [path, label] of [[`/odonto/turnos/${depositId}?created=1`,'delivery-detail'], ['/odonto/senas','delivery-deposits'], ['/odonto/recordatorios','delivery-reminders']]) {

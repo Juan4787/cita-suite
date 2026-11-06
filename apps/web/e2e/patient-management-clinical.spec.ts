@@ -170,11 +170,11 @@ for (const brand of ['cita-suite', 'natalia'] as const) {
    phase='stored_file_readback';
    const file=await must(f.admin.from('patient_radiographs').select('id,status').eq('business_id',business).single());
    expect(file.status).toBe('ready');
-   expect((await request.post(`/turno/${legacy}/documentos/${file.id}/complete`,{data:{}})).status()).toBe(404);
+   expect((await request.post(`/turno/${legacy}/documentos/${file.id}/complete`)).status()).toBe(404);
    phase='contact_revocation';
    f.sql(`update public.patients set email='corrected-clinical-${patient}@example.test' where id='${patient}';`);
    expect((await request.get(`${path}/informacion`)).status()).toBe(404);
-   expect((await request.post(`${path}/documentos/${file.id}/complete`,{data:{}})).status()).toBe(404);
+   expect((await request.post(`${path}/documentos/${file.id}/complete`)).status()).toBe(404);
    expect((await request.get(`${path}/comprobante.pdf`)).status()).toBe(404);
    expect((await request.get(`${path}/calendario.ics`)).status()).toBe(404);
    expect((await request.post(`${path}/calendario-intent`,{data:{variant:'type'}})).status()).toBe(204);
@@ -187,7 +187,7 @@ for (const brand of ['cita-suite', 'natalia'] as const) {
    const currentReceipt=await request.get(`/gestion/${fresh}/comprobante.pdf`);
    expect(currentReceipt.status()).toBe(200);expect((await currentReceipt.body()).subarray(0,5).toString()).toBe('%PDF-');
    expect((await request.get(`/gestion/${fresh}/informacion`)).status()).toBe(200);
-   expect((await request.post(`/gestion/${fresh}/documentos/${file.id}/complete`,{data:{}})).status()).toBe(200);
+   expect((await request.post(`/gestion/${fresh}/documentos/${file.id}/complete`)).status()).toBe(200);
    expect(f.sql(`select count(*) from public.audit_logs where entity_id='${file.id}' and action='clinical_document.patient_upload_completed';`)).toBe('1');
    phase='layout_and_browser_errors';
    expect(issues).toEqual([]);expect(pageErrors).toEqual([]);

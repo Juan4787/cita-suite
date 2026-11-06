@@ -158,8 +158,11 @@ E3.45 actualiza la verificación de interfaz SN14: fast **42076262537 aprobado**
 |---|---|---|
 | Un panel abierto antes de hidratar se cerraba solo | `open={expr}` asigna sin condición al hidratar | `e2e/late-deposits.spec.ts` |
 | Sin JavaScript, cancelar o guardar desde `/gestion` daba 403 | `Referrer-Policy: no-referrer` hace que el navegador envíe `Origin: null` | `e2e/patient-management.spec.ts` y `patient-management-clinical.spec.ts` sobre el paquete; constante `FORM_PAGE_REFERRER_POLICY` |
+| «Pedir seña por WhatsApp» y los demás mensajes preparados no abrían nada | Son formularios que redirigen a WhatsApp, y `form-action` también se aplica a la redirección | `e2e/appointment-deposits.spec.ts` y `staff-delivery.spec.ts` sobre el paquete; `form-action` en `svelte.config.js` |
 | «Listo» con un remitente que no podía enviar | Se miraba sólo el dominio | Prueba de cliente de `/odonto/configuracion/correo` |
 | Una falla de almacenamiento frenaba la retención | Las dos limpiezas iban en serie | `scheduled-jobs.test.ts` |
 | Dos reclamos de correo se esperaban o repetían un mensaje | Protegido por `skip locked` | `run_appointment_email_concurrency.sh`, con mutaciones 42144983908 y 42145538367 |
+
+**Por qué sólo se ven en el paquete:** el servidor de desarrollo no aplica ni el control de origen ni la política de seguridad de contenido. Una prueba de formularios, redirecciones o cabeceras sólo vale corrida sobre el paquete.
 
 **Para correr la suite completa:** una falla reinicia el trabajador de Playwright y pierde la sesión en memoria, así que cada falla gasta un ingreso. Con el límite real de 5 cada 15 minutos, unas pocas fallas arrastran a todas las pruebas siguientes. Hay que leer primero las fallas más tempranas.

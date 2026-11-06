@@ -61,28 +61,31 @@ test('@candidate-behavior email routes: reading never unsubscribes, posts from o
 		}
 		expect(suppressions(f, nativeEmail)).toBe('1');
 
-		// One-click removal (RFC 8058): the mail provider's server posts, with no Origin at all.
-		const oneClick = await request.post(`/correo/baja/${issueToken(f, oneClickEmail)}`, { form: { 'List-Unsubscribe': 'One-Click' } });
-		expect(oneClick.status()).toBe(200);
-		expect(suppressions(f, oneClickEmail)).toBe('1');
+		// The filter looks only at the method, the type and the origin, so these posts carry no body: a
+		// body the handler does not read breaks the next request in the local development proxy.
+		const form = { 'content-type': 'application/x-www-form-urlencoded' };
 
 		// The provider's webhook reaches its own handler, which here has no key to accept anything.
-		const webhook = await request.post('/api/zoho/webhook', { form: { payload: '{}' } });
-		expect(webhook.status()).toBe(503);
+		expect((await request.post('/api/zoho/webhook', { headers: form })).status()).toBe(503);
 
 		// The exception is exact: any other path and any other site are still refused. The development
 		// server has no origin check, so only the packaged release can prove this.
 		if (process.env.CITA_RELEASE_ARTIFACT) {
 			for (const refused of [
-				await request.post('/odonto/agenda?/create_appointment', { form: { a: '1' } }),
-				await request.post('/odonto/agenda?/create_appointment', { headers: { origin: 'https://otro-sitio.example' }, form: { a: '1' } }),
-				await request.post(`${path}/otra`, { form: { a: '1' } }),
-				await request.post('/api/zoho/webhook/otra', { form: { a: '1' } })
+				await request.post('/odonto/agenda?/create_appointment', { headers: form }),
+				await request.post('/odonto/agenda?/create_appointment', { headers: { ...form, origin: 'https://otro-sitio.example' } }),
+				await request.post(`${path}/otra`, { headers: form }),
+				await request.post('/api/zoho/webhook/otra', { headers: form })
 			]) {
 				expect(refused.status()).toBe(403);
 				expect(await refused.text()).toBe('Cross-site POST form submissions are forbidden');
 			}
 		}
+
+		// One-click removal (RFC 8058): the mail provider's server posts its fixed body, with no Origin.
+		const oneClick = await request.post(`/correo/baja/${issueToken(f, oneClickEmail)}`, { form: { 'List-Unsubscribe': 'One-Click' } });
+		expect(oneClick.status()).toBe(200);
+		expect(suppressions(f, oneClickEmail)).toBe('1');
 	} finally {
 		f.sql(`begin;
 		 delete from private.email_suppressions where business_id=:'business'::uuid and email_normalized in ('${nativeEmail}','${oneClickEmail}');
