@@ -38,6 +38,21 @@ describe('classifyZohoResponse, from answers the real API gave', () => {
 });
 
 describe('sendZohoEmail', () => {
+	// The stand-in copies the rule of the real engine, which refuses `redirect: 'error'` before the
+	// request leaves (measured on workerd, plan 4.3): a plain fake accepts it and hides the defect.
+	const workerdFetch = (response: () => Response) => vi.fn(async (_url: RequestInfo | URL, init?: RequestInit) => {
+		if (init?.redirect !== undefined && !['follow', 'manual'].includes(init.redirect))
+			throw new TypeError('Invalid redirect value, must be one of "follow" or "manual"');
+		return response();
+	}) as unknown as typeof fetch;
+	it('reaches the provider with a redirect mode the Workers engine accepts', async () => {
+		const fetchFn = workerdFetch(() => new Response(JSON.stringify({ data: [{ code: 'EM_104' }], request_id: 'r1' }), { status: 201 }));
+		await expect(sendZohoEmail(fetchFn, 'key', message)).resolves.toEqual({ outcome: 'accepted', requestId: 'r1' });
+	});
+	it('does not follow a redirect, and treats it as possibly sent', async () => {
+		const fetchFn = workerdFetch(() => new Response(null, { status: 302, headers: { location: 'https://elsewhere.example/' } }));
+		await expect(sendZohoEmail(fetchFn, 'key', message)).resolves.toEqual({ outcome: 'uncertain', code: 'http_302' });
+	});
 	it('asks for no open or click tracking and sends the reference', () => {
 		expect(zohoEmailBody(message)).toMatchObject({ track_opens: false, track_clicks: false, client_reference: 'delivery-1', reply_to: [message.replyTo] });
 	});

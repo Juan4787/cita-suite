@@ -35,6 +35,10 @@ Autorización de implementación, pruebas y publicación vigente: [plan 12.32](p
 El chequeo compara esta lista con `git diff --name-status <produccion_revision> HEAD` sobre el código (`apps`, `packages`, `scripts`, `supabase` y los archivos de configuración de la raíz, sin `apps/web/output`). Tiene que coincidir exactamente.
 
 ```codigo-distinto-de-produccion
+M	apps/web/src/lib/components/appointments/PublicAppointmentPage.svelte
+M	apps/web/src/lib/server/integrations/public/zoho-email.test.ts
+M	apps/web/src/lib/server/integrations/public/zoho-email.ts
+M	apps/web/src/routes/turno/[token]/page.client.test.ts
 ```
 
 No hay código distinto de producción. Cuando vuelva a haberlo, cada archivo se lista arriba y se explica acá si afecta a producción.
