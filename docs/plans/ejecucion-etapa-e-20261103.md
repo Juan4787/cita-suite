@@ -1565,3 +1565,11 @@ Pedido vigente en plan 12.24. Se revisaron los ocho SQL E, sus lectores/comandos
 - **Sin probar:** Samsung Internet en el teléfono, porque exige aceptar su aviso de privacidad, y un evento real de Zoho por el webhook.
 - **Medición de cargas reales:** `tareas-automaticas.md`.
 
+### Webhook de Zoho, 6 de noviembre, tarde
+
+- El panel respondía «URL cannot be reached». Con `wrangler tail` se vio la causa: Zoho envía un POST de ejemplo de 1.794 bytes, sin `producer-signature`, con agente `Webhook`, y la app contestaba `401`. El panel sólo acepta `200` y no ofrece «Authentication Key» hasta que el webhook existe.
+- **Cuarta versión de E publicada a las 19:40 UTC** (`10e26817`, versión `ea417ba0`): sin firma responde `200` y no guarda; con firma inválida responde `401`. Corridas en la [guía](../architecture/publicacion-y-reversion.md).
+- Regla de Cloudflare «Webhook de Zoho» activa: Browser Integrity Check apagado sólo en esa ruta, porque un cliente Java recibía `403` con código 1010.
+- Riesgo aceptado: si la clave falta o queda mal cargada en Zoho, los eventos sin firma se pierden con `200` y sólo queda el aviso en el registro. Por eso ZH10 no se acredita hasta ver un evento real firmado en `private.email_provider_events`.
+- La clave actual pasó por la conversación de trabajo al seleccionarla en el editor. Cambiarla quedó pendiente de la decisión de Juan.
+

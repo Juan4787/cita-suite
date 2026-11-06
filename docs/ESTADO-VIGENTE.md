@@ -2,18 +2,18 @@
 
 **Este es el registro único de qué historia y qué cambios están vigentes.** Se actualiza en el mismo paso de trabajo que cambia cualquiera de estos datos, nunca después. Eso incluye publicar, cambiar de rama, integrar, o dejar código distinto de producción. `node scripts/check-repo-sync.mjs`, desde la raíz, lo compara con Git, con GitHub y con la revisión que sirve producción, y falla ante cualquier diferencia.
 
-Última actualización: 6 de noviembre de 2026, 09:15 hora argentina. Tercera versión de E publicada y comprobada en producción, según el [mandato integral](plans/mandato-integral-avisos-20261105.md). [Plan canónico y checkpoint](plans/plan-integral-avisos-20261105.md).
+Última actualización: 6 de noviembre de 2026, 16:45 hora argentina. Cuarta versión de E publicada: acepta la verificación sin firma del webhook de Zoho, según el [mandato integral](plans/mandato-integral-avisos-20261105.md). [Plan canónico y checkpoint](plans/plan-integral-avisos-20261105.md).
 
 ## Datos verificables
 
 ```estado
 rama_de_trabajo: main
-produccion_revision: fed61f5d9d81f821df180486c73aa07d04408f56
-produccion_version_cloudflare: 50c8570c-149d-43ea-8f42-f0d2e1496d1b
+produccion_revision: 10e268177681940509f4d59b86fd104c9d01b6c7
+produccion_version_cloudflare: ea417ba0-4d1e-4e0b-a932-44de58f40bdd
 produccion_repositorio: github-secundaria:Juan4787/cita-suite-verificacion.git
 ```
 
-- **Producción** sirve la tercera versión de E en `https://app.cita-suite.com.ar` y en `app.cita-suite.workers.dev`: la instantánea `fed61f5d` de `main` `83b8155e`, con las 164 migraciones aplicadas.
+- **Producción** sirve la cuarta versión de E en `https://app.cita-suite.com.ar` y en `app.cita-suite.workers.dev`: la instantánea `10e26817` de `main` `311c2d09`, con las 164 migraciones aplicadas.
 - **La revisión publicada es antecesora de `main`.** Todo lo que corre en producción está en la historia de `main`.
 - **V12b dejó de ser una vuelta atrás válida** desde las 07:39 UTC del 6 de noviembre, cuando se confirmaron las migraciones. Nunca usar `wrangler rollback` a una versión anterior a E. Recuperación vigente: [guía de publicación](architecture/publicacion-y-reversion.md#e--publicación-y-recuperación-compatible-5-de-noviembre).
 
@@ -23,11 +23,12 @@ Autorización de implementación, pruebas y publicación vigente: [plan 12.32](p
 
 | Dato | Valor comprobado en el destino |
 |---|---|
-| Worker `app` | Versión `50c8570c-149d-43ea-8f42-f0d2e1496d1b`. Vuelta atrás válida: `5a05383b-cb99-49e4-bdaa-01aeb83c5490`, la segunda versión de E, con el mismo código de la app |
+| Worker `app` | Versión `ea417ba0-4d1e-4e0b-a932-44de58f40bdd`. Vuelta atrás válida: `50c8570c-149d-43ea-8f42-f0d2e1496d1b`, la tercera versión de E; sólo difiere en la respuesta del webhook sin firma |
 | Worker `cita-suite-scheduler` | Versión `853b9020-5738-4a66-be5e-acf1b1d6cb09`, cinco cron: `*/5`, `1-59/5`, `2-59/5`, `3-59/5` y `17 */3` |
 | Migraciones | 164 en la historia de producción: las 32 de E entraron en una transacción de 18 s, y la correctiva `20261106030000` en otra de 1 s |
 | Interruptores | `reschedule_enabled` y `email_producer_enabled` encendidos; `GOOGLE_CALENDAR_MANAGED_ENABLED=true`; tope diario de correo 100, reserva 10; `private.deposit_automation` sin cambios |
 | Crédito de Zoho registrado | 9.997 correos desde el 6 de noviembre, vencimiento 3 de diciembre de 2026 |
+| Cloudflare | Configuration Rule activa «Webhook de Zoho»: apaga Browser Integrity Check sólo en `/api/zoho/webhook`. El resto del sitio conserva la comprobación |
 | Remitente de Natalia | Sin configurar por decisión de Juan: no salen correos de su consultorio |
 
 ## Código que difiere de producción
@@ -35,10 +36,6 @@ Autorización de implementación, pruebas y publicación vigente: [plan 12.32](p
 El chequeo compara esta lista con `git diff --name-status <produccion_revision> HEAD` sobre el código (`apps`, `packages`, `scripts`, `supabase` y los archivos de configuración de la raíz, sin `apps/web/output`). Tiene que coincidir exactamente.
 
 ```codigo-distinto-de-produccion
-M	apps/web/src/routes/api/zoho/webhook/+server.ts
-M	apps/web/src/routes/api/zoho/webhook/webhook.server.test.ts
-M	scripts/production-email-practice.mjs
-M	scripts/zoho-cpaas.py
 ```
 
 `scripts/zoho-cpaas.py` agrega la consulta por referencia y `scripts/production-email-practice.mjs` completa su limpieza. Ninguno se despliega: son herramientas locales.
