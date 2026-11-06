@@ -1,6 +1,16 @@
 # Publicación y reversión
 
-## Último estado comprobado — tercera versión de E: 6 de noviembre de 2026, 09:12 hora argentina (12:12 UTC)
+## Último estado comprobado — cuarta versión de E: 6 de noviembre de 2026, 16:40 hora argentina (19:40 UTC)
+
+**Producción sirve** la instantánea `10e268177681940509f4d59b86fd104c9d01b6c7` de `main` `311c2d09`, Worker `app`, versión de Cloudflare **`ea417ba0-4d1e-4e0b-a932-44de58f40bdd`**. 164 migraciones, sin cambios de base ni del programador.
+
+**Qué corrige:** un POST sin firma al webhook de Zoho recibe `200` y no se guarda, porque el panel verifica la URL con una muestra sin firma y sólo acepta `200`. Una firma inválida sigue dando `401`.
+
+**Verificación sobre la revisión exacta:** SQL 42276223292, paquete 42276199797, `fast` 42277055190 y navegador 42279637659 con 76 de 76. La primera corrida de navegador, 42277539218, dio 74 de 76: fallaron `late-deposits` y `staff-management`, las dos en el clic de la página sin JavaScript que abre un contexto aparte, con el síntoma ya registrado en E3.46 («esperó estabilidad»). Las instantáneas sólo difieren en los dos archivos del webhook y la repetición aprobó sin cambios. La causa de esa intermitencia no está resuelta. `verify-production-release.mjs` aprobado.
+
+**Vuelta atrás:** `wrangler rollback 50c8570c-149d-43ea-8f42-f0d2e1496d1b`. Nunca una versión anterior a E.
+
+## Estado anterior — tercera versión de E: 6 de noviembre de 2026, 09:12 hora argentina (12:12 UTC)
 
 **Producción sirve** la instantánea `fed61f5d9d81f821df180486c73aa07d04408f56` de `main` `83b8155e`, Worker `app`, versión de Cloudflare **`50c8570c-149d-43ea-8f42-f0d2e1496d1b`**. 164 migraciones.
 
@@ -359,7 +369,7 @@ NODE_OPTIONS=--max-old-space-size=192 node scripts/deploy-production-workers.mjs
 ```
 
 8. Interruptores: `reschedule_enabled` y `email_producer_enabled` en `private.appointment_management_runtime`; `GOOGLE_CALENDAR_MANAGED_ENABLED` como secreto. El correo de Natalia no sale: su consultorio no tiene remitente hasta que Juan decida.
-9. Webhook de Zoho: la clave se genera en un archivo privado local y se carga como secreto del Worker. En el panel: agente → Webhooks → «Configurar webhook» → URL `https://app.cita-suite.com.ar/api/zoho/webhook` → Verificar → las cuatro casillas de correo → Agregar. La clave se carga después, con «Authentication Key»: sin webhook creado el panel no muestra ese botón. Al verificar, Zoho envía un POST de ejemplo sin firma y sólo acepta `200`; por eso un pedido sin firma recibe `200` y no se guarda, y una firma inválida recibe `401`. Cloudflare tiene una Configuration Rule, «Webhook de Zoho», que apaga Browser Integrity Check sólo para esa ruta.
+9. Webhook de Zoho: la clave se genera en un archivo privado local y se carga como secreto del Worker. En el panel: agente → Webhooks → «Configurar webhook» → URL `https://app.cita-suite.com.ar/api/zoho/webhook` → Verificar → las cuatro casillas de correo → Agregar. La clave se carga después, con «Clave de autenticación»: sin webhook creado el panel no muestra ese botón, y admite como máximo 50 caracteres. Al verificar, Zoho envía un POST de ejemplo sin firma y sólo acepta `200`; por eso un pedido sin firma recibe `200` y no se guarda, y una firma inválida recibe `401`. Cloudflare tiene una Configuration Rule, «Webhook de Zoho», que apaga Browser Integrity Check sólo para esa ruta.
 10. En el mismo paso: la instantánea publicada entra a la historia de `main` sin cambiar su árbol (`git merge -s ours --no-ff <instantánea>`), se actualiza `docs/ESTADO-VIGENTE.md`, se sube a GitHub y se corre `node scripts/check-repo-sync.mjs`.
 
 **Si algo falla:**

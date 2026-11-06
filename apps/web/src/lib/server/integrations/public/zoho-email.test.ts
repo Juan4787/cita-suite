@@ -111,6 +111,24 @@ describe('parseZohoEmailEvents', () => {
 		expect(kind('delivered')).toBe('delivered');
 		expect(kind('something new')).toBe('unknown');
 	});
+	it('reads the four shapes the provider panel shows', () => {
+		const processed = '2026-11-06T20:29:35Z';
+		const read = (name: string, object: string, details: Record<string, unknown>) =>
+			parseZohoEmailEvents({
+				webhook_request_id: 'w',
+				event_name: [name],
+				event_message: [{ email_info: { client_reference: 'delivery-1', processed_time: processed, object: 'email' }, event_data: [{ details: [details], object }] }]
+			})[0];
+		const bounced = '2026-11-06T20:30:13Z';
+		expect(read('delivered', 'email_delivery', { status: 'DELIVERED' })).toMatchObject({ event: 'delivered', occurredAt: '2026-11-06T20:29:35.000Z' });
+		expect(read('softbounce', 'softbounce', { time: bounced })).toMatchObject({ event: 'soft_bounce', occurredAt: '2026-11-06T20:30:13.000Z' });
+		expect(read('hardbounce', 'hardbounce', { time: bounced })).toMatchObject({ event: 'hard_bounce', occurredAt: '2026-11-06T20:30:13.000Z' });
+		expect(read('fbl_compliant', 'fbl_compliant', { ip: '192.0.2.1' })).toMatchObject({ event: 'complaint', occurredAt: '2026-11-06T20:29:35.000Z' });
+	});
+	it('falls back to the event name when the detail object is new', () => {
+		const event = parseZohoEmailEvents({ webhook_request_id: 'w', event_name: ['delivered'], event_message: [{ event_data: [{ object: 'something new' }] }] })[0];
+		expect(event?.event).toBe('delivered');
+	});
 	it('ignores a payload without its transaction id', () => {
 		expect(parseZohoEmailEvents({ event_message: {} })).toEqual([]);
 		expect(parseZohoEmailEvents(null)).toEqual([]);

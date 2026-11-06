@@ -183,10 +183,11 @@ const list = (value: unknown): unknown[] => (Array.isArray(value) ? value : valu
 
 const eventKind = (value: unknown): ZohoEmailEvent['event'] => {
 	const name = typeof value === 'string' ? value.toLowerCase().replace(/[\s_-]/g, '') : '';
-	if (name === 'delivered' || name === 'emaildelivered') return 'delivered';
+	if (name === 'delivered' || name === 'emaildelivered' || name === 'emaildelivery') return 'delivered';
 	if (name === 'softbounce') return 'soft_bounce';
 	if (name === 'hardbounce') return 'hard_bounce';
-	if (name === 'fblcomplaint' || name === 'feedbackloop' || name === 'complaint') return 'complaint';
+	// `fbl_compliant` is how the provider spells it.
+	if (name === 'fblcompliant' || name === 'fblcomplaint' || name === 'feedbackloop' || name === 'complaint') return 'complaint';
 	if (name === 'emailopen' || name === 'open') return 'open';
 	if (name === 'emaillinkclick' || name === 'click' || name === 'linkclick') return 'click';
 	return 'unknown';
@@ -199,8 +200,9 @@ const validInstant = (value: unknown): string | null => {
 };
 
 /**
- * One notification can carry several messages. The published page has no sample and its field table
- * reads as single objects while the event names read as lists, so both shapes are accepted.
+ * One notification can carry several messages. The panel's samples use lists, and the published
+ * field table reads as single objects, so both shapes are accepted. The detail object can name the
+ * event differently from `event_name`, and only bounces carry their own time.
  * Only identifiers leave this function: addresses and diagnostics are never stored.
  */
 export const parseZohoEmailEvents = (payload: unknown): ZohoEmailEvent[] => {
@@ -212,12 +214,13 @@ export const parseZohoEmailEvents = (payload: unknown): ZohoEmailEvent[] => {
 		const info = isRecord(entry.email_info) ? entry.email_info : {};
 		const data = list(entry.event_data)[0];
 		const details = isRecord(data) ? list(data.details)[0] : null;
-		const event = eventKind(isRecord(data) && typeof data.object === 'string' ? data.object : topName);
+		const named = eventKind(isRecord(data) ? data.object : undefined);
+		const event = named === 'unknown' ? eventKind(topName) : named;
 		return [{
 			webhookRequestId: `${baseId}:${index}`,
 			clientReference: typeof info.client_reference === 'string' ? info.client_reference : null,
 			event,
-			occurredAt: isRecord(details) ? validInstant(details.time) : null
+			occurredAt: (isRecord(details) ? validInstant(details.time) : null) ?? validInstant(info.processed_time)
 		}];
 	});
 };
