@@ -12,9 +12,9 @@ Se actualiza después de cada bloque con resultado. Es el único lugar con el «
 |---|---|
 | Fecha | 6 de noviembre de 2026 (Argentina) |
 | Revisión de partida | `main` `d3f7553c`, igual a GitHub; producción V12b `771fac59`, versión `277d332d`, comprobada con `/_app/version.json` y `wrangler deployments list` |
-| Fase | **E publicada y comprobada en producción.** Tercera versión: instantánea `fed61f5d` de `main` `83b8155e`, 164 migraciones. Detalle en `docs/ESTADO-VIGENTE.md` |
-| Corridas de la revisión publicada | SQL 42212825416, paquete 42213513295, fast 42213523343, navegador 42213966225 (76/76, con los interruptores como en producción) |
-| Datos sintéticos abiertos en producción | Sólo el turno del video: enlace y comando de limpieza en `~/.local/share/cita-suite/google-video/turno-video.txt`. Las demás prácticas se limpiaron. Para probar el webhook: `node scripts/production-email-practice.mjs seed` y `book` |
+| Fase | **E publicada y comprobada en producción.** Quinta versión: instantánea `93b711a1` de `main` `f459b95c`, 164 migraciones. Detalle en `docs/ESTADO-VIGENTE.md` |
+| Corridas de la revisión publicada | SQL 42289086004, paquete 42289073906, fast 42289995256, navegador 42290663360 (76/76) |
+| Datos sintéticos abiertos en producción | Sólo el turno del video: enlace y comando de limpieza en `~/.local/share/cita-suite/google-video/turno-video.txt`. Las demás prácticas se limpiaron. |
 | Ajustes de teléfonos | Restaurados el 6 de noviembre. Xiaomi: pantalla encendida en 0, Chrome apagado en Android como estaba, sitio sin decidir. Samsung: sincronización general apagada como estaba, sitio sin decidir; el valor 7 de pantalla encendida es el suyo. `citasuite` sigue en el Samsung porque la agregó Juan. Queda una notificación vieja de la sonda en el Samsung, que se descarta deslizándola |
 | Siguiente acción | Lo que queda depende de Juan o de terceros: [pendientes](pendientes-vigentes.md#etapa-e-pendientes) |
 
