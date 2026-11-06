@@ -1082,12 +1082,12 @@
 					<span>Listo para este turno</span>
 				</div>
 			{:else if renderedPushState === 'asking'}
-				<div class="ux-alert" aria-live="polite">
+				<div class="ux-alert ux-alert-warning" aria-live="polite">
 					<p class="font-bold text-fg bk-text">Mirá arriba de todo</p>
 					<p class="mt-1">Si el navegador te pregunta, tocá “{permissionChoiceLabel}” enseguida: la pregunta dura unos segundos.</p>
 				</div>
 			{:else if renderedPushState === 'working'}
-				<div class="ux-alert" aria-live="polite">
+				<div class="ux-alert ux-alert-success" aria-live="polite">
 					<div class="flex items-start gap-3">
 						<svg viewBox="0 0 24 24" aria-hidden="true" class="mt-0.5 h-5 w-5 shrink-0 animate-spin text-accent-400 bk-accent-text">
 							<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2.5" opacity="0.25" />
@@ -1106,7 +1106,7 @@
 					</div>
 				</div>
 			{:else if renderedPushState === 'test_waiting'}
-				<div class="ux-alert" aria-live="polite">
+				<div class="ux-alert ux-alert-success" aria-live="polite">
 					<p class="font-bold text-fg bk-text">Notificación de prueba enviada</p>
 					<p class="mt-1">Estamos comprobando que este teléfono pueda mostrarla…</p>
 				</div>
@@ -1173,7 +1173,7 @@
 					</form>
 				</details>
 			{:else if data.googleCalendar.state === 'preparing' || data.googleCalendar.state === 'updating' || data.googleCalendar.state === 'removing'}
-				<div class="ux-alert">
+				<div class="ux-alert ux-alert-success">
 					<div class="flex items-start gap-3">
 						<svg viewBox="0 0 24 24" aria-hidden="true" class="mt-0.5 h-5 w-5 shrink-0 animate-spin text-accent-400 bk-accent-text">
 							<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2.5" opacity="0.25" />
@@ -1239,7 +1239,7 @@
 				<p class="text-sm leading-relaxed text-fg-70 bk-muted">Revisá los permisos de notificaciones del navegador en los ajustes del teléfono.</p>
 			{/if}
 			{#if pushMessage}
-				<p class="ux-alert mt-4" role="status">{pushMessage}</p>
+				<p class="ux-alert ux-alert-warning mt-4" role="status">{pushMessage}</p>
 			{/if}
 			<button
 				type="button"
@@ -1435,7 +1435,7 @@
 				</summary>
 				<div class="border-t border-line p-4 bk-line">
 					{#if hasCalendarAction && !needsCalendarUpdate}
-						<p class="ux-alert mb-4">
+						<p class="ux-alert ux-alert-warning mb-4">
 							Ya registramos una acción de calendario para este turno. Si lo agregás otra vez,
 							podrías recibir avisos duplicados.
 						</p>
@@ -1507,7 +1507,7 @@
 				<p class="ux-alert mt-5">{data.calendarMessage}</p>
 			{/if}
 			{#if data.scheduleChangedSinceMessage}
-				<p class="ux-alert mt-5" role="status">Este turno cambió después de ese correo. Lo que ves acá es la fecha y la hora actuales.</p>
+				<p class="ux-alert ux-alert-warning mt-5" role="status">Este turno cambió después de ese correo. Lo que ves acá es la fecha y la hora actuales.</p>
 			{/if}
 		</section>
 

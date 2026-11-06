@@ -39,6 +39,7 @@ M	apps/web/src/lib/components/appointments/PublicAppointmentPage.svelte
 M	apps/web/src/lib/server/integrations/public/zoho-email.test.ts
 M	apps/web/src/lib/server/integrations/public/zoho-email.ts
 M	apps/web/src/routes/turno/[token]/page.client.test.ts
+M	scripts/production-email-practice.mjs
 ```
 
 No hay código distinto de producción. Cuando vuelva a haberlo, cada archivo se lista arriba y se explica acá si afecta a producción.
