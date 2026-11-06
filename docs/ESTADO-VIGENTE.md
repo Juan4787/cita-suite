@@ -2,18 +2,18 @@
 
 **Este es el registro único de qué historia y qué cambios están vigentes.** Se actualiza en el mismo paso de trabajo que cambia cualquiera de estos datos, nunca después. Eso incluye publicar, cambiar de rama, integrar, o dejar código distinto de producción. `node scripts/check-repo-sync.mjs`, desde la raíz, lo compara con Git, con GitHub y con la revisión que sirve producción, y falla ante cualquier diferencia.
 
-Última actualización: 6 de noviembre de 2026, 08:35 hora argentina. Segunda versión de E publicada en producción; el encargo sigue abierto hasta terminar las comprobaciones posteriores del [mandato integral](plans/mandato-integral-avisos-20261105.md). [Plan canónico y checkpoint](plans/plan-integral-avisos-20261105.md).
+Última actualización: 6 de noviembre de 2026, 09:15 hora argentina. Tercera versión de E publicada en producción; el encargo sigue abierto hasta terminar las comprobaciones posteriores del [mandato integral](plans/mandato-integral-avisos-20261105.md). [Plan canónico y checkpoint](plans/plan-integral-avisos-20261105.md).
 
 ## Datos verificables
 
 ```estado
 rama_de_trabajo: main
-produccion_revision: 36d8fe9cc1d191f684f8ebd80f99eecf40eba293
-produccion_version_cloudflare: 5a05383b-cb99-49e4-bdaa-01aeb83c5490
+produccion_revision: fed61f5d9d81f821df180486c73aa07d04408f56
+produccion_version_cloudflare: 50c8570c-149d-43ea-8f42-f0d2e1496d1b
 produccion_repositorio: github-secundaria:Juan4787/cita-suite-verificacion.git
 ```
 
-- **Producción** sirve la segunda versión de E en `https://app.cita-suite.com.ar` y en `app.cita-suite.workers.dev`: la instantánea `36d8fe9c` de `main` `7f16f5cd`, con las 163 migraciones aplicadas.
+- **Producción** sirve la tercera versión de E en `https://app.cita-suite.com.ar` y en `app.cita-suite.workers.dev`: la instantánea `fed61f5d` de `main` `83b8155e`, con las 164 migraciones aplicadas.
 - **La revisión publicada es antecesora de `main`.** Todo lo que corre en producción está en la historia de `main`.
 - **V12b dejó de ser una vuelta atrás válida** desde las 07:39 UTC del 6 de noviembre, cuando se confirmaron las migraciones. Nunca usar `wrangler rollback` a una versión anterior a E. Recuperación vigente: [guía de publicación](architecture/publicacion-y-reversion.md#e--publicación-y-recuperación-compatible-5-de-noviembre).
 
@@ -23,9 +23,9 @@ Autorización de implementación, pruebas y publicación vigente: [plan 12.32](p
 
 | Dato | Valor comprobado en el destino |
 |---|---|
-| Worker `app` | Versión `5a05383b-cb99-49e4-bdaa-01aeb83c5490`. Vuelta atrás válida: `9ae1a573-7b50-4a8a-b9e7-0473042bc216`, la primera versión de E, que comparte el esquema pero **no puede enviar correo** |
+| Worker `app` | Versión `50c8570c-149d-43ea-8f42-f0d2e1496d1b`. Vuelta atrás válida: `5a05383b-cb99-49e4-bdaa-01aeb83c5490`, la segunda versión de E, con el mismo código de la app |
 | Worker `cita-suite-scheduler` | Versión `853b9020-5738-4a66-be5e-acf1b1d6cb09`, cinco cron: `*/5`, `1-59/5`, `2-59/5`, `3-59/5` y `17 */3` |
-| Migraciones | 163 en la historia de producción: las 32 de E entraron en una transacción de 18 s |
+| Migraciones | 164 en la historia de producción: las 32 de E entraron en una transacción de 18 s, y la correctiva `20261106030000` en otra de 1 s |
 | Interruptores | `reschedule_enabled` y `email_producer_enabled` encendidos; `GOOGLE_CALENDAR_MANAGED_ENABLED=true`; tope diario de correo 100, reserva 10; `private.deposit_automation` sin cambios |
 | Crédito de Zoho registrado | 9.997 correos desde el 6 de noviembre, vencimiento 3 de diciembre de 2026 |
 | Remitente de Natalia | Sin configurar por decisión de Juan: no salen correos de su consultorio |
@@ -35,10 +35,6 @@ Autorización de implementación, pruebas y publicación vigente: [plan 12.32](p
 El chequeo compara esta lista con `git diff --name-status <produccion_revision> HEAD` sobre el código (`apps`, `packages`, `scripts`, `supabase` y los archivos de configuración de la raíz, sin `apps/web/output`). Tiene que coincidir exactamente.
 
 ```codigo-distinto-de-produccion
-M	apps/web/e2e/email-preferences.spec.ts
-M	scripts/run-campaign-integration.mjs
-A	supabase/migrations/20261106030000_email_staff_actor.sql
-M	supabase/tests/appointment_email_operations.sql
 ```
 
 No hay código distinto de producción. Cuando vuelva a haberlo, cada archivo se lista arriba y se explica acá si afecta a producción.
