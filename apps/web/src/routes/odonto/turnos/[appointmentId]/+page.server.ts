@@ -214,7 +214,8 @@ export const load: PageServerLoad = async ({ params, locals, fetch, cookies, url
 		deposit: deposit ? { ...deposit, cancelsItself: depositCancelsItself } : null,
 		canRecordDeposit: business.canOperate && DEPOSIT_ROLES.has(business.role),
 		auditLogs: auditResult.error ? null : auditResult.data,
-		emailDeliveries: await emailDeliveriesFor(supabase, business.business.id, params.appointmentId),
+		// Only the roles the database lets read it: anyone else would just produce a refused call.
+		emailDeliveries: business.canOperate && DEPOSIT_ROLES.has(business.role) ? await emailDeliveriesFor(supabase, business.business.id, params.appointmentId) : null,
 		userLabels,
 		reprogramDate,
 		minReprogramDate,
@@ -254,7 +255,7 @@ export const actions: Actions = {
   const revision = form.get('expected_revision');
   if (typeof revision !== 'string' || !/^[a-f0-9]{64}$/.test(revision)) return fail(400, { message: 'Actualizá el turno y volvé a intentar.' });
   const { supabase, business } = await getOdontoContext(event);
-  if (!business.canOperate) return fail(403, { message: 'Ya no tenés permiso para esta acción. Revisá tu acceso.' });
+  if (!business.canOperate || !DEPOSIT_ROLES.has(business.role)) return fail(403, { message: 'Ya no tenés permiso para esta acción. Revisá tu acceso.' });
   const { error } = await supabase.rpc('revoke_appointment_management_access', {
    p_business_id: business.business.id, p_appointment_id: event.params.appointmentId, p_operation_id: crypto.randomUUID(), p_expected_revision: revision
   });
@@ -273,7 +274,7 @@ export const actions: Actions = {
   if (typeof id !== 'string' || !isUuid(id) || (decision !== 'resend' && decision !== 'dismiss'))
    return fail(400, { message: 'Actualizá el turno y volvé a elegir qué hacer con ese correo.' });
   const { supabase, business } = await getOdontoContext(event);
-  if (!business.canOperate) return fail(403, { message: 'Ya no tenés permiso para esta acción. Revisá tu acceso.' });
+  if (!business.canOperate || !DEPOSIT_ROLES.has(business.role)) return fail(403, { message: 'Ya no tenés permiso para esta acción. Revisá tu acceso.' });
   try {
    await resolveAppointmentEmailDelivery(supabase, business.business.id, id, decision);
    return { success: true, message: decision === 'resend' ? 'El correo vuelve a salir en unos minutos.' : 'El correo quedó descartado.' };

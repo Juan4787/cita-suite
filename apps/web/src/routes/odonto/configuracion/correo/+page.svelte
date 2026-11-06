@@ -42,7 +42,7 @@
     <label class="ux-label" for="email-reply-to">Correo donde recibir las respuestas de los pacientes</label>
     <input id="email-reply-to" class="ux-input" type="email" name="reply_to" maxlength="254" autocomplete="email" value={form?.replyTo ?? status.replyTo ?? ''} disabled={saving || data.demo} />
     <p class="text-sm text-copy-subtle">Sin este dato no se envían correos: los pacientes no tendrían a dónde responder.</p>
-    <div><button class="ux-btn ux-btn-secondary" disabled={saving || data.demo}>Guardar contacto</button></div>
+    <div><button class="ux-btn-secondary" disabled={saving || data.demo}>Guardar contacto</button></div>
    </form>
    <p class="text-sm text-copy-subtle">Enviados en las últimas 24 horas: {status.used24h} de {status.dailyLimit}.</p>
    {#if status.needsReview > 0}<p class="ux-alert" role="status">Hay {status.needsReview === 1 ? 'un correo' : `${status.needsReview} correos`} en comprobación. Se revisa en el detalle de cada turno.</p>{/if}
@@ -98,7 +98,7 @@
     </label>
    </fieldset>
   </fieldset>
-  <div><button class="ux-btn ux-btn-primary" disabled={saving || data.demo || changed}>{saving ? 'Guardando…' : 'Guardar preferencias'}</button></div>
+  <div><button class="ux-btn-primary" disabled={saving || data.demo || changed}>{saving ? 'Guardando…' : 'Guardar preferencias'}</button></div>
  </form>
 </section>
 <style>

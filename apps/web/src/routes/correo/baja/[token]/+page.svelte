@@ -22,7 +22,7 @@
    <p class="mt-3 text-fg-70">No vas a recibir comprobantes ni recordatorios por correo de {businessName} en esta dirección. Tus turnos no cambian.</p>
    {#if form?.message}<p class="ux-alert mt-4" role="alert">{form.message}</p>{/if}
    <form method="POST" class="mt-5" use:enhance={() => { saving = true; return async ({ update }) => { try { await update({ reset: false }); } finally { saving = false; } }; }}>
-    <button class="ux-btn ux-btn-primary" disabled={saving}>{saving ? 'Guardando…' : 'Sí, dejar de recibirlos'}</button>
+    <button class="ux-btn-primary" disabled={saving}>{saving ? 'Guardando…' : 'Sí, dejar de recibirlos'}</button>
    </form>
   {/if}
  </section>
