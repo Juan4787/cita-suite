@@ -1392,3 +1392,23 @@ El panel de Zoho verifica la URL con un POST de ejemplo sin firma, sólo acepta 
 **Costo aceptado:** si la clave falta o queda mal cargada, los eventos sin firma se pierden sin reintento, y sólo queda un aviso en el registro de la app.
 
 El lector reconoce las formas reales `email_delivery` y `fbl_compliant`, y usa `processed_time` cuando el evento no trae hora propia. Evidencia en el [registro](ejecucion-etapa-e-20261103.md#webhook-de-zoho-6-de-noviembre-tarde).
+
+<a id="reanudacion-p1-p2-p3-20261106"></a>
+
+### 12.34 Reanudación de P1, P2 y P3 y revisión de UX de toda la app (6 de noviembre)
+
+Pedido literal de Juan, con una captura del detalle del turno:
+
+> No se si avanzare con eso, por lo pronto. avanza con P1 P2 Y P3. revisa tambien el diseño y la UX, por ejemplo en detalle de turno queda un espacio vacio gigante, raro, los bloques blancos para el texto quedan raros. Revisa todo ese tipo de problemas de UI UX en toda la app
+
+Después, sobre un turno de ese mismo día que ya había pasado:
+
+> decis que aparece el botyon de cancelar al final del detalle del turno pero no se ve
+
+> entonces esta bien que no aparezca, pero hay problema de UX, debe aclarar que es un turno pasado
+
+**Aplicación y precedencia:** sustituye la pausa de [12.26](#posteriores-a-e-pospuestas). P1, P2 y P3 quedan reanudadas, en ese orden y como tareas separadas, con sus alcances de [12.23](#tareas-posteriores-a-e) y su seguimiento en [tareas posteriores a E](tareas-posteriores-a-e-20261103.md). P2 suma la revisión de diseño y experiencia de toda la app que pide este apartado.
+
+**Decisión sobre turnos pasados (P1):** un turno que ya empezó o ya pasó no se cancela. La pantalla lo dice con claridad en vez de esconder el botón sin explicación, y la base de datos hace valer la misma regla.
+
+**Fuera de esta reanudación:** los turnos simultáneos y la adaptación por rubro quedaron como análisis conversado, sin implementar: Juan todavía no decidió avanzar. Este pedido no autoriza publicar: la publicación se pide aparte, nombrando lo que se publica.

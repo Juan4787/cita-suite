@@ -2,7 +2,7 @@
 
 **Estado: E publicada en producción el 6 de noviembre.** [Estado vigente](../ESTADO-VIGENTE.md), [plan canónico y checkpoint](plan-integral-avisos-20261105.md), [pendientes que quedan](pendientes-vigentes.md#etapa-e-pendientes). El [traspaso del 5 de noviembre](traspaso-etapa-e-20261105.md) queda como historia.
 
-Juan pidió entregar, al terminar E, la ubicación exacta y enlaces directos desde la interfaz a toda la documentación detallada. Este índice es esa entrega y se mantiene al día. P1, P2 y P3 continúan pospuestas.
+Juan pidió entregar, al terminar E, la ubicación exacta y enlaces directos desde la interfaz a toda la documentación detallada. Este índice es esa entrega y se mantiene al día. P1, P2 y P3 son tareas aparte, reanudadas el 6 de noviembre: [seguimiento](tareas-posteriores-a-e-20261103.md).
 
 ## Por dónde empezar
 
@@ -34,7 +34,7 @@ Los siguientes documentos describen los contratos de las áreas afectadas. Sus a
 | Verificación de Google y guion del video | [Verificación de Google Calendar](../architecture/verificacion-google-calendar.md#video-de-demostración-guion-exacto). |
 | Webhook de Zoho: causa, arreglos y prueba real | [Entradas del 6 de noviembre por la tarde](ejecucion-etapa-e-20261103.md#webhook-de-zoho-6-de-noviembre-tarde), [configuración en el panel](../architecture/zoho-cpaas-terminal.md), [publicaciones cuarta y quinta](../architecture/publicacion-y-reversion.md). |
 | Zoho: conexión persistente, administración y secretos | [Guía de Zoho por terminal](../architecture/zoho-cpaas-terminal.md). Comandos, custodia, renovación, respuestas reales observadas y límites. No contiene credenciales. El acceso administrativo comprobado no acredita integración de envío publicada. |
-| Aspecto y criterios de interfaz | [Diseño de la app](../../apps/web/DESIGN.md), [superficie de gestión del turno](../../apps/web/.impeccable/surfaces/gestion-del-turno.md), capturas y corridas del registro E. No inicia P2 global. |
+| Aspecto y criterios de interfaz | [Diseño de la app](../../apps/web/DESIGN.md), [superficie de gestión del turno](../../apps/web/.impeccable/surfaces/gestion-del-turno.md), capturas y corridas del registro E. P2 global se sigue aparte. |
 
 ## Pruebas, evidencia y límites
 
@@ -58,4 +58,4 @@ Lo publicado se comprueba con la revisión exacta, migraciones aplicadas, config
 
 Los pendientes de implementación y verificación se mantienen en la matriz del registro, el checkpoint del plan canónico y la lista única de pendientes. No se ocultan en una conclusión de auditoría ni se presentan pruebas parciales como garantías integrales. Los datos comerciales faltantes de Natalia conservan su tratamiento separado y no se inventan para completar una prueba.
 
-Las [tres tareas posteriores](tareas-posteriores-a-e-20261103.md) conservan sus alcances y orden, pero están **pospuestas por Juan**. No se ejecutan al terminar E. El [registro histórico de señas y avisos](registro-senas-avisos-natalia.md) conserva A/B/C y las decisiones previas; las pausas o proveedores anteriores sustituidos no gobiernan la ejecución actual.
+Las [tres tareas posteriores](tareas-posteriores-a-e-20261103.md) conservan sus alcances y orden y se [reanudaron el 6 de noviembre](propuesta-senas-avisos-natalia.md#reanudacion-p1-p2-p3-20261106), con seguimiento propio. El [registro histórico de señas y avisos](registro-senas-avisos-natalia.md) conserva A/B/C y las decisiones previas; las pausas o proveedores anteriores sustituidos no gobiernan la ejecución actual.

@@ -1,25 +1,29 @@
-# Tareas posteriores a E, pospuestas
+# Tareas posteriores a E
 
-**Estado vigente por pedido posterior de Juan del 3 de noviembre de 2026:** P1, P2 y P3 **pospuestas; no iniciarlas al cerrar E**. E continúa siendo la única tarea activa hasta completarla, publicarla, verificarla y entregar su documentación. Precedencia y literal en [plan 12.26](propuesta-senas-avisos-natalia.md#posteriores-a-e-pospuestas); el encargo anterior de ejecución automática de [12.23](propuesta-senas-avisos-natalia.md#tareas-posteriores-a-e) queda sustituido en ese punto. Estado de producción en el [registro único](../ESTADO-VIGENTE.md).
+**Estado vigente desde el 6 de noviembre de 2026:** P1, P2 y P3 **reanudadas por Juan**, en ese orden y por separado ([plan 12.34](propuesta-senas-avisos-natalia.md#reanudacion-p1-p2-p3-20261106)). Sustituye la pausa de [12.26](propuesta-senas-avisos-natalia.md#posteriores-a-e-pospuestas). Publicar no está incluido: se pide aparte. Estado de producción en el [registro único](../ESTADO-VIGENTE.md).
 
 ## Orden obligatorio y seguimiento
 
 | Orden | Trabajo | Estado | Condición de avance |
 |---|---|---|---|
-| Previo | E completa: correo, autogestión, señas y sus 97 casos | En implementación E1 | [Registro de E](ejecucion-etapa-e-20261103.md): cierre por evidencia, publicación y auditoría pendientes |
-| P1 | Habilitar cancelar turnos desde recepción | Pospuesta; no iniciada | Reanudación expresa de Juan después de E |
-| P2 | Estilar todos los controles/superficies de la app, en claro y oscuro | Pospuesta; no iniciada | Reanudación expresa de Juan; orden previsto después de P1 |
-| P3 / nueva D | Avisos internos generales para horarios liberados, con patrón similar a Seguimientos | Pospuesta; no iniciada | Reanudación expresa de Juan; orden previsto después de P2 |
+| Previo | E completa: correo, autogestión, señas y sus 97 casos | Publicada el 6 de noviembre | [Registro de E](ejecucion-etapa-e-20261103.md) |
+| P1 | Habilitar cancelar turnos desde recepción | En curso | Ver [punto de trabajo](#punto-de-trabajo) |
+| P2 | Estilar todos los controles y superficies de la app, en claro y oscuro, y revisar el diseño y la experiencia de toda la app | En relevamiento | Después de P1 |
+| P3 / nueva D | Avisos internos generales para horarios liberados, con patrón similar a Seguimientos | Sin iniciar | Después de P2 |
 
-Si Juan las reanuda, cada tarea conservará cambios, reproducción/contraste, pruebas, auditoría, publicación y documentación propios. Conservar sus límites e incidencias, y no atribuirles evidencia de otra revisión. El cierre de E no es una instrucción para reanudarlas.
+Cada tarea conserva cambios, reproducción/contraste, pruebas, auditoría, publicación y documentación propios. Conservar sus límites e incidencias, y no atribuirles evidencia de otra revisión.
 
 ## P1: cancelación desde recepción
 
 Revisar primero permisos y acciones reales después de E, porque parte de la autorización puede existir ya. Habilitar la opción visible y utilizable para recepción donde corresponda, con confirmación contextual, resultado persistente y mensajes humanos. Probar su rol real, tenant ajeno, permiso retirado, turno iniciado/cancelado y la coherencia con dinero, disponibilidad y notificaciones. No duplicar el comando transaccional de E ni ampliar otros permisos por inferencia.
 
+**Decisión de Juan, 6 de noviembre ([12.34](propuesta-senas-avisos-natalia.md#reanudacion-p1-p2-p3-20261106)):** un turno que ya empezó o ya pasó no se cancela. La pantalla debe aclararlo en vez de esconder el botón sin explicación.
+
 ## P2: estilos completos en los dos modos
 
 Inventariar las superficies reales de la aplicación y reserva pública: formularios, selectores, fechas/horas, botones, menús, diálogos, avisos, carga de archivos, estados vacíos/errores y controles del navegador que hoy queden sin estilo propio. Conservar semántica, teclado y accesibilidad al sustituir la presentación. Usar el sistema existente de tokens y componentes, sin colores sueltos ni un rediseño de marca no pedido.
+
+Desde el 6 de noviembre P2 incluye la revisión de diseño y experiencia de toda la app: espacios vacíos, bloques que no encajan, jerarquía y coherencia entre pantallas, a partir de las capturas reales.
 
 Verificar claro/oscuro, anchos 320/390/768/1280/1600, zoom, foco y contenido largo con evidencia de interfaz renderizada. Auditar controles nativos visibles y llamadas alert/confirm/prompt, sin asumir que un análisis de código o una captura del estado normal prueban todos los menús y estados. Documentar el alcance efectivo de los controles de la web; no presentar como personalizado un diálogo externo que el navegador/sistema siga dibujando.
 
@@ -31,4 +35,10 @@ Contrastar y reutilizar el registro/alerta C de horarios liberados para evitar d
 
 ## Continuidad
 
-Después de una compactación: leer AGENTS, estado vigente, plan completo/ajustes, registro de la tarea activa y esta cola. Continuar E desde su checkpoint; P1/P2/P3 siguen pospuestas incluso después de cerrar E. Registrar aquí una eventual reanudación expresa, inicio y cierre de cada tarea, revisión/corridas/evidencia y el siguiente paso concreto. La lista general de pendientes enlaza este documento y no duplica su seguimiento.
+Después de una compactación: leer AGENTS, estado vigente, [12.34](propuesta-senas-avisos-natalia.md#reanudacion-p1-p2-p3-20261106) y el punto de trabajo de abajo. Se registra acá el inicio y cierre de cada tarea, la revisión, las corridas, la evidencia y el siguiente paso concreto. La lista general de pendientes enlaza este documento y no duplica su seguimiento.
+
+<a id="punto-de-trabajo"></a>
+
+## Punto de trabajo
+
+**6 de noviembre, noche.** Relevamiento hecho sobre las 665 capturas de la corrida 42290663360 (`main` `f459b95c`). P1 en implementación. Nada publicado todavía.
