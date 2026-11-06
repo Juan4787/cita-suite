@@ -44,7 +44,7 @@ Fuente: `docs/clientes/natalia-frutos/informacion-20261029.md`, secciones 4 y 5,
 <a id="etapa-e-pendientes"></a>
 
 2. **E, correo y autogestión: publicada el 6 de noviembre.** [Plan canónico](plan-integral-avisos-20261105.md), [registro activo](ejecucion-etapa-e-20261103.md), [matriz de los 97 casos](ejecucion-etapa-e-20261103.md#matriz-de-seguimiento). Lo que queda:
-   - **Webhook de Zoho (Juan):** pegar la clave del archivo privado en el panel y usar «Send Test». Hasta entonces los correos quedan «aceptados», sin «entregado» ni rebotes automáticos. [Guía](../architecture/zoho-cpaas-terminal.md#integración-del-correo-de-turnos-6-de-noviembre).
+   - **Webhook de Zoho:** configurado y comprobado el 6 de noviembre con una entrega real. Sin probar con un hecho real: rebote y queja.
    - **Video de Google (Juan):** grabar y presentar según el [guion](../architecture/verificacion-google-calendar.md#video-de-demostración-guion-exacto). El turno sintético ya está listo.
    - **Crédito de Zoho (Juan):** vence el 3 de diciembre de 2026; KYC y compra son suyos. La app avisa 14 días antes.
    - **Remitente de Natalia (Juan):** pendiente de su decisión. Hasta entonces no salen correos de su consultorio.

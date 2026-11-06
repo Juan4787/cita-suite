@@ -29,7 +29,7 @@ Autorización de implementación, pruebas y publicación vigente: [plan 12.32](p
 | Interruptores | `reschedule_enabled` y `email_producer_enabled` encendidos; `GOOGLE_CALENDAR_MANAGED_ENABLED=true`; tope diario de correo 100, reserva 10; `private.deposit_automation` sin cambios |
 | Crédito de Zoho registrado | 9.997 correos desde el 6 de noviembre, vencimiento 3 de diciembre de 2026 |
 | Cloudflare | Configuration Rule activa «Webhook de Zoho»: apaga Browser Integrity Check sólo en `/api/zoho/webhook`. El resto del sitio conserva la comprobación |
-| Webhook de Zoho | Creado el 6 de noviembre en `agent_1`, verificado por el panel, con entregado, devoluciones temporales y permanentes y bucle de retroalimentación. Clave cargada: llegan firmados. ZH10 sigue pendiente hasta comprobar el lector corregido |
+| Webhook de Zoho | Creado el 6 de noviembre en `agent_1`, verificado por el panel, con entregado, devoluciones temporales y permanentes y bucle de retroalimentación. Clave cargada. Entrega real comprobada: ZH10 acreditado. Sin un rebote ni una queja reales |
 | Remitente de Natalia | Sin configurar por decisión de Juan: no salen correos de su consultorio |
 
 ## Código que difiere de producción

@@ -125,7 +125,7 @@ La regla de cada caso se lee en la especificación; esta tabla registra su acept
 | ZH07 | Acreditado | SQL 21 y 22; en producción un envío quedó «En comprobación», la persona decidió reenviar y salió. Zoho registra una sola entrega con esa referencia (`scripts/zoho-cpaas.py reference`). |
 | ZH08 | Acreditado | SQL 23 y `zoho-email.test.ts`; carreras escenario 7; SQL 42212825416. |
 | ZH09 | Acreditado | La baja se revisa en cada reclamo, también en reenvíos y recuperaciones; SQL 20; SQL 42212825416. |
-| ZH10 | Pendiente de Zoho | Firma, repetición y referencia en SQL 22 y 24, carreras 8 y en producción con firma propia: 401 sin firma, 401 con firma mala y 200 con la buena. **Falta un evento real de Zoho:** la clave la pega Juan en el panel. |
+| ZH10 | Acreditado | Firma, repetición y referencia en SQL 22 y 24, carreras 8. En producción, 6 de noviembre: evento real firmado de Zoho guardado como `delivered`, vinculado a su envío, y el envío pasó a entregado. Rebotes y quejas se leen con las muestras del panel, sin un rebote ni una queja reales. |
 | ZH11 | Acreditado | Estados con nombre propio en el detalle del turno: prueba de cliente «names what the provider proved, never that the patient read it»; fast 42213523343. |
 | ZH12 | Acreditado | SQL 26 y 27; pausa visible y levantable sólo por decisión explícita (`appointment_email_operations.sql` 9); SQL 42212825416. |
 | ZH13 | Acreditado | SQL 20 y 31; SQL 42212825416. |
@@ -1577,4 +1577,6 @@ Pedido vigente en plan 12.24. Se revisaron los ocho SQL E, sus lectores/comandos
 - Zoho rechazó la clave de 64 caracteres: admite 50. Juan generó y cargó una de 48, que además reemplaza la que pasó por la conversación. Cloudflare creó la versión `d9580343`, con el mismo código. Una firma hecha con la clave nueva recibió `200`. **Falta pegarla en Zoho**; el resto del punto para retomar sigue igual.
 - Zoho rechazó también la clave de 48 caracteres con guiones; aceptó una de 32 letras y números. Versión `a8e1bea1`, mismo código.
 - Primer evento real firmado, 20:28 UTC: llegó con `200`, se vinculó al envío, pero quedó `unknown`/`ignored`. Las muestras del panel mostraron las formas reales: entregado trae `object: email_delivery` y sin hora propia; la queja se llama `fbl_compliant` (sic), también sin hora; ambas traen `email_info.processed_time`. El lector no las reconocía: una queja real no habría suprimido la dirección. Se corrige el lector y se publica por el mismo circuito.
+- **Quinta versión de E publicada a las 21:00 UTC** (`93b711a1`, versión `eb1e8cf8`). Prueba real a las 20:58 UTC: envío aceptado 20:58:19, entregado 20:58:20, evento firmado recibido 20:58:34 como `delivered`/`delivered`, vinculado. ZH10 acreditado. Práctica `dfbe27f2d5b1` limpiada, con 0 datos restantes; quedan 2 filas en `private.email_provider_events`, sólo con identificadores, como evidencia.
+- Sin comprobar con un hecho real: rebote permanente, rebote temporal y queja. Sus formas salen de las muestras del panel. El correo aceptado a las 20:28 quedó sin «entregado» porque su evento llegó antes del arreglo.
 
