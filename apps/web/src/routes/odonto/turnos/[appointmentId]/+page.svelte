@@ -35,6 +35,7 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@cita-suite/share
    depositFinancials: PageData['depositFinancials'];
 			canRecordDeposit: boolean;
 			auditLogs: AuditLog[] | null;
+			emailDeliveries: PageData['emailDeliveries'];
 			userLabels: Record<string, string>;
 			reprogramDate: string;
 			minReprogramDate: string;

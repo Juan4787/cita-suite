@@ -44,6 +44,7 @@ M	apps/web/src/hooks.server.test.ts
 M	apps/web/src/hooks.server.ts
 M	apps/web/src/lib/availability/contracts.test.ts
 M	apps/web/src/lib/availability/contracts.ts
+M	apps/web/src/lib/booking/BookingAppearance.svelte
 M	apps/web/src/lib/booking/BookingBirthDateInput.svelte
 M	apps/web/src/lib/booking/PatientDocumentUpload.svelte
 M	apps/web/src/lib/booking/PublicBookingConfirmation.svelte
@@ -93,6 +94,7 @@ A	apps/web/src/lib/server/integrations/public/patient-google-calendar.ts
 A	apps/web/src/lib/server/integrations/public/patient-push.ts
 M	apps/web/src/lib/server/integrations/public/push.test.ts
 M	apps/web/src/lib/server/integrations/public/push.ts
+M	apps/web/src/lib/server/integrations/public/scheduled-jobs.test.ts
 M	apps/web/src/lib/server/integrations/public/scheduled-jobs.ts
 A	apps/web/src/lib/server/integrations/public/zoho-email.test.ts
 A	apps/web/src/lib/server/integrations/public/zoho-email.ts
@@ -148,6 +150,7 @@ A	apps/web/src/lib/server/scheduling/public/staff-management-flow.test.ts
 A	apps/web/src/lib/server/scheduling/public/staff-management-flow.ts
 A	apps/web/src/lib/server/scheduling/public/staff-management.test.ts
 A	apps/web/src/lib/server/scheduling/public/staff-management.ts
+M	apps/web/src/lib/theme/palette.js
 A	apps/web/src/routes/api/zoho/webhook/+server.ts
 A	apps/web/src/routes/correo/baja/[token]/+page.server.ts
 A	apps/web/src/routes/correo/baja/[token]/+page.svelte

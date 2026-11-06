@@ -46,13 +46,27 @@ const jobs: Record<ScheduledJobKind, (run: ScheduledJobRun) => Promise<JobResult
 		return { scanned, credited, attention, errors };
 	},
 	storage: async (run) => {
-		const result = await reconcileClinicalStorage(run.supabase);
-		if (result.overGlobalLimit || result.overBusinessLimit > 0)
-			logServerWarning('El almacenamiento clínico supera un límite configurado');
+		// Two independent cleanups share this trigger. A failing storage check must not keep expired
+		// links and old addresses in the database, so the retention runs either way; the run still
+		// fails afterwards, so the failure is visible.
+		let storageFailure: unknown = null;
+		let result: Awaited<ReturnType<typeof reconcileClinicalStorage>> | null = null;
+		try {
+			result = await reconcileClinicalStorage(run.supabase);
+			if (result.overGlobalLimit || result.overBusinessLimit > 0)
+				logServerWarning('El almacenamiento clínico supera un límite configurado');
+		} catch (cause) {
+			storageFailure = cause;
+		}
 		const { data, error } = await run.supabase.rpc('run_appointment_email_retention', { p_now: run.now.toISOString() });
 		if (error) throw error;
+		if (storageFailure !== null) throw storageFailure;
 		const retention = readRecord(data, 'emailRetention');
-		return { ...result, expiredLinksRemoved: Number(retention.capabilities) || 0, mailRecipientsCleared: Number(retention.recipients) || 0 };
+		return {
+			...result,
+			expiredLinksRemoved: Number(retention.capabilities) || 0,
+			mailRecipientsCleared: Number(retention.recipients) || 0
+		};
 	}
 };
 

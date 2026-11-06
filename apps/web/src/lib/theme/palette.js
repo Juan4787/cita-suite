@@ -244,7 +244,6 @@ export const tokens = [
 	["--c-check-check-danger-600", "#d92d20", "#dc2626", "antes: red-600", {"accentColor":["check-danger-600"]}],
 	["--c-shadow-shade-black-10", "rgb(16 24 40 / 0.04)", "rgb(0 0 0 / 0.1)", "antes: black/10, black/15 (ΔE 0.62), black/20 (ΔE 1.26)", {"boxShadowColor":["shade-black-10"]}],
 	["--c-bg-success-300-08", "#ecfdf3", "rgb(110 231 183 / 0.08)", "antes: emerald-300/[0.08], teal-400/10 (ΔE 1.31)", {"backgroundColor":["success-300-08"]}],
-	["--c-text-accent-200-75", "#5f30b3", "rgb(221 214 254 / 0.75)", "antes: violet-200/75", {"textColor":["accent-200-75"]}],
 	["--c-line-accent-600-50", "#7640cf", "rgb(124 58 237 / 0.5)", "antes: [#7c3aed]/50", {"borderColor":["accent-600-50"],"divideColor":["accent-600-50"]}],
 	["--c-bg-accent-400-15", "#f3eefc", "rgb(167 139 250 / 0.15)", "antes: violet-400/15", {"backgroundColor":["accent-400-15"]}],
 	["--c-bg-fill-182842", "#e9edf2", "#182842", "antes: [#182842]", {"backgroundColor":["fill-182842"]}],
@@ -335,10 +334,6 @@ export const tokens = [
 	["--c-text-fg-20", "#5d6b82", "rgb(255 255 255 / 0.2)", "antes: white/20", {"textColor":["fg-20"]}],
 	["--c-ring-focus-accent-500-60", "#7640cf", "rgb(139 92 246 / 0.6)", "antes: [#8b5cf6]/60", {"ringColor":["focus-accent-500-60"]}],
 	["--c-line-success-green-400-40", "#a6e3bf", "rgb(74 222 128 / 0.4)", "antes: green-400/40", {"borderColor":["success-green-400-40"],"divideColor":["success-green-400-40"]}],
-	["--c-bg-warning-300-06", "#fff7e6", "rgb(252 211 77 / 0.055)", "antes: amber-300/[0.055]", {"backgroundColor":["warning-300-06"]}],
-	["--c-line-accent-200-15", "#cdbcf3", "rgb(221 214 254 / 0.15)", "antes: violet-200/15", {"borderColor":["accent-200-15"],"divideColor":["accent-200-15"]}],
-	["--c-ring-focus-accent-300-30", "rgb(118 64 207 / 0.35)", "rgb(196 181 253 / 0.3)", "antes: violet-300/30", {"ringColor":["focus-accent-300-30"]}],
-	["--c-line-accent-300-45", "#cdbcf3", "rgb(196 181 253 / 0.45)", "antes: violet-300/45", {"borderColor":["accent-300-45"],"divideColor":["accent-300-45"]}],
 ];
 
 /** Color de la barra del navegador del celular en cada modo: el fondo de página (--bg). Se escribe
