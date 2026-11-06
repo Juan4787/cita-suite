@@ -35,6 +35,8 @@ Autorización de implementación, pruebas y publicación vigente: [plan 12.32](p
 El chequeo compara esta lista con `git diff --name-status <produccion_revision> HEAD` sobre el código (`apps`, `packages`, `scripts`, `supabase` y los archivos de configuración de la raíz, sin `apps/web/output`). Tiene que coincidir exactamente.
 
 ```codigo-distinto-de-produccion
+M	apps/web/src/routes/api/zoho/webhook/+server.ts
+M	apps/web/src/routes/api/zoho/webhook/webhook.server.test.ts
 M	scripts/production-email-practice.mjs
 M	scripts/zoho-cpaas.py
 ```

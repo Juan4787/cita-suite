@@ -13,15 +13,19 @@ const ZOHO_WEBHOOK_MAX_BODY_BYTES = 64 * 1024;
 export const GET: RequestHandler = () => json({ ok: true });
 
 // Receipts are stored before answering success, so a repeated notification changes nothing and a
-// failed store is retried by the provider. An unsigned request is refused without touching the base.
+// failed store is retried by the provider. Only a valid signature reaches the base.
 export const POST: RequestHandler = async ({ request }) => {
 	const key = env.ZOHO_CPAAS_WEBHOOK_KEY?.trim();
 	if (!key) return json({ ok: false }, { status: 503 });
 	const bytes = await readBoundedBytes(request, ZOHO_WEBHOOK_MAX_BODY_BYTES);
 	if (!bytes) return json({ ok: false }, { status: 413 });
 	const raw = new TextDecoder().decode(bytes);
-	// The panel's own check may send an empty body with no signature: it proves reachability only.
-	if (!raw.trim() && !request.headers.get('producer-signature')) return json({ ok: true });
+	// The panel verifies the URL with an unsigned sample and accepts only a 200, and it offers the key
+	// only once the webhook exists. So an unsigned request is answered with a 200 and never stored.
+	if (!request.headers.get('producer-signature')) {
+		if (raw.trim()) logServerWarning('Notificación de correo sin firma: no se guarda');
+		return json({ ok: true });
+	}
 	const payload = zohoSignedPayload(raw);
 	if (payload === null || !(await verifyZohoSignature(request.headers.get('producer-signature'), payload, key))) {
 		logServerWarning('Notificación de correo sin firma válida');
