@@ -108,6 +108,7 @@ describe('truthful content (RM06, UI08)', () => {
 	});
 	it('asks to replace a saved calendar event after a change, because a file cannot update it', () => {
 		expect(build(work('reschedule_receipt')).text).toContain('borrá el evento anterior y guardá el nuevo');
+		expect(build(work('reschedule_receipt')).text).toContain('Si conectaste tu cuenta Google, ese evento se actualiza solo.');
 	});
 	it('uses the time zone of the practice', () => {
 		expect(build(work('booking_receipt')).text).toContain('12:00');
