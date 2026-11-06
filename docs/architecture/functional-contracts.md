@@ -96,6 +96,13 @@ Fuente: [plan aprobado de señas y avisos](../plans/propuesta-senas-avisos-natal
 - **Aviso interno (P3, reemplaza a la D celular):** quien puede dar el horario (dueño, administración, recepción) ve arriba, en toda la app, «Se liberó un horario» o «Se liberaron N horarios». La agenda no lo repite porque ya los lista. Lee `get_appointment_slot_releases` con la ventana de 14 días de la agenda: no hay otra tabla ni otra fuente, así que lo ocupado, bloqueado, oculto o vencido desaparece del aviso igual que de la lista. Cerrarlo vale para ese navegador y ese conjunto de horarios: vuelve si se libera otro. Ocultar desde la agenda vale para todo el consultorio. No usa push, permisos del navegador ni instalación. Si la lectura falla, la app dice que no pudo comprobarlo.
 - Pruebas: `appointment_slot_releases.sql`, `slot-releases.test.ts`, `SlotReleaseAlerts.client.test.ts`, `SlotReleasesNotice.client.test.ts`, `layout-notices.server.test.ts`, `ManualAppointmentWizard.client.test.ts` y `appointment-slot-releases.spec.ts`. La existencia del spec no acredita su ejecución: evidencia y pendientes en el registro de la campaña. Release, staging y producción siguen separados de la prueba descartable.
 
+## Cancelación desde el consultorio (P1, 6 de noviembre)
+
+- Dueño, administración y recepción cancelan desde el detalle del turno. Es la misma operación de siempre, `apply_staff_appointment_management`, con su bloqueo, auditoría y revisión. Profesional y sólo lectura no ven la acción y el comando los rechaza.
+- **Un turno que ya empezó no se cancela** (decisión de Juan, [plan 12.34](../plans/propuesta-senas-avisos-natalia.md#reanudacion-p1-p2-p3-20261106)). El comando lo rechaza con `APPOINTMENT_ALREADY_STARTED`, leyendo el reloj bajo el bloqueo del turno, así que una página abierta desde antes tampoco puede. Una cancelación hecha a tiempo conserva su comprobante recuperable.
+- La pantalla dice «Turno pasado» o «En curso» y explica por qué no hay cancelación. Reprogramar un turno pasado sigue permitido. La agenda y «Mis turnos» usan la misma etiqueta.
+- La confirmación dice qué pasa con el horario, con la seña (una seña registrada queda por resolver, sin registrar devolución) y con el aviso al paciente. No promete un envío: lo que salió se ve en «Correos de este turno».
+
 ## E — notas de desarrollo (3 a 5 de noviembre; publicadas el 6 de noviembre)
 
 Las notas siguientes conservan su fecha y su estado de entonces: donde dicen «sin publicar», hoy ya está publicado. Vigente en el [estado](../ESTADO-VIGENTE.md).
