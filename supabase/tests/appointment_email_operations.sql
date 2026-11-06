@@ -101,20 +101,23 @@ $$;
 select set_config('request.jwt.claim.sub',pg_temp.oid('outsider')::text,true);
 select extensions.throws_ok($$select pg_temp.resolve('ops:resend','resend')$$,'P0001','APPOINTMENT_MANAGEMENT_FORBIDDEN','11. Someone outside the practice cannot decide on a message');
 select set_config('request.jwt.claim.sub',pg_temp.oid('reception')::text,true);
-select extensions.ok(pg_temp.resolve('ops:resend','resend')->>'state'='retry'
+insert into ops_seen select 'resend',pg_temp.resolve('ops:resend','resend');
+select extensions.ok((select value->>'state'='retry' from ops_seen where label='resend')
  and (select state='retry' and duplicate_risk_accepted_by=pg_temp.oid('reception') from private.appointment_email_deliveries where id=(select id from ops_deliveries where label='ops:resend'))
  and exists(select 1 from public.audit_logs where user_id=pg_temp.oid('reception') and action='appointment.email_uncertain_resolved'),
  '12. Reception can resend, and the record names the person who accepted the risk of a duplicate');
 select extensions.throws_ok($$select pg_temp.resolve('ops:resend','resend')$$,'P0001','EMAIL_DELIVERY_CHANGED','13. A decision already taken cannot be taken twice');
 select set_config('request.jwt.claim.sub',pg_temp.oid('owner')::text,true);
-select extensions.ok(pg_temp.resolve('ops:dismiss','dismiss')->>'state'='discarded'
+insert into ops_seen select 'dismiss',pg_temp.resolve('ops:dismiss','dismiss');
+select extensions.ok((select value->>'state'='discarded' from ops_seen where label='dismiss')
  and (select state='discarded' and discard_reason='operator_dismissed' from private.appointment_email_deliveries where id=(select id from ops_deliveries where label='ops:dismiss')),
  '14. The owner can close a message without sending it again');
 
 select set_config('request.jwt.claim.sub',pg_temp.oid('reception')::text,true);
 select extensions.throws_ok($$select public.save_business_email_contact(pg_temp.oid('business'),'respuestas@example.test')$$,'P0001','APPOINTMENT_MANAGEMENT_FORBIDDEN','15. Reception cannot change the reply contact');
 select set_config('request.jwt.claim.sub',pg_temp.oid('owner')::text,true);
-select extensions.ok((public.save_business_email_contact(pg_temp.oid('business'),' respuestas@example.test '))?'ready'
+insert into ops_seen select 'contact',public.save_business_email_contact(pg_temp.oid('business'),' respuestas@example.test ');
+select extensions.ok((select value ? 'ready' from ops_seen where label='contact')
  and (select reply_to_email='respuestas@example.test' from private.business_email_senders where business_id=pg_temp.oid('business'))
  and exists(select 1 from public.audit_logs where user_id=pg_temp.oid('owner') and action='business.email_contact_updated'),
  '16. The owner saves the reply contact, and the record names who did');
