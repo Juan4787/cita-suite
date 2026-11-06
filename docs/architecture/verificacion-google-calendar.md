@@ -80,9 +80,9 @@ Si piden un texto corto en castellano, el sentido es el mismo: sólo si el pacie
 
 **Requisitos oficiales**, leídos el 5 de noviembre en la [guía de permisos sensibles](https://developers.google.com/identity/protocols/oauth2/production-readiness/sensitive-scope-verification): mostrar en inglés el permiso tal como lo ve un usuario; que la pantalla de consentimiento muestre el nombre de la app; que la barra de direcciones de esa pantalla muestre el ID de cliente; mostrar cómo empieza la persona el pedido y el uso de cada permiso; subirlo a YouTube como **No listado**. La guía no fija una duración. La política de privacidad debe estar en el mismo dominio que la página principal y decir cómo se usan los datos de Google; desde E, `/privacidad` incluye además la frase de uso limitado.
 
-**Antes de grabar** (lo deja listo el agente después de publicar, y lo comprueba una vez de punta a punta):
+**Antes de grabar.** Comprobado de punta a punta el 6 de noviembre sobre producción: en el teléfono con la cuenta `citasuite` crear, mover y retirar, y en computadora la entrada y el `client_id` hasta la elección de cuenta:
 1. Producción con E publicada y `GOOGLE_CALENDAR_MANAGED_ENABLED` encendido.
-2. Un turno sintético futuro en un consultorio sintético de producción, con un nombre de paciente ficticio, y su enlace de gestión guardado en un archivo privado del equipo, no en el repositorio.
+2. Ya está listo un turno sintético del 20 de noviembre en «Consultorio de demostración», con horarios para reprogramar. Su enlace y el comando para limpiarlo están en el archivo privado `~/.local/share/cita-suite/google-video/turno-video.txt`, no en el repositorio.
 3. Un perfil de Chrome en la computadora con **inglés como primer idioma** (Configuración → Idiomas), para que Google muestre la pantalla de permiso en inglés.
 4. En ese perfil, la cuenta `citasuite@gmail.com` ya iniciada **antes** de grabar: la contraseña no aparece en el video.
 5. Sin otras pestañas, marcadores ni notificaciones personales visibles.
@@ -93,12 +93,13 @@ Si piden un texto corto en castellano, el sentido es el mismo: sólo si el pacie
 2. `https://app.cita-suite.com.ar/privacidad`, sección «Google Calendar»: «How Google data is used (Limited Use)».
 3. El enlace del turno sintético: «A patient opens their appointment page».
 4. En la tarjeta del recordatorio (en computadora, dentro de «Agregar al calendario»), tocar **«Conectar mi cuenta Google»**: «The patient chooses to save this appointment in their Google Calendar».
-5. Elegir `citasuite@gmail.com`. Si Google muestra que la app no está verificada, seguir con «Advanced» y «Go to Cita Suite»: es lo esperado hasta que Google apruebe.
-6. Google pide dos pasos, comprobados en el teléfono el 6 de noviembre: primero el ingreso a Cita Suite, con «Continue»; después la pantalla de permisos, con el nombre **Cita Suite**, el permiso de Calendar y **una casilla que hay que marcar**. Mostrar el nombre y el permiso; **hacer clic en la barra de direcciones** y mostrar `client_id=702611060405-…`: «App name and OAuth client ID». Marcar la casilla y aceptar con «Continue».
-7. De vuelta en la página del turno, recargar hasta ver **«Recordatorio guardado en tu calendario»**: «The app created one event for this appointment».
-8. En `calendar.google.com`, abrir el evento del día del turno: «Neutral title, with reminders».
-9. En la página del turno, **Reprogramar** a otro horario y confirmar; recargar Google Calendar y mostrar el evento en el horario nuevo: «Rescheduling updates the same event».
-10. En la página del turno, **Cancelar** y confirmar; recargar Google Calendar y mostrar que el evento ya no está: «Cancelling deletes that event. No other event is read or changed».
+5. En la pantalla de elección de cuenta de Google, **hacer clic en la barra de direcciones** y mostrar `client_id=702611060405-…`: «OAuth client ID». Comprobado el 6 de noviembre: esa pantalla lo muestra, y la siguiente advertencia ya no.
+6. Elegir `citasuite@gmail.com`. Si Google muestra que la app no está verificada, seguir con «Advanced» y «Go to Cita Suite»: es lo esperado hasta que Google apruebe.
+7. Google pide dos pasos, comprobados en el teléfono el 6 de noviembre: primero el ingreso a Cita Suite, con «Continue»; después la pantalla de permisos, con el nombre **Cita Suite**, el permiso de Calendar y **una casilla que hay que marcar**. Mostrar el nombre y el permiso: «App name and requested permission». Marcar la casilla y aceptar con «Continue».
+8. De vuelta en la página del turno, recargar hasta ver **«Recordatorio guardado en tu calendario»**: «The app created one event for this appointment».
+9. En `calendar.google.com`, abrir el evento del día del turno: «Neutral title, with reminders».
+10. En la página del turno, **Reprogramar** a otro horario y confirmar; recargar Google Calendar y mostrar el evento en el horario nuevo: «Rescheduling updates the same event».
+11. En la página del turno, **Cancelar** y confirmar; recargar Google Calendar y mostrar que el evento ya no está: «Cancelling deletes that event. No other event is read or changed».
 
 **Después de grabar:**
 1. Revisar el video completo: no deben verse contraseñas, códigos, correos privados ni otra cuenta.
