@@ -526,7 +526,7 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@cita-suite/share
 						<dd class="mt-1 font-semibold text-fg">{formatQuotedPrice(data.appointment.price_quote_snapshot)}</dd>
 					</div>
 				{/if}
-				<div>
+				<div class="col-span-2 sm:col-span-1">
 					<dt class="text-sm font-semibold text-fg-55">Teléfono</dt>
 					<dd class="mt-1 font-semibold tabular-nums text-fg">{data.appointment.patients?.phone_e164 ?? 'Sin teléfono'}</dd>
 				</div>

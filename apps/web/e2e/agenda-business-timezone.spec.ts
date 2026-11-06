@@ -137,12 +137,12 @@ test('agenda and appointment page show the practice wall clock when the browser 
 
 		await card.click();
 		await expect(page).toHaveURL(new RegExp(`/odonto/turnos/${f.appointmentId}`));
-		await expect(page.getByText(/^23:30 - /)).toBeVisible();
+		await expect(page.getByText(/^23:30 a /)).toBeVisible();
 		const [year, month, dayOfMonth] = f.practiceDate.split('-').map(Number);
-		const longDate = new Intl.DateTimeFormat('es-AR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(
-			new Date(Date.UTC(year, month - 1, dayOfMonth, 12))
-		);
-		await expect(page.getByText(longDate, { exact: true })).toBeVisible();
+		const longDate = new Intl.DateTimeFormat('es-AR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
+			.format(new Date(Date.UTC(year, month - 1, dayOfMonth, 12)))
+			.replace(',', '');
+		await expect(page.getByText(longDate.charAt(0).toUpperCase() + longDate.slice(1), { exact: true })).toBeVisible();
 	} finally {
 		await f.cleanup();
 	}

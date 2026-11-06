@@ -69,7 +69,7 @@
 
 {#if !dismissed}
 	<section
-		class={`relative w-full rounded-2xl border p-4 pr-14 shadow-lg ${toneClass}`}
+		class={`ux-shell-notice relative w-full rounded-2xl border p-3 pr-12 shadow-lg sm:p-4 sm:pr-14 ${toneClass}`}
 		data-global-notice={storageKey}
 		aria-label={title}
 	>
@@ -85,9 +85,9 @@
 			</svg>
 		</button>
 
-		<h2 class="text-base font-bold text-fg sm:text-lg">{title}</h2>
+		<h2 class="text-base font-bold leading-snug text-fg sm:text-lg">{title}</h2>
 		{#if message}
-			<p class="mt-1 text-sm font-semibold leading-6 text-fg-65">{message}</p>
+			<p class="mt-1 text-sm font-semibold leading-5 text-fg-65 sm:leading-6">{message}</p>
 		{/if}
 		{@render children?.()}
 	</section>

@@ -110,7 +110,7 @@
  <h2 id="patient-documents-title" class="ux-section-title">Documentos para tu consulta</h2>
  <p class="text-sm text-fg-75 bk-muted">Podés adjuntar JPG, PNG o PDF de hasta 5 MB. Para este turno se admiten hasta tres documentos y 10 MB en total.</p>
  <form onsubmit={upload} class="space-y-4"><fieldset disabled={busy} class="space-y-4">
-  <label class="block"><span class="ux-label">Documento</span><input bind:this={picker} bind:files type="file" accept="image/jpeg,image/png,application/pdf" class="sr-only" required onchange={()=>{requestId='';pendingId='';uploaded=false;progress=0;message='';}}/><span class="ux-file-picker"><span class="ux-btn-secondary shrink-0">Elegir archivo</span><span class="min-w-0 text-sm text-fg-70 bk-muted">{selected?.name ?? 'Todavía no elegiste un archivo'}</span></span></label>
+  <div><label class="ux-label" for="patient-document-file">Documento</label><input id="patient-document-file" aria-label="Documento" bind:this={picker} bind:files type="file" accept="image/jpeg,image/png,application/pdf" class="sr-only" required onchange={()=>{requestId='';pendingId='';uploaded=false;progress=0;message='';}}/><label class="ux-file-picker" for="patient-document-file"><span class="ux-btn-secondary shrink-0">Elegir archivo</span><span class="min-w-0 text-sm text-fg-70 bk-muted">{selected?.name ?? 'Todavía no elegiste un archivo'}</span></label></div>
   <label class="block"><span class="ux-label">Descripción (opcional)</span><input class="ux-input mt-2" maxlength="500" disabled={Boolean(pendingId)} bind:value={note}/></label>
   <button class="ux-btn-primary" disabled={!selected}>{busy?'Guardando documento…':uploaded?'Reintentar confirmación':'Adjuntar documento'}</button>
  </fieldset></form>

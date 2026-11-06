@@ -6,7 +6,8 @@ const mocks = vi.hoisted(() => ({
 	loadActiveMasterAccountAssistanceRequests: vi.fn(),
 	loadAccountAssistanceView: vi.fn(),
 	isMasterEmail: vi.fn(),
-	loadDepositPolicyEnabled: vi.fn()
+	loadDepositPolicyEnabled: vi.fn(),
+	loadSlotReleaseNotice: vi.fn()
 }));
 
 vi.mock('$env/dynamic/private', () => ({ env: {} }));
@@ -37,10 +38,11 @@ vi.mock('$lib/server/access/public/account-assistance', () => ({
 vi.mock('$lib/server/integrations/public/mercadopago', () => ({ getSubscriptionAmountArs: () => 0 }));
 vi.mock('$lib/server/patients/public/patient-permissions', () => ({ canExportPatientData: () => false }));
 vi.mock('$lib/server/scheduling/public/deposits', () => ({ loadDepositPolicyEnabled: mocks.loadDepositPolicyEnabled }));
+vi.mock('$lib/server/scheduling/public/slot-releases', () => ({ loadSlotReleaseNotice: mocks.loadSlotReleaseNotice }));
 
 const { load } = await import('./+layout.server');
 
-const event = () =>
+const event = (pathname = '/odonto/agenda') =>
 	({
 		locals: {
 			auth: { module: 'odonto', access_token: 'test-token' },
@@ -50,25 +52,28 @@ const event = () =>
 		fetch: vi.fn(),
 		cookies: { get: vi.fn() },
 		getClientAddress: () => '127.0.0.1',
-		url: new URL('http://localhost/odonto/agenda'),
+		url: new URL(`http://localhost${pathname}`),
 		depends: vi.fn()
 	}) as never;
 
 const notice = { count: 2, single: null, dismissalKey: 'two' };
 const noNotice = { count: 0, single: null, dismissalKey: '0' };
 const assistanceView = { status: 'available', grantId: null, showBanner: true, canActivate: true };
+const business = {
+	business: { id: 'business-1', timezone: 'America/Argentina/Buenos_Aires' },
+	role: 'reception',
+	canOperate: true,
+	assistance: null,
+	access: { canUseBusiness: true }
+};
 
 describe('shell notices', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		mocks.isMasterEmail.mockReturnValue(false);
-		mocks.resolveActiveBusiness.mockResolvedValue({
-			business: { id: 'business-1', timezone: 'America/Argentina/Buenos_Aires' },
-			role: 'reception',
-			assistance: null,
-			access: { canUseBusiness: true }
-		});
+		mocks.resolveActiveBusiness.mockResolvedValue(business);
 		mocks.getNoticeSummary.mockResolvedValue(notice);
+		mocks.loadSlotReleaseNotice.mockResolvedValue({ count: 0, truncated: false, single: null, dismissalKey: '0' });
 		mocks.loadActiveMasterAccountAssistanceRequests.mockResolvedValue([{ id: 'grant-1' }]);
 		mocks.loadAccountAssistanceView.mockResolvedValue(assistanceView);
 		mocks.loadDepositPolicyEnabled.mockResolvedValue(false);
@@ -91,6 +96,27 @@ describe('shell notices', () => {
 			unavailableNotices: ['follow-ups'],
 			businessError: null
 		});
+	});
+
+	it('avisa de los horarios liberados en toda la app, salvo en la agenda que ya los lista', async () => {
+		const released = { count: 1, truncated: false, single: { id: 'r1' }, dismissalKey: 'one' };
+		mocks.loadSlotReleaseNotice.mockResolvedValue(released);
+		await expect(load(event('/odonto/pacientes'))).resolves.toMatchObject({ slotReleases: released, unavailableNotices: [] });
+		mocks.loadSlotReleaseNotice.mockClear();
+		await expect(load(event('/odonto/agenda'))).resolves.toMatchObject({ slotReleases: { count: 0, single: null } });
+		expect(mocks.loadSlotReleaseNotice).not.toHaveBeenCalled();
+		await expect(load(event('/odonto/agenda/semana'))).resolves.toMatchObject({ slotReleases: released });
+	});
+
+	it('no se lo muestra a quien no puede dar el horario', async () => {
+		mocks.resolveActiveBusiness.mockResolvedValue({ ...business, canOperate: false });
+		await expect(load(event('/odonto/pacientes'))).resolves.toMatchObject({ slotReleases: { count: 0 }, unavailableNotices: [] });
+		expect(mocks.loadSlotReleaseNotice).not.toHaveBeenCalled();
+	});
+
+	it('dice que no pudo comprobarlos en vez de mostrar que no hay ninguno', async () => {
+		mocks.loadSlotReleaseNotice.mockRejectedValue(new Error('read failed'));
+		await expect(load(event('/odonto/pacientes'))).resolves.toMatchObject({ slotReleases: { count: 0 }, unavailableNotices: ['slot-releases'], businessError: null });
 	});
 
 	it('says the help requests could not be checked instead of showing none', async () => {

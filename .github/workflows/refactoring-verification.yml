@@ -21,6 +21,12 @@ on:
         type: string
         required: false
         default: ''
+      browser_engine:
+        description: Browser engine of the browser level. Firefox and WebKit are a diagnostic, like the selection
+        type: choice
+        required: false
+        default: chromium
+        options: [chromium, firefox, webkit]
       rollback_run:
         description: Successful packaging run of the distinct compatible rollback baseline (required by release and rollback)
         type: string
@@ -95,7 +101,9 @@ jobs:
       - name: Prepare one browser
         if: inputs.level == 'full' || inputs.level == 'release' || inputs.level == 'browser' || inputs.level == 'rollback'
         timeout-minutes: 20
-        run: pnpm --filter web exec playwright install --with-deps chromium
+        env:
+          BROWSER_ENGINE: ${{ inputs.browser_engine || 'chromium' }}
+        run: pnpm --filter web exec playwright install --with-deps "$BROWSER_ENGINE"
       - name: Prepare pinned native spreadsheet reader
         if: inputs.level == 'full' || inputs.level == 'release'
         timeout-minutes: 10
@@ -132,6 +140,7 @@ jobs:
         env:
           VERIFICATION_LEVEL: ${{ inputs.level }}
           BROWSER_GREP: ${{ inputs.browser_grep }}
+          E2E_ENGINE: ${{ inputs.browser_engine || 'chromium' }}
           ARTIFACT_RUN: ${{ inputs.artifact_run }}
           CITA_RELEASE_ARTIFACT: ${{ (inputs.level == 'release' || inputs.artifact_run != '') && format('{0}/release', runner.temp) || '' }}
           CITA_ROLLBACK_ARTIFACT: ${{ (inputs.level == 'release' || inputs.level == 'rollback') && format('{0}/release-rollback', runner.temp) || '' }}

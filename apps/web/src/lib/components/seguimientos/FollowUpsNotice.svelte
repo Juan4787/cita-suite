@@ -33,7 +33,7 @@
 			message={singleLine}
 			tone="warning"
 		>
-			<div class="mt-3">
+			<div class="mt-2 sm:mt-3">
 				<FollowUpActions item={notice.single} {todayISO} />
 			</div>
 		</DismissibleNotice>

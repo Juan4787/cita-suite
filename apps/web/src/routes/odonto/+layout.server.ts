@@ -30,9 +30,11 @@ import type { LayoutServerLoad } from './$types';
 import { env } from '$env/dynamic/private';
 import { canExportPatientData } from '$lib/server/patients/public/patient-permissions';
 import { loadDepositPolicyEnabled } from '$lib/server/scheduling/public/deposits';
+import { loadSlotReleaseNotice } from '$lib/server/scheduling/public/slot-releases';
+import { buildSlotReleaseNotice, type SlotReleaseNotice } from '$lib/scheduling/slot-releases';
 
 // A notice the shell could not check. It says so instead of showing nothing to do.
-type UnavailableNotice = 'follow-ups' | 'help-requests' | 'assistance' | 'deposits';
+type UnavailableNotice = 'follow-ups' | 'help-requests' | 'assistance' | 'deposits' | 'slot-releases';
 
 // Who records deposits (the database enforces the same roles): they get the «Señas» entry.
 const DEPOSIT_ROLES = new Set(['owner', 'admin', 'reception']);
@@ -70,6 +72,7 @@ export const load: LayoutServerLoad = async ({
 	let accountAssistance: AccountAssistanceView | null = null;
 	let masterAssistanceRequests: MasterAccountAssistanceRequest[] = [];
 	let depositsEnabled = false;
+	let slotReleases: SlotReleaseNotice = buildSlotReleaseNotice([], false);
 	const unavailableNotices: UnavailableNotice[] = [];
 
 	if (env.DEMO_MODE === 'true') {
@@ -99,7 +102,7 @@ export const load: LayoutServerLoad = async ({
 				});
 			}
 
-			const [nextAccountAssistance, nextMasterRequests, nextFollowUps, nextDepositsEnabled] = await Promise.all([
+			const [nextAccountAssistance, nextMasterRequests, nextFollowUps, nextDepositsEnabled, nextSlotReleases] = await Promise.all([
 				(async (): Promise<AccountAssistanceView | null> => {
 					if (
 						!activeBusiness ||
@@ -171,6 +174,17 @@ export const load: LayoutServerLoad = async ({
 						unavailableNotices.push('deposits');
 						return false;
 					}
+				})(),
+				(async (): Promise<SlotReleaseNotice> => {
+					// Only for who can give the slot away, and not on the agenda: it lists them itself.
+					if (!activeBusiness?.canOperate || pathname === '/odonto/agenda') return buildSlotReleaseNotice([], false);
+					try {
+						return await loadSlotReleaseNotice(supabase, activeBusiness.business.id);
+					} catch (releaseError) {
+						logServerFailure('Error cargando el aviso de horarios liberados', releaseError);
+						unavailableNotices.push('slot-releases');
+						return buildSlotReleaseNotice([], false);
+					}
 				})()
 			]);
 			accountAssistance = nextAccountAssistance;
@@ -178,6 +192,7 @@ export const load: LayoutServerLoad = async ({
 			followUps = nextFollowUps.notice;
 			followUpsTodayISO = nextFollowUps.todayISO;
 			depositsEnabled = nextDepositsEnabled;
+			slotReleases = nextSlotReleases;
 		} catch (err) {
 			if (isDefaultBusinessPendingManualSetupError(err)) {
 				if (!pathname.startsWith('/odonto/pendiente')) {
@@ -221,6 +236,7 @@ export const load: LayoutServerLoad = async ({
 		followUps,
 		followUpsTodayISO,
 		depositsEnabled,
+		slotReleases,
 		unavailableNotices,
 		mpAmount: getSubscriptionAmountArs()
 	};

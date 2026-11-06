@@ -6,6 +6,7 @@ import { loginWithSharedSession } from './helpers/shared-auth';
 import { layoutIssues, type LayoutIssue } from './helpers/layout-usability';
 import { alignTaskForCapture } from './helpers/task-capture';
 import { observeRenderHealth } from './helpers/render-health';
+import { applyThemeInPage } from './helpers/theme';
 
 async function matrix(page: Page, info: TestInfo, label: string, issues: Array<LayoutIssue & { screen: string; width: number }>) {
  const first = issues.length;
@@ -71,7 +72,28 @@ test('appointment slots released: real cancellation, reassignment, occupation an
    .eq('business_id', f.businessId).eq('appointment_id', appointment.id).single());
   expect(release).toMatchObject({ reason: 'practice_cancelled', professional_id: link.professional_id });
   expect(new Date(release.starts_at).toISOString()).toBe(startsAt);
+  // P3: the same slot reaches every other page as an internal notice; the agenda lists it itself.
+  const shellNotice = page.locator('[data-slot-release-notice]');
+  await page.goto('/odonto/pacientes');
+  await expect(shellNotice.getByRole('link', { name: 'Dar este horario', exact: true })).toHaveAttribute('href', new RegExp(`date=${date}.*hora=09%3A00`));
+  await expect(page.getByText('Se liberó un horario', { exact: true })).toBeVisible();
+  for (const theme of ['light', 'dark'] as const) {
+   await applyThemeInPage(page, theme);
+   for (const width of [320, 390, 768, 1280, 1600]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.screenshot({ path: info.outputPath(`aviso-horario-${theme}-${width}.jpg`), type: 'jpeg', quality: 60 });
+   }
+  }
+  await applyThemeInPage(page, 'light');
+  await page.setViewportSize({ width: 1280, height: 900 });
+  // Closed, it stays closed for this slot.
+  await page.getByRole('button', { name: 'Quitar aviso: Se liberó un horario', exact: true }).click();
+  await expect(shellNotice).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByRole('heading', { name: 'Pacientes', exact: true })).toBeVisible();
+  await expect(shellNotice).toHaveCount(0);
   await page.goto(base);
+  await expect(shellNotice).toHaveCount(0);
   const row = page.locator(`[data-slot-release="${release.id}"]`);
   await expect(row).toContainText(longName);
   await expect(row).toContainText('Canceló el consultorio');
@@ -99,11 +121,17 @@ test('appointment slots released: real cancellation, reassignment, occupation an
   expect(new Date(replacement.starts_at).toISOString()).toBe(startsAt);
   await page.goto(base);
   await expect(row).toHaveCount(0); // The occupied interval disappears without hiding it.
+  await page.goto('/odonto/pacientes');
+  await expect(page.getByRole('heading', { name: 'Pacientes', exact: true })).toBeVisible();
+  await expect(shellNotice).toHaveCount(0);
 
   // A second genuine release after a synthetic occupancy age tests hiding and availability.
   f.sql("update public.appointments set created_at=clock_timestamp()-interval '1 hour' where business_id=:'business'::uuid and id=:'appointment'::uuid;", { appointment: replacementId });
   await cancelThroughUI(replacementId);
   const second = await must(f.admin.from('appointment_slot_releases').select('id').eq('business_id', f.businessId).eq('appointment_id', replacementId).single());
+  // A new release is a new notice, even though the previous one was closed.
+  await page.goto('/odonto/pacientes');
+  await expect(shellNotice.getByRole('link', { name: 'Dar este horario', exact: true })).toBeVisible();
   await page.goto(base);
   const secondRow = page.locator(`[data-slot-release="${second.id}"]`);
   await expect(secondRow).toBeVisible();await expect(row).toHaveCount(0);
@@ -111,6 +139,9 @@ test('appointment slots released: real cancellation, reassignment, occupation an
   await expect(page.getByRole('status')).toContainText('Aviso ocultado. El horario sigue disponible para reservar.');
   await expect(secondRow).toHaveCount(0);
   await expect(page.getByRole('heading', { name: '¿Para quién es el turno?', exact: true })).toHaveCount(0);
+  await page.goto('/odonto/pacientes');
+  await expect(page.getByRole('heading', { name: 'Pacientes', exact: true })).toBeVisible();
+  await expect(shellNotice).toHaveCount(0); // Hidden in the agenda is hidden in the notice: one source.
   const hidden = await must(f.admin.from('appointment_slot_releases').select('hidden_at, hidden_by').eq('id', second.id).eq('business_id', f.businessId).single());
   expect(hidden.hidden_at).not.toBeNull();expect(hidden.hidden_by).toBe(owner.user_id);
   expect(await must(f.admin.from('audit_logs').select('id').eq('business_id', f.businessId).eq('action', 'appointment.slot_release_hidden').eq('entity_id', replacementId))).toHaveLength(1);

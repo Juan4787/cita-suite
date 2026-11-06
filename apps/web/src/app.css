@@ -652,6 +652,15 @@ a {
 		}
 	}
 
+	/* Actions of a notice stay on one line on a phone whenever their words fit. */
+	@media (max-width: 639px) {
+		.ux-shell-notice :is(.ux-btn-primary, .ux-btn-secondary) {
+			min-height: 2.4rem;
+			padding: 0.5rem 0.75rem;
+			font-size: 0.875rem;
+		}
+	}
+
 	.ux-pill-nav {
 		display: inline-flex;
 		border-radius: 999px;
@@ -885,11 +894,14 @@ progress::-moz-progress-bar {
   justify-content: space-between;
   gap: 0.5rem;
   padding: 0.2rem;
-  text-transform: capitalize;
 }
 .ux-calendar-header > span {
   font-size: 0.9rem;
   font-weight: 600;
+}
+/* Only the first letter: «capitalize» turned «noviembre de 2026» into «Noviembre De 2026». */
+.ux-calendar-header > span::first-letter {
+  text-transform: uppercase;
 }
 .ux-calendar-nav {
   width: 2.4rem;
@@ -1021,8 +1033,9 @@ summary::before {
 details[open] > summary::before {
   transform: rotate(90deg);
 }
-summary:is(.ux-btn-primary, .ux-btn-secondary) {
-  list-style: none;
+/* A summary that looks like a button or a centered action already says it opens something. */
+summary:is(.ux-btn-primary, .ux-btn-secondary, .text-center)::before {
+  display: none;
 }
 /* The small cross of a search box, in the colors of the page. */
 input[type="search"]::-webkit-search-cancel-button {
@@ -1038,7 +1051,7 @@ input[type="search"]::-webkit-search-cancel-button {
     center/contain no-repeat;
 }
 /* A tooltip of the page: the browser's own ignores the mode and the app's font. */
-[data-tip] {
+:where([data-tip]) {
   position: relative;
 }
 @media (hover: hover) {
