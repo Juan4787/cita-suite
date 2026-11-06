@@ -22,7 +22,7 @@
 		message={`${single.professionalName}: ${formatInTimeZone(single.startsAt, timezone).full}. ${SLOT_RELEASE_REASONS[single.reason]}.`}
 		tone="info"
 	>
-		<div class="mt-3 flex flex-wrap gap-2" data-slot-release-notice>
+		<div class="mt-2 flex flex-wrap gap-2 sm:mt-3" data-slot-release-notice>
 			<!-- A fresh page resets the wizard, as in the agenda list. -->
 			<a href={slotReleaseHref(single, timezone)} data-sveltekit-reload class="ux-btn-primary">Dar este horario</a>
 			<a href="/odonto/agenda#horarios-liberados" class="ux-btn-secondary">Ver en la agenda</a>
@@ -34,7 +34,7 @@
 		title={notice.truncated ? `Se liberaron más de ${notice.count} horarios` : `Se liberaron ${notice.count} horarios`}
 		tone="info"
 	>
-		<div class="mt-3" data-slot-release-notice>
+		<div class="mt-2 sm:mt-3" data-slot-release-notice>
 			<a href="/odonto/agenda#horarios-liberados" class="ux-btn-primary">Ver horarios</a>
 		</div>
 	</DismissibleNotice>

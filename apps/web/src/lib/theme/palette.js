@@ -306,8 +306,6 @@ export const tokens = [
 	["--c-text-accent-100-80", "#5f30b3", "rgb(237 233 254 / 0.8)", "antes: violet-100/80", {"textColor":["accent-100-80"]}],
 	["--c-line-line-n300", "#d0d5dd", "#c2cadd", "antes: neutral-300", {"borderColor":["line-n300"],"divideColor":["line-n300"]}],
 	["--c-text-fg-c8d4e8", "#1d2939", "#c8d4e8", "antes: [#c8d4e8]", {"textColor":["fg-c8d4e8"]}],
-	["--c-line-danger-200", "#d92d20", "#fecaca", "antes: red-200", {"borderColor":["danger-200"],"divideColor":["danger-200"]}],
-	["--c-bg-danger-5c0d0d", "#fef3f2", "#5c0d0d", "antes: [#5c0d0d]", {"backgroundColor":["danger-5c0d0d"]}],
 	["--c-bg-chip-amber-50", "#fffbeb", "#fffbeb", "antes: amber-50", {"backgroundColor":["chip-amber-50"]}],
 	["--c-text-ink-red-800", "#991b1b", "#991b1b", "antes: red-800", {"textColor":["ink-red-800"]}],
 	["--c-bg-accent-indigo-500-15", "#f3eefc", "rgb(99 102 241 / 0.15)", "antes: indigo-500/15", {"backgroundColor":["accent-indigo-500-15"]}],

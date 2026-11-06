@@ -39,13 +39,17 @@ El chequeo compara esta lista con `git diff --name-status <produccion_revision> 
 ```codigo-distinto-de-produccion
 M	apps/web/.impeccable/surfaces/gestion-del-turno.md
 M	apps/web/DESIGN.md
+M	apps/web/e2e/agenda-business-timezone.spec.ts
 M	apps/web/e2e/appointment-slot-releases.spec.ts
 M	apps/web/e2e/booking-reschedule-policy.spec.ts
 M	apps/web/e2e/clinical-entry-date.spec.ts
+M	apps/web/e2e/clinical-files.spec.ts
+M	apps/web/e2e/helpers/layout-usability.ts
 M	apps/web/e2e/patient-management.spec.ts
 A	apps/web/e2e/reception-cancel.spec.ts
 M	apps/web/e2e/staff-management.spec.ts
 M	apps/web/e2e/theme-modes.spec.ts
+M	apps/web/playwright.config.ts
 M	apps/web/src/app.css
 M	apps/web/src/hooks.server.ts
 M	apps/web/src/lib/booking/BookingShareLink.svelte
@@ -53,6 +57,8 @@ M	apps/web/src/lib/booking/PatientDocumentUpload.svelte
 M	apps/web/src/lib/booking/PublicBookingConfirmation.svelte
 M	apps/web/src/lib/booking/PublicBookingProfessionals.svelte
 M	apps/web/src/lib/booking/PublicInformationPage.svelte
+M	apps/web/src/lib/components/DatePartsInput.svelte
+M	apps/web/src/lib/components/DateTimePartsInput.svelte
 M	apps/web/src/lib/components/Modal.svelte
 M	apps/web/src/lib/components/agenda/ManualAppointmentWizard.svelte
 M	apps/web/src/lib/components/agenda/SlotReleaseAlerts.client.test.ts
@@ -71,6 +77,7 @@ M	apps/web/src/lib/components/patients/PatientProfileDialog.svelte
 M	apps/web/src/lib/components/patients/PatientProfilePanel.svelte
 M	apps/web/src/lib/components/patients/RadiographsPanel.svelte
 M	apps/web/src/lib/components/seguimientos/FollowUpComposer.svelte
+M	apps/web/src/lib/components/seguimientos/FollowUpsNotice.svelte
 M	apps/web/src/lib/components/team/TeamMemberWizard.svelte
 M	apps/web/src/lib/scheduling/slot-releases.ts
 M	apps/web/src/lib/server/patients/public/follow-ups.ts

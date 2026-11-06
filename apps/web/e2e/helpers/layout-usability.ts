@@ -211,6 +211,8 @@ export async function layoutIssues(page: Page, controls: string, textScope?: str
 	issues.push(
 		...(await page.locator(controls).evaluateAll((elements) =>
 			elements.flatMap((element) => {
+				// The native source of a styled control measures 1 px on purpose: its trigger is what is used.
+				if (element.matches('.ux-native-source, .sr-only')) return [];
 				const r = element.getBoundingClientRect();
 				const compact =
 					element instanceof HTMLInputElement && (element.type === 'checkbox' || element.type === 'radio');

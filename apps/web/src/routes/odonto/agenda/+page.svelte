@@ -655,11 +655,11 @@
 				</button>
 			{/if}
 			{#if !isToday}
-				<a href={buildAgendaHref(todayStr)} class="ux-btn-secondary flex-1 px-3 sm:flex-none sm:px-5">Hoy</a>
+				<a href={buildAgendaHref(todayStr)} class="ux-btn-secondary flex-auto px-3 sm:flex-none sm:px-5">Hoy</a>
 			{/if}
 			<button
 				type="button"
-				class="ux-btn-secondary flex-1 px-3 sm:flex-none sm:px-5"
+				class="ux-btn-secondary flex-auto px-3 sm:flex-none sm:px-5"
 				onclick={toggleSearch}
 				disabled={!initialized}
 				onpointerenter={() => void loadLiveSnapshot()}
@@ -667,7 +667,7 @@
 			>
 				{showSearch ? 'Ocultar búsqueda' : 'Buscar'}
 			</button>
-			<a href={weekHref} class="ux-btn-secondary flex-1 px-3 sm:flex-none sm:px-5">Ver semana</a>
+			<a href={weekHref} class="ux-btn-secondary flex-auto px-3 sm:flex-none sm:px-5">Ver semana</a>
 		</div>
 	</div>
 

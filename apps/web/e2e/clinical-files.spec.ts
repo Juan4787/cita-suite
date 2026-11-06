@@ -406,10 +406,7 @@ test.describe('Archivos clínicos privados', () => {
 			month: '2-digit',
 			day: '2-digit'
 		}).format(new Date());
-		await expect(page.getByLabel('Fecha de toma (opcional)')).toHaveAttribute(
-			'max',
-			businessToday
-		);
+		await expect(page.locator('#clinical-image-date')).toHaveAttribute('max', businessToday);
 		await page.getByLabel('Descripción (opcional)').fill(description);
 		await page.getByRole('button', { name: 'Guardar documento' }).click();
 		await expect(page.getByText('Documento guardado en la ficha del paciente.')).toBeVisible({

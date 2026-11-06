@@ -652,6 +652,15 @@ a {
 		}
 	}
 
+	/* Actions of a notice stay on one line on a phone whenever their words fit. */
+	@media (max-width: 639px) {
+		.ux-shell-notice :is(.ux-btn-primary, .ux-btn-secondary) {
+			min-height: 2.4rem;
+			padding: 0.5rem 0.75rem;
+			font-size: 0.875rem;
+		}
+	}
+
 	.ux-pill-nav {
 		display: inline-flex;
 		border-radius: 999px;

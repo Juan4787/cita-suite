@@ -4,6 +4,8 @@ import { assertE2EEnvironment } from '../../scripts/lib/e2e-environment.mjs';
 const baseURL = process.env.E2E_BASE_URL ?? 'http://127.0.0.1:5173';
 assertE2EEnvironment(process.env, baseURL);
 const shouldStartServer = !process.env.E2E_BASE_URL;
+// Chromium by default. Firefox and WebKit, the engine of Safari, run the same specs on demand.
+const browserName = (process.env.E2E_ENGINE || 'chromium') as 'chromium' | 'firefox' | 'webkit';
 const cloudflareVersion = process.env.E2E_CLOUDFLARE_VERSION?.trim();
 const extraHTTPHeaders = cloudflareVersion
 	? {
@@ -22,6 +24,7 @@ export default defineConfig({
 	workers: 1,
 	retries: process.env.CI ? 1 : 0,
 	use: {
+		browserName,
 		baseURL,
 		// The disposable fixture serves its embedding website over loopback HTTPS, with a
 		// certificate created for that run only; every other origin there is loopback too.

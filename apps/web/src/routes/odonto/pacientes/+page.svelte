@@ -426,7 +426,7 @@
 	<footer class="grid gap-3 border-t pt-4 border-line md:grid-cols-3 md:items-start">
 		<div class="md:justify-self-start">{#if listData.canAccessRadiographTrash}<a href="/odonto/pacientes/papelera" class="ux-btn-secondary w-full md:w-auto">Papelera de documentos</a>{/if}</div>
 		<div class="md:justify-self-center">{#if hasMore}<button type="button" class="ux-btn-secondary w-full md:w-auto" disabled={loadingMore} onclick={() => fetchPage()}>{loadingMore ? 'Cargando…' : 'Ver más pacientes'}</button>{/if}</div>
-		<div class="md:justify-self-end"><button type="button" class="ux-btn-secondary w-full md:w-auto" onclick={() => (showReport = !showReport)}>Reportar problema</button>{#if showReport}<div class="mt-2 max-w-md rounded-xl border border-danger-200 bg-danger-5c0d0d p-4 text-sm text-fg"><p class="font-semibold">¿Encontraste un problema?</p><p class="mt-1">Escribí a <span class="font-semibold">juanpabloaltamira@protonmail.com</span>.</p></div>{/if}</div>
+		<div class="md:justify-self-end"><button type="button" class="ux-btn-secondary w-full md:w-auto" onclick={() => (showReport = !showReport)}>Reportar problema</button>{#if showReport}<div class="mt-2 max-w-md rounded-xl border border-line bg-fill-04 p-4 text-sm text-fg"><p class="font-semibold">¿Encontraste un problema?</p><p class="mt-1">Escribí a <span class="font-semibold">juanpabloaltamira@protonmail.com</span>.</p></div>{/if}</div>
 	</footer>
 </section>
 
