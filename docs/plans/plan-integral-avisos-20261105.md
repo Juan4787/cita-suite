@@ -12,11 +12,11 @@ Se actualiza después de cada bloque con resultado. Es el único lugar con el «
 |---|---|
 | Fecha | 6 de noviembre de 2026 (Argentina) |
 | Revisión de partida | `main` `d3f7553c`, igual a GitHub; producción V12b `771fac59`, versión `277d332d`, comprobada con `/_app/version.json` y `wrangler deployments list` |
-| Fase | Implementación en `main`, sin publicar. Candidata `e2f83de8`, instantánea `bdd361fb`, paquete 42172574076. Cerrados en código: correo, operación del crédito (ZH04), recorrido Android, SN14 y formularios nativos en páginas con enlace de gestión |
-| Corridas | SQL 42147347019 aprobada (tipos oficiales importados). Primera corrida de navegador sobre el paquete 42148994475 falló y sirvió: encontró el defecto de `Origin: null` y pruebas viejas. Fast 42172723192 y navegador completo 42172753292 en curso sobre la candidata. Ensayo de migraciones contra producción repetido con staging migrado: 0 fallas, 0 diferencias salvo 4 disparadores de plataforma en `storage.buckets` |
+| Fase | **E publicada en producción el 6 de noviembre, 07:41 UTC.** Instantánea `dfec4774` de `main` `101c74dc`; detalle en `docs/ESTADO-VIGENTE.md`. El encargo sigue abierto: faltan las comprobaciones reales de abajo |
+| Corridas de la revisión publicada | SQL 42147347019, paquete 42179941722, navegador 42179970561 (76/76), fast 42181404563 |
 | Datos sintéticos abiertos en producción | Práctica de dispositivo `78f3c48dedc7`: limpiar con `node scripts/production-device-push.mjs cleanup 78f3c48dedc7` |
 | Ajustes de teléfonos a restaurar | Xiaomi: `stay_on_while_plugged_in` estaba en 0 y hoy vale 7; permiso de notificaciones de Chrome estaba denegado por el usuario, y quedó igual después de las pruebas; origen `app.cita-suite.com.ar` quedó concedido. Samsung: origen de la sonda concedido. El evento sintético guardado por error en Hotmail ya se borró (el proveedor de calendario no lo devuelve) |
-| Siguiente acción | Si el navegador aprueba: publicar según D7 y la guía. Después: clave del webhook en Zoho (la pega Juan), consultorio sintético con remitente, recepción real por propósito, pruebas físicas, TestKase, medición de CPU y video de Google |
+| Siguiente acción | Consultorio sintético con remitente y recepción real por propósito; webhook de Zoho (la clave la pega Juan); físicas de push y calendarios en los dos teléfonos; TestKase; medición de CPU y llamadas; turno del video de Google |
 
 ## 1. Resultado que hay que entregar
 

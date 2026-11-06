@@ -1,8 +1,18 @@
 # Publicación y reversión
 
-## Último estado comprobado — V12b: 2 de noviembre de 2026, 12:33 hora argentina (15:33 UTC)
+## Último estado comprobado — E: 6 de noviembre de 2026, 04:41 hora argentina (07:41 UTC)
 
-**Producción sirve V12b** `771fac5950c532b1123f11d4dde93eef9b42ceba`, Worker `app`, versión de Cloudflare **`277d332d-1794-4367-8ef0-567ced159f1b`**, en los dos orígenes.
+**Producción sirve la primera versión de E:** instantánea `dfec47747daabf0196dc5f2341eae3725088953f` de `main` `101c74dc`, Worker `app`, versión de Cloudflare **`9ae1a573-7b50-4a8a-b9e7-0473042bc216`**, en los dos orígenes. Esa versión tiene el código de `28258baa-6aaf-470a-b917-518499f55532` y sólo cambió el secreto de Google gestionado. Programador `853b9020-5738-4a66-be5e-acf1b1d6cb09`, con cinco cron.
+
+**Verificación antes de publicar, sobre la revisión exacta:** SQL 42147347019, paquete 42179941722, navegador completo 42179970561 con 76 de 76, y `fast` 42181404563. Ensayo de la transacción contra producción sin fallas. Respaldo `production-2026-11-06T06-38-12-487Z`, de 131 migraciones.
+
+**Publicación:** programador detenido, 32 migraciones en una transacción de 18 s (131 a 163), app instalada, `verify-production-release.mjs` aprobado con 148 archivos idénticos y 78 relaciones sin exposición anónima, programador instalado, interruptores encendidos. Recibos en `.verification/production-migrations-2026-11-06T07-39-13-360Z.json` y `.verification/production-release-2026-11-06T07-40-24-841Z.json`.
+
+**Vuelta atrás:** no existe a una versión anterior a E. **Ninguna de las versiones de los apartados siguientes se puede usar**: sus indicaciones de `wrangler rollback` son historia. Vale la [recuperación por capas](#e--publicación-y-recuperación-compatible-5-de-noviembre): apagar el interruptor del canal, detener el programador o corregir hacia adelante. Desde la segunda versión de E se puede volver a la versión E anterior verificada.
+
+## Estado anterior — V12b: 2 de noviembre de 2026, 12:33 hora argentina (15:33 UTC)
+
+V12b `771fac5950c532b1123f11d4dde93eef9b42ceba`, Worker `app`, versión de Cloudflare `277d332d-1794-4367-8ef0-567ced159f1b`.
 
 **Qué es V12b:** V12 con el fondo general del modo claro apenas más cálido: `#f6f5f3` en lugar de `#f5f6f8`.
 - Fue a pedido de Juan (plan de modo claro, 12.5).

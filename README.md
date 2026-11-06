@@ -8,9 +8,11 @@ Repositorio principal: [Juan4787/cita-suite](https://github.com/Juan4787/cita-su
 
 **Qué historia y qué cambios están vigentes:** [estado vigente](docs/ESTADO-VIGENTE.md), el registro único; lo comprueba `node scripts/check-repo-sync.mjs`.
 
-**Etapa E, estado al 5 de noviembre:** implementación detenida por pedido de Juan para preservar el trabajo y traspasarlo a otro agente ([plan 12.31](docs/plans/propuesta-senas-avisos-natalia.md#traspaso-e-documental-20261105)). [Traspaso técnico exacto](docs/plans/traspaso-etapa-e-20261105.md), [índice documental](docs/plans/indice-etapa-e.md), [especificación con Zoho](docs/plans/etapa-e-correo-autogestion.md) y [registro de evidencia/continuidad](docs/plans/ejecucion-etapa-e-20261103.md). E1/E2/E3 parciales; SQL30/fast y casos browser conservan sus pruebas con límites, sin integración de correo ni publicación E. Zoho por terminal tiene acceso privado persistente según su [guía](docs/architecture/zoho-cpaas-terminal.md); eso no prueba recepción de E. La autorización histórica de producción se conserva, sin ejecutarla durante este traspaso. P1/P2/P3 siguen [pospuestas](docs/plans/tareas-posteriores-a-e-20261103.md) por 12.26; P3 reemplaza D celular.
+**Etapa E, estado al 6 de noviembre:** publicada en producción; el encargo sigue abierto hasta terminar las comprobaciones reales. [Mandato](docs/plans/mandato-integral-avisos-20261105.md), [plan canónico y checkpoint](docs/plans/plan-integral-avisos-20261105.md), [índice](docs/plans/indice-etapa-e.md).
 
-**Vigente desde el 2 de noviembre a las 15:33 UTC:** V12b `771fac5950c532b1123f11d4dde93eef9b42ceba`, versión `277d332d-1794-4367-8ef0-567ced159f1b`, Worker `app`.
+**Vigente desde el 6 de noviembre a las 07:41 UTC:** primera versión de E, `dfec47747daabf0196dc5f2341eae3725088953f`, Worker `app`; la versión de Cloudflare y los interruptores están en el [estado vigente](docs/ESTADO-VIGENTE.md).
+
+**Antes, desde el 2 de noviembre a las 15:33 UTC:** V12b `771fac5950c532b1123f11d4dde93eef9b42ceba`, versión `277d332d-1794-4367-8ef0-567ced159f1b`. Ya no es una vuelta atrás válida.
 - Es V12 con el fondo general del modo claro apenas más cálido (`#f6f5f3`), a pedido de Juan.
 - V12 (`c21a19839c814a8a5f476cb522a13273a10f89c4`, versión `f18a80f2-fd65-4ffc-b92f-fc0101d4f85f`, 14:46 UTC) es la entrega del modo claro que V12b ajusta.
 - **Qué agrega:** V11f más el **modo claro predeterminado**, conservando el oscuro.
