@@ -29,6 +29,7 @@ Autorización de implementación, pruebas y publicación vigente: [plan 12.32](p
 | Interruptores | `reschedule_enabled` y `email_producer_enabled` encendidos; `GOOGLE_CALENDAR_MANAGED_ENABLED=true`; tope diario de correo 100, reserva 10; `private.deposit_automation` sin cambios |
 | Crédito de Zoho registrado | 9.997 correos desde el 6 de noviembre, vencimiento 3 de diciembre de 2026 |
 | Cloudflare | Configuration Rule activa «Webhook de Zoho»: apaga Browser Integrity Check sólo en `/api/zoho/webhook`. El resto del sitio conserva la comprobación |
+| Webhook de Zoho | Creado el 6 de noviembre en `agent_1`, verificado por el panel, con entregado, devoluciones temporales y permanentes y bucle de retroalimentación. **Falta cargar la clave**: hasta entonces los eventos llegan sin firma y no se guardan. ZH10 sigue pendiente |
 | Remitente de Natalia | Sin configurar por decisión de Juan: no salen correos de su consultorio |
 
 ## Código que difiere de producción
@@ -37,8 +38,6 @@ El chequeo compara esta lista con `git diff --name-status <produccion_revision> 
 
 ```codigo-distinto-de-produccion
 ```
-
-`scripts/zoho-cpaas.py` agrega la consulta por referencia y `scripts/production-email-practice.mjs` completa su limpieza. Ninguno se despliega: son herramientas locales.
 
 `supabase/templates/recovery.html` no se despliega con la app: se carga aparte en Supabase. **No está verificado** si la versión de Supabase coincide con ese archivo.
 

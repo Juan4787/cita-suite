@@ -1572,4 +1572,5 @@ Pedido vigente en plan 12.24. Se revisaron los ocho SQL E, sus lectores/comandos
 - Regla de Cloudflare «Webhook de Zoho» activa: Browser Integrity Check apagado sólo en esa ruta, porque un cliente Java recibía `403` con código 1010.
 - Riesgo aceptado: si la clave falta o queda mal cargada en Zoho, los eventos sin firma se pierden con `200` y sólo queda el aviso en el registro. Por eso ZH10 no se acredita hasta ver un evento real firmado en `private.email_provider_events`.
 - La clave actual pasó por la conversación de trabajo al seleccionarla en el editor. Cambiarla quedó pendiente de la decisión de Juan.
-
+- Con la versión publicada, el panel marcó «Verificado» y se creó el webhook en `agent_1`, con los cuatro eventos de correo. El botón «Clave de autenticación» apareció recién después de crearlo.
+- **Punto exacto para retomar:** Juan decide si cambia la clave, porque el control de permisos rechazó que el agente escribiera el secreto. Después Juan la pega en «Clave de autenticación» → Configure. Sigue `production-email-practice.mjs seed` y `book`, comprobar `private.email_provider_events`, ajustar el lector si la forma real difiere, actualizar ZH10 y limpiar con `cleanup <run>`. Si la clave cambia, Cloudflare crea otra versión de `app`: actualizar `produccion_version_cloudflare`.
