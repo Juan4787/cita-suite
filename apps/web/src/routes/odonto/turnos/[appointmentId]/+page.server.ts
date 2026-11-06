@@ -1,3 +1,5 @@
+import type { CitaSupabaseClient } from '$lib/types/database';
+import { loadAppointmentEmailDeliveries, resolveAppointmentEmailDelivery } from '$lib/server/scheduling/public/email-status';
 import { todayInTimeZone } from '$lib/availability/calculate';
 import { logServerFailure } from '$lib/server/platform/logging';
 import {readBoundedBookingForm} from '$lib/server/platform/form-data';
@@ -58,6 +60,16 @@ const localDateFor = (isoDate: string, timeZone: string) => {
 	return `${parts.year}-${parts.month}-${parts.day}`;
 };
 
+// Secondary information: its failure must not take the appointment page down with it.
+const emailDeliveriesFor = async (supabase: CitaSupabaseClient, businessId: string, appointmentId: string) => {
+	try {
+		return await loadAppointmentEmailDeliveries(supabase, businessId, appointmentId);
+	} catch (cause) {
+		logServerFailure('Error cargando los correos del turno', cause);
+		return null;
+	}
+};
+
 export const load: PageServerLoad = async ({ params, locals, fetch, cookies, url, request }) => {
 	if (!locals.auth) throw redirect(303, '/login');
 	const activationDevice = classifyUserAgent(request.headers.get('user-agent'));
@@ -70,6 +82,7 @@ export const load: PageServerLoad = async ({ params, locals, fetch, cookies, url
    depositFinancials: null,
 			canRecordDeposit: false,
 			auditLogs: [],
+			emailDeliveries: null,
 			userLabels: {},
 			reprogramDate: new Date().toISOString().slice(0, 10),
 			minReprogramDate: new Date().toISOString().slice(0, 10),
@@ -201,6 +214,7 @@ export const load: PageServerLoad = async ({ params, locals, fetch, cookies, url
 		deposit: deposit ? { ...deposit, cancelsItself: depositCancelsItself } : null,
 		canRecordDeposit: business.canOperate && DEPOSIT_ROLES.has(business.role),
 		auditLogs: auditResult.error ? null : auditResult.data,
+		emailDeliveries: await emailDeliveriesFor(supabase, business.business.id, params.appointmentId),
 		userLabels,
 		reprogramDate,
 		minReprogramDate,
@@ -229,6 +243,46 @@ export const actions: Actions = {
   catch { return fail(400,{ message: 'No pudimos leer el registro. Actualizá el detalle antes de continuar.' }); }
   const feedback = await submitLateDepositAction(supabase,{ businessId: business.business.id,appointmentId: event.params.appointmentId },form);
   return feedback.success ? feedback : fail(feedback.retry ? 503 : feedback.invalid ? 400 : 409,feedback);
+ },
+ // AC08: a link is a capability that can be forwarded. Invalidating it changes nothing about the
+ // appointment; future messages carry a new one.
+ revoke_links: async event => {
+  if (!event.locals.auth) throw redirect(303, '/login');
+  if (env.DEMO_MODE === 'true') return fail(400, { message: 'No disponible en modo demo.' });
+  if (!isUuid(event.params.appointmentId)) return fail(404, { message: 'No encontramos ese turno.' });
+  const form = await readBoundedBookingForm(event.request, []);
+  const revision = form.get('expected_revision');
+  if (typeof revision !== 'string' || !/^[a-f0-9]{64}$/.test(revision)) return fail(400, { message: 'Actualizá el turno y volvé a intentar.' });
+  const { supabase, business } = await getOdontoContext(event);
+  if (!business.canOperate) return fail(403, { message: 'Ya no tenés permiso para esta acción. Revisá tu acceso.' });
+  const { error } = await supabase.rpc('revoke_appointment_management_access', {
+   p_business_id: business.business.id, p_appointment_id: event.params.appointmentId, p_operation_id: crypto.randomUUID(), p_expected_revision: revision
+  });
+  if (error) {
+   if (/\bAPPOINTMENT_MANAGEMENT_CHANGED\b/.test(error.message)) return fail(409, { message: 'El turno cambió. Actualizá la página y revisalo antes de repetir.' });
+   logServerFailure('Error invalidando los enlaces del turno', error);
+   return fail(503, { message: 'No pudimos confirmar el cambio. Actualizá la página antes de repetirlo.' });
+  }
+  return { success: true, message: 'Los enlaces enviados ya no permiten gestionar este turno. El turno no cambió.' };
+ },
+ email_delivery: async event => {
+  if (!event.locals.auth) throw redirect(303, '/login');
+  if (env.DEMO_MODE === 'true') return fail(400, { message: 'No disponible en modo demo.' });
+  const form = await readBoundedBookingForm(event.request, []);
+  const id = form.get('delivery_id'), decision = form.get('decision');
+  if (typeof id !== 'string' || !isUuid(id) || (decision !== 'resend' && decision !== 'dismiss'))
+   return fail(400, { message: 'Actualizá el turno y volvé a elegir qué hacer con ese correo.' });
+  const { supabase, business } = await getOdontoContext(event);
+  if (!business.canOperate) return fail(403, { message: 'Ya no tenés permiso para esta acción. Revisá tu acceso.' });
+  try {
+   await resolveAppointmentEmailDelivery(supabase, business.business.id, id, decision);
+   return { success: true, message: decision === 'resend' ? 'El correo vuelve a salir en unos minutos.' : 'El correo quedó descartado.' };
+  } catch (cause) {
+   const raw = cause instanceof Error ? cause.message : typeof cause === 'object' && cause !== null && 'message' in cause ? String(cause.message) : '';
+   if (/\bEMAIL_DELIVERY_CHANGED\b/.test(raw)) return fail(409, { message: 'Ese correo ya cambió de estado. Actualizá la página para verlo.' });
+   logServerFailure('Error resolviendo un correo en comprobación', cause);
+   return fail(503, { message: 'No pudimos confirmar el cambio. Actualizá la página antes de repetirlo.' });
+  }
  },
  prepare_delivery: async event => {
   if (!event.locals.auth) throw redirect(303, '/login');

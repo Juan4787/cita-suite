@@ -3,6 +3,7 @@
 // modules it calls. A receipt carries counts and measurements, never clinical data,
 // tokens or signed URLs.
 import { env } from '$env/dynamic/private';
+import { readRecord } from '$lib/contracts/json';
 import type { ScheduledJobKind } from '@cita-suite/shared/scheduled-jobs';
 import { logScheduledJob, logServerFailure, logServerWarning } from '$lib/server/platform/logging';
 import { createSupabaseAdminClient } from '$lib/server/platform/supabase';
@@ -48,7 +49,10 @@ const jobs: Record<ScheduledJobKind, (run: ScheduledJobRun) => Promise<JobResult
 		const result = await reconcileClinicalStorage(run.supabase);
 		if (result.overGlobalLimit || result.overBusinessLimit > 0)
 			logServerWarning('El almacenamiento clínico supera un límite configurado');
-		return result;
+		const { data, error } = await run.supabase.rpc('run_appointment_email_retention', { p_now: run.now.toISOString() });
+		if (error) throw error;
+		const retention = readRecord(data, 'emailRetention');
+		return { ...result, expiredLinksRemoved: Number(retention.capabilities) || 0, mailRecipientsCleared: Number(retention.recipients) || 0 };
 	}
 };
 

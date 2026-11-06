@@ -172,13 +172,103 @@ def agent_keys():
     return api_get(f'mailagents/{key}/apikeys')
 
 
+SENDER_DOMAIN = re.compile(r'^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.cita-suite\.com\.ar$')
+RESERVED_SENDER_NAMES = {'app', 'www', 'api', 'mail', 'smtp', 'avisos', 'admin', 'auth', 'cdn', 'status', 'staging', 'bounce'}
+
+
+def sender_domain(value):
+    # La misma regla que la base: un consultorio nunca toma el nombre de la infraestructura.
+    domain = (value or '').strip().lower()
+    if not SENDER_DOMAIN.fullmatch(domain) or domain.split('.')[0] in RESERVED_SENDER_NAMES:
+        raise ConnectionError('Ese subdominio no es válido para un consultorio.')
+    return domain
+
+
+def fresh_token():
+    api_get('mailagents')
+    return load_config()
+
+
+def api_call(method, path, body=None):
+    # Sólo rutas fijas de dominios. Devuelve estado y cuerpo: un rechazo se informa, no se oculta.
+    if not re.fullmatch(r'domains(/[A-Za-z0-9_-]{1,128}(/verify)?)?', path):
+        raise ConnectionError('La operación solicitada no está habilitada en esta herramienta.')
+    config = fresh_token()
+    data = None if body is None else json.dumps(body).encode()
+    headers = {'Authorization': 'Zoho-oauthtoken ' + config['access_token'], 'Accept': 'application/json'}
+    if data is not None:
+        headers['Content-Type'] = 'application/json'
+    req = urllib.request.Request(f"https://cpaas.zoho.{config['dc']}/v1.1/{path}", data=data, headers=headers, method=method)
+    try:
+        with urllib.request.build_opener(NoRedirect()).open(req, timeout=25) as response:
+            return response.status, json.loads(response.read(2_000_000) or b'{}')
+    except urllib.error.HTTPError as exc:
+        try:
+            return exc.code, json.loads(exc.read(200_000) or b'{}')
+        except json.JSONDecodeError:
+            return exc.code, {}
+    except (urllib.error.URLError, TimeoutError, json.JSONDecodeError):
+        raise ConnectionError('No se recibió una respuesta válida de Zoho. No se reintentó automáticamente.') from None
+
+
+def find_sender(domain):
+    status, listing = api_call('GET', 'domains')
+    if status != 200 or not isinstance(listing.get('data'), list):
+        raise ConnectionError('Zoho no devolvió la lista de dominios.')
+    return next((item for item in listing['data'] if item.get('domain_name') == domain), None)
+
+
+def print_sender(domain, key):
+    status, detail = api_call('GET', 'domains/' + key)
+    data = detail.get('data')
+    item = data[0] if isinstance(data, list) and data else data
+    if status != 200 or not isinstance(item, dict):
+        raise ConnectionError('Zoho no devolvió el detalle del dominio.')
+    dkim = item.get('dkim') or {}
+    cname = item.get('cname') or {}
+    print(f"Dominio: {domain}. Estado: {item.get('status')}. Salida: {item.get('outbound_status')}.")
+    print(f"Agentes asociados: {len(item.get('associated_mailagents') or [])}.")
+    # Son registros DNS públicos: no son secretos.
+    print(f"TXT   {dkim.get('host')}  ({dkim.get('status')})")
+    print(f"      {dkim.get('public_key')}")
+    print(f"CNAME {cname.get('host')} -> {cname.get('cname_record')}  ({cname.get('status')})")
+
+
+def sender_command(action, value):
+    domain = sender_domain(value)
+    existing = find_sender(domain)
+    if action == 'sender-show':
+        if not existing:
+            raise ConnectionError('Ese dominio todavía no está en Zoho.')
+        print_sender(domain, existing['domain_key'])
+    elif action == 'sender-add':
+        # Repetible: si un intento anterior ya lo creó, sólo muestra lo que falta.
+        if not existing:
+            status, created = api_call('POST', 'domains', {'domain_name': domain})
+            if status not in (200, 201):
+                raise ConnectionError(f"Zoho rechazó el dominio: {(created.get('error') or {}).get('code', status)}.")
+            existing = find_sender(domain)
+            if not existing:
+                raise ConnectionError('Zoho aceptó el pedido pero el dominio no aparece todavía. Volvé a consultar.')
+        print_sender(domain, existing['domain_key'])
+    else:
+        if not existing:
+            raise ConnectionError('Ese dominio todavía no está en Zoho.')
+        status, result = api_call('PUT', 'domains/' + existing['domain_key'] + '/verify')
+        print(f"Verificación pedida. Respuesta HTTP {status}.")
+        print_sender(domain, existing['domain_key'])
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('command', choices=('connect', 'status', 'agents', 'domains', 'logs', 'keys', 'scopes'))
+    parser.add_argument('command', choices=('connect', 'status', 'agents', 'domains', 'logs', 'keys', 'scopes', 'sender-show', 'sender-add', 'sender-verify'))
+    parser.add_argument('domain', nargs='?', help='Subdominio del consultorio, para los comandos sender-*')
     parser.add_argument('--dc', choices=REGIONS, default='com')
     parser.add_argument('--terminal', action='store_true', help='Captura oculta en una terminal interactiva')
     args = parser.parse_args()
-    if args.command == 'scopes':
+    if args.command.startswith('sender-'):
+        sender_command(args.command, args.domain)
+    elif args.command == 'scopes':
         print(SCOPES)
     elif args.command == 'connect':
         connect(args.dc, args.terminal)

@@ -1,7 +1,7 @@
 -- Email delivery contracts. Everything is synthetic and rolls back; no provider is contacted, so
 -- this proves decisions and persistence, never that a message reached a mailbox.
 begin;
-select extensions.plan(35);
+select extensions.plan(36);
 create temporary table mail_fixture(label text primary key,id uuid not null);
 create function pg_temp.mid(label text) returns uuid language sql as $$select id from mail_fixture f where f.label=$1$$;
 create function pg_temp.base() returns timestamptz language sql as $$select date_trunc('hour',clock_timestamp())$$;
@@ -257,7 +257,12 @@ select extensions.ok((select pg_temp.items_for(value,pg_temp.mid('a16'))#>>'{0,r
  '33. EM11: a reassigned appointment goes to the person it belongs to now');
 select pg_temp.settle((select value from mail_claim where label='reassigned'));
 
+select public.run_appointment_email_retention(clock_timestamp()+interval '181 days');
+select extensions.ok((select count(*)=0 from private.appointment_management_capabilities where business_id=pg_temp.mid('business') and expires_at<clock_timestamp()+interval '151 days')
+ and exists(select 1 from private.appointment_email_deliveries where business_id=pg_temp.mid('business') and recipient_email is null and state='accepted'),
+ '34. Retention removes expired link hashes and old recipients while the record of the message stays');
+
 delete from public.appointments where business_id=pg_temp.mid('business');
-select extensions.ok(not exists(select 1 from private.appointment_email_deliveries where business_id=pg_temp.mid('business')),'34. Removing an appointment removes its messages');
+select extensions.ok(not exists(select 1 from private.appointment_email_deliveries where business_id=pg_temp.mid('business')),'35. Removing an appointment removes its messages');
 select * from extensions.finish();
 rollback;

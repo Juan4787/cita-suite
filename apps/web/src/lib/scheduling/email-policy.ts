@@ -42,3 +42,15 @@ export const bookingReschedulePolicyNotice = (policy: BookingReschedulePolicy): 
   : 'En ese caso no se pedirá una nueva seña por el cambio.';
  return `Si reprogramás por tu cuenta después de pagar, ${previous} ${next} Si todavía no pagaste, se mantiene una sola seña pendiente.`;
 };
+
+/** One message of an appointment as the practice sees it. No provider identifiers. */
+export type AppointmentEmailDelivery = {
+ id: string;
+ purpose: 'booking_receipt' | 'reschedule_receipt' | 'cancellation_receipt' | 'deposit_request' | 'reminder_72h' | 'reminder_24h';
+ state: 'pending' | 'sending' | 'retry' | 'accepted' | 'delivered' | 'uncertain' | 'failed' | 'bounced' | 'complained' | 'discarded';
+ recipient: string | null;
+ createdAt: string;
+ acceptedAt: string | null;
+ deliveredAt: string | null;
+ discardReason: string | null;
+};

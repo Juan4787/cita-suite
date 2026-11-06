@@ -582,16 +582,40 @@ begin
  return v_result;
 end $$;
 
+-- Service only, from the maintenance job. A management link dies at its expiry, but its hash and the
+-- recipient of an old message have no reason to stay. Keeps enough history to answer a practice's
+-- questions about recent messages, and never touches anything that a pending message still needs.
+create function public.run_appointment_email_retention(p_now timestamptz default null) returns jsonb
+language plpgsql security definer set search_path=pg_catalog,pg_temp as $$
+declare v_now timestamptz:=coalesce(p_now,clock_timestamp()); v_capabilities integer; v_tokens integer; v_events integer; v_recipients integer; v_deliveries integer;
+begin
+ delete from private.appointment_management_capabilities where expires_at<v_now-interval '30 days';
+ get diagnostics v_capabilities=row_count;
+ delete from private.email_unsubscribe_tokens where expires_at<v_now;
+ get diagnostics v_tokens=row_count;
+ delete from private.email_provider_events where received_at<v_now-interval '90 days';
+ get diagnostics v_events=row_count;
+ delete from private.appointment_email_events where processed_at<v_now-interval '30 days';
+ delete from private.patient_email_contact_events where processed_at<v_now-interval '30 days';
+ update private.appointment_email_deliveries set recipient_email=null
+ where recipient_email is not null and created_at<v_now-interval '180 days' and state not in ('pending','sending','retry','uncertain');
+ get diagnostics v_recipients=row_count;
+ delete from private.appointment_email_deliveries where created_at<v_now-interval '400 days' and state not in ('pending','sending','retry','uncertain');
+ get diagnostics v_deliveries=row_count;
+ return jsonb_build_object('capabilities',v_capabilities,'unsubscribe_tokens',v_tokens,'provider_events',v_events,'recipients',v_recipients,'deliveries',v_deliveries);
+end $$;
+
 revoke all on function private.stamp_email_producer_activation(),private.email_sender_ready(uuid),private.mirror_email_sender_readiness(),
  private.plan_appointment_email_work(timestamptz,integer),private.discard_appointment_email(uuid,text),private.appointment_email_reminders_active(uuid,uuid),
  public.claim_appointment_email_batch(integer,timestamptz),public.record_appointment_email_results(jsonb,timestamptz),
  public.record_email_provider_event(text,text,text,timestamptz),public.get_email_unsubscribe(text),public.apply_email_unsubscribe(text),
  public.list_appointment_email_deliveries(uuid,uuid),public.resolve_appointment_email_delivery(uuid,uuid,text),
- public.get_business_email_status(uuid),public.save_business_email_contact(uuid,text),public.operator_set_business_email_sender(uuid,text,text,text,text)
+ public.get_business_email_status(uuid),public.save_business_email_contact(uuid,text),public.operator_set_business_email_sender(uuid,text,text,text,text),
+ public.run_appointment_email_retention(timestamptz)
  from public,anon,authenticated,service_role;
 grant execute on function public.claim_appointment_email_batch(integer,timestamptz),public.record_appointment_email_results(jsonb,timestamptz),
  public.record_email_provider_event(text,text,text,timestamptz),public.get_email_unsubscribe(text),public.apply_email_unsubscribe(text),
- public.operator_set_business_email_sender(uuid,text,text,text,text) to service_role;
+ public.operator_set_business_email_sender(uuid,text,text,text,text),public.run_appointment_email_retention(timestamptz) to service_role;
 grant execute on function public.list_appointment_email_deliveries(uuid,uuid),public.resolve_appointment_email_delivery(uuid,uuid,text),
  public.get_business_email_status(uuid),public.save_business_email_contact(uuid,text) to authenticated;
 notify pgrst,'reload schema';
