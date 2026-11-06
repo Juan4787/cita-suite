@@ -147,10 +147,12 @@ export const buildAppointmentEmail = (
 	const preheader = headerText(cancelled ? stateLine : `${when.full}. ${stateLine}`, 120);
 
 	const base = work.token ? `${options.siteUrl}/gestion/${work.token}` : null;
+	// The link states which time this message described, so an old message can say that it changed.
+	const sentFor = typeof snapshot.schedule_revision === 'number' ? `desde=${snapshot.schedule_revision}` : '';
 	const links: EmailLink[] = [];
-	if (base && !cancelled) links.push({ label: 'Ver mi turno', href: base, primary: true });
-	if (base && context.actions.reschedule) links.push({ label: 'Reprogramar', href: `${base}?accion=reprogramar`, primary: false });
-	if (base && context.actions.cancel) links.push({ label: 'Cancelar', href: `${base}?accion=cancelar`, primary: false });
+	if (base && !cancelled) links.push({ label: 'Ver mi turno', href: sentFor ? `${base}?${sentFor}` : base, primary: true });
+	if (base && context.actions.reschedule) links.push({ label: 'Reprogramar', href: `${base}?accion=reprogramar${sentFor ? `&${sentFor}` : ''}`, primary: false });
+	if (base && context.actions.cancel) links.push({ label: 'Cancelar', href: `${base}?accion=cancelar${sentFor ? `&${sentFor}` : ''}`, primary: false });
 	if (context.actions.bookNew) {
 		const integration = isRecord(snapshot.integration) ? snapshot.integration : null;
 		const slug = typeof business.slug === 'string' ? business.slug : null;

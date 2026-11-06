@@ -47,6 +47,7 @@
 				reminderLabel: string;
 			};
 			emailRemindersActive?: boolean;
+			scheduleChangedSinceMessage?: boolean;
 			calendarMessage: string | null;
 			bookingInformationEnabled?: boolean;
    remindersEnabled: boolean;
@@ -1495,6 +1496,9 @@
 			{/if}
 			{#if data.calendarMessage}
 				<p class="ux-alert mt-5">{data.calendarMessage}</p>
+			{/if}
+			{#if data.scheduleChangedSinceMessage}
+				<p class="ux-alert mt-5" role="status">Este turno cambió después de ese correo. Lo que ves acá es la fecha y la hora actuales.</p>
 			{/if}
 		</section>
 

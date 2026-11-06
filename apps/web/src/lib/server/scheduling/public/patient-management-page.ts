@@ -203,6 +203,9 @@ const load = async (event: RequestEvent) => {
 			bookingInformationEnabled: bookingInformationEnabled() && screen?.view.canAddInformation === true,
    remindersEnabled,
    emailRemindersActive: screen?.view.emailRemindersActive === true,
+   // AC04: a message describes the time it was written for. The page always shows the current one.
+   scheduleChangedSinceMessage: url.searchParams.has('desde') && screen?.view.scheduleRevision != null
+    && url.searchParams.get('desde') !== String(screen.view.scheduleRevision),
 			message: appointment ? (appointment.status === 'cancelled' ? 'Este turno ya fue cancelado.' : appointment.is_past ? 'Este turno ya no admite cambios online.' : appointment.status === 'confirmed' ? 'Tu turno está confirmado.' : appointment.status === 'reschedule_requested' ? 'Este turno tiene un pedido de reprogramación pendiente.' : 'Tu turno está reservado.') : 'El enlace no es válido o ya no está disponible.',
 			created,
 			...(appointment ? buildTurnWhatsAppNotices(appointment, { created }) : { depositWhatsApp: null, practiceWhatsApp: null }),

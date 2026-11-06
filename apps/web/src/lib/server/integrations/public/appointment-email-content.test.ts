@@ -46,6 +46,11 @@ describe('buttons follow context and preferences (AC01, AC05, AC06)', () => {
 		expect(links.find((link) => link.label === 'Cancelar')?.href).toBe(`${siteUrl}/gestion/${token}?accion=cancelar`);
 		expect(links.find((link) => link.label === 'Reprogramar')?.href).toBe(`${siteUrl}/gestion/${token}?accion=reprogramar`);
 	});
+	it('says which time the message described, so an old link can warn that it changed (AC04)', () => {
+		const links = build(work('booking_receipt', {}, { schedule_revision: 3 })).links;
+		expect(links.find((link) => link.label === 'Ver mi turno')?.href).toBe(`${siteUrl}/gestion/${token}?desde=3`);
+		expect(links.find((link) => link.label === 'Cancelar')?.href).toBe(`${siteUrl}/gestion/${token}?accion=cancelar&desde=3`);
+	});
 });
 
 describe('stale work is refused by the same context the page uses', () => {
