@@ -116,12 +116,21 @@ Samsung SM-A715F, Android 13, Chrome 156, con Calendario Samsung, Proton Calenda
 | `.ics`: reprogramar con igual UID y `SEQUENCE` mayor | Abre el evento viejo, con la hora vieja, sin ofrecer guardar | Google Calendar ofrece «Actualizar el evento actual» y mueve el mismo evento, sin duplicar (medido el 6 de noviembre, dos veces) | **Depende del calendario.** El texto pide borrar y guardar el nuevo porque es lo único que sirve en los dos |
 | `.ics`: `METHOD:CANCEL` | Abre el evento viejo; no lo quita | Sin probar | Hay que pedir borrarlo a mano |
 
+iPhone real por TestKase, medido el 6 de noviembre sobre producción (iPhone 15, iOS 26.6, Safari):
+
+| Hecho medido | Consecuencia |
+|---|---|
+| «Agregar al calendario» abre la hoja nativa con título, fecha convertida a la zona del teléfono, aviso y «Add To Calendar». Al agregar aparece «Delete Event», y Spotlight encuentra el evento en la sección Calendario | El recorrido del `.ics` en Safari funciona hasta el calendario del sistema |
+| La granja no muestra la app Calendario y no deja abrirla, ni abrir Ajustes: vuelve a Safari. A la hora de la alerta, el Centro de notificaciones no mostró ningún aviso | **La alerta de Apple Calendar no está comprobada.** No se puede atribuir ni al producto ni al teléfono |
+| La sesión terminó a los 13 minutos y la cuenta quedó sin minutos | **La actualización de un evento ya guardado tampoco está comprobada.** La página pide borrar y guardar de nuevo, lo que sirve sin depender de ese comportamiento |
+
 Google gestionado, medido el 6 de noviembre sobre producción con la cuenta `citasuite`:
 
 | Hecho medido | Consecuencia |
 |---|---|
 | Xiaomi: el evento aparece en el proveedor de calendario, en la cuenta correcta, con aviso de 120 minutos. Calendario Xiaomi y Google Calendar lo muestran. Reprogramar conserva el mismo evento y cancelar lo quita, ambos en segundos o pocos minutos | El camino gestionado cumple lo que promete cuando la cuenta ya sincroniza |
-| Samsung sin la app Google Calendar: al agregar la cuenta, Android deja «Calendario» activado pero sólo corre la inicialización. A los 8 minutos seguía sin calendarios, incluso abriendo Calendario Samsung. Con «Sincronizar ahora» en la cuenta, aparecieron y llegó el evento | **Depende de que esa cuenta ya sincronice.** Una cuenta recién agregada puede tardar hasta la sincronización periódica, de un día. El texto de la página («Sirve si usás esa cuenta en tu calendario») no promete más, y el archivo sigue siendo la alternativa principal |
+| Samsung sin la app Google Calendar y con la **sincronización automática general de Android apagada**: el evento no llegó en 8 minutos, ni abriendo Calendario Samsung, ni tampoco un cambio de horario en 18 minutos. Con «Sincronizar ahora» en la cuenta llegó en segundos. Al encender la sincronización general, el cambio pendiente llegó en menos de un minuto. La alarma de 2 horas sonó en Calendario Samsung | **Depende de que esa cuenta sincronice.** Con la sincronización apagada no hay aviso de ningún cambio. El texto de la página («Sirve si usás esa cuenta en tu calendario») no promete más, y el archivo sigue siendo la alternativa principal |
+| Xiaomi con dos calendarios: la misma alarma salió en Calendario Xiaomi y en Google Calendar | Cada app avisa por su cuenta. No depende de Cita Suite |
 | Si la misma cuenta ya autorizó y no hay conexión guardada, Google no entrega permiso duradero sin consentimiento | La app vuelve a pedir el acceso con consentimiento, una sola vez |
 
 ## 4.3 Comportamiento real de Zoho (medido el 5 de noviembre)
