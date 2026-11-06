@@ -271,10 +271,12 @@ A	supabase/migrations/20261105010000_informed_staff_booking_reschedule_policy.sq
 A	supabase/migrations/20261105020000_staff_appointment_delivery.sql
 A	supabase/migrations/20261105030000_late_deposit_records.sql
 A	supabase/migrations/20261106010000_appointment_email_delivery.sql
+A	supabase/migrations/20261106020000_email_credit_operations.sql
 M	supabase/templates/recovery.html
 M	supabase/tests/appointment_actor_revalidation.sql
 M	supabase/tests/appointment_deposits.sql
 A	supabase/tests/appointment_email_delivery.sql
+A	supabase/tests/appointment_email_operations.sql
 A	supabase/tests/appointment_email_policy_settings.sql
 A	supabase/tests/appointment_management_capabilities.sql
 A	supabase/tests/appointment_management_foundation.sql
