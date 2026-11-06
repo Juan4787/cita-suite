@@ -12,8 +12,10 @@ Se actualiza después de cada bloque con resultado. Es el único lugar con el «
 |---|---|
 | Fecha | 5 de noviembre de 2026, noche (Argentina) |
 | Revisión de partida | `main` `d3f7553c`, igual a GitHub; producción V12b `771fac59`, versión `277d332d`, comprobada con `/_app/version.json` y `wrangler deployments list` |
-| Fase | Reconstrucción terminada. Investigación física en curso |
-| Siguiente acción | Reproducir el defecto de Chrome Android en los dos teléfonos sobre V12b |
+| Fase | Investigación física de permisos y `.ics` terminada; ver 4.1 y 4.2. Empieza la implementación |
+| Datos sintéticos abiertos en producción | Práctica de dispositivo `78f3c48dedc7`: limpiar con `node scripts/production-device-push.mjs cleanup 78f3c48dedc7` |
+| Ajustes de teléfonos a restaurar | Xiaomi: `stay_on_while_plugged_in` estaba en 0; permiso de notificaciones de Chrome estaba denegado por el usuario, y quedó igual después de las pruebas; origen `app.cita-suite.com.ar` quedó concedido. Samsung: origen de la sonda concedido. El evento sintético guardado por error en Hotmail ya se borró (el proveedor de calendario no lo devuelve) |
+| Siguiente acción | Implementación. Quedan físicos para la versión nueva: Google gestionado y manual en teléfonos, Apple por TestKase, push con Chrome cerrado |
 
 ## 1. Resultado que hay que entregar
 
@@ -73,6 +75,46 @@ Riesgos principales:
 | Datos reales de Natalia | Sin cambios de configuración. Su emisor queda pendiente hasta una decisión de Juan |
 | Teléfonos personales | Sólo Chrome, calendarios y ajustes necesarios, con valores previos registrados y restaurados |
 
+## 4.1 Comportamiento real de Chrome Android (medido el 5 de noviembre)
+
+Xiaomi 2312DRA50G, Android 16, Chrome 156, por depuración inalámbrica. Sonda propia en `localhost` y turno sintético real sobre V12b. Capturas privadas en `.verification/avisos-20261105/`.
+
+| Hecho medido | Consecuencia |
+|---|---|
+| Con Chrome apagado en Android, un origen nuevo informa `default`/`prompt`, no `denied` | La página no puede saber que Android está apagado |
+| El pedido muestra una tarjeta superior con «Permitir». Sin tocarla, vence a los 10,6 s y resuelve `default` | Hay unos 10 s para decidir. `default` no significa «la persona no quiso» |
+| Con Android apagado, tocar «Permitir» resuelve `default` en unos 2 s, sin ningún mensaje de Chrome | **Causa raíz de «tocar Permitir no hace nada»** |
+| 3.ª vez con «Permitir»: resuelve `default` pero `Notification.permission` ya es `denied`, con evento `onchange`. Dejando vencer la tarjeta fueron 4 | **Causa del salto «al tercer intento».** No es un número universal |
+| Después, Chrome informa «Bloqueado de forma automática» y `requestPermission()` rechaza en 5–9 ms sin mostrar nada | Repetir el mismo botón empeora la situación |
+| Activar Android **no** levanta ese bloqueo: la página sigue `denied` | **Por eso «Ya lo permití» no podía funcionar.** Hacen falta dos ajustes, no uno u otro |
+| Tras varios pedidos sin aceptar, Chrome pasa a interfaz discreta: no muestra tarjeta, resuelve `default` en 1–2 s y deja una campana tachada unos segundos | Otro `default` sin decisión. También ocurre con Android bien configurado |
+| En Chrome 156 **no hay ícono a la izquierda de la dirección** en un sitio HTTPS | La guía vigente pide un paso imposible |
+| Ruta real: ⋮ → «Controles de sitios» → «Permisos» | Sirve para los dos estados: ofrece «Suscribirse» si está sin permiso, y «Restablecer permisos» si está bloqueado |
+| «Permisos» sólo aparece si la página pidió el permiso **en esa visita** | La recuperación debe pedir antes de mandar a esa pantalla |
+| «Suscribirse» concede el permiso y dispara `onchange` a `granted`; V12b continúa sola hasta la prueba y la notificación aparece en Android | La recuperación automática al volver funciona; lo que falla es llegar hasta ahí |
+| «Restablecer permisos» devuelve `default` y dispara `onchange` | La página puede reaccionar sin recargar |
+| En este Xiaomi el interruptor se llama «Mostrar notificaciones» con Android 16; la guía diría «Permitir notificaciones» | La regla de etiquetas era de Samsung y se aplicaba a todos. Hay que usar una descripción genérica |
+| El valor predeterminado de Chrome 156 en «Cómo mostrar solicitudes» es «Contraer solicitudes no deseadas (recomendado)». En el Samsung, con Android permitido, el turno real no mostró ninguna pregunta y quedó el mismo botón | **El peor caso no necesita ningún ajuste mal puesto.** El diseño no puede depender de que la tarjeta aparezca |
+| La campana tachada dura unos segundos; tocada a tiempo abre la misma pantalla de Controles de sitios | Confirma que esa ruta es común a ambos teléfonos. No se usa en las instrucciones porque desaparece |
+| Con Android apagado y el sitio concedido: `Notification.permission` y `permissions.query` dicen `granted`, `showNotification()` resuelve y `getNotifications()` lista el aviso, pero Android no tiene ninguna notificación | **La web no puede detectar el bloqueo de Android.** Sólo la respuesta de la persona lo distingue |
+| Producción registró `displayed_at` del recordatorio de 24 h a las 23:55:19 UTC con Android apagado | `displayed` sólo significa que el service worker terminó. **No es evidencia de visualización** y ninguna decisión puede apoyarse en él |
+
+## 4.2 Comportamiento real de los calendarios (medido el 5 de noviembre)
+
+Samsung SM-A715F, Android 13, Chrome 156, con Calendario Samsung, Proton Calendar y Outlook, sin la app Google Calendar. Xiaomi 2312DRA50G, Android 16, Chrome 156, con Google Calendar. Capturas en `.verification/avisos-20261105/`.
+
+| Mecanismo | Samsung | Xiaomi | Consecuencia |
+|---|---|---|---|
+| Enlace `intent://`, variantes `data` y `type` | Cae siempre al enlace alternativo | Sin probar: mismo Chrome | No abre el calendario nativo. No se usa |
+| `.ics`: apertura | Chrome descarga y ofrece «Abrir»; Android muestra sus apps reales (Proton, Outlook, Calendario) | Igual (Calendario de Google, otras apps que aceptan el archivo) | **Muestra lo que el teléfono tiene de verdad. No hace falta inferir nada por la marca** |
+| `.ics`: alarmas | Calendario Samsung respeta las dos (`VALARM`) | Google Calendar las **ignora** y usa «30 minutos antes» | La página no puede prometer «24 y 2 horas antes» para el archivo |
+| `.ics`: alarma real | Saltó a las 21:03:00 exactas con la pantalla apagada, como pantalla completa «Próximo evento» | Sin probar | Alternativa fuerte al push, sin cuenta ni sincronización |
+| `.ics`: destino | Propone el calendario predeterminado de la persona | Propone su cuenta | Decide la persona |
+| `.ics`: reprogramar con igual UID y `SEQUENCE` mayor | Abre el evento viejo, con la hora vieja, sin ofrecer guardar | Sin probar | **No actualiza ni duplica.** Hay que pedir borrar y guardar el nuevo |
+| `.ics`: `METHOD:CANCEL` | Abre el evento viejo; no lo quita | Sin probar | Hay que pedir borrarlo a mano |
+
+El enlace manual y Google gestionado se comprueban en los teléfonos con la versión nueva.
+
 ## 5. Evidencia heredada
 
 Se reutiliza dentro de sus límites, sólo mientras el código correspondiente no cambie:
@@ -119,9 +161,30 @@ Orden por dependencias: primero lo que aporta hechos (dispositivos, Zoho real), 
 
 **Decisión inicial:** un envío iniciado sin resultado conocido queda «En comprobación» y sólo se resuelve con evidencia (respuesta, webhook con `client_reference`, registro del proveedor) o con decisión explícita del personal, que ve el riesgo de duplicado.
 
-### D5. Experiencia de recordatorio por capacidades
+### D5. Recordatorio basado en hechos observables, no en la marca
 
-**Decisión inicial:** se reemplaza la pregunta por la marca por un recorrido basado en estados observables del permiso y en una salida de calendario siempre disponible. El detalle se fija después de las pruebas físicas.
+**Problema:** el recorrido actual supone que después del botón hay una pregunta. Chrome puede contraerla, dejarla vencer o rechazarla sin avisar, y `default` no explica cuál. Repetir el botón lleva al bloqueo automático. La web no puede ver el ajuste de Android.
+
+**Decisión, con evidencia de 4.1:**
+
+- Después de cualquier resultado que no sea `granted`, la página deja de ofrecer el mismo botón como única salida. Explica qué pasó en lenguaje simple y da dos caminos: terminar el aviso del teléfono, o usar un calendario.
+- Una sola receta para Chrome Android, comprobada en los dos teléfonos: interruptor principal de Chrome en Ajustes de Android, y **⋮ → Controles de sitios → Permisos → Suscribirse**, o «Restablecer permisos» si dice bloqueado. Sin ícono de la barra ni etiquetas por versión.
+- Al volver, `permissions.onchange` continúa sola. El botón «Comprobar de nuevo» siempre responde con un resultado visible, aunque el estado no haya cambiado.
+- La prueba sólo se da por buena con la respuesta de la persona. `displayed` no acredita nada.
+- Se retiran la pregunta por la marca, «Ya estaba activado» y «Ya lo permití».
+
+**Alternativa descartada:** pedir el permiso de nuevo automáticamente: suma descartes y acelera el bloqueo. Detectar Android apagado desde la web: comprobado imposible.
+
+### D6. Alternativas de calendario sin suponer aplicaciones
+
+**Decisión, con evidencia de 4.2:**
+
+- En Android la alternativa principal es **«Guardar en mi calendario»** con `.ics`: el selector del sistema ofrece los calendarios reales del teléfono. Sirve sin Google y sin sincronización.
+- La segunda es **«Conectar mi cuenta Google»** (gestionado): la única que actualiza y retira el evento sola. Se explica eso, y no se presenta como universal.
+- Se quita el texto que promete avisos exactos para `.ics`: se dice que cada calendario usa sus propios avisos.
+- Tras reprogramar o cancelar con `.ics`, la página y el correo piden borrar el evento anterior y, si corresponde, guardar el nuevo, porque el archivo no lo cambia.
+- Calendario Samsung no tiene un botón propio: entra por `.ics` sin depender de una cuenta Google. Eso cierra la duda sobre `4d0905d`/`adf8ddc`: no se restaura aquella interfaz.
+- El enlace `intent://` no funciona en Chrome: se retira si no tiene otro consumidor.
 
 ## 7. Integración y publicación
 
@@ -144,7 +207,16 @@ Orden por dependencias: primero lo que aporta hechos (dispositivos, Zoho real), 
 | Publicación | Revisión, versión, migraciones, cron, secretos e interruptores comprobados en el destino |
 | Documentación | Índice con enlaces directos y sin instrucciones vigentes contradictorias |
 
-## 9. Accesos que pueden necesitar a Juan
+## 9. Autorizaciones y decisiones de Juan en este encargo
+
+Dadas en la conversación del 5 de noviembre, después de que el control de permisos rechazara una escritura productiva:
+
+- **Autorizado expresamente:** leer y escribir datos sintéticos en la base de producción, aplicar las migraciones de E, detener y reactivar el programador, publicar la app y el programador, cargar sus secretos, ensayar la vuelta atrás, y enviar correos de prueba por Zoho a citasuite@gmail.com.
+- **Autorizado después, las cuatro cosas:** en Zoho agregar dominios de envío, crear claves de envío y configurar el webhook; en Cloudflare crear sólo registros DNS de correo para subdominios de `cita-suite.com.ar`; en producción encender los interruptores de reprogramación autónoma, correo y Google Calendar gestionado; en los teléfonos aceptar el permiso de Google Calendar de Cita Suite y crear, mover y borrar eventos de prueba.
+- **Cuenta Google de las pruebas en teléfonos:** Juan agrega `citasuite@gmail.com` en los dos. No se usan sus calendarios personales.
+- **Natalia:** su remitente queda pendiente. No se toca su configuración, no salen correos de su consultorio hasta que Juan lo decida, y todo se prueba con un consultorio sintético.
+
+## 10. Accesos que pueden necesitar a Juan
 
 Se pide sólo cuando bloquee de verdad, y agrupado.
 
