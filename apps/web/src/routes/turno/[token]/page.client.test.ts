@@ -425,27 +425,39 @@ describe('contextual auxiliary availability', () => {
 		expect(environment.postRequests()).toBe(2);
 	});
 
-	it('si Samsung no concede el permiso efectivo, no prueba y muestra la recuperación del teléfono', async () => {
+	// El defecto original: Chrome resuelve `default` sin decisión (venció, la contrajo o Android lo tiene
+	// apagado) y la página volvía al mismo botón, sin explicación ni alternativa.
+	it('si el permiso queda sin decidir no prueba, explica y ofrece salidas, sin dejar sólo el mismo botón', async () => {
 		const environment = installNotificationEnvironment({ persistRequestedPermission: false });
-		render(Page, { data: pageData });
+		render(Page, { data: { ...pageData, notificationBrowser: notificationBrowserProfile(USER_AGENT.chrome) } });
 
 		await fireEvent.click(screen.getByRole('button', { name: 'Activar recordatorio' }));
 
 		expect(environment.requestPermission).toHaveBeenCalledOnce();
 		expect(environment.postRequests()).toBe(0);
-		expect(await screen.findByText('¿Tu teléfono es Samsung?')).toBeInTheDocument();
-		expect(screen.getByText('Permití que Samsung Browser muestre los avisos')).toBeInTheDocument();
-		expect(screen.getByText('Activá “Permitir notificaciones”.')).toBeInTheDocument();
-		expect(
-			screen.getByRole('button', { name: 'Activar recordatorio' })
-		).toBeInTheDocument();
-		expect(
-			screen.queryByRole('button', { name: 'Enviar otra notificación de prueba' })
-		).not.toBeInTheDocument();
-		expect(screen.queryByRole('link', { name: /Google Calendar/i })).not.toBeInTheDocument();
+		expect(await screen.findByRole('link', { name: 'Guardar en mi calendario' })).toHaveAttribute('href', '/turno/public-token/calendario.ics?p=phone');
+		expect(screen.getByText(/A veces el navegador no muestra la pregunta/)).toBeInTheDocument();
+		expect(screen.getByText('Prefiero recibir el aviso en este teléfono')).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'Preguntar de nuevo' })).toBeInTheDocument();
+		expect(screen.queryByRole('button', { name: 'Activar recordatorio' })).not.toBeInTheDocument();
+		expect(screen.queryByRole('button', { name: 'Enviar otra notificación de prueba' })).not.toBeInTheDocument();
 	});
 
-	it('mantiene visible una guía propia si la persona rechazó el permiso', async () => {
+	it('mientras el navegador decide dice qué hacer, y no anuncia una prueba que todavía no existe', async () => {
+		const environment = installNotificationEnvironment({ persistRequestedPermission: false });
+		let answer = (_value: NotificationPermission) => {};
+		environment.requestPermission.mockImplementation(() => new Promise<NotificationPermission>((resolve) => { answer = resolve; }));
+		render(Page, { data: { ...pageData, notificationBrowser: notificationBrowserProfile(USER_AGENT.chrome) } });
+
+		await fireEvent.click(screen.getByRole('button', { name: 'Activar recordatorio' }));
+
+		expect(await screen.findByText('Mirá arriba de todo')).toBeInTheDocument();
+		expect(screen.queryByText(/vas a recibir la notificación de prueba/)).not.toBeInTheDocument();
+		answer('default');
+		expect(await screen.findByRole('button', { name: 'Preguntar de nuevo' })).toBeInTheDocument();
+	});
+
+	it('mantiene visible la guía del navegador si quedó bloqueado, con salida de calendario', async () => {
 		const environment = installNotificationEnvironment({
 			requestedPermission: 'denied'
 		});
@@ -460,12 +472,12 @@ describe('contextual auxiliary availability', () => {
 		expect(screen.getByText('Tocá “Notificaciones del sitio”.')).toBeInTheDocument();
 		expect(screen.getByText('Tocá “Permitir o bloquear sitios web”.')).toBeInTheDocument();
 		expect(screen.getByText(`Activá “${window.location.origin}”.`)).toBeInTheDocument();
-		expect(screen.getByRole('button', { name: 'Ya lo permití' })).toBeInTheDocument();
+		expect(screen.getByRole('link', { name: 'Guardar en mi calendario' })).toBeInTheDocument();
 		expect(screen.queryByText('¿Tu teléfono es Samsung?')).not.toBeInTheDocument();
 		expect(environment.postRequests()).toBe(0);
 	});
 
-	it('en Chrome separa en dos pasos el permiso general y el permiso del turno', async () => {
+	it('en Chrome muestra juntos los dos ajustes, porque arreglar uno solo no alcanza', async () => {
 		const environment = installNotificationEnvironment({ requestedPermission: 'denied' });
 		render(Page, {
 			data: {
@@ -476,22 +488,44 @@ describe('contextual auxiliary availability', () => {
 
 		await fireEvent.click(screen.getByRole('button', { name: 'Activar recordatorio' }));
 
-		expect(await screen.findByText('Permití que Chrome muestre los avisos')).toBeInTheDocument();
-		expect(screen.getByText('Abrí “Ajustes” en tu teléfono.')).toBeInTheDocument();
-		expect(screen.getByText('Tocá “Aplicaciones”.')).toBeInTheDocument();
-		expect(screen.getByText('Escribí “Chrome”.')).toBeInTheDocument();
-		expect(screen.getByText('Activá “Permitir notificaciones”.')).toBeInTheDocument();
-		expect(screen.queryByText('Permití los avisos de este turno en Chrome')).not.toBeInTheDocument();
+		expect(await screen.findByText('Permití los avisos de este sitio en Chrome')).toBeInTheDocument();
+		expect(screen.getByText('Tocá “Controles de sitios”.')).toBeInTheDocument();
+		expect(screen.getByText(/Restablecer permisos/)).toBeInTheDocument();
+		expect(screen.getByText('Permití que Chrome muestre avisos en el teléfono')).toBeInTheDocument();
+		expect(screen.getByText('Activá el interruptor principal, arriba de todo.')).toBeInTheDocument();
+		expect(screen.queryByText(/a la izquierda de la dirección/)).not.toBeInTheDocument();
+		expect(screen.queryByRole('button', { name: 'Ya estaba activado' })).not.toBeInTheDocument();
+		expect(screen.queryByRole('button', { name: 'Ya lo permití' })).not.toBeInTheDocument();
 		expect(environment.postRequests()).toBe(0);
-
-		await fireEvent.click(screen.getByRole('button', { name: 'Ya estaba activado' }));
-		expect(await screen.findByText('Permití los avisos de este turno en Chrome')).toBeInTheDocument();
-		expect(screen.getByText('Tocá el ícono situado a la izquierda de la dirección.')).toBeInTheDocument();
-		expect(screen.queryByText('Permití que Chrome muestre los avisos')).not.toBeInTheDocument();
 	});
 
-	it('usa en Firefox los nombres y la opción observados en el teléfono', async () => {
-		const environment = installNotificationEnvironment({ persistRequestedPermission: false });
+	it('ningún botón queda mudo: si sigue bloqueado lo dice', async () => {
+		installNotificationEnvironment({ requestedPermission: 'denied' });
+		render(Page, { data: { ...pageData, notificationBrowser: notificationBrowserProfile(USER_AGENT.chrome) } });
+
+		await fireEvent.click(screen.getByRole('button', { name: 'Activar recordatorio' }));
+		await clickWhenEnabled(await screen.findByRole('button', { name: 'Ya lo cambié' }));
+
+		expect(await screen.findByText(/sigue bloqueando los avisos/)).toBeInTheDocument();
+	});
+
+	it('al restablecer el permiso desde Chrome la página lo nota y pide el paso siguiente', async () => {
+		const environment = installNotificationEnvironment({ requestedPermission: 'denied' });
+		render(Page, { data: { ...pageData, notificationBrowser: notificationBrowserProfile(USER_AGENT.chrome) } });
+
+		await fireEvent.click(screen.getByRole('button', { name: 'Activar recordatorio' }));
+		await screen.findByRole('button', { name: 'Ya lo cambié' });
+
+		environment.setPermission('default');
+		window.dispatchEvent(new Event('focus'));
+
+		expect(await screen.findByRole('button', { name: 'Preguntar de nuevo' })).toBeInTheDocument();
+		expect(screen.getByText(/ya no está bloqueado/)).toBeInTheDocument();
+		expect(environment.postRequests()).toBe(0);
+	});
+
+	it('usa en Firefox los nombres y la opción observados en el teléfono', () => {
+		installNotificationEnvironment({ persistRequestedPermission: false });
 		render(Page, {
 			data: {
 				...pageData,
@@ -499,12 +533,7 @@ describe('contextual auxiliary availability', () => {
 			}
 		});
 
-		await fireEvent.click(screen.getByRole('button', { name: 'Activar recordatorio' }));
-
-		expect(environment.postRequests()).toBe(0);
-		expect(
-			await screen.findByText('Cuando aparezca la pregunta, elegí “Siempre”.')
-		).toBeInTheDocument();
+		expect(screen.getByText(/tocá “Siempre” enseguida/)).toBeInTheDocument();
 	});
 
 	it('muestra la recuperación directa y exacta de Firefox tras bloquear', async () => {
@@ -530,56 +559,67 @@ describe('contextual auxiliary availability', () => {
 		expect(environment.postRequests()).toBe(0);
 	});
 
-	it('en Samsung Browser muestra sólo la recuperación Samsung si la prueba no llegó', async () => {
+	it('si la prueba no llegó no pregunta la marca: ofrece otra prueba, el ajuste y el calendario', async () => {
 		installNotificationEnvironment();
 		render(Page, { data: pageData });
 
 		await fireEvent.click(screen.getByRole('button', { name: 'Activar recordatorio' }));
 		await clickWhenEnabled(await screen.findByRole('button', { name: 'No la recibí' }));
 
-		expect(await screen.findByText('¿Tu teléfono es Samsung?')).toBeInTheDocument();
-		expect(screen.getByText('Permití que Samsung Browser muestre los avisos')).toBeInTheDocument();
-		expect(screen.getByText('Activá “Permitir notificaciones”.')).toBeInTheDocument();
-		const retryButton = screen.getByRole('button', {
-			name: 'Enviar otra notificación de prueba'
-		});
-		const guideTitle = screen.getByText('Permití que Samsung Browser muestre los avisos');
+		const retryButton = await screen.findByRole('button', { name: 'Enviar otra notificación de prueba' });
 		expect(retryButton.className).toContain('ux-btn-primary');
-		expect(retryButton.className).toContain('ux-btn-cta');
-		expect(
-			retryButton.compareDocumentPosition(guideTitle) & Node.DOCUMENT_POSITION_FOLLOWING
-		).toBeTruthy();
-		expect(
-			screen.queryByText('Podés volver a consultar esta guía las veces que necesites.')
-		).not.toBeInTheDocument();
-		expect(screen.queryByText('Cuando termines los pasos')).not.toBeInTheDocument();
-		expect(screen.queryByText('Volver sólo para releer no envía otra prueba.')).not.toBeInTheDocument();
+		expect(screen.getByText('Permití que Samsung Browser muestre avisos en el teléfono')).toBeInTheDocument();
+		expect(screen.getByRole('link', { name: 'Guardar en mi calendario' })).toBeInTheDocument();
+		expect(screen.queryByText('¿Tu teléfono es Samsung?')).not.toBeInTheDocument();
 		expect(screen.queryByText('¿Tu teléfono es de otra marca?')).not.toBeInTheDocument();
-		expect(screen.queryByRole('link', { name: /Google Calendar/i })).not.toBeInTheDocument();
 	});
 
-	it('con Chrome da igual jerarquía a Samsung y a otra marca, sin OAuth administrado', async () => {
-		installNotificationEnvironment();
+	it('ofrece Google gestionado sólo si está disponible, y explica que se actualiza solo', async () => {
+		installNotificationEnvironment({ persistRequestedPermission: false });
 		render(Page, {
 			data: {
 				...pageData,
-				notificationBrowser: notificationBrowserProfile(USER_AGENT.chrome)
+				notificationBrowser: notificationBrowserProfile(USER_AGENT.chrome),
+				googleCalendar: { ...pageData.googleCalendar, available: true }
 			}
 		});
 
 		await fireEvent.click(screen.getByRole('button', { name: 'Activar recordatorio' }));
-		await clickWhenEnabled(await screen.findByRole('button', { name: 'No la recibí' }));
 
-		const samsung = await screen.findByText('¿Tu teléfono es Samsung?');
-		const other = screen.getByText('¿Tu teléfono es de otra marca?');
-		const google = screen.getByRole('link', { name: /¿Tu teléfono es de otra marca\?.*Agregar a Google Calendar/i });
-		expect(google).toHaveAttribute('href', '/turno/public-token/ir/google');
-		expect(samsung.closest('details')?.className).toContain('border-accent-300-30');
-		expect(other.closest('a')?.className).toContain('border-accent-300-30');
-		expect(screen.queryByText(/otro Android/i)).not.toBeInTheDocument();
+		expect(await screen.findByRole('link', { name: 'Conectar mi cuenta Google' })).toHaveAttribute('href', '/turno/public-token/google-calendar/connect');
+		expect(screen.getAllByText(/si cambia lo actualizamos solos/).length).toBeGreaterThan(0);
 	});
 
-	it('muestra la pregunta al volver de Google Calendar sin recargar la página', async () => {
+	it('sin Google gestionado no ofrece conectar la cuenta', async () => {
+		installNotificationEnvironment({ persistRequestedPermission: false });
+		render(Page, { data: { ...pageData, notificationBrowser: notificationBrowserProfile(USER_AGENT.chrome) } });
+
+		await fireEvent.click(screen.getByRole('button', { name: 'Activar recordatorio' }));
+
+		await screen.findByRole('link', { name: 'Guardar en mi calendario' });
+		expect(screen.queryByRole('link', { name: 'Conectar mi cuenta Google' })).not.toBeInTheDocument();
+	});
+
+	it('no promete avisos exactos para un archivo de calendario', async () => {
+		installNotificationEnvironment({ persistRequestedPermission: false });
+		render(Page, { data: { ...pageData, notificationBrowser: notificationBrowserProfile(USER_AGENT.chrome) } });
+
+		await fireEvent.click(screen.getByRole('button', { name: 'Activar recordatorio' }));
+
+		expect(await screen.findByText(/Cada calendario usa sus propios avisos/)).toBeInTheDocument();
+		expect(screen.getByText(/hay que volver a guardarlo/)).toBeInTheDocument();
+	});
+
+	it('si ya recibe recordatorios por correo no presenta el aviso del teléfono como obligatorio', () => {
+		installNotificationEnvironment();
+		render(Page, { data: { ...pageData, emailRemindersActive: true } });
+
+		expect(screen.getByRole('heading', { name: 'Te vamos a recordar el turno por correo' })).toBeInTheDocument();
+		expect(screen.queryByRole('heading', { name: 'Último paso: activá el recordatorio' })).not.toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'Activar recordatorio' })).toBeInTheDocument();
+	});
+
+	it('muestra la pregunta al volver del calendario sin recargar la página', async () => {
 		const environment = installNotificationEnvironment();
 		render(Page, {
 			data: {
@@ -590,11 +630,9 @@ describe('contextual auxiliary availability', () => {
 
 		await fireEvent.click(screen.getByRole('button', { name: 'Activar recordatorio' }));
 		await clickWhenEnabled(await screen.findByRole('button', { name: 'No la recibí' }));
-		const googleLink = await screen.findByRole('link', {
-			name: /¿Tu teléfono es de otra marca\?.*Agregar a Google Calendar/i
-		});
-		preventLinkNavigation(googleLink);
-		await fireEvent.click(googleLink);
+		const calendarLink = await screen.findByRole('link', { name: 'Guardar en mi calendario' });
+		preventLinkNavigation(calendarLink);
+		await fireEvent.click(calendarLink);
 		expect(
 			screen.queryByText('¿Pudiste guardar el turno en tu calendario?')
 		).not.toBeInTheDocument();
@@ -608,8 +646,7 @@ describe('contextual auxiliary availability', () => {
 		expect(
 			screen.getByRole('heading', { name: 'Último paso: confirmá el calendario' })
 		).toBeInTheDocument();
-		expect(screen.queryByText('¿Tu teléfono es Samsung?')).not.toBeInTheDocument();
-		expect(screen.queryByRole('link', { name: /Agregar a Google Calendar/i })).not.toBeInTheDocument();
+		expect(screen.queryByRole('link', { name: 'Guardar en mi calendario' })).not.toBeInTheDocument();
 		const requestsBeforeAnswer = vi.mocked(fetch).mock.calls.length;
 		await fireEvent.click(screen.getByRole('button', { name: 'Sí, quedó guardado' }));
 
@@ -617,12 +654,12 @@ describe('contextual auxiliary availability', () => {
 			await screen.findByRole('heading', { name: 'Turno guardado en tu calendario' })
 		).toBeInTheDocument();
 		expect(screen.getByText('Listo, quedó guardado')).toBeInTheDocument();
-		expect(screen.getByText('Tu calendario podrá avisarte antes de la cita.')).toBeInTheDocument();
+		expect(screen.getByText(/Tu calendario va a usar sus propios avisos/)).toBeInTheDocument();
 		expect(vi.mocked(fetch).mock.calls).toHaveLength(requestsBeforeAnswer);
 		expect(environment.postRequests()).toBe(1);
 	});
 
-	it('reabre Google Calendar sólo al tocar No y vuelve a preguntar al regresar', async () => {
+	it('reabre el calendario sólo al tocar No y vuelve a preguntar al regresar', async () => {
 		const environment = installNotificationEnvironment();
 		render(Page, {
 			data: {
@@ -633,15 +670,15 @@ describe('contextual auxiliary availability', () => {
 
 		await fireEvent.click(screen.getByRole('button', { name: 'Activar recordatorio' }));
 		await clickWhenEnabled(await screen.findByRole('button', { name: 'No la recibí' }));
-		const googleLink = await screen.findByRole('link', { name: /Agregar a Google Calendar/i });
-		preventLinkNavigation(googleLink);
-		await fireEvent.click(googleLink);
+		const calendarLink = await screen.findByRole('link', { name: 'Guardar en mi calendario' });
+		preventLinkNavigation(calendarLink);
+		await fireEvent.click(calendarLink);
 		environment.setVisibility('hidden');
 		environment.setVisibility('visible');
 		await screen.findByText('¿Pudiste guardar el turno en tu calendario?');
 
 		const retryLink = screen.getByRole('link', { name: 'No, volver a intentarlo' });
-		expect(retryLink).toHaveAttribute('href', '/turno/public-token/ir/google');
+		expect(retryLink).toHaveAttribute('href', '/turno/public-token/calendario.ics?p=phone');
 		preventLinkNavigation(retryLink);
 		const requestsBeforeRetry = vi.mocked(fetch).mock.calls.length;
 		await fireEvent.click(retryLink);
@@ -667,7 +704,7 @@ describe('contextual auxiliary availability', () => {
 
 		await fireEvent.click(screen.getByRole('button', { name: 'Activar recordatorio' }));
 		await clickWhenEnabled(await screen.findByRole('button', { name: 'No la recibí' }));
-		await screen.findByText('Permití que Samsung Browser muestre los avisos');
+		await screen.findByText('Permití que Samsung Browser muestre avisos en el teléfono');
 		environment.setVisibility('hidden');
 		environment.setVisibility('visible');
 		window.dispatchEvent(new Event('focus'));
@@ -696,7 +733,7 @@ describe('contextual auxiliary availability', () => {
 
 		await fireEvent.click(screen.getByRole('button', { name: 'Activar recordatorio' }));
 		await clickWhenEnabled(await screen.findByRole('button', { name: 'No la recibí' }));
-		await screen.findByText('Permití que Samsung Browser muestre los avisos');
+		await screen.findByText('Permití que Samsung Browser muestre avisos en el teléfono');
 
 		environment.setVisibility('hidden');
 		environment.setVisibility('visible');
@@ -708,7 +745,7 @@ describe('contextual auxiliary availability', () => {
 		await waitFor(() => expect(environment.postRequests()).toBe(2));
 		expect(environment.postBodies()[1]?.testRequestKey).toMatch(/:recovery$/);
 		await clickWhenEnabled(await screen.findByRole('button', { name: 'No la recibí' }));
-		await screen.findByText('Permití que Samsung Browser muestre los avisos');
+		await screen.findByText('Permití que Samsung Browser muestre avisos en el teléfono');
 
 		environment.setVisibility('hidden');
 		environment.setVisibility('visible');
@@ -747,7 +784,7 @@ describe('contextual auxiliary availability', () => {
 
 		await fireEvent.click(screen.getByRole('button', { name: 'Activar recordatorio' }));
 		await clickWhenEnabled(await screen.findByRole('button', { name: 'No la recibí' }));
-		await screen.findByText('Permití que Samsung Browser muestre los avisos');
+		await screen.findByText('Permití que Samsung Browser muestre avisos en el teléfono');
 
 		await clickWhenEnabled(
 			screen.getByRole('button', { name: 'Enviar otra notificación de prueba' })
@@ -784,7 +821,7 @@ describe('contextual auxiliary availability', () => {
 		render(Page, { data: pageData });
 
 		await fireEvent.click(screen.getByRole('button', { name: 'Activar recordatorio' }));
-		await screen.findByText('Permití que Samsung Browser muestre los avisos');
+		await screen.findByRole('button', { name: 'Preguntar de nuevo' });
 		expect(environment.postRequests()).toBe(0);
 
 		environment.setPermission('granted');
@@ -817,19 +854,17 @@ describe('contextual auxiliary availability', () => {
 		expect(await screen.findByText('¿Recibiste la notificación de prueba?')).toBeInTheDocument();
 	});
 
-	it('si no hay soporte conserva la regla Samsung exclusiva y no inventa una recuperación falsa', async () => {
+	it('si no hay soporte ofrece el calendario y no inventa una recuperación', async () => {
 		Object.defineProperty(window, 'Notification', { configurable: true, value: undefined });
 		Object.defineProperty(window, 'PushManager', { configurable: true, value: undefined });
 		Object.defineProperty(navigator, 'serviceWorker', { configurable: true, value: undefined });
 
 		render(Page, { data: pageData });
 
-		expect(
-			await screen.findByText(/conservá este enlace: desde acá siempre podés consultar/i)
-		).toBeInTheDocument();
+		expect(await screen.findByText(/no puede avisarte en el teléfono/)).toBeInTheDocument();
+		expect(screen.getByRole('link', { name: 'Guardar en mi calendario' })).toBeInTheDocument();
+		expect(screen.queryByText('Prefiero recibir el aviso en este teléfono')).not.toBeInTheDocument();
 		expect(screen.queryByText('¿Tu teléfono es Samsung?')).not.toBeInTheDocument();
-		expect(screen.queryByText('¿Tu teléfono es de otra marca?')).not.toBeInTheDocument();
-		expect(screen.queryByRole('link', { name: /Google Calendar/i })).not.toBeInTheDocument();
 	});
 });
 

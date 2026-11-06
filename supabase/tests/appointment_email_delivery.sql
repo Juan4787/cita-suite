@@ -1,7 +1,7 @@
 -- Email delivery contracts. Everything is synthetic and rolls back; no provider is contacted, so
 -- this proves decisions and persistence, never that a message reached a mailbox.
 begin;
-select extensions.plan(34);
+select extensions.plan(35);
 create temporary table mail_fixture(label text primary key,id uuid not null);
 create function pg_temp.mid(label text) returns uuid language sql as $$select id from mail_fixture f where f.label=$1$$;
 create function pg_temp.base() returns timestamptz language sql as $$select date_trunc('hour',clock_timestamp())$$;

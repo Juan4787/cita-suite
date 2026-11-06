@@ -136,8 +136,10 @@
 	let currentSiteOrigin = $state<string | null>(null);
 	let inMemoryPushSessionId = '';
 	const testRetrySequence: Record<TestPhase, number> = { initial: 0, recovery: 0 };
-	const nextTestPhase = (): TestPhase =>
-		renderedPushState === 'needs_device_check' && activeTestDeliveryId ? 'recovery' : 'initial';
+	// Sobrevive a los cambios de permiso: una prueba perdida sigue perdida aunque el permiso se bloquee y
+	// se conceda de nuevo, y repetir su clave devolvería el intento viejo en vez de enviar otro.
+	let lastTestMissing = false;
+	const nextTestPhase = (): TestPhase => (lastTestMissing && activeTestDeliveryId ? 'recovery' : 'initial');
 
 	const base = $derived(appointment ? `/turno/${appointment.token}` : '');
  const managementBase = $derived(data.management?.url ?? base);
@@ -492,6 +494,7 @@
 	const applyDelivery = (delivery: PushDelivery) => {
 		activeTestDeliveryId = delivery.deliveryId;
 		if (delivery.state === 'confirmed' || delivery.state === 'clicked') {
+			lastTestMissing = false;
 			activeTestPhase = null;
 			pushState = 'subscribed';
 			pushMessage = '';
@@ -508,6 +511,7 @@
 			delivery.state === 'failed' ||
 			delivery.state === 'expired'
 		) {
+			lastTestMissing = true;
 			pushState = 'needs_device_check';
 			pushMessage = '';
 			return true;
