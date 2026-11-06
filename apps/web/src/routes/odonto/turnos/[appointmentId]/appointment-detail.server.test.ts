@@ -289,3 +289,57 @@ describe('explicit detail delivery', () => {
   expect(result).toMatchObject({ status: 503, data: { message: expect.stringContaining('revisar lo registrado') } });
  });
 });
+
+describe('appointment email and links in the detail', () => {
+ const businessId = 'b1000000-0000-4000-8000-000000000002';
+ const deliveryId = '00000000-0000-4000-8000-0000000000d1';
+ const revision = 'c'.repeat(64);
+ const act = (action: 'email_delivery' | 'revoke_links', body: Record<string, string>, role = 'reception', canOperate = true) => {
+  mocks.getOdontoContext.mockResolvedValue({ supabase: { from: mocks.from, rpc: mocks.rpc }, business: { business: { id: businessId }, role, canOperate }, userId: 'validated-user' });
+  return actions[action]!({ params: { appointmentId }, locals: { auth: { access_token: 'test' } }, fetch: vi.fn(), cookies: { get: vi.fn() },
+   request: new Request(`https://app.test/detail?/${action}`, { method: 'POST', body: new URLSearchParams(body) }), setHeaders: vi.fn() } as never);
+ };
+ beforeEach(() => { vi.clearAllMocks(); vi.spyOn(console, 'error').mockImplementation(() => {}); mocks.rpc.mockResolvedValue({ data: { state: 'retry' }, error: null }); });
+
+ it.each(['resend', 'dismiss'] as const)('decides an uncertain message (%s) for the session practice only', async (decision) => {
+  await expect(act('email_delivery', { delivery_id: deliveryId, decision })).resolves.toMatchObject({ success: true });
+  expect(mocks.rpc).toHaveBeenCalledExactlyOnceWith('resolve_appointment_email_delivery', { p_business_id: businessId, p_delivery_id: deliveryId, p_decision: decision });
+ });
+ it.each([[{ delivery_id: 'otro', decision: 'resend' }], [{ delivery_id: deliveryId, decision: 'reenviar' }], [{ delivery_id: deliveryId }]])('a malformed decision never reaches the database', async (body) => {
+  await expect(act('email_delivery', body)).resolves.toMatchObject({ status: 400 });
+  expect(mocks.rpc).not.toHaveBeenCalled();
+ });
+ it.each([['professional', true], ['readonly', true], ['owner', false]])('%s without operating access decides nothing', async (role, canOperate) => {
+  await expect(act('email_delivery', { delivery_id: deliveryId, decision: 'resend' }, role, canOperate)).resolves.toMatchObject({ status: 403 });
+  await expect(act('revoke_links', { expected_revision: revision }, role, canOperate)).resolves.toMatchObject({ status: 403 });
+  expect(mocks.rpc).not.toHaveBeenCalled();
+ });
+ it('a message that already changed is reported as such, not as a failure', async () => {
+  mocks.rpc.mockResolvedValue({ data: null, error: { message: 'EMAIL_DELIVERY_CHANGED' } });
+  await expect(act('email_delivery', { delivery_id: deliveryId, decision: 'dismiss' })).resolves.toMatchObject({ status: 409 });
+  mocks.rpc.mockResolvedValue({ data: null, error: { message: 'canceling statement due to statement timeout' } });
+  await expect(act('email_delivery', { delivery_id: deliveryId, decision: 'dismiss' })).resolves.toMatchObject({ status: 503 });
+ });
+ it('revokes the links with the revision the person saw and says the appointment did not change', async () => {
+  await expect(act('revoke_links', { expected_revision: revision })).resolves.toMatchObject({ success: true, message: expect.stringContaining('El turno no cambió') });
+  expect(mocks.rpc).toHaveBeenCalledExactlyOnceWith('revoke_appointment_management_access', expect.objectContaining({
+   p_business_id: businessId, p_appointment_id: appointmentId, p_expected_revision: revision, p_operation_id: expect.any(String) }));
+  mocks.rpc.mockResolvedValue({ data: null, error: { message: 'APPOINTMENT_MANAGEMENT_CHANGED' } });
+  await expect(act('revoke_links', { expected_revision: revision })).resolves.toMatchObject({ status: 409 });
+  await expect(act('revoke_links', { expected_revision: 'vieja' })).resolves.toMatchObject({ status: 400 });
+ });
+ it('only roles that may read the list ask for it', async () => {
+  tables();
+  const listCalls = () => mocks.rpc.mock.calls.filter(([name]) => name === 'list_appointment_email_deliveries').length;
+  mocks.rpc.mockImplementation((name: string) => query(name === 'list_appointment_email_deliveries' ? { data: [], error: null }
+   : name === 'list_business_users' ? { data: [], error: null } : { data: true, error: null }));
+  mocks.getOdontoContext.mockResolvedValue({ supabase: { from: mocks.from, rpc: mocks.rpc },
+   business: { business: { id: 'business-1', name: 'Consultorio', timezone: 'America/Argentina/Buenos_Aires' }, role: 'professional', canOperate: false, access: { canUseBusiness: true } }, userId: 'user-1' });
+  await expect(load(event())).resolves.toMatchObject({ emailDeliveries: null });
+  expect(listCalls()).toBe(0);
+  mocks.getOdontoContext.mockResolvedValue({ supabase: { from: mocks.from, rpc: mocks.rpc },
+   business: { business: { id: 'business-1', name: 'Consultorio', timezone: 'America/Argentina/Buenos_Aires' }, role: 'reception', canOperate: true, access: { canUseBusiness: true } }, userId: 'user-1' });
+  await expect(load(event())).resolves.toMatchObject({ emailDeliveries: [] });
+  expect(listCalls()).toBe(1);
+ });
+});

@@ -152,8 +152,10 @@ A	apps/web/src/lib/server/scheduling/public/staff-management.test.ts
 A	apps/web/src/lib/server/scheduling/public/staff-management.ts
 M	apps/web/src/lib/theme/palette.js
 A	apps/web/src/routes/api/zoho/webhook/+server.ts
+A	apps/web/src/routes/api/zoho/webhook/webhook.server.test.ts
 A	apps/web/src/routes/correo/baja/[token]/+page.server.ts
 A	apps/web/src/routes/correo/baja/[token]/+page.svelte
+A	apps/web/src/routes/correo/baja/[token]/unsubscribe.server.test.ts
 M	apps/web/src/routes/embed/v1/[integrationKey]/turno/[token]/+page.server.ts
 M	apps/web/src/routes/embed/v1/[integrationKey]/turno/[token]/+page.svelte
 A	apps/web/src/routes/gestion/[token]/+page.server.ts
@@ -183,6 +185,7 @@ M	apps/web/src/routes/odonto/agenda/referencias/+server.ts
 M	apps/web/src/routes/odonto/configuracion/+page.svelte
 A	apps/web/src/routes/odonto/configuracion/correo/+page.server.ts
 A	apps/web/src/routes/odonto/configuracion/correo/+page.svelte
+A	apps/web/src/routes/odonto/configuracion/correo/email-settings.server.test.ts
 M	apps/web/src/routes/odonto/pacientes/[id]/+page.svelte
 M	apps/web/src/routes/odonto/recordatorios/+page.server.ts
 M	apps/web/src/routes/odonto/recordatorios/+page.svelte
@@ -298,6 +301,7 @@ A	supabase/tests/public_booking_email_contact_scope.sql
 A	supabase/tests/public_booking_email_requirement.sql
 M	supabase/tests/public_booking_patient_policy.sql
 A	supabase/tests/public_booking_reschedule_policy.sql
+A	supabase/tests/run_appointment_email_concurrency.sh
 A	supabase/tests/run_booking_email_contact_concurrency.sh
 A	supabase/tests/run_booking_reschedule_policy_concurrency.sh
 M	supabase/tests/run_deposit_expiry_concurrency.sh

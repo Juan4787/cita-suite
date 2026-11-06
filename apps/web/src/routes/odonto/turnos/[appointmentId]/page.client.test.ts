@@ -72,6 +72,7 @@ const data: PageData = {
 	deposit: null,
 	canRecordDeposit: true,
 	auditLogs: [],
+	emailDeliveries: null,
 	userLabels: {},
 	reprogramDate: '2026-08-20',
 	minReprogramDate: '2026-08-05',
@@ -125,6 +126,41 @@ describe('money after cancellation', () => {
   expect(Object.fromEntries(new FormData(retry))).toEqual(fields);
   expect(container.querySelector('form[action="?/update_status"]')).toBeNull();
   expect(container.querySelector('#late-deposit-record button')).toBeDisabled();
+ });
+});
+
+describe('appointment email', () => {
+ const delivery = (state: NonNullable<PageData['emailDeliveries']>[number]['state'], extra: Partial<NonNullable<PageData['emailDeliveries']>[number]> = {}) => ({
+  id: `delivery-${state}`, purpose: 'booking_receipt' as const, state, recipient: 'paciente@example.test',
+  createdAt: '2026-08-05T12:00:00.000Z', acceptedAt: null, deliveredAt: null, discardReason: null, ...extra
+ });
+ it('names what the provider proved, never that the patient read it', () => {
+  render(Page, { data: { ...data, emailDeliveries: [delivery('accepted'), delivery('delivered', { purpose: 'reminder_24h' })] } });
+  expect(screen.getByText('Aceptado por el proveedor · paciente@example.test')).toBeInTheDocument();
+  expect(screen.getByText('Entregado al servidor del destinatario · paciente@example.test')).toBeInTheDocument();
+  expect(screen.queryByText(/leído|abierto/i)).not.toBeInTheDocument();
+ });
+ it('lets staff decide an uncertain message knowing it may be duplicated', () => {
+  const { container } = render(Page, { data: { ...data, emailDeliveries: [delivery('uncertain')] } });
+  expect(screen.getByText('En comprobación · paciente@example.test')).toBeInTheDocument();
+  expect(screen.getByText(/podría recibirlo dos veces/)).toBeInTheDocument();
+  const forms = [...container.querySelectorAll<HTMLFormElement>('form[action="?/email_delivery"]')];
+  expect(forms.map((form) => Object.fromEntries(new FormData(form)))).toEqual([
+   { delivery_id: 'delivery-uncertain', decision: 'resend' },
+   { delivery_id: 'delivery-uncertain', decision: 'dismiss' }
+  ]);
+  expect(screen.getByRole('button', { name: 'Reenviar igual' })).toBeEnabled();
+  expect(screen.getByRole('button', { name: 'Dejarlo así' })).toBeEnabled();
+ });
+ it('explains a discarded message and offers no decision to readonly staff', () => {
+  const { container } = render(Page, { data: { ...data, context: { canOperate: false, role: 'readonly' },
+   emailDeliveries: [delivery('discarded', { discardReason: 'superseded_schedule' }), delivery('uncertain', { id: 'other' })] } });
+  expect(screen.getByText('No se envió: el horario cambió · paciente@example.test')).toBeInTheDocument();
+  expect(container.querySelector('form[action="?/email_delivery"]')).toBeNull();
+ });
+ it('shows nothing when the list could not be read', () => {
+  const { container } = render(Page, { data: { ...data, emailDeliveries: null } });
+  expect(container.querySelector('[data-email-deliveries]')).toBeNull();
  });
 });
 

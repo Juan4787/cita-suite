@@ -59,6 +59,37 @@ describe('hooks auth validation', () => {
 		mocks.isMasterEmail.mockReturnValue(false);
 	});
 
+	// SvelteKit's own origin check is off so that two exact routes can receive provider posts; the
+	// hook must keep refusing every other cross-site form before any cookie or route is touched.
+	it.each([
+		['https://app.test/odonto/turnos/a?/update_status', 'https://evil.test', 'refused'],
+		['https://app.test/odonto/turnos/a?/update_status', null, 'refused'],
+		['https://app.test/odonto/turnos/a?/update_status', 'https://app.test', 'continues'],
+		['https://app.test/api/zoho/webhook', null, 'resolved'],
+		[`https://app.test/correo/baja/${'a'.repeat(64)}`, null, 'resolved'],
+		[`https://app.test/correo/baja/${'a'.repeat(64)}/otra`, null, 'refused']
+	] as const)('formulario a %s desde %s: %s', async (raw, origin, expected) => {
+		const headers = new Headers({ 'content-type': 'application/x-www-form-urlencoded' });
+		if (origin) headers.set('origin', origin);
+		const event = { ...makeEvent(), request: new Request(raw, { method: 'POST', headers, body: 'a=1' }) };
+		event.url = new URL(raw);
+		const resolve = vi.fn(async () => new Response('ok'));
+		mocks.createSupabaseServerClient.mockReturnValue({ auth: { getUser: vi.fn(async () => ({ data: { user: null }, error: null })) } });
+
+		// Past the filter a private route may still redirect to sign in: that is the normal path.
+		const outcome: unknown = await handle({ event, resolve } as never).then((value) => value, (thrown) => thrown);
+		const refused = outcome instanceof Response && outcome.status === 403;
+
+		expect(refused).toBe(expected === 'refused');
+		if (expected === 'refused') {
+			expect(await (outcome as Response).text()).toBe('Cross-site POST form submissions are forbidden');
+			expect(resolve).not.toHaveBeenCalled();
+			expect(event.cookies.get).not.toHaveBeenCalled();
+		}
+		// The provider routes authorize themselves: the hook hands them over without a session.
+		if (expected === 'resolved') expect(resolve).toHaveBeenCalledOnce();
+	});
+
 	it.each(['GET', 'POST'])('redirige %s por HTTP a HTTPS antes de leer cookies o resolver la ruta', async (method) => {
 		const raw = 'http://app.cita-suite.example:8080/login?next=%2Fodonto';
 		const event = { ...makeEvent(), request: new Request(raw, { method }) };

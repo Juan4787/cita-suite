@@ -730,7 +730,7 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@cita-suite/share
      <form method="POST" action="?/revoke_links" use:enhance class="mt-3 flex flex-col gap-3">
       <p class="text-sm text-fg-65">Usalo si un enlace llegó a otra persona. Los enlaces ya enviados dejan de permitir cancelar o reprogramar. El turno no cambia y los próximos avisos llevan un enlace nuevo.</p>
       <input type="hidden" name="expected_revision" value={data.management.revision} />
-      <div><button class="ux-btn ux-btn-secondary">Invalidar enlaces</button></div>
+      <div><button class="ux-btn-secondary">Invalidar enlaces</button></div>
      </form>
     </details>
    {/if}
@@ -748,11 +748,11 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@cita-suite/share
          <div class="mt-2 flex flex-wrap gap-2">
           <form method="POST" action="?/email_delivery" use:enhance>
            <input type="hidden" name="delivery_id" value={delivery.id} /><input type="hidden" name="decision" value="resend" />
-           <button class="ux-btn ux-btn-secondary">Reenviar igual</button>
+           <button class="ux-btn-secondary">Reenviar igual</button>
           </form>
           <form method="POST" action="?/email_delivery" use:enhance>
            <input type="hidden" name="delivery_id" value={delivery.id} /><input type="hidden" name="decision" value="dismiss" />
-           <button class="ux-btn ux-btn-secondary">Dejarlo así</button>
+           <button class="ux-btn-secondary">Dejarlo así</button>
           </form>
          </div>
         {/if}

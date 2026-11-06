@@ -12,11 +12,11 @@ Se actualiza después de cada bloque con resultado. Es el único lugar con el «
 |---|---|
 | Fecha | 5 de noviembre de 2026, noche (Argentina) |
 | Revisión de partida | `main` `d3f7553c`, igual a GitHub; producción V12b `771fac59`, versión `277d332d`, comprobada con `/_app/version.json` y `wrangler deployments list` |
-| Fase | Implementación en curso, sin commitear todavía (archivos en el árbol de trabajo). SN14: causa hallada y corregida (hidratación cerraba el `<details>`). Correo: migración `20261106010000`, suite `appointment_email_delivery.sql` (35 pasan), `zoho-email.ts`, `appointment-email*.ts`, webhook `/api/zoho/webhook`, baja `/correo/baja/<token>`, cron reasignados. Recordatorio: `PublicAppointmentPage.svelte` y guías reescritas, pruebas de cliente verdes |
-| Corridas | SQL `42137372493` en curso (rama `verify/avisos-correo-sql3-20261106`). Al aprobar: importar tipos oficiales. Pendiente volver a medir `client_reference` en la lista de Zoho |
+| Fase | Implementación en `main`, sin publicar. Commits `7879258d` (SN14: la hidratación cerraba el `<details>`), `a87a99d3` (correo: migración `20261106010000`, suite `appointment_email_delivery.sql`, Zoho, webhook, baja, cron), `b5118ca0` (recorrido Android sin bucles ni marca), `51f17310` (tipos, colores muertos, retención independiente del control de almacenamiento) |
+| Corridas | SQL `42138251057` aprobada sobre el esquema actual; tipos oficiales importados de ella. Fast `42138891773` falló por 4 errores de tipos propios (corregidos en `51f17310`); fast `42140758143` en curso (rama `verify/avisos-fast3-20261106`). Pendiente: browser SN14 completo y recorridos nuevos |
 | Datos sintéticos abiertos en producción | Práctica de dispositivo `78f3c48dedc7`: limpiar con `node scripts/production-device-push.mjs cleanup 78f3c48dedc7` |
 | Ajustes de teléfonos a restaurar | Xiaomi: `stay_on_while_plugged_in` estaba en 0; permiso de notificaciones de Chrome estaba denegado por el usuario, y quedó igual después de las pruebas; origen `app.cita-suite.com.ar` quedó concedido. Samsung: origen de la sonda concedido. El evento sintético guardado por error en Hotmail ya se borró (el proveedor de calendario no lo devuelve) |
-| Siguiente acción | Implementación. Quedan físicos para la versión nueva: Google gestionado y manual en teléfonos, Apple por TestKase, push con Chrome cerrado |
+| Siguiente acción | Carreras SQL de correo en ambos órdenes, pruebas de rutas (webhook, baja, configuración, detalle), secretos exigidos por la publicación, frase «Limited Use»; después browser en CI, recuperación compatible y publicación. Quedan físicos para la versión nueva: Google gestionado y manual en teléfonos, Apple por TestKase, push con Chrome cerrado |
 
 ## 1. Resultado que hay que entregar
 
@@ -201,7 +201,7 @@ Orden por dependencias: primero lo que aporta hechos (dispositivos, Zoho real), 
 - Se quita el texto que promete avisos exactos para `.ics`: se dice que cada calendario usa sus propios avisos.
 - Tras reprogramar o cancelar con `.ics`, la página y el correo piden borrar el evento anterior y, si corresponde, guardar el nuevo, porque el archivo no lo cambia.
 - Calendario Samsung no tiene un botón propio: entra por `.ics` sin depender de una cuenta Google. Eso cierra la duda sobre `4d0905d`/`adf8ddc`: no se restaura aquella interfaz.
-- El enlace `intent://` no funciona en Chrome: se retira si no tiene otro consumidor.
+- El enlace `intent://` no funciona en Chrome: la página ya no lo ofrece. La ruta `calendario-intent` queda sin enlaces desde la interfaz; retirarla es limpieza menor que no cambia ningún recorrido, y se decide al cerrar la auditoría de rutas.
 
 ## 7. Integración y publicación
 
