@@ -2,7 +2,7 @@
 
 **Para qué existe:** Juan pidió el 31 de octubre de 2026 que no se pierda nada de lo que queda pendiente (plan de señas y avisos, sección 12.15). Esta es la lista única. Cada punto remite a su documento de origen, que conserva el detalle. Al cerrar un punto, se lo marca como hecho acá con la fecha y la evidencia, y se actualiza su documento de origen.
 
-**Última revisión de E:** 5 de noviembre de 2026, noche. Implementación reanudada por el [mandato integral](mandato-integral-avisos-20261105.md), con [plan canónico](plan-integral-avisos-20261105.md). Las otras entradas conservan sus fechas y evidencias. P1/P2/P3 pospuestas por plan 12.26.
+**Última revisión de E:** 6 de noviembre de 2026. E publicada en producción y comprobada de punta a punta; sólo quedan los puntos de abajo. [Plan canónico](plan-integral-avisos-20261105.md).
 
 ## 1. Lo que sigue para la entrega a Natalia
 
@@ -43,16 +43,16 @@ Fuente: `docs/clientes/natalia-frutos/informacion-20261029.md`, secciones 4 y 5,
 
 <a id="etapa-e-pendientes"></a>
 
-2. **E, correo y autogestión: incompleta, en implementación por el mandato integral.** [Plan canónico](plan-integral-avisos-20261105.md), [registro activo](ejecucion-etapa-e-20261103.md). Ningún comportamiento nuevo de E está publicado.
-   - Fuente: [plan 12.18](propuesta-senas-avisos-natalia.md#etapa-e-vigente) y [especificación completa](etapa-e-correo-autogestion.md). La revisión de código/documentación está hecha; ningún comportamiento nuevo de E está publicado.
-   - **Ya hecho por Juan:** registro en Zoho y prueba de dos envíos. Informó KYC pendiente y 100 correos gratuitos diarios; pagará al completarlo. No falta crear cuenta Resend ni volver a crear Zoho.
-   - **Al iniciar:** comprobar dominio/remitente/región, credenciales fuera de chat/git, cuota/saldo/vencimiento reales, configuración del emisor, webhooks y buzones autorizados. Sus dos mensajes no prueban integración ni recepción/acciones desde Cita Suite.
-   - **Trabajo técnico en implementación/verificación parcial:** email requerido configurable y aviso de recepción; reprogramación autónoma transaccional con revisión; historia y nueva exigencia de seña; gestión revocable; cola, plantillas del consultorio, avisos 72/24 y los casos de aceptación.
-   - **Prueba de cierre pendiente:** integración real con Zoho, recepción en los buzones acordados, botones desde el correo, consistencia de agenda/dinero/calendario y controles de consumo/recuperación. La aceptación de cada caso se registra por capa; ninguno tiene cierre integral todavía.
-   - **Economía:** aceptado gasto controlado de correo con un consultorio. KYC/compras de créditos a cargo de Juan, sin recarga automática ni cambios de infraestructura/Auth.
+2. **E, correo y autogestión: publicada el 6 de noviembre.** [Plan canónico](plan-integral-avisos-20261105.md), [registro activo](ejecucion-etapa-e-20261103.md), [matriz de los 97 casos](ejecucion-etapa-e-20261103.md#matriz-de-seguimiento). Lo que queda:
+   - **Webhook de Zoho (Juan):** pegar la clave del archivo privado en el panel y usar «Send Test». Hasta entonces los correos quedan «aceptados», sin «entregado» ni rebotes automáticos. [Guía](../architecture/zoho-cpaas-terminal.md#integración-del-correo-de-turnos-6-de-noviembre).
+   - **Video de Google (Juan):** grabar y presentar según el [guion](../architecture/verificacion-google-calendar.md#video-de-demostración-guion-exacto). El turno sintético ya está listo.
+   - **Crédito de Zoho (Juan):** vence el 3 de diciembre de 2026; KYC y compra son suyos. La app avisa 14 días antes.
+   - **Remitente de Natalia (Juan):** pendiente de su decisión. Hasta entonces no salen correos de su consultorio.
+   - **Apple Calendar:** la alerta real y la actualización de un evento guardado quedaron sin comprobar: TestKase no abre la app y se agotaron sus minutos. Hace falta un iPhone real o más minutos, y comprarlos lo decide Juan. [Lo medido](plan-integral-avisos-20261105.md#42-comportamiento-real-de-los-calendarios-medido-el-5-de-noviembre).
+   - **Samsung Internet:** sin probar en el teléfono físico, porque pide aceptar su aviso de privacidad y eso lo decide Juan. Sus guías tienen pruebas de cliente.
+   - **Economía:** aceptado gasto controlado de correo con un consultorio. KYC y compras de créditos a cargo de Juan, sin recarga automática.
    - **Continúa pendiente de la clienta:** condiciones de devolución al cancelar y datos de la seña del punto 2.5. La pérdida acordada al reprogramar no define esas devoluciones.
-   - **Conexión local terminada el 3 de noviembre:** Juan pidió acceso por terminal y conservarlo al reiniciar ([12.19](propuesta-senas-avisos-natalia.md#zoho-terminal-vigente)). OAuth, consultas y renovación comprobados; herramienta versionada y credenciales privadas persistentes. [Guía y comandos](../architecture/zoho-cpaas-terminal.md). No necesita una terminal abierta.
-   - **Ahora:** ver el [checkpoint del plan canónico](plan-integral-avisos-20261105.md#0-checkpoint-vigente).
+   - **Baja gravedad, fuera de E:** `/confirmar-correo` sin JavaScript da 403 en sus formularios, por la misma causa de `Origin: null` que se corrigió en las páginas de gestión.
 
 ## 4. Lanzamiento y operación general
 

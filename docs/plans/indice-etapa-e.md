@@ -1,6 +1,6 @@
 # Documentación de la fase E
 
-**Estado: implementación reanudada por el [mandato integral](mandato-integral-avisos-20261105.md); E incompleta y sin publicar.** [Plan canónico y checkpoint](plan-integral-avisos-20261105.md). El [traspaso del 5 de noviembre](traspaso-etapa-e-20261105.md) queda como historia. Este índice permite revisar el trabajo y encontrar su detalle: no acredita el cierre de E ni sustituye las fuentes enlazadas. El estado exacto de producción y las diferencias de código están únicamente en el [estado vigente](../ESTADO-VIGENTE.md).
+**Estado: E publicada en producción el 6 de noviembre.** [Estado vigente](../ESTADO-VIGENTE.md), [plan canónico y checkpoint](plan-integral-avisos-20261105.md), [pendientes que quedan](pendientes-vigentes.md#etapa-e-pendientes). El [traspaso del 5 de noviembre](traspaso-etapa-e-20261105.md) queda como historia.
 
 Juan pidió entregar, al terminar E, la ubicación exacta y enlaces directos desde la interfaz a toda la documentación detallada. Este índice se conserva durante el trabajo y se actualizará para la entrega final. P1, P2 y P3 continúan pospuestas.
 
@@ -47,6 +47,7 @@ El [registro activo](ejecucion-etapa-e-20261103.md) conserva para cada corrida s
 | API de Zoho | La aceptación por API es distinta de entrega al servidor receptor. Ninguna demuestra recepción en la bandeja del usuario. |
 | Buzón acordado | La lectura de un mensaje real acredita la recepción de ese mensaje. Abrir el enlace y verificar la base corresponde a otra comprobación integral. |
 | Producción | Sólo se acredita con la revisión desplegada y comprobaciones registradas de ese destino. Un commit subido a GitHub no es prueba de publicación. |
+| Teléfonos y correo reales | [Entradas del 6 de noviembre del registro](ejecucion-etapa-e-20261103.md#publicación-de-e-y-comprobaciones-reales--6-de-noviembre) y [mediciones de calendarios](plan-integral-avisos-20261105.md#42-comportamiento-real-de-los-calendarios-medido-el-5-de-noviembre). Capturas privadas en `.verification/avisos-20261106/`. |
 
 Procedimientos compartidos: [verificación](../architecture/verificacion.md), [matriz de regresiones](../architecture/matriz-regresiones.md), [áreas y fronteras](../architecture/areas-y-fronteras.md), [control de consumo](../architecture/control-de-consumo.md).
 

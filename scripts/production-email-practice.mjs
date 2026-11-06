@@ -100,6 +100,10 @@ commit;`);
 } else {
 	execute(`begin;
 delete from private.email_suppressions where business_id=${business};
+-- These point at the patient without a cascade, so they go first: the practice's own delete
+-- reaches patients before them. A public booking leaves the first; a deposit, the second.
+delete from public.appointment_patient_information_contexts where business_id=${business};
+delete from public.appointment_deposit_requirements where business_id=${business};
 delete from public.businesses where slug='${slug}';
 delete from auth.users where email='${slug}@example.test';
 commit;`);

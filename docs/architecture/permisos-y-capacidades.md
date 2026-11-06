@@ -101,7 +101,9 @@ La migración `20261029010000_appointment_deposits.sql` y `private.deposit_actor
 
 Las rutas `senas` redirigen a profesional y lectura sola; configuración redirige también a recepción. Si una lectura falla, no se fabrica una lista vacía ni un estado saludable. Release exacto C9 **41082416537**: SQL B25/C15, diez carreras y deadlocks0; tipos0/0; navegador53fuente/53paquete y49compatibilidad B11. Lectura productiva:74relaciones sin exposición anónima; las pruebas HTTP de acciones usaron exclusivamente la dueña sintética propia, con lectura SQL y limpieza. Detalle por capa en el [cierre](../plans/cierre-senas-avisos-natalia.md) y el [registro](../plans/registro-senas-avisos-natalia.md); no atribuir una prueba de interfaz al catálogo íntegro de permisos.
 
-## E — permisos en desarrollo, sin aplicar en producción (3 de noviembre)
+## E — permisos (publicados el 6 de noviembre)
+
+Las notas siguientes conservan su fecha y su estado de entonces: donde dicen «sin publicar», hoy ya está publicado. Vigente en el [estado](../ESTADO-VIGENTE.md).
 
 El [plan 12.18](../plans/propuesta-senas-avisos-natalia.md#etapa-e-vigente) y su [especificación](../plans/etapa-e-correo-autogestion.md) añaden requisitos, no permisos ya aplicados:
 

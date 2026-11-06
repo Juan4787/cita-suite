@@ -2,7 +2,7 @@
 
 **Este es el registro único de qué historia y qué cambios están vigentes.** Se actualiza en el mismo paso de trabajo que cambia cualquiera de estos datos, nunca después. Eso incluye publicar, cambiar de rama, integrar, o dejar código distinto de producción. `node scripts/check-repo-sync.mjs`, desde la raíz, lo compara con Git, con GitHub y con la revisión que sirve producción, y falla ante cualquier diferencia.
 
-Última actualización: 6 de noviembre de 2026, 09:15 hora argentina. Tercera versión de E publicada en producción; el encargo sigue abierto hasta terminar las comprobaciones posteriores del [mandato integral](plans/mandato-integral-avisos-20261105.md). [Plan canónico y checkpoint](plans/plan-integral-avisos-20261105.md).
+Última actualización: 6 de noviembre de 2026, 09:15 hora argentina. Tercera versión de E publicada y comprobada en producción, según el [mandato integral](plans/mandato-integral-avisos-20261105.md). [Plan canónico y checkpoint](plans/plan-integral-avisos-20261105.md).
 
 ## Datos verificables
 
@@ -35,9 +35,11 @@ Autorización de implementación, pruebas y publicación vigente: [plan 12.32](p
 El chequeo compara esta lista con `git diff --name-status <produccion_revision> HEAD` sobre el código (`apps`, `packages`, `scripts`, `supabase` y los archivos de configuración de la raíz, sin `apps/web/output`). Tiene que coincidir exactamente.
 
 ```codigo-distinto-de-produccion
+M	scripts/production-email-practice.mjs
+M	scripts/zoho-cpaas.py
 ```
 
-No hay código distinto de producción. Cuando vuelva a haberlo, cada archivo se lista arriba y se explica acá si afecta a producción.
+`scripts/zoho-cpaas.py` agrega la consulta por referencia y `scripts/production-email-practice.mjs` completa su limpieza. Ninguno se despliega: son herramientas locales.
 
 `supabase/templates/recovery.html` no se despliega con la app: se carga aparte en Supabase. **No está verificado** si la versión de Supabase coincide con ese archivo.
 

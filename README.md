@@ -8,7 +8,7 @@ Repositorio principal: [Juan4787/cita-suite](https://github.com/Juan4787/cita-su
 
 **Qué historia y qué cambios están vigentes:** [estado vigente](docs/ESTADO-VIGENTE.md), el registro único; lo comprueba `node scripts/check-repo-sync.mjs`.
 
-**Etapa E, estado al 6 de noviembre:** publicada en producción; el encargo sigue abierto hasta terminar las comprobaciones reales. [Mandato](docs/plans/mandato-integral-avisos-20261105.md), [plan canónico y checkpoint](docs/plans/plan-integral-avisos-20261105.md), [índice](docs/plans/indice-etapa-e.md).
+**Etapa E, estado al 6 de noviembre:** publicada y comprobada en producción. [Mandato](docs/plans/mandato-integral-avisos-20261105.md), [plan canónico y checkpoint](docs/plans/plan-integral-avisos-20261105.md), [índice](docs/plans/indice-etapa-e.md).
 
 **Vigente desde el 6 de noviembre a las 12:12 UTC:** tercera versión de E, `fed61f5d9d81f821df180486c73aa07d04408f56`, Worker `app`; la versión de Cloudflare y los interruptores están en el [estado vigente](docs/ESTADO-VIGENTE.md).
 

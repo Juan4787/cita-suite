@@ -12,11 +12,11 @@ Se actualiza después de cada bloque con resultado. Es el único lugar con el «
 |---|---|
 | Fecha | 6 de noviembre de 2026 (Argentina) |
 | Revisión de partida | `main` `d3f7553c`, igual a GitHub; producción V12b `771fac59`, versión `277d332d`, comprobada con `/_app/version.json` y `wrangler deployments list` |
-| Fase | **E publicada en producción el 6 de noviembre, 07:41 UTC.** Instantánea `dfec4774` de `main` `101c74dc`; detalle en `docs/ESTADO-VIGENTE.md`. El encargo sigue abierto: faltan las comprobaciones reales de abajo |
-| Corridas de la revisión publicada | SQL 42147347019, paquete 42179941722, navegador 42179970561 (76/76), fast 42181404563 |
-| Datos sintéticos abiertos en producción | Práctica de dispositivo `78f3c48dedc7`: limpiar con `node scripts/production-device-push.mjs cleanup 78f3c48dedc7` |
-| Ajustes de teléfonos a restaurar | Xiaomi: `stay_on_while_plugged_in` estaba en 0 y hoy vale 7; permiso de notificaciones de Chrome estaba denegado por el usuario, y quedó igual después de las pruebas; origen `app.cita-suite.com.ar` quedó concedido. Samsung: origen de la sonda concedido. El evento sintético guardado por error en Hotmail ya se borró (el proveedor de calendario no lo devuelve) |
-| Siguiente acción | Consultorio sintético con remitente y recepción real por propósito; webhook de Zoho (la clave la pega Juan); físicas de push y calendarios en los dos teléfonos; TestKase; medición de CPU y llamadas; turno del video de Google |
+| Fase | **E publicada y comprobada en producción.** Tercera versión: instantánea `fed61f5d` de `main` `83b8155e`, 164 migraciones. Detalle en `docs/ESTADO-VIGENTE.md` |
+| Corridas de la revisión publicada | SQL 42212825416, paquete 42213513295, fast 42213523343, navegador 42213966225 (76/76, con los interruptores como en producción) |
+| Datos sintéticos abiertos en producción | Sólo el turno del video: enlace y comando de limpieza en `~/.local/share/cita-suite/google-video/turno-video.txt`. Las demás prácticas se limpiaron. Para probar el webhook: `node scripts/production-email-practice.mjs seed` y `book` |
+| Ajustes de teléfonos | Restaurados el 6 de noviembre. Xiaomi: pantalla encendida en 0, Chrome apagado en Android como estaba, sitio sin decidir. Samsung: sincronización general apagada como estaba, sitio sin decidir; el valor 7 de pantalla encendida es el suyo. `citasuite` sigue en el Samsung porque la agregó Juan. Queda una notificación vieja de la sonda en el Samsung, que se descarta deslizándola |
+| Siguiente acción | Lo que queda depende de Juan o de terceros: [pendientes](pendientes-vigentes.md#etapa-e-pendientes) |
 
 ## 1. Resultado que hay que entregar
 
@@ -247,16 +247,16 @@ Orden por dependencias: primero lo que aporta hechos (dispositivos, Zoho real), 
 
 ## 8. Cómo se acredita el cierre
 
-| Condición del mandato | Evidencia exigida |
-|---|---|
-| Push | Defecto reproducido antes y corregido después en teléfono físico; recepción observada en el dispositivo; cada estado sin salida tiene alternativa |
-| Calendarios | Samsung Calendar, Xiaomi y Apple Calendar comprobados con sus condiciones y límites por escrito; lo no comprobable, declarado |
-| Google OAuth | Entrada visible, consentimiento, crear, actualizar y retirar desde la interfaz publicada; guion y datos del video listos |
-| Correo | Recepción real leída en el buzón acordado para cada propósito; enlaces abiertos y consecuencia en la base; baja, rebote y estado incierto comprobados |
-| Integración y requisitos E | Matriz de 97 casos con evidencia por capa sobre la revisión final |
-| Seguridad y fiabilidad | Carreras en ambos órdenes, fallas provocadas, aislamiento, reintentos y lecturas posteriores |
-| Publicación | Revisión, versión, migraciones, cron, secretos e interruptores comprobados en el destino |
-| Documentación | Índice con enlaces directos y sin instrucciones vigentes contradictorias |
+| Condición del mandato | Evidencia exigida | Resultado al 6 de noviembre |
+|---|---|---|
+| Push | Defecto reproducido antes y corregido después en teléfono físico; recepción observada en el dispositivo; cada estado sin salida tiene alternativa | **Cumplido.** Reproducido en el Xiaomi con Chrome apagado en Android; salida en indeterminado y bloqueado; recepción real con Chrome abierto, en segundo plano y cerrado con pantalla apagada |
+| Calendarios | Samsung Calendar, Xiaomi y Apple Calendar comprobados con sus condiciones y límites por escrito; lo no comprobable, declarado | **Cumplido en Android.** Apple: importación comprobada; alerta y actualización **sin comprobar**, por límite de TestKase y falta de minutos |
+| Google OAuth | Entrada visible, consentimiento, crear, actualizar y retirar desde la interfaz publicada; guion y datos del video listos | **Cumplido.** En los dos teléfonos, con turno y guion listos |
+| Correo | Recepción real leída en el buzón acordado para cada propósito; enlaces abiertos y consecuencia en la base; baja, rebote y estado incierto comprobados | **Cumplido, salvo el rebote real:** seis propósitos recibidos, enlaces, baja, corrección de contacto y estado incierto. El rebote y «entregado» dependen del webhook que configura Juan |
+| Integración y requisitos E | Matriz de 97 casos con evidencia por capa sobre la revisión final | **Cumplido,** con los límites que cada fila declara |
+| Seguridad y fiabilidad | Carreras en ambos órdenes, fallas provocadas, aislamiento, reintentos y lecturas posteriores | **Cumplido** en la suite SQL y el navegador final |
+| Publicación | Revisión, versión, migraciones, cron, secretos e interruptores comprobados en el destino | **Cumplido.** `docs/ESTADO-VIGENTE.md`. Vuelta atrás ensayada |
+| Documentación | Índice con enlaces directos y sin instrucciones vigentes contradictorias | **Cumplido.** [Índice de E](indice-etapa-e.md) |
 
 ## 9. Autorizaciones y decisiones de Juan en este encargo
 

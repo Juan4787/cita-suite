@@ -65,6 +65,8 @@ Continuación funcional en la [especificación de E](../plans/etapa-e-correo-aut
 - `ZOHO_CPAAS_API_KEY`: clave de envío del agente. Se toma de `~/.local/share/cita-suite/zoho/apikeys-latest.json` y se carga por la entrada estándar de `wrangler secret put`, sin imprimirla.
 - `ZOHO_CPAAS_WEBHOOK_KEY`: se genera en `~/.config/cita-suite/private/zoho-webhook-key.txt`. El panel la pide escrita, así que la pega Juan desde ese archivo: el agente no escribe claves en formularios de terceros.
 
+**Consultar un envío:** `python3 scripts/zoho-cpaas.py reference <referencia>` dice cuántos envíos tiene Zoho con esa referencia, sin mostrar direcciones. La referencia es el identificador de la entrega en la app. La lista de Zoho tarda en sincronizar, así que un cero reciente no prueba que no haya salido.
+
 **Webhook:** agente → Webhooks → URL `https://app.cita-suite.com.ar/api/zoho/webhook` → clave de autenticación → Configure. «Send Test» sólo simula rebotes, aperturas y clics; «entregado» y las quejas se comprueban con un envío real. La firma cubre el contenido, y la marca de tiempo sólo se usa para rechazar notificaciones viejas.
 
 **Preparar el remitente de un consultorio.** La API de dominios no funciona para esto (plan 4.3), así que se hace desde el panel:

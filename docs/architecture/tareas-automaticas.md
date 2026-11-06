@@ -130,7 +130,22 @@ Decisiones D1 a D4 del [plan integral](../plans/plan-integral-avisos-20261105.md
 - **Retención.** La categoría `storage` ejecuta además `run_appointment_email_retention`, aunque falle su control de almacenamiento; la corrida informa la falla igual.
 - **Operación.** `/odonto/maestro/correo` muestra el crédito, el cupo, las pausas y los remitentes, y permite apagar el envío. Avisa antes de que el crédito venza o se agote, sin depender de Zoho.
 
-## E — extensión de correo planificada, sin instalar (2 de noviembre)
+**Medido en producción el 6 de noviembre con `wrangler tail`,** sobre las versiones de E publicadas:
+
+| Tarea | Trabajo real | CPU | Duración | Llamadas de 40 |
+|---|---|---|---|---|
+| `email` | 6 correos aceptados | 9 ms | 1,5 s | 10 |
+| `email` | 2 correos aceptados | 8 ms | 0,9 s | 5 |
+| `email` | 1 correo aceptado | 7 ms | 1,1 s | 4 |
+| `email` | Nada que enviar, arranque en frío | 13 ms | 0,3 s | 2 |
+| `push` | Nada que enviar | 4 a 7 ms | 0,2 a 1,3 s | 3 |
+| `calendar` | Nada que sincronizar | 3 a 7 ms | 0,04 a 0,4 s | 2 |
+| `reviews` | Nada que enviar | 14 ms | 0,2 s | 3 |
+| `uploads` | Nada que borrar | 3 ms | 0,2 s | 2 |
+
+Todas terminaron con `ok`. La CPU no crece con los correos: el costo es el arranque. Los 10 ms de Workers Free ya se superan a veces en frío, sin que Cloudflare haya cortado ninguna ejecución. Si un día corta una, los reclamos y leases retoman en la corrida siguiente. Los disparos de cron llegan con hasta un minuto de demora respecto de la hora nominal.
+
+## E — extensión de correo planificada (2 de noviembre; antecedente, publicada el 6 de noviembre)
 
 El ejecutor actual no integra Zoho. [E](../plans/etapa-e-correo-autogestion.md) exige cola de eventos guardados con el cambio de agenda/dinero, reclamación duradera, revalidación de destinatario/estado y control de resultado incierto. Extender el programador existente sin asumir un sexto cron gratuito ni presupuesto adicional. Debe medirse el costo de base/proveedor y reservarse progreso para push y calendario; el cupo de Zoho no sustituye los límites del Worker.
 
@@ -139,13 +154,13 @@ El ejecutor actual no integra Zoho. [E](../plans/etapa-e-correo-autogestion.md) 
 Los avisos de saldo/cuota/vencimiento/fallo deben verse en operación aunque el proveedor no pueda enviar. No activar tareas, comprar créditos ni enviar durante esta actualización documental; próximos pasos en el traspaso de E.
 
 
-### Calendario durante E, todavía sin publicar (4 de noviembre)
+### Calendario durante E (4 de noviembre; publicado el 6 de noviembre)
 
 El inmediato reclama la misma fila que el lote, con un owner generado por invocación. Reautorización no sustituye una lease viva; recuperación del mismo owner no renueva plazo. Ambos registran resultados por propietario, sin fail por ID después de una respuesta SQL perdida. El lote sólo libera por IDs trabajo conocido como no iniciado. Una mutación sin resultado inequívoco conserva la ventana de diez minutos y auditoría, sin afirmar rechazo ni envío exitoso. El trabajo inmediato deja de emitir después de 16 s y usa AbortSignal; no hay transacción compartida con Google.
 
 El peor caso sigue siendo tres salidas: refresco, conflicto de creación y PATCH de conciliación al ID determinista. Ya no se revocan permisos globales al borrar un evento (plan 12.27). Se preservan reparto/cupos/ABI backend; la nueva RPC dirigida es sólo service_role. 65 pruebas modeladas aprobadas; SQL veinte/45 carreras, tipos, fast integrado, proveedor real y publicación conservan su estado en el registro E1.90. La tabla y recibos históricos anteriores no certifican esta implementación nueva.
 
 
-### Retención OAuth de E, escrita sin instalar (4 de noviembre)
+### Retención OAuth de E (4 de noviembre; publicada el 6 de noviembre)
 
 Veintidós agrega mantenimiento exclusivo de base al minuto 47 de cada hora, hasta 500 nonces vencidos por ejecución (función privada con límite 1–5000 y filas ocupadas salteadas). Usa reloj SQL y no toca conexiones ni eventos. La validez del permiso sigue siendo diez minutos y no depende de cuándo se purga su registro; un backlog se procesa en corridas posteriores. Reemplaza el borrado HTTP sin límite al iniciar otra visita, sin gastar llamadas/cron de Workers. SQL de esta retención aún sin verificar/aplicar; E1.97 conserva su estado. Fast 41876511206 aprobó consumidores anteriores (1896/281, cero errores/avisos), no esta migración nueva ni la recepción de emails.
