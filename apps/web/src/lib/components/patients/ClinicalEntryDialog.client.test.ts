@@ -114,9 +114,8 @@ describe('clinical task form ownership', () => {
 			}
 		});
 		expect(mocks.enhances).toBe(0);
-		expect(screen.getByRole('combobox', { name: 'Tipo de consulta' })).toHaveValue(
-			'Historical custom type'
-		);
+		expect(screen.getByRole('dialog').querySelector('[name="entry_type"]')).toHaveValue('Historical custom type');
+		expect(screen.getByRole('combobox', { name: 'Tipo de consulta' })).toBeInTheDocument();
 		expect(screen.getByRole('dialog').querySelector('form')).toHaveAttribute(
 			'action',
 			'?/update_entry'

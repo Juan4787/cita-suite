@@ -278,7 +278,7 @@
                     required
                     maxlength="300"
                     pattern="https?://[^\s\/?#]+\/?"
-                    title="Usá el dominio completo, como https://tu-sitio.com, sin páginas ni textos adicionales."
+                    data-invalid-message="Usá el dominio completo, como https://tu-sitio.com, sin páginas ni textos adicionales."
                     placeholder="https://tu-sitio.com"
                     bind:value={draft.origins[index]}
                   /></label

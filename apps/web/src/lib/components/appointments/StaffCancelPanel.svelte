@@ -27,9 +27,9 @@
 	} = $props();
 </script>
 
-<details class="rounded-2xl border border-danger-400-20 bg-danger-500-10" data-cancel-panel>
-	<summary class="cursor-pointer list-none px-5 py-4 text-base font-bold text-danger-100">Cancelar turno</summary>
-	<form method="POST" action="?/update_status" use:enhance={onsubmit} class="flex flex-col gap-4 border-t border-danger-400-20 p-5">
+<details class="ux-disclosure ux-disclosure-danger" data-cancel-panel>
+	<summary>Cancelar turno</summary>
+	<form method="POST" action="?/update_status" use:enhance={onsubmit} class="ux-disclosure-body flex flex-col gap-4">
 		<input type="hidden" name="status" value="cancelled" />
 		<input type="hidden" name="operation_id" value={operationId} />
 		<input type="hidden" name="expected_revision" value={revision} />
@@ -53,7 +53,7 @@
 			<span class="ux-label">Motivo (opcional)</span>
 			<textarea name="reason" maxlength="500" rows="2" {disabled} class="ux-textarea"></textarea>
 		</label>
-		<label class="flex items-start gap-3 text-sm font-bold text-danger-100">
+		<label class="flex items-start gap-3 text-sm font-bold text-fg">
 			<input type="checkbox" name="confirm_cancel" value="true" required {disabled} class="mt-0.5" />
 			<span>Confirmo que quiero cancelar este turno.</span>
 		</label>

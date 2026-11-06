@@ -415,7 +415,7 @@ a {
 		padding: 0.7rem 1.25rem;
 		font-size: 0.95rem;
 		font-weight: 700;
-		line-height: 1;
+		line-height: 1.2;
 		white-space: normal;
 		overflow-wrap: anywhere;
 		cursor: pointer;
@@ -557,6 +557,12 @@ a {
 		color: var(--text-muted);
 	}
 
+	:is(.ux-card, .ux-panel, .ux-hero, .ux-soft-card) .ux-empty {
+		border: 0;
+		background: none;
+		padding: 1rem 0.5rem;
+	}
+
 	.ux-alert {
 		border-radius: var(--radius);
 		border: 1px solid var(--danger-border);
@@ -577,6 +583,73 @@ a {
 		border-color: var(--warning-alert-border);
 		background: var(--warning-soft);
 		color: var(--warning-text);
+	}
+
+	.ux-alert-info {
+		border-color: var(--border-strong);
+		background: var(--info-soft);
+		color: var(--info-text);
+	}
+
+	/* A collapsible group of a page: its title on the left and one chevron on the right. */
+	.ux-disclosure {
+		border: 1px solid var(--border-strong);
+		border-radius: var(--radius-lg);
+		background: var(--surface);
+		color: var(--text);
+		box-shadow: var(--shadow);
+	}
+
+	.ux-disclosure > summary {
+		display: flex;
+		min-height: calc(var(--tap) + 0.75rem);
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.75rem;
+		padding: 0.75rem 1.25rem;
+		font-size: 1.15rem;
+		font-weight: 700;
+		letter-spacing: -0.01em;
+		cursor: pointer;
+	}
+
+	.ux-disclosure > summary::before {
+		display: none;
+	}
+
+	.ux-disclosure > summary::after {
+		content: '';
+		width: 1.1rem;
+		height: 1.1rem;
+		flex-shrink: 0;
+		background-color: var(--text-muted);
+		-webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") center/contain no-repeat;
+		mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") center/contain no-repeat;
+		transition: transform 160ms ease;
+	}
+
+	.ux-disclosure[open] > summary::after {
+		transform: rotate(180deg);
+	}
+
+	.ux-disclosure-body {
+		border-top: 1px solid var(--border);
+		padding: 1.25rem;
+	}
+
+	.ux-disclosure-danger > summary,
+	.ux-disclosure-danger > summary .ux-section-title {
+		color: var(--danger-text);
+	}
+
+	@media (min-width: 640px) {
+		.ux-disclosure > summary {
+			padding-inline: 1.5rem;
+		}
+
+		.ux-disclosure-body {
+			padding: 1.5rem;
+		}
 	}
 
 	.ux-pill-nav {
@@ -948,6 +1021,65 @@ summary::before {
 details[open] > summary::before {
   transform: rotate(90deg);
 }
+summary:is(.ux-btn-primary, .ux-btn-secondary) {
+  list-style: none;
+}
+/* The small cross of a search box, in the colors of the page. */
+input[type="search"]::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+  background-color: var(--text-muted);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round'%3E%3Cpath d='m6 6 12 12M18 6 6 18'/%3E%3C/svg%3E")
+    center/contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round'%3E%3Cpath d='m6 6 12 12M18 6 6 18'/%3E%3C/svg%3E")
+    center/contain no-repeat;
+}
+/* A tooltip of the page: the browser's own ignores the mode and the app's font. */
+[data-tip] {
+  position: relative;
+}
+@media (hover: hover) {
+  [data-tip]:hover::after,
+  [data-tip]:focus-visible::after {
+    content: attr(data-tip);
+    position: absolute;
+    z-index: 40;
+    bottom: calc(100% + 0.35rem);
+    left: 50%;
+    width: max-content;
+    max-width: 14rem;
+    padding: 0.3rem 0.55rem;
+    border-radius: 0.5rem;
+    background: var(--inverse);
+    color: var(--on-inverse);
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.3;
+    pointer-events: none;
+    transform: translateX(-50%);
+  }
+}
+/* A file field: the real input stays, hidden, with the words and the look of the app. */
+.ux-file-picker {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+}
+input:focus-visible + .ux-file-picker > .ux-btn-secondary {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+.ux-link {
+  color: var(--accent-text);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
 summary:focus-visible {
   outline: 2px solid var(--accent-text);
   outline-offset: 3px;
@@ -955,4 +1087,6 @@ summary:focus-visible {
 }
 .ux-textarea {
   resize: none;
+  field-sizing: content;
+  max-height: 16rem;
 }

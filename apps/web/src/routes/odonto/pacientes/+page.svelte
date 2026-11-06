@@ -347,10 +347,10 @@
 	});
 </script>
 
-<section class="flex flex-col gap-4">
+<section class="ux-page">
 	<div class="flex flex-col items-start gap-3 md:flex-row md:items-center md:justify-between">
-		<h1 class="text-3xl font-semibold text-fg">Pacientes</h1>
-		<button disabled={!canCreatePatient} class="inline-flex w-full justify-center rounded-full bg-accent-strong px-4 py-3 text-sm font-semibold text-on-accent shadow-lg transition hover:-translate-y-0.5 hover:shadow-card disabled:cursor-not-allowed disabled:opacity-45 sm:w-auto" onclick={openCreateModal}>+ Nuevo paciente</button>
+		<h1 class="ux-title">Pacientes</h1>
+		<button disabled={!canCreatePatient} class="ux-btn-primary w-full md:w-auto" onclick={openCreateModal}>+ Nuevo paciente</button>
 	</div>
 
 	{#if listError}
@@ -361,14 +361,14 @@
 		<div class="relative w-full sm:flex-1">
 			<label class="sr-only" for="q">Buscar pacientes</label>
 			<svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-fg-n400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
-			<input bind:this={searchInputElement} id="q" type="search" placeholder="Nombre, DNI o teléfono" bind:value={search} class="patient-search w-full rounded-2xl border py-3 pl-10 pr-16 text-sm shadow-sm outline-none transition focus:border-info-primary-500 focus:ring-2 focus:ring-focus-info-primary-100 border-line-strong bg-surface text-copy" />
+			<input bind:this={searchInputElement} id="q" type="search" placeholder="Nombre, DNI o teléfono" bind:value={search} class="ux-input patient-search pl-10 pr-16" />
 			<div class="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1.5">
 				{#if searchLoading}
 					<span class="h-4 w-4 animate-spin rounded-full border-2 border-line-n300 border-t-accent-600" aria-hidden="true"></span>
 					<span class="sr-only" role="status">Buscando pacientes</span>
 				{/if}
 				{#if search}
-					<button type="button" aria-label="Limpiar búsqueda" title="Limpiar búsqueda" class="grid h-8 w-8 place-items-center rounded-full transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus-accent-600 text-fg-n300 hover:bg-fill-10 hover:text-fg" onclick={clearSearch}>
+					<button type="button" aria-label="Limpiar búsqueda" data-tip="Limpiar búsqueda" class="grid h-8 w-8 place-items-center rounded-full transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus-accent-600 text-fg-n300 hover:bg-fill-10 hover:text-fg" onclick={clearSearch}>
 						<svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>
 					</button>
 				{/if}
@@ -401,10 +401,10 @@
 						{#each displayedPatients as patient (patient.id)}
 							<!-- svelte-ignore a11y_no_static_element_interactions -->
 							<tr class="cursor-pointer border-t transition border-line hover:bg-surface" onclick={(event) => openPatientFromContainer(event, patient.id)}>
-								<td class="px-6 py-5"><div class="flex items-center gap-4"><div class="grid h-10 w-10 shrink-0 place-items-center rounded-full font-semibold bg-info-primary-800-40 text-info-primary-100">{(patient.full_name || '?').split(' ').filter(Boolean).slice(0, 2).map((part: string) => part[0]?.toUpperCase()).join('')}</div><div><button type="button" class="text-left text-sm font-semibold hover:underline text-fg" onclick={() => openPatient(patient.id)}>{patient.full_name}</button>{#if listData.showArchived}<p class="mt-1 text-xs text-copy-subtle">Archivado</p>{/if}</div></div></td>
+								<td class="px-6 py-5"><div class="flex items-center gap-4"><div class="grid h-10 w-10 shrink-0 place-items-center rounded-full font-semibold bg-accent-soft text-accent">{(patient.full_name || '?').split(' ').filter(Boolean).slice(0, 2).map((part: string) => part[0]?.toUpperCase()).join('')}</div><div><button type="button" class="text-left text-sm font-semibold hover:underline text-fg" onclick={() => openPatient(patient.id)}>{patient.full_name}</button>{#if listData.showArchived}<p class="mt-1 text-xs text-copy-subtle">Archivado</p>{/if}</div></div></td>
 								<td class="px-6 py-5 text-sm text-fg-n200">{patient.dni || 'Sin DNI'}{patient.phone ? ` · ${patient.phone}` : ''}</td>
 								<td class="px-6 py-5 text-sm text-fg-n200">{patient.last_entry_at ? formatDate(patient.last_entry_at) : '—'}</td>
-								<td class="px-6 py-5 text-right"><div class="flex flex-col items-end gap-2"><button type="button" class="rounded-full bg-accent-strong px-4 py-2 text-xs font-semibold text-on-accent" onclick={() => openPatient(patient.id)}>Abrir paciente</button>{#if listData.showArchived}<form method="post" action={`/odonto/pacientes/${patient.id}?/unarchive_patient`}><button type="submit" class="rounded-full border px-4 py-2 text-xs font-semibold border-info-8fb3ff">Desarchivar</button></form>{/if}</div></td>
+								<td class="px-6 py-5 text-right"><div class="flex flex-col items-end gap-2"><button type="button" class="ux-btn-secondary" onclick={() => openPatient(patient.id)}>Abrir paciente</button>{#if listData.showArchived}<form method="post" action={`/odonto/pacientes/${patient.id}?/unarchive_patient`}><button type="submit" class="rounded-full border px-4 py-2 text-xs font-semibold border-info-8fb3ff">Desarchivar</button></form>{/if}</div></td>
 							</tr>
 						{/each}
 					</tbody>
@@ -415,8 +415,8 @@
 				{#each displayedPatients as patient (patient.id)}
 					<article class="relative rounded-xl border p-4 shadow-sm transition hover:border-accent-600-40 border-line-strong bg-surface">
 						<a href={`/odonto/pacientes/${patient.id}`} class="absolute inset-0 z-0 rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-accent-600" aria-label={`Abrir paciente ${patient.full_name}`} onclick={rememberPosition}></a>
-						<div class="pointer-events-none relative z-[1] flex items-center gap-3"><div class="grid h-10 w-10 shrink-0 place-items-center rounded-full font-semibold bg-info-primary-800-40 text-info-primary-100">{(patient.full_name || '?').split(' ').filter(Boolean).slice(0, 2).map((part: string) => part[0]?.toUpperCase()).join('')}</div><div class="min-w-0 flex-1"><h2 class="break-words font-semibold text-fg">{patient.full_name}</h2><p class="mt-1 text-xs text-fg-n300">DNI {patient.dni || 'Sin DNI'}{patient.phone ? ` · ${patient.phone}` : ''}</p><p class="mt-1 text-xs text-copy-subtle">Últ. visita {patient.last_entry_at ? formatDate(patient.last_entry_at) : '—'}</p></div></div>
-						<div class="relative z-10 mt-3 grid gap-2"><button type="button" class="w-full rounded-full bg-accent-strong px-4 py-2.5 text-sm font-semibold text-on-accent" onclick={() => openPatient(patient.id)}>Abrir paciente</button>{#if listData.showArchived}<form method="post" action={`/odonto/pacientes/${patient.id}?/unarchive_patient`}><button type="submit" class="w-full rounded-full border px-4 py-2.5 text-sm font-semibold border-info-8fb3ff">Desarchivar paciente</button></form>{/if}</div>
+						<div class="pointer-events-none relative z-[1] flex items-center gap-3"><div class="grid h-10 w-10 shrink-0 place-items-center rounded-full font-semibold bg-accent-soft text-accent">{(patient.full_name || '?').split(' ').filter(Boolean).slice(0, 2).map((part: string) => part[0]?.toUpperCase()).join('')}</div><div class="min-w-0 flex-1"><h2 class="break-words font-semibold text-fg">{patient.full_name}</h2><p class="mt-1 text-xs text-fg-n300">DNI {patient.dni || 'Sin DNI'}{patient.phone ? ` · ${patient.phone}` : ''}</p><p class="mt-1 text-xs text-copy-subtle">Últ. visita {patient.last_entry_at ? formatDate(patient.last_entry_at) : '—'}</p></div></div>
+						<div class="relative z-10 mt-3 grid gap-2"><button type="button" class="ux-btn-secondary w-full" onclick={() => openPatient(patient.id)}>Abrir paciente</button>{#if listData.showArchived}<form method="post" action={`/odonto/pacientes/${patient.id}?/unarchive_patient`}><button type="submit" class="w-full rounded-full border px-4 py-2.5 text-sm font-semibold border-info-8fb3ff">Desarchivar paciente</button></form>{/if}</div>
 					</article>
 				{/each}
 			</div>
@@ -424,9 +424,9 @@
 	</div>
 
 	<footer class="grid gap-3 border-t pt-4 border-line md:grid-cols-3 md:items-start">
-		<div class="md:justify-self-start">{#if listData.canAccessRadiographTrash}<a href="/odonto/pacientes/papelera" class="inline-flex w-full justify-center rounded-full border px-4 py-2 text-sm font-semibold border-line-strong text-fg-n100 hover:bg-raised md:w-auto">Papelera de documentos</a>{/if}</div>
-		<div class="md:justify-self-center">{#if hasMore}<button type="button" class="w-full rounded-full border px-5 py-2 text-sm font-semibold disabled:opacity-60 border-line-strong text-fg-n100 hover:bg-raised md:w-auto" disabled={loadingMore} onclick={() => fetchPage()}>{loadingMore ? 'Cargando…' : 'Ver más pacientes'}</button>{/if}</div>
-		<div class="md:justify-self-end"><button type="button" class="w-full rounded-full bg-danger-800 px-4 py-2 text-sm font-semibold text-on-accent md:w-auto" onclick={() => (showReport = !showReport)}>Reportar problema</button>{#if showReport}<div class="mt-2 max-w-md rounded-xl border border-danger-200 bg-danger-5c0d0d p-4 text-sm text-fg"><p class="font-semibold">¿Encontraste un problema?</p><p class="mt-1">Escribí a <span class="font-semibold">juanpabloaltamira@protonmail.com</span>.</p></div>{/if}</div>
+		<div class="md:justify-self-start">{#if listData.canAccessRadiographTrash}<a href="/odonto/pacientes/papelera" class="ux-btn-secondary w-full md:w-auto">Papelera de documentos</a>{/if}</div>
+		<div class="md:justify-self-center">{#if hasMore}<button type="button" class="ux-btn-secondary w-full md:w-auto" disabled={loadingMore} onclick={() => fetchPage()}>{loadingMore ? 'Cargando…' : 'Ver más pacientes'}</button>{/if}</div>
+		<div class="md:justify-self-end"><button type="button" class="ux-btn-secondary w-full md:w-auto" onclick={() => (showReport = !showReport)}>Reportar problema</button>{#if showReport}<div class="mt-2 max-w-md rounded-xl border border-danger-200 bg-danger-5c0d0d p-4 text-sm text-fg"><p class="font-semibold">¿Encontraste un problema?</p><p class="mt-1">Escribí a <span class="font-semibold">juanpabloaltamira@protonmail.com</span>.</p></div>{/if}</div>
 	</footer>
 </section>
 
@@ -434,10 +434,10 @@
 	<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 	<form method="post" action="?/create_patient" use:enhance={createPatientEnhance} class="space-y-4" onkeydown={preventEnterSubmit}>
 		{#if !canCreatePatient}<div class="rounded-xl bg-chip-red-50 px-4 py-3 text-sm font-semibold text-ink-red-700">Tu acceso a Cita Suite venció. Activá tu suscripción para volver a usar la plataforma.</div>{/if}
-		<div class="space-y-2"><label class="text-sm font-semibold text-fg" for="full_name">Nombre y apellido *</label><input id="full_name" name="full_name" required bind:value={createFullName} placeholder="Ej: Juan Pérez" class="w-full rounded-xl border px-4 py-3 text-sm shadow-sm border-line-strong bg-surface text-fg" /></div>
-		<div class="grid gap-3 md:grid-cols-2"><div class="space-y-2"><label class="text-sm font-semibold text-fg" for="dni">DNI (opcional)</label><input id="dni" name="dni" inputmode="numeric" bind:value={createDni} placeholder="Solo números" class="w-full rounded-xl border px-4 py-3 text-sm shadow-sm border-line-strong bg-surface text-fg" /></div><div class="space-y-2"><label class="text-sm font-semibold text-fg" for="phone">Teléfono (opcional)</label><input id="phone" name="phone" inputmode="tel" bind:value={createPhone} placeholder="Código + número" class="w-full rounded-xl border px-4 py-3 text-sm shadow-sm border-line-strong bg-surface text-fg" /></div></div>
+		<div class="space-y-2"><label class="text-sm font-semibold text-fg" for="full_name">Nombre y apellido *</label><input id="full_name" name="full_name" required bind:value={createFullName} placeholder="Ej: Juan Pérez" class="ux-input" /></div>
+		<div class="grid gap-3 md:grid-cols-2"><div class="space-y-2"><label class="text-sm font-semibold text-fg" for="dni">DNI (opcional)</label><input id="dni" name="dni" inputmode="numeric" bind:value={createDni} placeholder="Solo números" class="ux-input" /></div><div class="space-y-2"><label class="text-sm font-semibold text-fg" for="phone">Teléfono (opcional)</label><input id="phone" name="phone" inputmode="tel" bind:value={createPhone} placeholder="Código + número" class="ux-input" /></div></div>
 		{#if formState?.message}<div class={`rounded-xl px-4 py-3 text-sm font-semibold ${formState.duplicate ? 'border border-warning-300 bg-chip-amber-50 text-ink-amber-950' : 'border border-danger-300 bg-chip-red-50 text-ink-red-800'}`}><p>{formState.message}</p>{#if formState.duplicate && formState.existingId}<a class="mt-3 inline-flex rounded-xl bg-chip-amber-500 px-4 py-2 font-bold text-ink-s950" href={`/odonto/pacientes/${formState.existingId}`}>Abrir paciente existente</a>{/if}</div>{/if}
-		<div class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end"><button type="button" class="rounded-xl px-4 py-2 text-sm font-semibold text-copy-muted" onclick={closeModal}>Cancelar</button><button type="submit" disabled={!canCreatePatient} class="rounded-xl bg-info-primary-600 px-4 py-2 text-sm font-semibold text-on-accent disabled:opacity-45">Crear paciente</button></div>
+		<div class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end"><button type="button" class="ux-btn-secondary" onclick={closeModal}>Cancelar</button><button type="submit" disabled={!canCreatePatient} class="ux-btn-primary">Crear paciente</button></div>
 	</form>
 </Modal>
 

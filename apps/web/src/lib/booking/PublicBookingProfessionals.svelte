@@ -68,7 +68,7 @@
 								<span
 									aria-disabled="true"
 									class="cursor-not-allowed rounded-xl px-3 py-3 text-center text-sm font-bold text-fg-25 bk-muted"
-									title="Este procedimiento tiene un solo profesional disponible."
+									data-tip="Este procedimiento tiene un solo profesional disponible."
 								>
 									Equipo de profesionales
 								</span>

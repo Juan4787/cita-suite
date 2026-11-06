@@ -2,8 +2,11 @@
 	import type { LayoutProps } from './$types';
 
 	import '../app.css';
+	import { onMount } from 'svelte';
+	import { installFieldValidation } from '$lib/ui/field-validation';
 
 	let { children }: LayoutProps = $props();
+	onMount(() => installFieldValidation());
 </script>
 
 <svelte:head>

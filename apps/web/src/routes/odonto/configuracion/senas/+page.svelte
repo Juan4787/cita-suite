@@ -60,15 +60,15 @@
 	};
 </script>
 
-<section class="ux-page">
-	<div class="ux-hero">
-		<BackLink href="/odonto/configuracion" label="Volver" class="mb-5" />
+<section class="ux-page mx-auto w-full max-w-5xl">
+	<header>
+		<BackLink href="/odonto/configuracion" label="Configuración" class="mb-5" />
 		<h1 class="ux-title">Señas</h1>
 		<p class="ux-subtitle">
 			Cuánto se pide, cuándo y qué pasa si no llega. Los cambios se aplican a las reservas nuevas: cada
 			turno conserva las condiciones que se le informaron al reservar.
 		</p>
-	</div>
+	</header>
 
 	{#if !data.whatsappConfigured}
 		<p class="ux-alert" role="alert">

@@ -21,7 +21,7 @@ it('ofrece reasignar y ocultar con el ID observado, conservando los filtros y av
  expect(action.searchParams.has('/hide_slot_release')).toBe(true);
  const next = new URL(screen.getByRole('link', { name: 'Más horarios' }).getAttribute('href')!, 'https://app.test');
  expect(next.searchParams.get('pagina_liberados')).toBe('3');expect(next.searchParams.get('status')).toBe('reserved');
- expect(screen.getByLabelText('Ver próximos días')).toHaveValue('14');
+ expect(document.querySelector('[name="dias_liberados"]')).toHaveValue('14');
 });
 it('una lectura desconocida se explica y no se presenta como una lista vacía', () => {
  render(SlotReleaseAlerts, { ...props(), list: { ...props().list, items: null } });

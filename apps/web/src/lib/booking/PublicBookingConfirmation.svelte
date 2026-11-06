@@ -244,7 +244,7 @@
 				        required
 				        minlength="5"
 				        pattern=".*[^ ] +[^ ].*"
-				        title={PATIENT_FULL_NAME_INVALID_ERROR_MESSAGE}
+				        data-invalid-message={PATIENT_FULL_NAME_INVALID_ERROR_MESSAGE}
 				        autocomplete="name"
 				        bind:value={() => String(values.patient_name ?? ''), (value: string) => setDraftValue('patient_name', value)}
 				        oninput={validatePatientNameInput}

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Modal from '$lib/components/Modal.svelte';
+	import { styledDate } from '$lib/ui/styled-controls';
 	import ClinicalImageViewer from '$lib/components/patients/ClinicalImageViewer.svelte';
 	import {
 		createClinicalImageThumbnail,
@@ -708,11 +709,11 @@
 		<div class="grid gap-4 sm:grid-cols-2">
 			<div class="space-y-2">
 				<label for="clinical-image-date" class="text-xs font-semibold">Fecha de toma (opcional)</label>
-				<input id="clinical-image-date" type="date" max={todayISO} bind:value={takenAt} disabled={uploadBusy} class="w-full rounded-xl border px-3 py-2 border-line-strong bg-canvas" />
+				<input use:styledDate={takenAt} id="clinical-image-date" type="date" max={todayISO} bind:value={takenAt} disabled={uploadBusy} class="ux-input" />
 			</div>
 			<div class="space-y-2">
 				<label for="clinical-image-note" class="text-xs font-semibold">Descripción (opcional)</label>
-				<input id="clinical-image-note" maxlength="500" placeholder="Ej: Panorámica inicial" bind:value={note} disabled={uploadBusy} class="w-full rounded-xl border px-3 py-2 border-line-strong bg-canvas" />
+				<input id="clinical-image-note" maxlength="500" placeholder="Ej: Panorámica inicial" bind:value={note} disabled={uploadBusy} class="ux-input" />
 			</div>
 		</div>
 		{#if errorMessage}

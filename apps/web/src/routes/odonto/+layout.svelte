@@ -531,6 +531,7 @@
 			return $page.data.patient.full_name;
 		}
 		if (path.startsWith('/odonto/agenda')) return 'Agenda';
+		if (path.startsWith('/odonto/turnos')) return 'Turno';
 		if (path.startsWith('/odonto/pacientes')) return 'Pacientes';
 		if (path.startsWith('/odonto/exportar-datos')) return 'Exportar datos';
 		if (path.startsWith('/odonto/configuracion/usuarios')) return 'Equipo';
@@ -546,7 +547,7 @@
 		if (path.startsWith('/odonto/mis-turnos')) return 'Mis turnos';
 		if (path.startsWith('/odonto/configuracion')) return 'Configuración';
 		if (path.startsWith('/odonto/maestro')) return 'Panel maestro';
-		return 'Odontología';
+		return 'Cita Suite';
 	});
 
 	const showBack = $derived.by(() => {

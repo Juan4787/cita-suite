@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onDestroy } from 'svelte';
+	import { styledSelect } from '$lib/ui/styled-controls';
 	import FollowUpDatePicker from './FollowUpDatePicker.svelte';
 
 	type PatientLite = { id: string; full_name: string };
@@ -383,7 +384,7 @@
 							No hay perfiles profesionales atendibles para asignar este seguimiento.
 						</p>
 					{:else}
-						<select id="fu-prof" bind:value={selectedProfessionalId} class="ux-select">
+						<select use:styledSelect={selectedProfessionalId} id="fu-prof" bind:value={selectedProfessionalId} class="ux-select">
 							<option value="" disabled>Elegí un profesional…</option>
 							{#if linkedProfessionals.length > 0}
 								<optgroup label="Vinculados a este paciente">

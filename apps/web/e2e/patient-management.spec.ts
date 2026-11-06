@@ -122,12 +122,12 @@ for (const brand of ['cita-suite', 'natalia'] as const) {
     const choice = new URL(page.url()); choice.searchParams.set('color_mode', theme); await page.goto(choice.href);
     await expect(page.getByRole('heading', { name: '¿Querés reprogramar este turno?' })).toBeInViewport();
     await page.screenshot({ path: info.outputPath(`first-selection-${theme}.jpg`), type: 'jpeg', quality: 65 });
-    await matrix(page, info, `day-selection-${theme}`, page.getByLabel('Día para el nuevo turno'), issues);
+    await matrix(page, info, `day-selection-${theme}`, page.getByRole('button', { name: /^Día para el nuevo turno/ }), issues);
    }
-   await page.getByLabel('Día para el nuevo turno').fill(targetDate);
+   await page.locator('[name="fecha"]').fill(targetDate);
    await page.getByRole('button', { name: 'Ver horarios', exact: true }).click();
    await expect(page).toHaveURL(url => url.searchParams.get('fecha') === targetDate);
-   await expect(page.getByLabel('Día para el nuevo turno')).toHaveValue(targetDate);
+   await expect(page.locator('[name="fecha"]')).toHaveValue(targetDate);
    await expect(page.locator('[aria-label="Horarios disponibles"] a').first()).toHaveAttribute('href', new RegExp(`horario=${targetDate}T`));
    await page.locator('[aria-label="Horarios disponibles"] a').first().click();
    await expect(page.getByRole('heading', { name: 'Revisá el cambio antes de confirmar' })).toBeVisible();

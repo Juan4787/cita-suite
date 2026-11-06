@@ -282,7 +282,7 @@
 										type="button"
 										class="grid h-8 w-8 place-items-center rounded-full border text-xs border-line-strong text-fg-n200"
 										onclick={() => copyToClipboard(patient.phone)}
-										aria-label="Copiar teléfono" title="Copiar teléfono"
+										aria-label="Copiar teléfono" data-tip="Copiar teléfono"
 									>
 										{@render copyIcon()}
 									</button>
@@ -293,7 +293,7 @@
 										target="_blank"
 										rel="noreferrer"
 										class="grid h-8 w-8 shrink-0 place-items-center rounded-full border text-xs border-line-strong text-fg-n200"
-										aria-label="Abrir WhatsApp" title="Abrir WhatsApp"
+										aria-label="Abrir WhatsApp" data-tip="Abrir WhatsApp"
 									>
 										{@render chatIcon()}
 									</a>
@@ -311,7 +311,7 @@
 										type="button"
 										class="grid h-8 w-8 place-items-center rounded-full border text-xs border-line-strong text-fg-n200"
 										onclick={() => copyToClipboard(patient.email)}
-										aria-label="Copiar correo electrónico" title="Copiar correo electrónico"
+										aria-label="Copiar correo electrónico" data-tip="Copiar correo electrónico"
 									>
 										{@render copyIcon()}
 									</button>
@@ -329,7 +329,7 @@
 										type="button"
 										class="grid h-8 w-8 place-items-center rounded-full border text-xs border-line-strong text-fg-n200"
 										onclick={() => copyToClipboard(patient.address)}
-										aria-label="Copiar dirección" title="Copiar dirección"
+										aria-label="Copiar dirección" data-tip="Copiar dirección"
 									>
 										{@render copyIcon()}
 									</button>

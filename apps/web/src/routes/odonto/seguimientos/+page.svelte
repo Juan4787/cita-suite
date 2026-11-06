@@ -40,15 +40,14 @@
 </script>
 
 <section class="ux-page">
-	<div class="ux-hero">
-		<h1 class="ux-title">Seguimientos</h1>
-		<p class="ux-subtitle">
-			Recordá volver a contactar a tus pacientes. Cuando llega la fecha, te avisamos arriba.
-		</p>
-	</div>
-
-	<div class="flex justify-end">
-		<button type="button" onclick={() => (showComposer = true)} disabled={data.demo || !client.ready} class="ux-btn-primary disabled:opacity-50">
+	<div class="ux-hero flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+		<div class="min-w-0">
+			<h1 class="ux-title">Seguimientos</h1>
+			<p class="ux-subtitle">
+				Recordá volver a contactar a tus pacientes. Cuando llega la fecha, te avisamos arriba.
+			</p>
+		</div>
+		<button type="button" onclick={() => (showComposer = true)} disabled={data.demo || !client.ready} class="ux-btn-primary w-full shrink-0 sm:w-auto">
 			Agregar seguimiento
 		</button>
 	</div>

@@ -202,7 +202,7 @@ test('@candidate-behavior isolated informed booking: stale policy, atomic retry 
   const beforeMove = moneyState();
   await page.getByRole('link', { name: 'Reprogramar turno', exact: true }).click();
   const targetDate = f.sql(`select to_char(starts_at::date+1,'YYYY-MM-DD') from public.appointments where id='${appointmentId}';`);
-  await page.getByLabel('Día para el nuevo turno').fill(targetDate);
+  await page.locator('[name="fecha"]').fill(targetDate);
   await page.getByRole('button', { name: 'Ver horarios', exact: true }).click();
   await page.locator('[aria-label="Horarios disponibles"] a').first().click();
   await expect(page.getByText(/La seña anterior de.*dejará de aplicarse/)).toBeVisible();

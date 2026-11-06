@@ -4,6 +4,7 @@
   import PatientDocumentUpload from "$lib/booking/PatientDocumentUpload.svelte";
   import BookingAppearance from "$lib/booking/BookingAppearance.svelte";
   import { enhance } from "$app/forms";
+  import { styledSelect } from "$lib/ui/styled-controls";
   import { tick } from "svelte";
   import type { SubmitFunction } from "@sveltejs/kit";
   let { data, form }: { data: PublicInformationPageData; form?: PublicInformationFeedback | null } = $props();
@@ -63,7 +64,7 @@
 <main class="mx-auto max-w-2xl space-y-6 px-5 py-8">
   <a class="ux-btn-secondary" href={data.managementUrl}>Volver a mi turno</a>
   <div><h1 class="ux-title">Información para tu consulta</h1><p class="mt-3 text-fg-65 bk-muted">Tu turno ya está reservado. Podés ampliar los datos para la profesional. Los campos configurados se guardan automáticamente en tu perfil y los envíos anteriores se conservan.</p></div>
-  {#if feedbackText}<p bind:this={feedback} tabindex="-1" class={feedbackSaved ? 'ux-success' : 'ux-error'} role={feedbackSaved ? 'status' : 'alert'}>{feedbackText}</p>{/if}
+  {#if feedbackText}<p bind:this={feedback} tabindex="-1" class={feedbackSaved ? 'ux-alert ux-alert-success' : 'ux-alert'} role={feedbackSaved ? 'status' : 'alert'}>{feedbackText}</p>{/if}
   <form method="POST" action="?/save" use:enhance={submitInformation} class="ux-soft-card space-y-4 p-5">
     <fieldset disabled={busy} class="space-y-4">
     <input type="hidden" name="request_key" value={form?.submitted?.requestKey ?? data.requestKey} /><input type="hidden" name="schema_hash" value={form?.submitted?.schemaHash ?? data.info.schema_hash} /><input type="hidden" name="version" value={form?.submitted?.version ?? data.info.version} />
@@ -71,7 +72,7 @@
       <label class="block"><span class="ux-label">{field.label}{field.required ? ' *' : ' (opcional)'}</span>
         {#if field.kind === 'textarea'}<textarea class="ux-textarea" name={'intake_' + field.id} required={field.required} maxlength={field.maxLength} rows="3" bind:value={answers[field.id]}></textarea>
         {:else if field.kind === 'text'}<input type={field.patientField === 'birth_date' ? 'date' : field.patientField === 'age' ? 'number' : 'text'} min={field.patientField === 'age' ? 0 : undefined} max={field.patientField === 'age' ? 130 : undefined} class="ux-input" name={'intake_' + field.id} required={field.required} maxlength={field.maxLength} bind:value={answers[field.id]} />
-        {:else}<select class="ux-select" required={field.required} name={'intake_' + field.id} bind:value={answers[field.id]}><option value="">Sin responder</option>{#if field.kind === 'boolean'}<option value="true">Sí</option><option value="false">No</option>{:else}{#each field.options ?? [] as option}<option value={option}>{option}</option>{/each}{/if}</select>{/if}
+        {:else}<select use:styledSelect={answers[field.id]} class="ux-select" required={field.required} name={'intake_' + field.id} bind:value={answers[field.id]}><option value="">Sin responder</option>{#if field.kind === 'boolean'}<option value="true">Sí</option><option value="false">No</option>{:else}{#each field.options ?? [] as option}<option value={option}>{option}</option>{/each}{/if}</select>{/if}
         {#if field.help}<span class="mt-1 block text-sm text-fg-60 bk-muted">{field.help}</span>{/if}
       </label>
     {/each}

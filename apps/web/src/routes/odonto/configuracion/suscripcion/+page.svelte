@@ -92,14 +92,14 @@
 	});
 </script>
 
-<section class="ux-page">
-	<div class="ux-hero">
+<section class="ux-page mx-auto w-full max-w-5xl">
+	<header>
 		{#if access.canUseBusiness}
-			<BackLink href="/odonto/configuracion" label="Volver" class="mb-5" />
+			<BackLink href="/odonto/configuracion" label="Configuración" class="mb-5" />
 		{/if}
 		<h1 class="ux-title">{mainTitle}</h1>
 		<p class="ux-subtitle">{mainDescription}</p>
-	</div>
+	</header>
 
 	<div class="ux-card">
 		<div class="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
@@ -176,7 +176,7 @@
 			{/if}
 
 			{#if form?.message && !form?.success}
-				<p class="ux-alert ux-alert-danger mt-4">{form.message}</p>
+				<p class="ux-alert mt-4">{form.message}</p>
 			{/if}
 			{#if form?.success}
 				<p class="ux-alert ux-alert-success mt-4">{form.message}</p>

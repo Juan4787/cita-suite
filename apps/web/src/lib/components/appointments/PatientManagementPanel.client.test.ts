@@ -58,7 +58,7 @@ describe('contextual patient management panel', () => {
   }) });
   expect(screen.getByRole('button', { name: 'Confirmar reprogramación' })).toBeVisible();
   expect(screen.getByLabelText('Horarios disponibles')).toBeVisible();
-  await fireEvent.input(screen.getByLabelText('Día para el nuevo turno'), { target: { value: '2026-12-03' } });
+  await fireEvent.input(document.querySelector('[name="fecha"]')!, { target: { value: '2026-12-03' } });
   expect(screen.queryByLabelText('Horarios disponibles')).not.toBeInTheDocument();
   expect(screen.queryByRole('button', { name: 'Confirmar reprogramación' })).not.toBeInTheDocument();
   expect(screen.getByRole('status')).toHaveTextContent('Consultá los horarios de la fecha elegida.');

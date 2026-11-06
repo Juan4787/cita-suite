@@ -37,5 +37,15 @@ const longDateFormatters = new Map<string, Intl.DateTimeFormat>();
 export const agendaLongDate = (value: string, timeZone: string) =>
 	formatter(longDateFormatters, timeZone, { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(value));
 
+const weekdayLongDateFormatters = new Map<string, Intl.DateTimeFormat>();
+
+/** «Viernes 6 de noviembre de 2026»: sólo la primera letra en mayúscula, nunca «De Noviembre». */
+export const agendaWeekdayLongDate = (value: string, timeZone: string) => {
+	const label = formatter(weekdayLongDateFormatters, timeZone, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+		.format(new Date(value))
+		.replace(',', '');
+	return label.charAt(0).toUpperCase() + label.slice(1);
+};
+
 /** Hoy (YYYY-MM-DD) en el consultorio. */
 export const agendaToday = (timeZone: string, now: Date = new Date()) => zonedDate(now, timeZone);

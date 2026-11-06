@@ -2,6 +2,7 @@
 	import TeamMemberWizard from '$lib/components/team/TeamMemberWizard.svelte';
 	import { roleLabels, type TeamServiceOption } from '$lib/team/member-editor';
 	import { createClientReadiness } from '$lib/client/readiness.svelte';
+	import { styledSelect } from '$lib/ui/styled-controls';
 	const client = createClientReadiness();
 	import type { BusinessRoleAccess as RoleAccess } from '$lib/access/team-contracts';
 	import type { BusinessContext, BusinessRole } from '$lib/access/contracts';
@@ -193,7 +194,7 @@
 					>
 						<label class="block">
 							<span class="ux-label">Persona del equipo</span>
-							<select name="access_id" bind:value={attendingAccessId} required class="ux-select">
+							<select use:styledSelect={attendingAccessId} name="access_id" bind:value={attendingAccessId} required class="ux-select">
 								<option value="" disabled>Elegí…</option>
 								{#each attendingPending as m (m.id)}
 									<option value={m.id}>
@@ -299,7 +300,7 @@
 												}}
 											>
 												<input type="hidden" name="membership_id" value={member.id} />
-												<select name="role" disabled={!canManage} class="ux-select w-full min-w-0 sm:w-auto sm:min-w-44">
+												<select use:styledSelect name="role" disabled={!canManage} class="ux-select w-full min-w-0 sm:w-auto sm:min-w-44">
 													{#each memberRoleOptions(member) as option}
 														<option value={option} selected={member.role === option}>{roleLabels[option]}</option>
 													{/each}

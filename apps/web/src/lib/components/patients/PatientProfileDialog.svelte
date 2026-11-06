@@ -161,7 +161,7 @@
 					id="full_name"
 					name="full_name"
 					required
-					class="w-full rounded-xl border px-3 py-2 text-sm shadow-sm outline-none transition focus:border-info-primary-500 focus:ring-2 focus:ring-focus-info-primary-100 border-line-strong bg-surface text-fg placeholder:text-copy-subtle"
+					class="ux-input"
 					value={editorPatient.full_name ?? ''}
 				/>
 			</div>
@@ -172,7 +172,7 @@
 					name="email"
 					use:focusEmailField
 					type="email"
-					class="w-full rounded-xl border px-3 py-2 text-sm shadow-sm outline-none transition focus:border-info-primary-500 focus:ring-2 focus:ring-focus-info-primary-100 border-line-strong bg-surface text-fg placeholder:text-copy-subtle"
+					class="ux-input"
 					value={editorPatient.email ?? ''}
 				/>
 			</div>
@@ -183,7 +183,7 @@
 				<input
 					id="phone"
 					name="phone"
-					class="w-full rounded-xl border px-3 py-2 text-sm shadow-sm outline-none transition focus:border-info-primary-500 focus:ring-2 focus:ring-focus-info-primary-100 border-line-strong bg-surface text-fg placeholder:text-copy-subtle"
+					class="ux-input"
 					value={editorPatient.phone ?? ''}
 				/>
 			</div>
@@ -193,7 +193,7 @@
 					id="dni"
 					name="dni"
 					inputmode="numeric"
-					class="w-full rounded-xl border px-3 py-2 text-sm shadow-sm outline-none transition focus:border-info-primary-500 focus:ring-2 focus:ring-focus-info-primary-100 border-line-strong bg-surface text-fg placeholder:text-copy-subtle"
+					class="ux-input"
 					value={editorPatient.dni ?? ''}
 				/>
 			</div>
@@ -214,7 +214,7 @@
 				<input
 					id="address"
 					name="address"
-					class="w-full rounded-xl border px-3 py-2 text-sm shadow-sm outline-none transition focus:border-info-primary-500 focus:ring-2 focus:ring-focus-info-primary-100 border-line-strong bg-surface text-fg placeholder:text-copy-subtle"
+					class="ux-input"
 					value={editorPatient.address ?? ''}
 				/>
 			</div>
@@ -226,7 +226,7 @@
 					<input
 						id="insurance"
 						name="insurance"
-						class="w-full rounded-xl border px-3 py-2 text-sm shadow-sm outline-none transition focus:border-info-primary-500 focus:ring-2 focus:ring-focus-info-primary-100 border-line-strong bg-surface text-fg placeholder:text-copy-subtle"
+						class="ux-input"
 						value={editorPatient.insurance ?? ''}
 					/>
 				</div>
@@ -237,7 +237,7 @@
 					<input
 						id="insurance_plan"
 						name="insurance_plan"
-						class="w-full rounded-xl border px-3 py-2 text-sm shadow-sm outline-none transition focus:border-info-primary-500 focus:ring-2 focus:ring-focus-info-primary-100 border-line-strong bg-surface text-fg placeholder:text-copy-subtle"
+						class="ux-input"
 						value={editorPatient.insurance_plan ?? ''}
 					/>
 				</div>
@@ -248,7 +248,7 @@
 					<input
 						id="allergies"
 						name="allergies"
-						class="w-full rounded-xl border px-3 py-2 text-sm shadow-sm outline-none transition focus:border-info-primary-500 focus:ring-2 focus:ring-focus-info-primary-100 border-line-strong bg-surface text-fg placeholder:text-copy-subtle"
+						class="ux-input"
 						value={editorPatient.allergies ?? ''}
 					/>
 				</div>
@@ -262,7 +262,7 @@
 						id="medication"
 						name="medication"
 						rows="2"
-						class="w-full rounded-xl border px-3 py-2 text-sm shadow-sm outline-none transition focus:border-info-primary-500 focus:ring-2 focus:ring-focus-info-primary-100 border-line-strong bg-surface text-fg placeholder:text-copy-subtle"
+						class="ux-textarea"
 					>{editorPatient.medication ?? ''}</textarea>
 				</div>
 				<div class="space-y-1">
@@ -271,7 +271,7 @@
 						id="background"
 						name="background"
 						rows="2"
-						class="w-full rounded-xl border px-3 py-2 text-sm shadow-sm outline-none transition focus:border-info-primary-500 focus:ring-2 focus:ring-focus-info-primary-100 border-line-strong bg-surface text-fg placeholder:text-copy-subtle"
+						class="ux-textarea"
 					>{editorPatient.background ?? ''}</textarea>
 				</div>
 			</div>
@@ -302,7 +302,7 @@
 		<div class="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-end">
 			<button
 				type="button"
-				class="w-full rounded-xl px-4 py-2 text-sm font-semibold text-fg hover:bg-fill-1b2d4b sm:w-auto"
+				class="ux-btn-secondary w-full sm:w-auto"
 				onclick={close}
 				disabled={savingPatient}
 			>
@@ -311,7 +311,7 @@
 			<button
 				type="submit"
 				disabled={savingPatient || revisionConflict}
-				class="w-full rounded-xl bg-info-primary-600 px-4 py-2 text-sm font-semibold text-on-accent shadow-sm transition hover:bg-info-primary-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-info-primary-500 sm:w-auto"
+				class="ux-btn-primary w-full sm:w-auto"
 			>
 				{savingPatient ? 'Guardando…' : 'Guardar cambios'}
 			</button>

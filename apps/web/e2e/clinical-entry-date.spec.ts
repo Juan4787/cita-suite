@@ -96,7 +96,7 @@ test('clinical creation persists the Argentina wall clock and displays the same 
 		await expect(open).toBeEnabled();
 		await open.click();
 		const dialog = page.getByRole('dialog', { name: `Registrar consulta - ${f.fullName}` });
-		await dialog.getByLabel('Tipo de consulta').selectOption('Consulta');
+		await dialog.locator('[name="entry_type"]').selectOption('Consulta');
 		await setLocalDate(dialog, '09:30');
 		await dialog
 			.getByLabel('Descripción', { exact: true })
