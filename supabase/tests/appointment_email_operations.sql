@@ -1,7 +1,7 @@
 -- Operator email controls (ZH04, ZH12, OP05). Synthetic and rolled back; nothing reaches a provider,
 -- so this proves what the operator sees and changes, never what the provider holds.
 begin;
-select extensions.plan(12);
+select extensions.plan(21);
 create temporary table ops_fixture(label text primary key,id uuid not null);
 create function pg_temp.oid(label text) returns uuid language sql as $$select id from ops_fixture f where f.label=$1$$;
 create function pg_temp.ops() returns jsonb language sql as $$select public.operator_get_email_operations(null)$$;
@@ -77,6 +77,53 @@ insert into ops_seen select 'on',pg_temp.save((select (value->>'revision')::bigi
 select extensions.ok((select (value->>'producer_enabled_at')::timestamptz>(select (value->>'producer_enabled_at')::timestamptz from ops_seen where label='saved')
   from ops_seen where label='on') and not (select value->>'producer_enabled' from ops_seen where label='off')::boolean,
  '10. Turning sending off and on again starts a new activation: nothing from the pause is treated as new');
+
+-- Staff decisions, run as the person. A mocked app test cannot see a type error here: these two
+-- functions reached production storing a role in a uuid, and failed for everyone.
+do $$ declare r uuid:=gen_random_uuid(); x uuid:=gen_random_uuid(); b uuid:=pg_temp.oid('business');
+begin
+ insert into auth.users(id,email) values(r,'ops-reception-'||r||'@example.test'),(x,'ops-outsider-'||x||'@example.test');
+ insert into public.business_users(business_id,user_id,role,status,accepted_at) values(b,r,'reception','active',now());
+ insert into ops_fixture values('reception',r),('outsider',x);
+ insert into ops_fixture select 'owner',user_id from public.business_users where business_id=b and role='owner';
+end $$;
+create temporary table ops_deliveries(label text primary key,id uuid not null);
+with created as (
+ insert into private.appointment_email_deliveries(business_id,appointment_id,purpose,dedupe_key,schedule_revision,state,due_at,expires_at,started_at)
+ select pg_temp.oid('business'),pg_temp.oid('appointment'),'booking_receipt',k,1,'uncertain',now()-interval '1 hour',now()+interval '1 day',now()-interval '1 hour'
+ from (values('ops:resend'),('ops:dismiss')) v(k) returning id,dedupe_key)
+insert into ops_deliveries select dedupe_key,id from created;
+create function pg_temp.resolve(p_label text,p_decision text) returns jsonb language sql as $$
+ select public.resolve_appointment_email_delivery(pg_temp.oid('business'),(select id from ops_deliveries where label=p_label),p_decision)
+$$;
+
+select set_config('request.jwt.claim.sub',pg_temp.oid('outsider')::text,true);
+select extensions.throws_ok($$select pg_temp.resolve('ops:resend','resend')$$,'P0001','APPOINTMENT_MANAGEMENT_FORBIDDEN','11. Someone outside the practice cannot decide on a message');
+select set_config('request.jwt.claim.sub',pg_temp.oid('reception')::text,true);
+select extensions.ok(pg_temp.resolve('ops:resend','resend')->>'state'='retry'
+ and (select state='retry' and duplicate_risk_accepted_by=pg_temp.oid('reception') from private.appointment_email_deliveries where id=(select id from ops_deliveries where label='ops:resend'))
+ and exists(select 1 from public.audit_logs where user_id=pg_temp.oid('reception') and action='appointment.email_uncertain_resolved'),
+ '12. Reception can resend, and the record names the person who accepted the risk of a duplicate');
+select extensions.throws_ok($$select pg_temp.resolve('ops:resend','resend')$$,'P0001','EMAIL_DELIVERY_CHANGED','13. A decision already taken cannot be taken twice');
+select set_config('request.jwt.claim.sub',pg_temp.oid('owner')::text,true);
+select extensions.ok(pg_temp.resolve('ops:dismiss','dismiss')->>'state'='discarded'
+ and (select state='discarded' and discard_reason='operator_dismissed' from private.appointment_email_deliveries where id=(select id from ops_deliveries where label='ops:dismiss')),
+ '14. The owner can close a message without sending it again');
+
+select set_config('request.jwt.claim.sub',pg_temp.oid('reception')::text,true);
+select extensions.throws_ok($$select public.save_business_email_contact(pg_temp.oid('business'),'respuestas@example.test')$$,'P0001','APPOINTMENT_MANAGEMENT_FORBIDDEN','15. Reception cannot change the reply contact');
+select set_config('request.jwt.claim.sub',pg_temp.oid('owner')::text,true);
+select extensions.ok((public.save_business_email_contact(pg_temp.oid('business'),' respuestas@example.test '))?'ready'
+ and (select reply_to_email='respuestas@example.test' from private.business_email_senders where business_id=pg_temp.oid('business'))
+ and exists(select 1 from public.audit_logs where user_id=pg_temp.oid('owner') and action='business.email_contact_updated'),
+ '16. The owner saves the reply contact, and the record names who did');
+select extensions.throws_ok($$select public.save_business_email_contact(pg_temp.oid('business'),'sin-arroba')$$,'P0001','EMAIL_CONTACT_INVALID','17. An address that cannot receive a reply is refused');
+select extensions.ok((select value->>'domain_state'='unprovisioned' and value->>'reply_to'='respuestas@example.test' and value ? 'needs_review' and value ? 'ready'
+  from (select public.get_business_email_status(pg_temp.oid('business')) value) status),
+ '18. The status screen reads the sender, the contact and what needs review');
+select set_config('request.jwt.claim.sub',pg_temp.oid('outsider')::text,true);
+select extensions.throws_ok($$select public.get_business_email_status(pg_temp.oid('business'))$$,'P0001','APPOINTMENT_MANAGEMENT_FORBIDDEN','19. Someone outside the practice cannot read it');
+select set_config('request.jwt.claim.sub','',true);
 
 select * from extensions.finish();
 rollback;

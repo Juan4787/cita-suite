@@ -72,6 +72,31 @@ test('@candidate-behavior isolated email preferences: independent settings, stal
   await expect(noJsPage.getByRole('status').filter({ hasText: 'Se guardaron' })).toBeVisible();
   expect(policy()).toMatchObject({ email_enabled: false, require_email: true, sender_verified: false });
   expect(audits()).toBe(3);
+  // These two run as the person against real SQL: both reached production failing for everyone,
+  // because every test above them stopped at a mocked call.
+  await page.goto('/odonto/configuracion/correo');
+  await page.getByLabel('Correo donde recibir las respuestas de los pacientes').fill('respuestas@example.test');
+  await page.getByRole('button', { name: 'Guardar contacto', exact: true }).click();
+  await expect(page.getByRole('status').filter({ hasText: 'Se guardó el correo de contacto' })).toBeVisible();
+  expect(f.sql(`select reply_to_email from private.business_email_senders where business_id='${businessId}';`)).toBe('respuestas@example.test');
+  const appointmentId = randomUUID(), deliveryId = randomUUID();
+  f.sql(`begin;
+   do $$ declare p uuid; s uuid; r uuid; begin
+    insert into public.services(business_id,name,duration_minutes) values('${businessId}','Consulta sintética',30) returning id into s;
+    insert into public.professionals(business_id,name) values('${businessId}','Profesional sintético') returning id into r;
+    insert into public.professional_services(business_id,professional_id,service_id) values('${businessId}',r,s);
+    insert into public.patients(owner_id,business_id,full_name,email) values('${ownerId}','${businessId}','Paciente sintético','paciente-correo@example.test') returning id into p;
+    insert into public.appointments(id,business_id,patient_id,service_id,professional_id,starts_at,ends_at,blocking_starts_at,blocking_ends_at,status,source,service_name_snapshot,professional_name_snapshot,duration_minutes_snapshot)
+    values('${appointmentId}','${businessId}',p,s,r,date_trunc('hour',now())+interval '10 days',date_trunc('hour',now())+interval '10 days 30 minutes',date_trunc('hour',now())+interval '10 days',date_trunc('hour',now())+interval '10 days 30 minutes','reserved','manual','Consulta sintética','Profesional sintético',30);
+    insert into private.appointment_email_deliveries(id,business_id,appointment_id,purpose,dedupe_key,schedule_revision,state,due_at,expires_at,started_at)
+    values('${deliveryId}','${businessId}','${appointmentId}','booking_receipt','e2e:uncertain:${deliveryId}',1,'uncertain',now()-interval '1 hour',now()+interval '1 day',now()-interval '1 hour');
+   end $$; commit;`);
+  await page.goto(`/odonto/turnos/${appointmentId}`);
+  const deliveries = page.locator('[data-email-deliveries]');
+  await expect(deliveries).toContainText('En comprobación');
+  await deliveries.getByRole('button', { name: 'Reenviar igual', exact: true }).click();
+  await expect(page.getByText('El correo vuelve a salir en unos minutos.')).toBeVisible();
+  expect(f.sql(`select state||':'||(duplicate_risk_accepted_by='${ownerId}')::text from private.appointment_email_deliveries where id='${deliveryId}';`)).toBe('retry:true');
   expect(issues).toEqual([]);
   expect(pageErrors).toBe(0);
   await health.assertAndAttach(info, 'email-preferences-render-health');

@@ -35,7 +35,10 @@ Autorización de implementación, pruebas y publicación vigente: [plan 12.32](p
 El chequeo compara esta lista con `git diff --name-status <produccion_revision> HEAD` sobre el código (`apps`, `packages`, `scripts`, `supabase` y los archivos de configuración de la raíz, sin `apps/web/output`). Tiene que coincidir exactamente.
 
 ```codigo-distinto-de-produccion
+M	apps/web/e2e/email-preferences.spec.ts
 M	scripts/run-campaign-integration.mjs
+A	supabase/migrations/20261106030000_email_staff_actor.sql
+M	supabase/tests/appointment_email_operations.sql
 ```
 
 No hay código distinto de producción. Cuando vuelva a haberlo, cada archivo se lista arriba y se explica acá si afecta a producción.
