@@ -42,6 +42,8 @@ M	apps/web/src/lib/server/integrations/public/zoho-email.test.ts
 M	apps/web/src/lib/server/integrations/public/zoho-email.ts
 M	apps/web/src/lib/server/scheduling/public/patient-management-flow.test.ts
 M	apps/web/src/lib/server/scheduling/public/patient-management-flow.ts
+M	apps/web/src/routes/oauth/google-calendar/callback/+server.ts
+M	apps/web/src/routes/oauth/google-calendar/callback/callback.server.test.ts
 M	apps/web/src/routes/turno/[token]/page.client.test.ts
 M	scripts/production-email-practice.mjs
 ```

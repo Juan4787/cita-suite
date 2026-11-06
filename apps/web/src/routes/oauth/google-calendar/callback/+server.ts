@@ -19,15 +19,29 @@ const redirectToAppointment = (access: PatientManagementAccess, status: string) 
 		}
 	});
 
+// Google hands the lasting permission only on a consent. Someone who granted it before, and whose
+// connection is no longer stored, gets none from choosing the account again.
+const redirectToConsent = (access: PatientManagementAccess) =>
+	new Response(null, {
+		status: 303,
+		headers: {
+			location: `/${access.legacy ? 'turno' : 'gestion'}/${encodeURIComponent(access.token)}/google-calendar/connect?reauthorize=1`,
+			'cache-control': 'no-store',
+			'referrer-policy': 'no-referrer'
+		}
+	});
+
 export const GET: RequestHandler = async ({ url, fetch }) => {
 	const state = url.searchParams.get('state') ?? '';
 	let appointmentId: string | null = null;
 	let appointmentAccess: PatientManagementAccess | null = null;
+	let consentAlreadyForced = false;
 	try {
 		const supabase = await createSupabaseAdminClient('odonto', fetch);
 		const attempt = await consumeGoogleCalendarOAuthAttempt(supabase, state);
 		appointmentId = attempt.appointmentId;
 		appointmentAccess = attempt.access;
+		consentAlreadyForced = attempt.forceConsent;
 
 		const providerError = url.searchParams.get('error');
 		if (providerError) {
@@ -66,6 +80,7 @@ export const GET: RequestHandler = async ({ url, fetch }) => {
 			code: code.slice(0, 120)
 		});
 		if (appointmentAccess) {
+			if (code.includes('REAUTH_REQUIRED') && !consentAlreadyForced) return redirectToConsent(appointmentAccess);
 			return redirectToAppointment(
 				appointmentAccess,
 				code.includes('REAUTH_REQUIRED') ? 'reconnect' : 'unavailable'
