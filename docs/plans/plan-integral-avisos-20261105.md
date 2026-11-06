@@ -116,7 +116,13 @@ Samsung SM-A715F, Android 13, Chrome 156, con Calendario Samsung, Proton Calenda
 | `.ics`: reprogramar con igual UID y `SEQUENCE` mayor | Abre el evento viejo, con la hora vieja, sin ofrecer guardar | Sin probar | **No actualiza ni duplica.** Hay que pedir borrar y guardar el nuevo |
 | `.ics`: `METHOD:CANCEL` | Abre el evento viejo; no lo quita | Sin probar | Hay que pedir borrarlo a mano |
 
-El enlace manual y Google gestionado se comprueban en los teléfonos con la versión nueva.
+Google gestionado, medido el 6 de noviembre sobre producción con la cuenta `citasuite`:
+
+| Hecho medido | Consecuencia |
+|---|---|
+| Xiaomi: el evento aparece en el proveedor de calendario, en la cuenta correcta, con aviso de 120 minutos. Calendario Xiaomi y Google Calendar lo muestran. Reprogramar conserva el mismo evento y cancelar lo quita, ambos en segundos o pocos minutos | El camino gestionado cumple lo que promete cuando la cuenta ya sincroniza |
+| Samsung sin la app Google Calendar: al agregar la cuenta, Android deja «Calendario» activado pero sólo corre la inicialización. A los 8 minutos seguía sin calendarios, incluso abriendo Calendario Samsung. Con «Sincronizar ahora» en la cuenta, aparecieron y llegó el evento | **Depende de que esa cuenta ya sincronice.** Una cuenta recién agregada puede tardar hasta la sincronización periódica, de un día. El texto de la página («Sirve si usás esa cuenta en tu calendario») no promete más, y el archivo sigue siendo la alternativa principal |
+| Si la misma cuenta ya autorizó y no hay conexión guardada, Google no entrega permiso duradero sin consentimiento | La app vuelve a pedir el acceso con consentimiento, una sola vez |
 
 ## 4.3 Comportamiento real de Zoho (medido el 5 de noviembre)
 
