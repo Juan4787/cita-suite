@@ -1625,7 +1625,7 @@
 						<p class="mt-3 text-sm text-fg-70 bk-muted">También estamos quitando el evento de tu cuenta Google.</p>
 					{:else}
 						<p class="mt-3 text-sm text-fg-70 bk-muted">
-							Si lo guardaste en tu calendario, borralo desde ahí: este cambio no lo quita solo.
+							Si guardaste el archivo en tu calendario, borralo desde ahí: ese evento no se quita solo.
 						</p>
 					{/if}
 				</section>

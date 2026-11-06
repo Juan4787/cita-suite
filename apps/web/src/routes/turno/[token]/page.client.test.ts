@@ -1057,6 +1057,9 @@ describe('turno cancelado', () => {
 		});
 
 		expect(screen.getByRole('heading', { name: 'Turno cancelado' })).toBeInTheDocument();
+		// Quien conectó su cuenta Google ya no tiene el evento: el texto habla sólo del archivo.
+		expect(screen.getByText(/Si guardaste el archivo en tu calendario/)).toBeInTheDocument();
+		expect(screen.queryByText(/este cambio no lo quita solo/)).not.toBeInTheDocument();
 		expect(screen.queryByRole('heading', { name: 'Acciones' })).not.toBeInTheDocument();
 		expect(screen.queryByText('Cancelar turno')).not.toBeInTheDocument();
 	});

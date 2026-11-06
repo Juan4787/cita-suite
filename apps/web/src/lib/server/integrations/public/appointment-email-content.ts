@@ -178,8 +178,9 @@ export const buildAppointmentEmail = (
 		depositLines.push('Esto no es un comprobante de pago: el consultorio registra la seña cuando recibe la transferencia.');
 	}
 	const closing: string[] = [];
-	if (work.purpose === 'reschedule_receipt') closing.push('Si habías guardado el turno en tu calendario, borrá el evento anterior y guardá el nuevo.');
-	if (cancelled) closing.push('Si lo habías guardado en tu calendario, podés borrarlo desde ahí.');
+	// Sólo el archivo queda viejo: quien conectó su cuenta Google no debe borrar un evento ya actualizado.
+	if (work.purpose === 'reschedule_receipt') closing.push('Si guardaste el archivo en tu calendario, borrá el evento anterior y guardá el nuevo. Si conectaste tu cuenta Google, ese evento se actualiza solo.');
+	if (cancelled) closing.push('Si guardaste el archivo en tu calendario, borralo desde ahí. Si conectaste tu cuenta Google, ese evento se quita solo.');
 
 	const footer = [
 		`Recibís este correo porque tenés un turno en ${businessName}.`,

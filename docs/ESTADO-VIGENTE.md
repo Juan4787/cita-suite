@@ -36,6 +36,8 @@ El chequeo compara esta lista con `git diff --name-status <produccion_revision> 
 
 ```codigo-distinto-de-produccion
 M	apps/web/src/lib/components/appointments/PublicAppointmentPage.svelte
+M	apps/web/src/lib/server/integrations/public/appointment-email-content.test.ts
+M	apps/web/src/lib/server/integrations/public/appointment-email-content.ts
 M	apps/web/src/lib/server/integrations/public/zoho-email.test.ts
 M	apps/web/src/lib/server/integrations/public/zoho-email.ts
 M	apps/web/src/lib/server/scheduling/public/patient-management-flow.test.ts
