@@ -342,6 +342,15 @@
 	{#if form?.message}
 		<p class={form?.success === true ? 'ux-alert ux-alert-success' : 'ux-alert'} role="status">{form.message}</p>
 	{/if}
+	{#if data.emailWarnings?.length}
+		<section class="ux-alert ux-alert-warning" aria-labelledby="email-warnings-title" data-master-email-warnings>
+			<h2 id="email-warnings-title" class="font-bold">Correo de los turnos</h2>
+			<ul class="mt-2 grid gap-1">
+				{#each data.emailWarnings as warning (warning.message)}<li>{warning.message}</li>{/each}
+			</ul>
+			<a class="mt-3 inline-block font-semibold underline" href="/odonto/maestro/correo">Revisar el correo de los turnos</a>
+		</section>
+	{/if}
 	{#if data.loadError}
 		<p class="ux-alert">{data.loadError}</p>
 	{/if}
@@ -461,7 +470,10 @@
 			<div>
 				<h2 id="tools-title" class="text-2xl font-bold text-fg">Herramientas administrativas</h2>
 				<p class="mt-2 text-sm text-fg-55">Se mantienen fuera del flujo diario para que no compitan con la gestión de accesos.</p>
-				<a class="ux-btn-secondary mt-4" href="/odonto/maestro/almacenamiento">Administrar espacio para documentos</a>
+				<div class="mt-4 flex flex-wrap gap-3">
+					<a class="ux-btn-secondary" href="/odonto/maestro/almacenamiento">Administrar espacio para documentos</a>
+					<a class="ux-btn-secondary" href="/odonto/maestro/correo">Correo de los turnos</a>
+				</div>
 			</div>
 
 			<div class="mt-6 grid gap-4 lg:grid-cols-2">

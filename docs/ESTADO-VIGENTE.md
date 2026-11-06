@@ -87,6 +87,8 @@ A	apps/web/src/lib/server/integrations/public/appointment-email.test.ts
 A	apps/web/src/lib/server/integrations/public/appointment-email.ts
 A	apps/web/src/lib/server/integrations/public/calendar-tracking.test.ts
 M	apps/web/src/lib/server/integrations/public/calendar-tracking.ts
+A	apps/web/src/lib/server/integrations/public/email-operations.test.ts
+A	apps/web/src/lib/server/integrations/public/email-operations.ts
 A	apps/web/src/lib/server/integrations/public/google-calendar-leases.test.ts
 M	apps/web/src/lib/server/integrations/public/google-calendar.test.ts
 M	apps/web/src/lib/server/integrations/public/google-calendar.ts
@@ -188,6 +190,13 @@ A	apps/web/src/routes/odonto/configuracion/correo/+page.server.ts
 A	apps/web/src/routes/odonto/configuracion/correo/+page.svelte
 A	apps/web/src/routes/odonto/configuracion/correo/email-settings.server.test.ts
 A	apps/web/src/routes/odonto/configuracion/correo/page.client.test.ts
+M	apps/web/src/routes/odonto/maestro/+page.server.ts
+M	apps/web/src/routes/odonto/maestro/+page.svelte
+A	apps/web/src/routes/odonto/maestro/correo/+page.server.ts
+A	apps/web/src/routes/odonto/maestro/correo/+page.svelte
+A	apps/web/src/routes/odonto/maestro/correo/email-operations.server.test.ts
+A	apps/web/src/routes/odonto/maestro/correo/page.client.test.ts
+M	apps/web/src/routes/odonto/maestro/maestro-load.server.test.ts
 M	apps/web/src/routes/odonto/pacientes/[id]/+page.svelte
 M	apps/web/src/routes/odonto/recordatorios/+page.server.ts
 M	apps/web/src/routes/odonto/recordatorios/+page.svelte
