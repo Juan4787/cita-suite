@@ -139,6 +139,9 @@ test('@candidate-behavior late deposit: native recording, lost response recovery
   await page.goto(path);
   await page.getByText('Registrar dinero después de cancelar',{ exact: true }).click();
   const recordForm = page.locator('#late-deposit-record form');
+  // Opened before hydration on purpose: hydrating must not close what the person opened.
+  await expect(recordForm).toHaveAttribute('data-fixture-enhanced','true');
+  await expect(recordForm.getByRole('button',{ name: 'Registrar dinero recibido',exact: true })).toBeVisible();
   await recordForm.getByLabel('Importe recibido, en pesos',{ exact: true }).fill('25.000');
   await recordForm.getByLabel('Nota del registro (opcional)',{ exact: true }).fill('Segundo ingreso sintético');
   await recordForm.getByRole('checkbox').check();

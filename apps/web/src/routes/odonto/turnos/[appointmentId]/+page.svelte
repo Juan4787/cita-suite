@@ -1,5 +1,6 @@
 <script lang="ts">
-	import {formatQuotedPrice} from '$lib/booking/pricing';
+	import type { AppointmentEmailDelivery } from '$lib/scheduling/email-policy';
+import {formatQuotedPrice} from '$lib/booking/pricing';
 	import BackLink from '$lib/components/BackLink.svelte';
 	import { formatDateTime } from '$lib/utils/format';
 	import { refineDeviceClass, type DeviceClass } from '$lib/device';
@@ -62,6 +63,30 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@cita-suite/share
 	let localFeedback = $state<StaffManagementFeedback | null>(null);
  let feedbackElement = $state<HTMLElement | null>(null);
  const feedback = $derived(localFeedback ?? form);
+ const emailPurposeLabels: Record<AppointmentEmailDelivery['purpose'], string> = {
+  booking_receipt: 'Comprobante de reserva', reschedule_receipt: 'Comprobante de cambio', cancellation_receipt: 'Comprobante de cancelación',
+  deposit_request: 'Pedido de seña', reminder_72h: 'Recordatorio de 72 horas', reminder_24h: 'Recordatorio de 24 horas'
+ };
+ const emailDiscardLabels: Record<string, string> = {
+  no_recipient: 'el paciente no tiene correo', invalid_recipient: 'la dirección no es válida', suppressed: 'esa dirección pidió no recibir correos',
+  email_disabled: 'los correos están apagados', expired: 'ya no era útil', superseded_schedule: 'el horario cambió', appointment_cancelled: 'el turno se canceló',
+  appointment_started: 'el turno ya empezó', deposit_not_pending: 'la seña ya no está pendiente', covered_by_receipt: 'ya estaba en el comprobante',
+  not_cancelled: 'el turno volvió a estar vigente', operator_dismissed: 'lo descartó el consultorio'
+ };
+ // "Accepted" and "delivered" are what the provider reports. Neither means the patient read it.
+ const emailStateLabel = (delivery: AppointmentEmailDelivery) => {
+  switch (delivery.state) {
+   case 'pending': case 'retry': return 'En cola';
+   case 'sending': return 'Enviándose';
+   case 'accepted': return 'Aceptado por el proveedor';
+   case 'delivered': return 'Entregado al servidor del destinatario';
+   case 'uncertain': return 'En comprobación';
+   case 'failed': return 'No se pudo enviar';
+   case 'bounced': return 'Rebotó: revisá la dirección';
+   case 'complained': return 'El destinatario lo marcó como no deseado';
+   case 'discarded': return `No se envió: ${emailDiscardLabels[delivery.discardReason ?? ''] ?? 'ya no correspondía'}`;
+  }
+ };
  $effect(() => { if (feedback?.message) feedbackElement?.focus(); });
  const canOperate = $derived(data.context.canOperate && !data.demo);
 	const isClosed = $derived(data.appointment?.status === 'cancelled');
@@ -633,7 +658,7 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@cita-suite/share
     <section class="ux-soft-card mt-5 p-5" aria-labelledby="deposit-financials-title">
      <h2 id="deposit-financials-title" class="ux-section-title">Importes registrados</h2>
      {#if isClosed && data.deposit && data.canRecordDeposit && !data.demo && data.management}
-      <details id="late-deposit-record" class="mt-5 border-t border-line pt-4" open={!!feedback?.lateDepositDraft}>
+      <details id="late-deposit-record" class="mt-5 border-t border-line pt-4" {...(feedback?.lateDepositDraft ? { open: true } : {})}>
        <summary class="cursor-pointer text-base font-semibold text-accent">Registrar dinero después de cancelar</summary>
        <form method="POST" action="?/late_deposit" use:enhance={onStaffAction} class="mt-4">
         <fieldset class="flex flex-col gap-4" disabled={!canOperate || submitting || !!feedback?.retry}>
@@ -695,6 +720,44 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@cita-suite/share
       </ul>
      {/if}
      {#if data.depositFinancials.latePaymentsTruncated}<p class="mt-3 text-sm text-fg-65">Se muestran los últimos 50 registros. El total incluye todos.</p>{/if}
+    </section>
+   {/if}
+
+   {#if data.management && canOperate && !isClosed}
+    <details class="mt-5" data-revoke-links>
+     <summary class="cursor-pointer text-sm font-semibold text-accent">Invalidar los enlaces enviados al paciente</summary>
+     <form method="POST" action="?/revoke_links" use:enhance class="mt-3 flex flex-col gap-3">
+      <p class="text-sm text-fg-65">Usalo si un enlace llegó a otra persona. Los enlaces ya enviados dejan de permitir cancelar o reprogramar. El turno no cambia y los próximos avisos llevan un enlace nuevo.</p>
+      <input type="hidden" name="expected_revision" value={data.management.revision} />
+      <div><button class="ux-btn ux-btn-secondary">Invalidar enlaces</button></div>
+     </form>
+    </details>
+   {/if}
+
+   {#if data.emailDeliveries?.length}
+    <section class="ux-soft-card mt-5 p-5" aria-labelledby="email-deliveries-title" data-email-deliveries>
+     <h2 id="email-deliveries-title" class="ux-section-title">Correos de este turno</h2>
+     <ul class="mt-3 divide-y divide-line">
+      {#each data.emailDeliveries as delivery (delivery.id)}
+       <li class="py-3">
+        <p class="font-semibold">{emailPurposeLabels[delivery.purpose]}</p>
+        <p class="mt-1 text-sm text-fg-65">{emailStateLabel(delivery)}{delivery.recipient ? ` · ${delivery.recipient}` : ''}</p>
+        {#if delivery.state === 'uncertain' && canOperate}
+         <p class="mt-2 text-sm text-fg-65">No sabemos si salió. Si lo reenviás, el paciente podría recibirlo dos veces.</p>
+         <div class="mt-2 flex flex-wrap gap-2">
+          <form method="POST" action="?/email_delivery" use:enhance>
+           <input type="hidden" name="delivery_id" value={delivery.id} /><input type="hidden" name="decision" value="resend" />
+           <button class="ux-btn ux-btn-secondary">Reenviar igual</button>
+          </form>
+          <form method="POST" action="?/email_delivery" use:enhance>
+           <input type="hidden" name="delivery_id" value={delivery.id} /><input type="hidden" name="decision" value="dismiss" />
+           <button class="ux-btn ux-btn-secondary">Dejarlo así</button>
+          </form>
+         </div>
+        {/if}
+       </li>
+      {/each}
+     </ul>
     </section>
    {/if}
 

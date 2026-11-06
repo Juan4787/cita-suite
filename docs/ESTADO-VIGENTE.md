@@ -106,6 +106,7 @@ M	apps/web/src/lib/server/scheduling/public/deposits.test.ts
 M	apps/web/src/lib/server/scheduling/public/deposits.ts
 A	apps/web/src/lib/server/scheduling/public/email-policy.test.ts
 A	apps/web/src/lib/server/scheduling/public/email-policy.ts
+A	apps/web/src/lib/server/scheduling/public/email-status.ts
 A	apps/web/src/lib/server/scheduling/public/late-deposits.test.ts
 A	apps/web/src/lib/server/scheduling/public/late-deposits.ts
 A	apps/web/src/lib/server/scheduling/public/patient-management-flow.test.ts
