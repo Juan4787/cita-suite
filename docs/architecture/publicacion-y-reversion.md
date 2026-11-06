@@ -330,7 +330,7 @@ NODE_OPTIONS=--max-old-space-size=192 node scripts/deploy-production-workers.mjs
 
 8. Interruptores: `reschedule_enabled` y `email_producer_enabled` en `private.appointment_management_runtime`; `GOOGLE_CALENDAR_MANAGED_ENABLED` como secreto. El correo de Natalia no sale: su consultorio no tiene remitente hasta que Juan decida.
 9. Webhook de Zoho: la clave se genera en un archivo privado local y se carga como secreto del Worker. Juan la pega en el panel (agente → Webhooks → URL `https://app.cita-suite.com.ar/api/zoho/webhook` → clave → Configure) y usa «Send Test».
-10. `docs/ESTADO-VIGENTE.md` y `node scripts/check-repo-sync.mjs` en el mismo paso.
+10. En el mismo paso: la instantánea publicada entra a la historia de `main` sin cambiar su árbol (`git merge -s ours --no-ff <instantánea>`), se actualiza `docs/ESTADO-VIGENTE.md`, se sube a GitHub y se corre `node scripts/check-repo-sync.mjs`.
 
 **Si algo falla:**
 - **Antes del paso 4:** la base no cambió. Se reinstala el programador con `scheduler`. Ese comando instala el programador del árbol verificado, no el de V12b, pero V12b atiende todas sus categorías salvo `email`: a esa le responde 404, sin ningún efecto, hasta que se publique la app. Reseñas sigue cada 10 minutos y cargas pasa de 15 a 10.

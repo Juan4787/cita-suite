@@ -10,13 +10,13 @@ Se actualiza después de cada bloque con resultado. Es el único lugar con el «
 
 | Campo | Valor |
 |---|---|
-| Fecha | 5 de noviembre de 2026, noche (Argentina) |
+| Fecha | 6 de noviembre de 2026 (Argentina) |
 | Revisión de partida | `main` `d3f7553c`, igual a GitHub; producción V12b `771fac59`, versión `277d332d`, comprobada con `/_app/version.json` y `wrangler deployments list` |
-| Fase | Implementación en `main`, sin publicar. Commits `7879258d` (SN14: la hidratación cerraba el `<details>`), `a87a99d3` (correo: migración `20261106010000`, suite `appointment_email_delivery.sql`, Zoho, webhook, baja, cron), `b5118ca0` (recorrido Android sin bucles ni marca), `51f17310` (tipos, colores muertos, retención independiente del control de almacenamiento) |
-| Corridas | SQL `42138251057` aprobada sobre el esquema actual; tipos oficiales importados de ella. Fast `42138891773` falló por 4 errores de tipos propios (corregidos en `51f17310`); fast `42140758143` en curso (rama `verify/avisos-fast3-20261106`). Pendiente: browser SN14 completo y recorridos nuevos |
+| Fase | Implementación en `main`, sin publicar. Candidata `e2f83de8`, instantánea `bdd361fb`, paquete 42172574076. Cerrados en código: correo, operación del crédito (ZH04), recorrido Android, SN14 y formularios nativos en páginas con enlace de gestión |
+| Corridas | SQL 42147347019 aprobada (tipos oficiales importados). Primera corrida de navegador sobre el paquete 42148994475 falló y sirvió: encontró el defecto de `Origin: null` y pruebas viejas. Fast 42172723192 y navegador completo 42172753292 en curso sobre la candidata. Ensayo de migraciones contra producción repetido con staging migrado: 0 fallas, 0 diferencias salvo 4 disparadores de plataforma en `storage.buckets` |
 | Datos sintéticos abiertos en producción | Práctica de dispositivo `78f3c48dedc7`: limpiar con `node scripts/production-device-push.mjs cleanup 78f3c48dedc7` |
-| Ajustes de teléfonos a restaurar | Xiaomi: `stay_on_while_plugged_in` estaba en 0; permiso de notificaciones de Chrome estaba denegado por el usuario, y quedó igual después de las pruebas; origen `app.cita-suite.com.ar` quedó concedido. Samsung: origen de la sonda concedido. El evento sintético guardado por error en Hotmail ya se borró (el proveedor de calendario no lo devuelve) |
-| Siguiente acción | Carreras SQL de correo en ambos órdenes, pruebas de rutas (webhook, baja, configuración, detalle), secretos exigidos por la publicación, frase «Limited Use»; después browser en CI, recuperación compatible y publicación. Quedan físicos para la versión nueva: Google gestionado y manual en teléfonos, Apple por TestKase, push con Chrome cerrado |
+| Ajustes de teléfonos a restaurar | Xiaomi: `stay_on_while_plugged_in` estaba en 0 y hoy vale 7; permiso de notificaciones de Chrome estaba denegado por el usuario, y quedó igual después de las pruebas; origen `app.cita-suite.com.ar` quedó concedido. Samsung: origen de la sonda concedido. El evento sintético guardado por error en Hotmail ya se borró (el proveedor de calendario no lo devuelve) |
+| Siguiente acción | Si el navegador aprueba: publicar según D7 y la guía. Después: clave del webhook en Zoho (la pega Juan), consultorio sintético con remitente, recepción real por propósito, pruebas físicas, TestKase, medición de CPU y video de Google |
 
 ## 1. Resultado que hay que entregar
 
@@ -62,6 +62,7 @@ Hechos comprobados el 5 de noviembre, que condicionan el diseño:
 - **Zoho:** envío `POST https://cpaas.zoho.com/v1.1/email`, autenticación `Zoho-enczapikey`. Registros y administración usan OAuth, no la clave de envío. Los webhooks **sólo se configuran desde el panel**. La API no expone saldo ni cupo. `client_reference` llega en los webhooks y en el detalle del registro.
 - **Token de `wrangler`:** sin permiso de DNS. Los registros de cada consultorio se cargan desde el panel de Cloudflare en el Chrome conectado, con la sesión de Juan, o los carga Juan.
 - **Extensión de Chrome:** conectada desde el 5 de noviembre a la noche. Google Cloud tiene sesión y se puede leer: marca verificada, acceso a datos sin verificar. Cloudflare quedó con sesión de Juan esa misma noche. Zoho no tiene sesión en ese Chrome, y la extensión además negó capturar `accounts.zoho.com`/`cpaas.zoho.com`. El agente no ingresa contraseñas: iniciar sesión y permitir el dominio lo hace Juan.
+- **SvelteKit:** `csrf.checkOrigin` está marcado como obsoleto en favor de `trustedOrigins`, que no admite excepciones por ruta. Se mantiene apagado porque el filtro propio replica la regla con dos excepciones exactas; al actualizar SvelteKit más allá de su retiro hay que revisarlo.
 - **Google:** el video debe mostrar el flujo en inglés, el nombre de la app, el `client_id` en la barra de direcciones y el uso de cada permiso. No se modifica la marca durante la revisión.
 - **TestKase:** hay iPhones reales disponibles. Falta comprobar si permite llegar a Apple Calendar antes de gastar minutos.
 

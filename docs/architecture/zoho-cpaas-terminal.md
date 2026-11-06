@@ -56,3 +56,24 @@ Para revocar, retirar el acceso del Self Client en Zoho Accounts/API Console. Bo
 - [Regiones de CPaaS](https://www.zoho.com/cpaas/help/api/multiple-data-centers.html).
 
 Continuación funcional en la [especificación de E](../plans/etapa-e-correo-autogestion.md), su [registro](../plans/registro-senas-avisos-natalia.md#zoho-terminal-registro) y su [traspaso](../plans/traspaso-senas-avisos-natalia.md#etapa-e-punto).
+
+## Integración del correo de turnos (6 de noviembre)
+
+**Qué se comprobó con la API real** está en la [sección 4.3 del plan](../plans/plan-integral-avisos-20261105.md#43-comportamiento-real-de-zoho-medido-el-5-de-noviembre). Esta sección dice cómo se opera.
+
+**Secretos del Worker `app`:**
+- `ZOHO_CPAAS_API_KEY`: clave de envío del agente. Se toma de `~/.local/share/cita-suite/zoho/apikeys-latest.json` y se carga por la entrada estándar de `wrangler secret put`, sin imprimirla.
+- `ZOHO_CPAAS_WEBHOOK_KEY`: se genera en `~/.config/cita-suite/private/zoho-webhook-key.txt`. El panel la pide escrita, así que la pega Juan desde ese archivo: el agente no escribe claves en formularios de terceros.
+
+**Webhook:** agente → Webhooks → URL `https://app.cita-suite.com.ar/api/zoho/webhook` → clave de autenticación → Configure. «Send Test» sólo simula rebotes, aperturas y clics; «entregado» y las quejas se comprueban con un envío real. La firma cubre el contenido, y la marca de tiempo sólo se usa para rechazar notificaciones viejas.
+
+**Preparar el remitente de un consultorio.** La API de dominios no funciona para esto (plan 4.3), así que se hace desde el panel:
+1. Elegir con Juan un subdominio de `cita-suite.com.ar`. No se admiten nombres reservados como `app`, `avisos` o `admin`.
+2. En Zoho, agregar el dominio al agente y copiar sus dos registros.
+3. En Cloudflare, cargar el TXT DKIM y el CNAME `bounce-zem`, sin proxy.
+4. Verificar en Zoho.
+5. Registrar en la base con `operator_set_business_email_sender(consultorio, dominio, 'verified', clave_de_dominio, correo_de_respuesta)`.
+
+El consultorio queda listo cuando tiene dominio verificado y correo de respuesta; hasta entonces no sale ningún correo suyo y la configuración lo dice.
+
+**Crédito:** Zoho no informa saldo ni vencimiento por API. Cada compra se registra en `/odonto/maestro/correo`, y la app avisa desde 14 días antes del vencimiento o al quedar un décimo del crédito. El primer crédito vence el 3 de diciembre de 2026. La compra la hace Juan.

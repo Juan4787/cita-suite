@@ -252,6 +252,7 @@ M	packages/shared/src/scheduled-jobs.ts
 A	scripts/check-repo-sync.mjs
 M	scripts/lib/production-deploy.mjs
 M	scripts/package-verification-evidence.py
+A	scripts/production-email-practice.mjs
 M	scripts/test-booking-foundation.mjs
 M	scripts/test-verification-evidence.py
 A	scripts/verify-production-auth-ux.mjs

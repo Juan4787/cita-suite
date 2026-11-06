@@ -1521,4 +1521,10 @@ Pedido vigente en plan 12.24. Se revisaron los ocho SQL E, sus lectores/comandos
   - Clases inexistentes (`ux-btn`) y colores sin uso que dejó el recorrido viejo.
 - **Falsa alarma registrada:** se sospechó que un paciente podía mover su turno a una hora fuera de agenda. El servidor recalcula los horarios del día y rechaza uno no ofrecido; ya tenía pruebas.
 - **Pendiente:** paquete y navegador completo sobre el paquete, publicación según D7, webhook de Zoho (la clave la pega Juan), recepción real por propósito, pruebas físicas y verificación de Google.
+- **Navegador completo sobre el paquete 42148778112, corrida 42148994475: 48 aprobadas, 20 fallidas, 7 sin correr.** Fue la primera vez que E corrió entera sobre el paquete de producción; las corridas anteriores usaban selecciones y el servidor de desarrollo, donde el control de origen no actúa. Causas:
+  - **Defecto real de producto:** las páginas con enlace de gestión usaban `Referrer-Policy: no-referrer`, y con esa política el navegador envía `Origin: null` en un formulario sin JavaScript. El control de origen lo rechazaba, igual que el de SvelteKit: cancelar o guardar información sin JavaScript no habría funcionado nunca en producción. Corregido en `e2f83de8` con `same-origin`, que tampoco envía la dirección a otros sitios.
+  - **Pruebas viejas:** correo obligatorio por defecto, continuación explícita «Continuar sin email» y un formulario del personal que ahora responde en segundo plano.
+  - **Arnés:** 3 intentos de reserva por conexión compartidos por toda la suite, y horarios fijos que chocaban con reservas de otras pruebas según la hora del día.
+  - **Arrastre:** Playwright reinicia el trabajador tras cada falla y pierde la sesión en memoria; cada falla consumió un ingreso hasta llegar al límite real de 5 cada 15 minutos.
+- **Ensayo de migraciones:** con staging migrado (42171614740), la transacción aplicada sobre el esquema de producción deja el mismo catálogo que las migraciones solas, salvo 4 disparadores de plataforma en `storage.buckets`. Recibos en `.verification/production-migration-rehearsal-*.json`.
 
