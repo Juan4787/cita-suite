@@ -35,6 +35,42 @@ Autorización de implementación, pruebas y publicación vigente: [plan 12.32](p
 El chequeo compara esta lista con `git diff --name-status <produccion_revision> HEAD` sobre el código (`apps`, `packages`, `scripts`, `supabase` y los archivos de configuración de la raíz, sin `apps/web/output`). Tiene que coincidir exactamente.
 
 ```codigo-distinto-de-produccion
+```
+
+No hay código distinto de producción. Cuando vuelva a haberlo, cada archivo se lista arriba y se explica acá si afecta a producción.
+
+`supabase/templates/recovery.html` no se despliega con la app: se carga aparte en Supabase. **No está verificado** si la versión de Supabase coincide con ese archivo.
+
+## Historia
+
+- **El 2 de noviembre se unieron en `main` las historias que habían divergido.** Ningún commit se perdió.
+
+  | Historia | Revisión |
+  |---|---|
+  | `origin/main` | `4352f8a` |
+  | Rama local `refactor/maintainability-20261015` | `80268e2` |
+  | Línea publicada en producción | `771fac5`, V12b |
+  | Ramas de GitHub `refactor/targeted-performance-20261025` y `refactor/targeted-performance-origin-20261025` | `5930f73` |
+
+  - Las ramas de rendimiento tienen su código idéntico al actual.
+  - Lo único que no aparece literal es un «Punto vigente» intermedio del 25 de octubre, cuyo resultado final está en `939b4dd` y en los documentos actuales.
+
+- **Cómo se había llegado a la divergencia:**
+  - la línea de producción nació el 15 de octubre de una copia de `c4a2417`, el primer commit local, y siguió en el repositorio de verificación, con 352 commits;
+  - `origin/main` recibió el 24 y el 25 de octubre una foto de ese trabajo y sus registros de capacidad;
+  - la rama local quedó congelada, con el trabajo posterior sin commitear.
+- **No había dos planes en conflicto.** De los 1.568 archivos de `origin/main`:
+  - 1.374 eran idénticos al estado actual;
+  - en 189, la versión de `main` era una anterior que pasó por producción y fue reemplazada;
+  - 5 eran documentos con estados viejos, que se conservan en los actuales como «Antecedente»;
+  - ninguno faltaba.
+
+  El plan vigente es `docs/plans/refactorizacion-cita-suite.md`, en `main`.
+- **Respaldo de los estados anteriores:** ramas locales `archivo/local-20261015` (`80268e2`) y `archivo/origin-main-20261102` (`4352f8a`). Las dos están en la historia de `main`.
+
+## Ramas fuera de `main`
+
+El chequeo falla si una rama local o de GitHub no está en la historia de `main` y tampoco está en esta lista.
 
 ```ramas-fuera-de-main
 codex/pending-session-recovery
