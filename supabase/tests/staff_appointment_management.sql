@@ -1,7 +1,7 @@
 -- Operator agenda writes: current identity/permission, observed revision,
 -- durable recovery and all-or-nothing effects. Owned disposable DB only.
 begin;
-select extensions.plan(25);
+select extensions.plan(28);
 create temporary table staff_agenda_fixture(label text primary key,id uuid not null,extra jsonb);
 grant select on staff_agenda_fixture to authenticated;
 create function pg_temp.said(p_label text) returns uuid language sql as $$ select id from staff_agenda_fixture where label=p_label $$;
@@ -143,6 +143,28 @@ do $$ declare before_sequence integer; rev text:=pg_temp.sarev('cancel'); begin
   or exists(select 1 from public.appointment_deposit_requirements where appointment_id=pg_temp.said('cancel') and allocation='forfeited') then raise exception 'STAFF_CANCEL_MONEY'; end if;
 end $$;
 select extensions.pass('11. Staff cancellation advances calendar sequence and preserves paid money as unresolved');
+select pg_temp.sacase('started');
+do $$ declare before jsonb; rev text; op uuid:=gen_random_uuid(); begin
+ update public.appointments set starts_at=clock_timestamp()-interval '5 minutes',ends_at=clock_timestamp()+interval '25 minutes' where id=pg_temp.said('started');
+ rev:=pg_temp.sarev('started'); before:=pg_temp.sastate('started');
+ begin perform pg_temp.sacall('started',op,rev,'cancel'); raise exception 'STAFF_STARTED_CANCELLED';
+ exception when others then if sqlerrm<>'APPOINTMENT_ALREADY_STARTED' then raise; end if; end;
+ if pg_temp.sastate('started') is distinct from before then raise exception 'STAFF_STARTED_EFFECT'; end if;
+end $$;
+select extensions.pass('11a. An appointment that already started is not cancelled, and the refusal leaves no effect');
+do $$ declare result jsonb; rev text:=pg_temp.sarev('started'); begin
+ result:=pg_temp.sacall('started',gen_random_uuid(),rev,'reschedule',date_trunc('hour',clock_timestamp())+interval '40 days 3 hours',pg_temp.sacfg());
+ if result->>'status' is distinct from 'reserved' then raise exception 'STAFF_STARTED_RESCHEDULE'; end if;
+end $$;
+select extensions.pass('11b. A past appointment can still move to a future time');
+select pg_temp.sacase('late_replay');
+do $$ declare rev text:=pg_temp.sarev('late_replay'); op uuid:=gen_random_uuid(); first_result jsonb; second_result jsonb; begin
+ first_result:=pg_temp.sacall('late_replay',op,rev,'cancel');
+ update public.appointments set starts_at=clock_timestamp()-interval '1 hour',ends_at=clock_timestamp()-interval '30 minutes' where id=pg_temp.said('late_replay');
+ second_result:=pg_temp.sacall('late_replay',op,rev,'cancel');
+ if (second_result->>'idempotent_replay')::boolean is distinct from true or second_result->>'status' is distinct from 'cancelled' then raise exception 'STAFF_LATE_REPLAY'; end if;
+end $$;
+select extensions.pass('11c. The receipt of a cancellation made in time is still recoverable after the start time');
 do $$ declare actor uuid; before jsonb:=pg_temp.sastate('pending'); begin
  foreach actor in array array[pg_temp.said('professional_user'),pg_temp.said('readonly'),pg_temp.said('outsider')] loop
   begin perform pg_temp.sacall('pending',gen_random_uuid(),pg_temp.sarev('pending'),'cancel',null,null,actor); raise exception 'STAFF_ROLE_BYPASS';

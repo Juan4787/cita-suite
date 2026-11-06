@@ -93,6 +93,58 @@ afterEach(() => {
 	vi.unstubAllGlobals();
 });
 
+describe('cancelling from the detail', () => {
+ const future = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+ const past = new Date(Date.now() - 3 * 60 * 60 * 1000);
+ const at = (start: Date) => ({ ...appointment,starts_at: start.toISOString(),ends_at: new Date(start.getTime() + 30 * 60 * 1000).toISOString() });
+ const reception: PageData = { ...data,justCreated: false,context: { canOperate: true,role: 'reception' },appointment: at(future) };
+ const paid: NonNullable<PageData['deposit']> = { appointment_id: appointment.id,status: 'paid',amount: 40000,currency: 'ARS',
+  request_from: '2026-08-13T00:00:00Z',due_at: '2026-08-18T15:00:00Z',auto_cancel: false,waived_reason: null,
+  recorded_at: '2026-08-14T12:00:00Z',reminder_opened_at: null,expired_at: null,revision: 2,cancelsItself: false };
+ it('offers reception a confirmation that says what happens to the slot, the money and the patient', () => {
+  const { container } = render(Page,{ data: { ...reception,deposit: paid } });
+  const panel = container.querySelector<HTMLDetailsElement>('[data-cancel-panel]')!;
+  panel.open = true;
+  expect(panel).toHaveTextContent('Vas a cancelar el turno de Paciente de prueba');
+  expect(panel).toHaveTextContent('El horario queda libre para otra reserva.');
+  expect(panel).toHaveTextContent('La seña de $ 40.000 queda por resolver con el paciente. Cancelar no registra una devolución.');
+  expect(panel).toHaveTextContent('El paciente no tiene correo cargado: avisale por otro medio.');
+  const form = panel.querySelector<HTMLFormElement>('form[action="?/update_status"]')!;
+  expect(new FormData(form).get('status')).toBe('cancelled');
+  expect(new FormData(form).get('operation_id')).toBe(data.management!.statusOperationId);
+  expect(screen.getByRole('checkbox',{ name: 'Confirmo que quiero cancelar este turno.' })).toBeRequired();
+  expect(container.querySelector('[data-started-notice]')).not.toBeInTheDocument();
+ });
+ it('says that a past appointment passed and why it has no cancellation, instead of hiding it in silence', () => {
+  const { container } = render(Page,{ data: { ...reception,appointment: at(past) } });
+  expect(container.querySelector('[data-cancel-panel]')).not.toBeInTheDocument();
+  expect(container.querySelector('form[action="?/update_status"]')).not.toBeInTheDocument();
+  expect(container.querySelector('[data-started-badge]')).toHaveTextContent('Turno pasado');
+  expect(container.querySelector('[data-started-notice]')).toHaveTextContent('Este turno ya pasó. Por eso no se puede cancelar. Si el paciente necesita otro horario, podés reprogramarlo.');
+ });
+ it('tells an appointment in progress apart from one that is over', () => {
+  const { container } = render(Page,{ data: { ...reception,appointment: at(new Date(Date.now() - 5 * 60 * 1000)) } });
+  expect(container.querySelector('[data-started-badge]')).toHaveTextContent('En curso');
+  expect(container.querySelector('[data-started-notice]')).toHaveTextContent('Este turno ya empezó. Por eso no se puede cancelar.');
+ });
+ it('shows neither the form nor the instructions to a role that cannot operate', () => {
+  for (const role of ['professional','readonly']) {
+   const { container,unmount } = render(Page,{ data: { ...reception,context: { canOperate: false,role },appointment: at(future) } });
+   expect(container.querySelector('[data-cancel-panel]')).not.toBeInTheDocument();
+   unmount();
+   const pastView = render(Page,{ data: { ...reception,context: { canOperate: false,role },appointment: at(past) } });
+   expect(pastView.container.querySelector('[data-started-notice]')).toHaveTextContent('Este turno ya pasó.');
+   expect(pastView.container.querySelector('[data-started-notice]')).not.toHaveTextContent('cancelar');
+   pastView.unmount();
+  }
+ });
+ it('never marks a cancelled appointment as past', () => {
+  const { container } = render(Page,{ data: { ...reception,appointment: { ...at(past),status: 'cancelled' } } });
+  expect(container.querySelector('[data-started-badge]')).not.toBeInTheDocument();
+  expect(container.querySelector('[data-started-notice]')).not.toBeInTheDocument();
+ });
+});
+
 describe('money after cancellation', () => {
  const deposit: NonNullable<PageData['deposit']> = { appointment_id: appointment.id,status: 'expired',amount: 40000,currency: 'ARS',
   request_from: '2026-08-13T00:00:00Z',due_at: '2026-08-18T15:00:00Z',auto_cancel: true,waived_reason: null,

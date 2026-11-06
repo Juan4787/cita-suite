@@ -9,7 +9,7 @@ import type { RequestHandler } from './$types';
 // Notifications are small. A bound keeps an unauthenticated caller from making the Worker read more.
 const ZOHO_WEBHOOK_MAX_BODY_BYTES = 64 * 1024;
 
-// The panel's verification only needs this URL to answer.
+// Answers a plain visit. The panel verifies the URL with a POST, handled below.
 export const GET: RequestHandler = () => json({ ok: true });
 
 // Receipts are stored before answering success, so a repeated notification changes nothing and a

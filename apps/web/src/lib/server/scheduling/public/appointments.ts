@@ -137,6 +137,8 @@ export const getHumanAppointmentErrorMessage = (error: unknown) => {
 
  if (raw.includes('APPOINTMENT_MANAGEMENT_CHANGED') || raw.includes('APPOINTMENT_OPERATION_CONFLICT'))
   return 'Este turno cambió desde que lo abriste. Revisá su estado actual antes de volver a confirmar.';
+ if (raw.includes('APPOINTMENT_ALREADY_STARTED'))
+  return 'Este turno ya empezó, así que no se puede cancelar. Actualizá la página para ver su estado.';
  if (raw.includes('APPOINTMENT_AVAILABILITY_CHANGED') || raw.includes('APPOINTMENT_SLOT_UNAVAILABLE'))
   return 'Los horarios disponibles cambiaron. Recargá el turno y elegí otra opción.';
  if (raw.includes('APPOINTMENT_MANAGEMENT_FORBIDDEN') || raw.includes('DEPOSIT_FORBIDDEN') || raw.includes('DEPOSIT_BUSINESS_UNAVAILABLE') || candidate.code === '42501')

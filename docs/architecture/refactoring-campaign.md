@@ -2,7 +2,7 @@
 
 La fuente de verdad es el [plan aprobado íntegro](../plans/refactorizacion-cita-suite.md). Este documento inicial no lo reemplaza. El avance y las evidencias se mantienen exclusivamente en el [registro separado](../plans/registro-refactorizacion-cita-suite.md).
 
-Estado vigente: campaña en ejecución en rama `refactor/maintainability-20261015`, con verificaciones pesadas descartables en GitHub Actions. Todavía no publicada. El 17 de octubre el usuario amplió expresamente la autorización a publicación, pruebas masivas y auditoría en producción; consultar la ampliación literal del [plan](../plans/refactorizacion-cita-suite.md). Siguen vigentes los pasos previos de ensayo aislado, respaldo/recuperación, staging y release, la preservación de datos reales, Workers Free, ninguna contratación y la restricción de RAM. Los registros de inicio siguientes conservan su carácter histórico.
+Antecedente, con el estado de entonces (lo vigente está en [ESTADO-VIGENTE](../ESTADO-VIGENTE.md)): campaña en ejecución en rama `refactor/maintainability-20261015`, con verificaciones pesadas descartables en GitHub Actions. Sin publicar en ese momento. El 17 de octubre el usuario amplió expresamente la autorización a publicación, pruebas masivas y auditoría en producción; consultar la ampliación literal del [plan](../plans/refactorizacion-cita-suite.md). Siguen vigentes los pasos previos de ensayo aislado, respaldo/recuperación, staging y release, la preservación de datos reales, Workers Free, ninguna contratación y la restricción de RAM. Los registros de inicio siguientes conservan su carácter histórico.
 
 ## Base y preservación
 

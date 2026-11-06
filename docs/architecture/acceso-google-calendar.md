@@ -95,6 +95,6 @@ Al recibir el dominio, retomar desde este punto:
 El procedimiento con comandos y valores concretos se completará al conocer el dominio, proveedor y configuración efectiva. No inventar registros DNS o URLs de retorno antes de ese dato. Evidencia de esta decisión: `.verification/domain-purchase-pending-user-20261024.json`; continuación vigente en `docs/plans/traspaso-refactorizacion-cita-suite.md` y registro separado.
 
 
-## Cambio E sin publicar — 4 de noviembre
+## Cambio E del 4 de noviembre (publicado el 6 de noviembre)
 
 [Plan 12.27](../plans/propuesta-senas-avisos-natalia.md): quitar un turno elimina su evento y la credencial local si no tiene más vínculos, sin llamar a la revocación global de permisos de Google. Una nueva autorización puede ocurrir después del commit SQL; revocar el token anterior podría invalidarla. Se conserva el flujo explícito de consentimiento renovado y la posibilidad de retirar permisos desde la cuenta Google. 65 pruebas modeladas de consumidores/callback; sin nueva autorización o revocación real durante este cambio. Estado integrado y evidencia en [E1.90](../plans/ejecucion-etapa-e-20261103.md). Los recibos publicados anteriores describen su comportamiento histórico.

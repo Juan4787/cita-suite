@@ -19,7 +19,7 @@
 	import { clippedSlide } from '$lib/ui/clipped-slide';
 	import {
 		ACTIVE_APPOINTMENT_STATUSES,
-		isExpiredActiveAppointment,
+		hasAppointmentStarted,
 		isUpcomingActiveAppointment,
 		splitActiveAppointmentGroups
 	} from '$lib/utils/appointment-visibility';
@@ -361,11 +361,11 @@
 				? ', seña recibida'
 				: '';
 	const appointmentStatusLabel = (appointment: Pick<Appointment, 'starts_at' | 'status' | 'appointment_deposits'>) =>
-		isExpiredActiveAppointment(appointment)
-			? 'Expirado'
+		hasAppointmentStarted(appointment)
+			? 'Turno pasado'
 			: `${statusLabels[appointment.status] ?? appointment.status}${depositSuffix(appointment)}`;
 	const appointmentStatusTone = (appointment: Pick<Appointment, 'starts_at' | 'status' | 'appointment_deposits'>) =>
-		isExpiredActiveAppointment(appointment) || depositSuffix(appointment) === ', seña pendiente'
+		hasAppointmentStarted(appointment) || depositSuffix(appointment) === ', seña pendiente'
 			? 'ux-badge ux-badge-warning'
 			: (statusTone[appointment.status] ?? 'ux-badge');
 	// «3 señas para pedir, 1 vence en menos de 24 horas»: one line, only what has something to do.
@@ -871,7 +871,7 @@
 					{/if}
 					{#if displayGroups.past.length > 0}
 						<div>
-							<p class="text-xs font-bold uppercase tracking-wide text-copy-subtle">Expirados</p>
+							<p class="text-xs font-bold uppercase tracking-wide text-copy-subtle">Turnos pasados</p>
 							<div class="mt-2 grid gap-3">
 								{#each displayGroups.past as appointment (appointment.id)}
 									{@render appointmentRow(appointment, true)}

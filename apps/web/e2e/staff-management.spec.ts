@@ -112,7 +112,7 @@ test('@candidate-behavior staff management: coherent observation, stale write, u
   await nativePage.locator('summary').filter({ hasText:'Cancelar turno' }).click();
   await nativePage.getByRole('checkbox',{ name:'Confirmo que quiero cancelar este turno.' }).check();
   await nativePage.getByRole('button',{ name:'Cancelar turno',exact:true }).click();
-  await expect(nativePage.getByRole('status')).toContainText('El cambio del turno quedó registrado');
+  await expect(nativePage.getByRole('status')).toContainText('El turno quedó cancelado');
   expect((await must(f.admin.from('appointments').select('status').eq('id',noJsId).single())).status).toBe('cancelled');
   await expect(nativePage.locator('form[action="?/update_status"], form[action="?/reschedule"]')).toHaveCount(0);
   expect(issues).toEqual([]);

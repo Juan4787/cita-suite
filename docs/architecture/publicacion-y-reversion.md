@@ -1,8 +1,20 @@
 # Publicación y reversión
 
-## Último estado comprobado — cuarta versión de E: 6 de noviembre de 2026, 16:40 hora argentina (19:40 UTC)
+## Último estado comprobado — quinta versión de E: 6 de noviembre de 2026, 18:00 hora argentina (21:00 UTC)
 
-**Producción sirve** la instantánea `10e268177681940509f4d59b86fd104c9d01b6c7` de `main` `311c2d09`, Worker `app`, versión de Cloudflare **`ea417ba0-4d1e-4e0b-a932-44de58f40bdd`**. 164 migraciones, sin cambios de base ni del programador.
+**La única vuelta atrás vigente es la de este apartado.** Las de los apartados siguientes son historia.
+
+**Producción sirve** la instantánea `93b711a13fd107ef1d4cd5ecfde064fe37c52259` de `main` `f459b95c`, Worker `app`, versión de Cloudflare **`eb1e8cf8-a8bd-4964-bfc0-66bd6c63a1f2`**. 164 migraciones, sin cambios de base ni del programador.
+
+**Qué corrige:** el lector de eventos de Zoho reconoce `email_delivery` y `fbl_compliant`, y toma `processed_time` cuando el evento no trae hora propia.
+
+**Verificación sobre la revisión exacta:** SQL 42289086004, paquete 42289073906, `fast` 42289995256 y navegador 42290663360 con 76 de 76. `verify-production-release.mjs` aprobado. Después de publicar, una firma válida recibió `200` y una inválida `401`.
+
+**Vuelta atrás:** `wrangler rollback a8e1bea1-7aab-47fe-ba2d-e60176c702f3`, código de la cuarta versión con la clave vigente del webhook, sin este lector. No se ensayó: la última vuelta atrás ensayada fue con la tercera versión. Una versión más vieja vuelve con una clave anterior y rechaza los eventos firmados hasta recargarla. Nunca una versión anterior a E.
+
+## Estado anterior — cuarta versión de E: 6 de noviembre de 2026, 16:40 hora argentina (19:40 UTC)
+
+**Sirvió** la instantánea `10e268177681940509f4d59b86fd104c9d01b6c7` de `main` `311c2d09`, Worker `app`, versión de Cloudflare **`ea417ba0-4d1e-4e0b-a932-44de58f40bdd`**. 164 migraciones, sin cambios de base ni del programador. Con el mismo código, los cambios de clave crearon las versiones `d9580343-7468-45dc-8a2d-beee21bfcbd5` y `a8e1bea1-7aab-47fe-ba2d-e60176c702f3`.
 
 **Qué corrige:** un POST sin firma al webhook de Zoho recibe `200` y no se guarda, porque el panel verifica la URL con una muestra sin firma y sólo acepta `200`. Una firma inválida sigue dando `401`.
 
@@ -12,7 +24,7 @@
 
 ## Estado anterior — tercera versión de E: 6 de noviembre de 2026, 09:12 hora argentina (12:12 UTC)
 
-**Producción sirve** la instantánea `fed61f5d9d81f821df180486c73aa07d04408f56` de `main` `83b8155e`, Worker `app`, versión de Cloudflare **`50c8570c-149d-43ea-8f42-f0d2e1496d1b`**. 164 migraciones.
+**Sirvió** la instantánea `fed61f5d9d81f821df180486c73aa07d04408f56` de `main` `83b8155e`, Worker `app`, versión de Cloudflare **`50c8570c-149d-43ea-8f42-f0d2e1496d1b`**. 164 migraciones.
 
 **Qué corrige:** la migración `20261106030000_email_staff_actor.sql`, porque decidir sobre un correo en comprobación y guardar el contacto de respuesta fallaban para todo el personal. El código de la app es el de la segunda versión.
 
@@ -62,7 +74,7 @@ V12b `771fac5950c532b1123f11d4dde93eef9b42ceba`, Worker `app`, versión de Cloud
 
 ## Estado anterior — V12, modo claro: 2 de noviembre de 2026, 11:46 hora argentina (14:46 UTC)
 
-**Producción sirve V12** `c21a19839c814a8a5f476cb522a13273a10f89c4`, Worker `app`, versión de Cloudflare **`f18a80f2-fd65-4ffc-b92f-fc0101d4f85f`**, en `app.cita-suite.com.ar` y en `app.cita-suite.workers.dev`.
+**Sirvió V12** `c21a19839c814a8a5f476cb522a13273a10f89c4`, Worker `app`, versión de Cloudflare **`f18a80f2-fd65-4ffc-b92f-fc0101d4f85f`**, en `app.cita-suite.com.ar` y en `app.cita-suite.workers.dev`.
 
 **Qué es V12:** V11f más el modo claro, que pasa a ser el predeterminado, conservando el oscuro.
 - Selector Claro, Oscuro y Automático, con la preferencia por dispositivo en la cookie `cita-theme`.
@@ -100,7 +112,7 @@ Revisión `72d59ab00db67a8502ca560c762c61e6cfac1923`, de la campaña del 1 de no
 
 ## Estado anterior — V10b, 1 de noviembre de 2026, 07:31 hora argentina (10:31 UTC)
 
-**Producción sirve V10b** `68f31741f6ff7f2253c036800b1369f1eda16510`, Worker `app`, versión de Cloudflare **`1d2b4acd-7dd8-4cb7-81e3-a205bafe9f8d`**, en `app.cita-suite.com.ar` y en `app.cita-suite.workers.dev`. V10b es V9 más:
+**Sirvió V10b** `68f31741f6ff7f2253c036800b1369f1eda16510`, Worker `app`, versión de Cloudflare **`1d2b4acd-7dd8-4cb7-81e3-a205bafe9f8d`**, en `app.cita-suite.com.ar` y en `app.cita-suite.workers.dev`. V10b es V9 más:
 - la vista aparte de consultorios archivados en el panel maestro;
 - el rubro «medicina»;
 - preguntas de opciones de hasta 40;
@@ -369,7 +381,7 @@ NODE_OPTIONS=--max-old-space-size=192 node scripts/deploy-production-workers.mjs
 ```
 
 8. Interruptores: `reschedule_enabled` y `email_producer_enabled` en `private.appointment_management_runtime`; `GOOGLE_CALENDAR_MANAGED_ENABLED` como secreto. El correo de Natalia no sale: su consultorio no tiene remitente hasta que Juan decida.
-9. Webhook de Zoho: la clave se genera en un archivo privado local y se carga como secreto del Worker. En el panel: agente → Webhooks → «Configurar webhook» → URL `https://app.cita-suite.com.ar/api/zoho/webhook` → Verificar → las cuatro casillas de correo → Agregar. La clave se carga después, con «Clave de autenticación»: sin webhook creado el panel no muestra ese botón, y admite como máximo 50 caracteres. Al verificar, Zoho envía un POST de ejemplo sin firma y sólo acepta `200`; por eso un pedido sin firma recibe `200` y no se guarda, y una firma inválida recibe `401`. Cloudflare tiene una Configuration Rule, «Webhook de Zoho», que apaga Browser Integrity Check sólo para esa ruta.
+9. Webhook de Zoho: la clave se genera en un archivo privado local y se carga como secreto del Worker. En el panel: agente → Webhooks → «Configurar webhook» → URL `https://app.cita-suite.com.ar/api/zoho/webhook` → Verificar → las cuatro casillas de correo → Agregar. La clave se carga después, con «Clave de autenticación»: sin webhook creado el panel no muestra ese botón, y admite como máximo 50 caracteres. Rechazó una clave con guiones y aceptó una de 32 letras y números. Al verificar, Zoho envía un POST de ejemplo sin firma y sólo acepta `200`; por eso un pedido sin firma recibe `200` y no se guarda, y una firma inválida recibe `401`. Cloudflare tiene una Configuration Rule, «Webhook de Zoho», que apaga Browser Integrity Check sólo para esa ruta. No fue la causa del «URL cannot be reached» y, medido desde esta máquina, el agente `Webhook` de Zoho pasa sin ella; se conserva por precaución y puede retirarse.
 10. En el mismo paso: la instantánea publicada entra a la historia de `main` sin cambiar su árbol (`git merge -s ours --no-ff <instantánea>`), se actualiza `docs/ESTADO-VIGENTE.md`, se sube a GitHub y se corre `node scripts/check-repo-sync.mjs`.
 
 **Si algo falla:**
@@ -378,10 +390,10 @@ NODE_OPTIONS=--max-old-space-size=192 node scripts/deploy-production-workers.mjs
 - **Después del paso 4:** no se vuelve a V12b. Se apaga el interruptor del canal afectado, o se detiene el programador, y se corrige hacia adelante con el mismo circuito. Desde la segunda versión de E, `wrangler rollback` a la versión E anterior verificada es válido.
 - **Último recurso:** restaurar el respaldo del paso 2 en un proyecto nuevo ([procedimiento](respaldo-y-recuperacion.md#restaurar-en-un-proyecto-nuevo)) con V12b. Pierde lo escrito después del respaldo e invalida las sesiones. Antes de elegirlo se cuentan los datos reales que se perderían.
 
-## E — publicación futura, aún sin ejecutar (2 de noviembre)
+## E — previsión del 2 y 3 de noviembre (antecedente: E se publicó el 6 de noviembre)
 
 La [especificación de E](../plans/etapa-e-correo-autogestion.md) requiere migraciones aditivas, proyección actual de seña compatible y controles para productores/consumidores de correo. Los procedimientos anteriores no prueban recuperación con historia de varias señas o eventos de E. Al implementarse, comprobar específicamente ese estado y documentar qué automatización se detiene antes de volver; no elegir una recuperación antigua sólo por haber sido válida para A/B/C.
 
 En este paso no hubo cambios de aplicación/base, secretos, DNS, envíos ni publicación. La versión productiva sigue siendo la del estado vigente y Juan dará después la instrucción para empezar.
 
-Desarrollo de E, 3 de noviembre (sin aplicar): .100 cierra UPDATE autenticado de agenda. Una recuperación posterior a aplicarla debe conservar los consumidores del comando .090 y los controles de las obligaciones existentes; V12b sola no satisface ese contrato. La recuperación E se comprobará sobre su esquema/historia/colas antes de publicar, sin reabrir escrituras sin auditoría para simular compatibilidad. Producción actual conserva su recuperación V12b documentada.
+Desarrollo de E, 3 de noviembre (entonces sin aplicar): .100 cierra UPDATE autenticado de agenda. Una recuperación posterior a aplicarla debe conservar los consumidores del comando .090 y los controles de las obligaciones existentes; V12b sola no satisface ese contrato. La recuperación E se comprobará sobre su esquema/historia/colas antes de publicar, sin reabrir escrituras sin auditoría para simular compatibilidad. Producción actual conserva su recuperación V12b documentada.

@@ -26,6 +26,14 @@ describe('staff original form and outcome', () => {
    .toMatchObject({ success: false, retry: undefined });
   expect(rpc).not.toHaveBeenCalled();
  });
+ it('names the cancellation, and refuses one that arrives after the start with a reason and no retry', async () => {
+  expect(await submitStaffManagementAction(reader as never,input,'update_status',form()))
+   .toMatchObject({ success: true, message: 'El turno quedó cancelado.' });
+  rpc.mockImplementation(async (_: string, args: { p_replay_only: boolean }) =>
+   args.p_replay_only ? { data: null, error: null } : { data: null, error: { message: 'APPOINTMENT_ALREADY_STARTED', code: 'P0001' } });
+  expect(await submitStaffManagementAction(reader as never,input,'update_status',form()))
+   .toMatchObject({ success: false, retry: undefined, message: 'Este turno ya empezó, así que no se puede cancelar. Actualizá la página para ver su estado.' });
+ });
  it('preserves the exact original payload after a lost command response, then recovers it once', async () => {
   rpc.mockResolvedValueOnce({ data: null,error: null }).mockRejectedValueOnce(new TypeError('fetch failed'));
   const uncertain = await submitStaffManagementAction(reader as never,input,'update_status',form());

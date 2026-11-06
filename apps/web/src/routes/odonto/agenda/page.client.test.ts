@@ -140,7 +140,7 @@ describe('buscador incremental de Agenda', () => {
 });
 
 describe('señas en la agenda', () => {
-	// A turn later today, so the label is the stored status and never «Expirado».
+	// A turn later today, so the label is the stored status and never «Turno pasado».
 	const upcoming = (id: string, status: string, depositStatus: string | null) => ({
 		...appointment(id, `Paciente ${id}`),
 		starts_at: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
@@ -186,6 +186,15 @@ describe('señas en la agenda', () => {
 		expect(pending).toHaveClass('ux-badge-warning');
 		expect(screen.getByText('Confirmado, seña recibida')).toBeInTheDocument();
 		expect(screen.getByText('Reservado')).toBeInTheDocument();
+	});
+
+	it('marca el turno que ya pasó, y sin acciones de seña', () => {
+		const past = { ...upcoming('p', 'reserved', 'pending'),
+			starts_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+			ends_at: new Date(Date.now() - 1.5 * 60 * 60 * 1000).toISOString() };
+		render(Page, { data: { ...data, context: { ...data.context, canOperate: true }, canRecordDeposit: true, appointments: [past] } as never });
+		expect(screen.getByText('Turno pasado')).toHaveClass('ux-badge-warning');
+		expect(document.querySelector('[data-agenda-deposit]')).toBeNull();
 	});
 
 	it('avisa qué hacer con las señas en una sola línea, con el enlace a la lista', () => {

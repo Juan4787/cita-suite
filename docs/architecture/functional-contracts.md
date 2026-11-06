@@ -72,7 +72,7 @@ Estos consumidores y su descomposición son parte de la matriz de cierre de etap
 
 ## Señas: contratos de la campaña del 29 de octubre de 2026
 
-Fuente: [plan aprobado de señas y avisos](../plans/propuesta-senas-avisos-natalia.md), incluidas sus correcciones y autorización posterior. Estado y evidencia: su [registro](../plans/registro-senas-avisos-natalia.md). A/B/C están publicadas y verificadas desde el 30 de octubre; evidencia por requisito en el [cierre](../plans/cierre-senas-avisos-natalia.md). Los datos pendientes de Natalia conservan su estado; D celular fue reemplazada por P3 interna; P1/P2/P3 están pospuestas por 12.26, sin iniciarlas al cerrar E; E tiene [definición revisada con Zoho](../plans/etapa-e-correo-autogestion.md) y ejecución completa autorizada después en [12.20](../plans/propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada); [preparación y continuidad](../plans/ejecucion-etapa-e-20261103.md) en curso. No está publicada.
+Fuente: [plan aprobado de señas y avisos](../plans/propuesta-senas-avisos-natalia.md), incluidas sus correcciones y autorización posterior. Estado y evidencia: su [registro](../plans/registro-senas-avisos-natalia.md). A/B/C están publicadas y verificadas desde el 30 de octubre; evidencia por requisito en el [cierre](../plans/cierre-senas-avisos-natalia.md). Los datos pendientes de Natalia conservan su estado; D celular fue reemplazada por P3 interna; P1, P2 y P3 se reanudaron por 12.34, con su [seguimiento propio](../plans/tareas-posteriores-a-e-20261103.md); E tiene [definición revisada con Zoho](../plans/etapa-e-correo-autogestion.md) y ejecución completa autorizada después en [12.20](../plans/propuesta-senas-avisos-natalia.md#ejecucion-e-autorizada); [preparación y continuidad](../plans/ejecucion-etapa-e-20261103.md) en curso. No está publicada.
 
 - `lib/scheduling/deposits.ts` contiene la proyección validada, secciones y textos; no calcula fechas ni montos de negocio. SQL es la única autoridad de esas reglas.
 - `scheduling/public/deposits.ts` llama a `set_appointment_deposit`, `open_appointment_deposit_reminder`, `save_deposit_policy` y las lecturas. Una respuesta desconocida o incompleta falla explícitamente. Las condiciones por día exigen exactamente una respuesta por horario, sin duplicados, montos fraccionarios ni vencimientos inválidos. Si la carga no puede calcularlas, el resumen dice que se comprobarán al terminar y no bloquea la reserva (ajustes 3 y 4 del plan).
@@ -95,7 +95,11 @@ Fuente: [plan aprobado de señas y avisos](../plans/propuesta-senas-avisos-natal
 - «Dar este horario» precarga día local, profesional, prestación y hora. Una prestación retirada exige elegir otra vigente; una hora ya ocupada vuelve a las opciones actuales. Los filtros de agenda se conservan al cambiar rango, página u ocultar; un resultado de ocultar no abre crear turno. Demo no escribe ni ofrece reasignación real.
 - Pruebas: `appointment_slot_releases.sql`, `slot-releases.test.ts`, `SlotReleaseAlerts.client.test.ts`, `ManualAppointmentWizard.client.test.ts` y `appointment-slot-releases.spec.ts`. La existencia del spec no acredita su ejecución: evidencia y pendientes en el registro de la campaña. Release, staging y producción siguen separados de la prueba descartable.
 
-## E — implementación parcial, todavía sin publicar (3 de noviembre)
+## E — notas de desarrollo (3 a 5 de noviembre; publicadas el 6 de noviembre)
+
+Las notas siguientes conservan su fecha y su estado de entonces: donde dicen «sin publicar», hoy ya está publicado. Vigente en el [estado](../ESTADO-VIGENTE.md).
+
+**Webhook de Zoho:** `/api/zoho/webhook`. Sin firma responde `200` y no guarda, porque el panel verifica la URL así; con firma inválida responde `401`; sólo una firma válida llega a `record_email_provider_event`. Si la clave falta o queda mal cargada, los eventos se pierden sin reintento y sólo queda un aviso en el registro. [Plan 12.33](../plans/propuesta-senas-avisos-natalia.md#webhook-zoho-20261106).
 
 Fuente única: [especificación de E](../plans/etapa-e-correo-autogestion.md), incorporada por [plan 12.18](../plans/propuesta-senas-avisos-natalia.md#etapa-e-vigente). Los contratos de A/B/C anteriores describen lo publicado; la nueva exigencia y el destino de señas al reprogramar por iniciativa del paciente no están activos.
 

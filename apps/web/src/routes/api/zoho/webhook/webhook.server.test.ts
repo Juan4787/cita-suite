@@ -2,8 +2,8 @@ import crypto from 'node:crypto';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // The route with its real signature check, parser and body bound. Only the database is a double,
-// so this proves what is stored and when the provider is told to retry; the real notification
-// shape is confirmed separately with the panel's test send.
+// so this proves what is stored and when the provider is told to retry; the real shapes
+// come from the panel's samples and one real delivery.
 const envState = vi.hoisted(() => ({ privateEnv: {} as Record<string, string | undefined> }));
 const mocks = vi.hoisted(() => ({ createSupabaseAdminClient: vi.fn(), rpc: vi.fn() }));
 
