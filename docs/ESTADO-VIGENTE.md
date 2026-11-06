@@ -45,7 +45,7 @@ M	apps/web/src/routes/api/zoho/webhook/webhook.server.test.ts
 
 `supabase/templates/recovery.html` no se despliega con la app: se carga aparte en Supabase. **No está verificado** si la versión de Supabase coincide con ese archivo.
 
-Estos dos archivos sólo cambian comentarios, para que digan lo que el código hace. Entran en la próxima publicación.
+Estos cuatro archivos sólo cambian comentarios o documentación, sin efecto en lo que corre. Entran en la próxima publicación.
 
 ## Historia
 
