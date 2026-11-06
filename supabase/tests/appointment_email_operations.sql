@@ -82,6 +82,7 @@ select extensions.ok((select (value->>'producer_enabled_at')::timestamptz>(selec
 -- functions reached production storing a role in a uuid, and failed for everyone.
 do $$ declare r uuid:=gen_random_uuid(); x uuid:=gen_random_uuid(); b uuid:=pg_temp.oid('business');
 begin
+ update public.business_subscriptions set commercial_access_enabled=true,is_permanent=true,subscription_status='active',paid_until=null,grace_until=null,restricted_until=null,archived_at=null where business_id=b;
  insert into auth.users(id,email) values(r,'ops-reception-'||r||'@example.test'),(x,'ops-outsider-'||x||'@example.test');
  insert into public.business_users(business_id,user_id,role,status,accepted_at) values(b,r,'reception','active',now());
  insert into ops_fixture values('reception',r),('outsider',x);
