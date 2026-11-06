@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { formatDuration } from '$lib/utils/format';
 	import { onDestroy } from 'svelte';
+	import { styledDate } from '$lib/ui/styled-controls';
 	import type { BusinessRole } from '$lib/access/contracts';
 	import { isRecord } from '$lib/contracts/json';
 	import {
@@ -833,7 +834,7 @@
 								<div class="grid gap-4 sm:grid-cols-2">
 									<label>
 										<span class="ux-label">Fecha</span>
-										<input type="date" bind:value={exceptionDate} disabled={!canManage} class="ux-input" />
+										<input use:styledDate={exceptionDate} type="date" bind:value={exceptionDate} disabled={!canManage} class="ux-input" />
 									</label>
 									<label>
 										<span class="ux-label">Horario</span>
@@ -844,11 +845,11 @@
 								<div class="grid gap-4 sm:grid-cols-2">
 									<label>
 										<span class="ux-label">Desde</span>
-										<input type="date" bind:value={exceptionDateFrom} disabled={!canManage} class="ux-input" />
+										<input use:styledDate={exceptionDateFrom} type="date" bind:value={exceptionDateFrom} disabled={!canManage} class="ux-input" />
 									</label>
 									<label>
 										<span class="ux-label">Hasta</span>
-										<input type="date" min={exceptionDateFrom} bind:value={exceptionDateTo} disabled={!canManage} class="ux-input" />
+										<input use:styledDate={exceptionDateTo} type="date" min={exceptionDateFrom} bind:value={exceptionDateTo} disabled={!canManage} class="ux-input" />
 									</label>
 								</div>
 								<p class="rounded-2xl border border-accent-300-20 bg-accent-400-10 px-4 py-3 text-sm font-bold text-accent-100">

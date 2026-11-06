@@ -30,9 +30,9 @@
 </script>
 
 <svelte:head><title>Correo y autogestión · Cita Suite</title></svelte:head>
-<section class="ux-page email-settings">
- <header class="ux-hero">
-  <BackLink href="/odonto/configuracion" label="Volver" class="mb-5" />
+<section class="ux-page mx-auto w-full max-w-5xl email-settings">
+ <header>
+  <BackLink href="/odonto/configuracion" label="Configuración" class="mb-5" />
   <h1 class="ux-title">Correo y autogestión</h1>
   <p class="ux-subtitle">Comprobantes, recordatorios y condiciones para cambiar un turno.</p>
  </header>
@@ -107,6 +107,5 @@
  </form>
 </section>
 <style>
- .email-settings { max-width: 52rem; margin-inline: auto; }
  .email-settings :global(.ux-choice span) { min-width: 0; overflow-wrap: anywhere; }
 </style>

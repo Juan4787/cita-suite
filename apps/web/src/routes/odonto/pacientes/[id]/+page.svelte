@@ -1,4 +1,5 @@
 <script lang="ts">
+	import BackLink from '$lib/components/BackLink.svelte';
 	import { createClientReadiness } from '$lib/client/readiness.svelte';
 	const client = createClientReadiness();
 	import type {
@@ -183,11 +184,12 @@
 
 <div class="flex flex-col gap-5">
 	<div class="ux-card">
+		<BackLink href="/odonto/pacientes" label="Atrás" class="mb-4 hidden md:inline-flex" />
 		<!-- The name keeps a 24rem basis: actions sit beside it only when both fit, otherwise they wrap below. -->
 		<div class="flex min-w-0 flex-wrap items-start justify-between gap-4">
 			<div class="flex min-w-0 flex-[1_1_24rem] items-start justify-between gap-3">
 				<div class="min-w-0 space-y-1">
-					<h1 class="break-words text-3xl font-semibold text-fg">
+					<h1 class="ux-title break-words">
 						{data.patient.full_name}
 					</h1>
 				</div>
@@ -205,30 +207,6 @@
 				</button>
 			</div>
 			<div class="hidden min-w-0 md:flex md:flex-wrap md:items-center md:gap-2 [&_.ux-btn-secondary]:shrink-0 [&_.ux-btn-primary]:shrink-0 [&_.ux-btn-danger]:shrink-0">
-				{#if permissions.canArchivePatient}
-					<form method="post" action="?/archive_patient" class="contents" bind:this={archiveForm}>
-						<button disabled={!client.ready}
-							type="submit"
-							class="ux-btn-secondary md:justify-self-start"
-							onclick={(event: MouseEvent) => {
-								event.preventDefault();
-								showArchiveConfirm = true;
-							}}
-						>
-							{isArchived ? 'Desarchivar paciente' : 'Archivar paciente'}
-						</button>
-					</form>
-				{/if}
-				<form method="post" action="?/unarchive_patient" class="hidden" bind:this={unarchiveForm}></form>
-				{#if isProfessional}
-					<button disabled={!client.ready}
-						type="button"
-						class="ux-btn-danger md:col-span-2 md:justify-self-start lg:col-span-1"
-						onclick={() => (showDeleteConfirm = true)}
-					>
-						Eliminar paciente
-					</button>
-				{/if}
 				{#if permissions.canCreateClinicalEntry}
 					<button disabled={!client.ready}
 						class="ux-btn-primary md:col-span-2 md:justify-self-start lg:col-span-1"
@@ -255,27 +233,35 @@
 						+ Agregar seguimiento
 					</button>
 				{/if}
+				{#if permissions.canArchivePatient}
+					<form method="post" action="?/archive_patient" class="contents" bind:this={archiveForm}>
+						<button disabled={!client.ready}
+							type="submit"
+							class="ux-btn-secondary md:justify-self-start"
+							onclick={(event: MouseEvent) => {
+								event.preventDefault();
+								showArchiveConfirm = true;
+							}}
+						>
+							{isArchived ? 'Desarchivar paciente' : 'Archivar paciente'}
+						</button>
+					</form>
+				{/if}
+				<form method="post" action="?/unarchive_patient" class="hidden" bind:this={unarchiveForm}></form>
+				{#if isProfessional}
+					<button disabled={!client.ready}
+						type="button"
+						class="ux-btn-danger md:col-span-2 md:justify-self-start lg:col-span-1"
+						onclick={() => (showDeleteConfirm = true)}
+					>
+						Eliminar paciente
+					</button>
+				{/if}
 			</div>
 		</div>
 		{#if data.bookingInformationEnabled && data.permissions.canReadClinicalProfile}<a class="ux-btn-secondary mt-4" href={`/odonto/pacientes/${data.patient.id}/informacion-previa`}>Información aportada al reservar</a>{/if}
 		<!-- Each section keeps its label on one line and grows to fill its row; no half-empty cells. -->
 		<div class="mt-4 flex flex-wrap gap-2 text-xs sm:text-sm md:items-center md:gap-3">
-			<a
-				href="/odonto/pacientes"
-				class="flex flex-auto items-center justify-center gap-2 whitespace-nowrap rounded-full border px-3 py-2 text-xs font-semibold transition hover:-translate-y-0.5 hover:shadow-card border-line-strong text-copy hover:bg-raised sm:px-4 sm:text-sm md:flex-none"
-			>
-				<svg
-					aria-hidden="true"
-					class="h-4 w-4"
-					fill="none"
-					viewBox="0 0 24 24"
-					stroke="currentColor"
-					stroke-width="2"
-				>
-					<path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
-				</svg>
-				Atrás
-			</a>
 			{#if permissions.canReadClinicalHistory}
 			<button disabled={!client.ready}
 				class={`flex-auto whitespace-nowrap rounded-full px-3 py-2 text-center text-xs font-semibold transition sm:px-4 sm:text-sm md:flex-none ${
@@ -378,7 +364,7 @@
 		/>
 	{/if}
 	{#if permissions.canExportPatientData && !data.demo}
-		<section class="mt-6 rounded-2xl border p-5 shadow-sm border-line-strong bg-surface sm:flex sm:items-center sm:justify-between sm:gap-5" aria-labelledby="patient-export-title">
+		<section class="ux-card mt-5 sm:flex sm:items-center sm:justify-between sm:gap-5" aria-labelledby="patient-export-title">
 			<div class="min-w-0">
 				<h2 id="patient-export-title" class="text-lg font-bold text-fg">Exportar datos de este paciente</h2>
 				<p class="mt-1 text-sm leading-6 text-fg-n300">
@@ -387,7 +373,7 @@
 			</div>
 			<a
 				href={`/odonto/exportar-datos?patient_id=${encodeURIComponent(String(data.patient.id))}`}
-				class="mt-4 inline-flex min-h-11 w-full shrink-0 items-center justify-center rounded-xl border px-4 py-2.5 text-sm font-bold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-accent-600 border-accent-400-35 bg-accent-400-10 text-accent-100 hover:bg-accent-400-15 sm:mt-0 sm:w-auto"
+				class="ux-btn-secondary mt-4 w-full shrink-0 sm:mt-0 sm:w-auto"
 			>
 				Abrir exportación
 			</a>
@@ -505,14 +491,14 @@
 		<div class="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-end">
 			<button disabled={!client.ready}
 				type="button"
-				class="w-full rounded-xl px-4 py-2 text-sm font-semibold text-fg hover:bg-fill-1b2d4b sm:w-auto"
+				class="ux-btn-secondary w-full sm:w-auto"
 				onclick={() => (showArchiveConfirm = false)}
 			>
 				Cancelar
 			</button>
 				<button disabled={!client.ready}
 					type="button"
-					class="w-full rounded-xl bg-info-primary-600 px-4 py-2 text-sm font-semibold text-on-accent shadow-sm transition hover:bg-info-primary-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-info-primary-500 sm:w-auto"
+					class="ux-btn-primary w-full sm:w-auto"
 					onclick={() => {
 						showArchiveConfirm = false;
 					if (isArchived) {
@@ -542,7 +528,7 @@
 		<div class="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-end">
 			<button disabled={!client.ready}
 				type="button"
-				class="w-full rounded-xl px-4 py-2 text-sm font-semibold text-fg hover:bg-fill-1b2d4b sm:w-auto"
+				class="ux-btn-secondary w-full sm:w-auto"
 				onclick={() => {
 					showDeleteConfirm = false;
 				}}
@@ -552,7 +538,7 @@
 			{#if !isProfessional && permissions.canArchivePatient && !isArchived}
 				<button disabled={!client.ready}
 					type="button"
-					class="w-full rounded-xl bg-info-primary-600 px-4 py-2 text-sm font-semibold text-on-accent shadow-sm transition hover:bg-info-primary-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-info-primary-500 sm:w-auto"
+					class="ux-btn-primary w-full sm:w-auto"
 					onclick={() => {
 						showDeleteConfirm = false;
 						showArchiveConfirm = true;

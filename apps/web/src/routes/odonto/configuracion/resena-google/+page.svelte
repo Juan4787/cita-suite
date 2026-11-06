@@ -42,12 +42,12 @@
 	};
 </script>
 
-<section class="ux-page">
-	<div class="ux-hero">
-		<BackLink href="/odonto/configuracion" label="Volver" class="mb-5" />
+<section class="ux-page mx-auto w-full max-w-5xl">
+	<header>
+		<BackLink href="/odonto/configuracion" label="Configuración" class="mb-5" />
 		<h1 class="ux-title">Reseña de Google</h1>
 		<p class="ux-subtitle">Invitá a tus pacientes a compartir su experiencia.</p>
-	</div>
+	</header>
 
 	<form method="post" class="ux-card">
 		<div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">

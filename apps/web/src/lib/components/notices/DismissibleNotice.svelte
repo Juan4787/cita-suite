@@ -78,7 +78,7 @@
 			class="absolute right-2 top-2 inline-flex h-11 w-11 items-center justify-center rounded-xl text-fg-65 transition hover:bg-fill-10 hover:text-fg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-accent-300"
 			onclick={dismiss}
 			aria-label={`Quitar aviso: ${title}`}
-			title="Quitar aviso"
+			data-tip="Quitar aviso"
 		>
 			<svg aria-hidden="true" viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
 				<path d="M6 6l12 12M18 6 6 18" />

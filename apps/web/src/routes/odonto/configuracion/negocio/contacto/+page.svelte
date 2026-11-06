@@ -35,7 +35,7 @@
     }
   }}
 />
-<section class="ux-page mx-auto max-w-4xl">
+<section class="ux-page mx-auto w-full max-w-5xl">
   <header>
     <BackLink
       href="/odonto/configuracion/negocio"

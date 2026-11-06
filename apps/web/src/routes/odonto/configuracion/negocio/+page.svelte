@@ -38,17 +38,12 @@
 	];
 </script>
 
-<section class="ux-page">
-	<div class="ux-hero">
-		<BackLink href="/odonto/configuracion" label="Volver" class="mb-5" />
-		<div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-			<div>
-				<h1 class="ux-title">Datos del consultorio</h1>
-				<p class="ux-subtitle">Nombre, dirección y contacto.</p>
-			</div>
-
-		</div>
-	</div>
+<section class="ux-page mx-auto w-full max-w-5xl">
+	<header>
+		<BackLink href="/odonto/configuracion" label="Configuración" class="mb-5" />
+		<h1 class="ux-title">Datos del consultorio</h1>
+		<p class="ux-subtitle">Nombre, dirección y contacto.</p>
+	</header>
 
 	<a class="inline-flex min-h-11 items-center gap-3 font-semibold underline underline-offset-4" href="/odonto/configuracion/negocio/contacto">Contacto en tu web</a>
 	<form id="datos-visibles" method="post" action="?/update_business" class="ux-card scroll-mt-28">

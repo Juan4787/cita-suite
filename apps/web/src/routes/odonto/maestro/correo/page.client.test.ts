@@ -46,7 +46,7 @@ describe('correo de los turnos', () => {
 		expect(Object.fromEntries(new FormData(sending))).toEqual({ expected_revision: '7', producer_enabled: 'true', daily_limit: '100' });
 		expect(new FormData(credit).get('expected_revision')).toBe('7');
 		expect(screen.getByLabelText('Correos incluidos')).toBeRequired();
-		expect(screen.getByLabelText('Vence el')).toHaveAttribute('type', 'date');
+		expect(document.querySelector('[name="credit_expires_on"]')).toHaveAttribute('type', 'date');
 	});
 
 	it('sin crédito registrado lo dice en lugar de mostrar un saldo', () => {

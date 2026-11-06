@@ -2,6 +2,7 @@
 	import type { PageProps } from './$types';
 
 	import Modal from '$lib/components/Modal.svelte';
+	import { styledSelect } from '$lib/ui/styled-controls';
 	import ConfirmForm from '$lib/components/ConfirmForm.svelte';
 	import { ACCOUNT_ASSISTANCE_OPTIONS, formatAssistanceMoment, type AccountAssistanceKind } from '$lib/access/assistance-durations';
 	import {
@@ -445,7 +446,7 @@
 					</label>
 					<label>
 						<span class="ux-label">Acceso inicial</span>
-						<select name="duration" required class="ux-select">
+						<select use:styledSelect name="duration" required class="ux-select">
 							<option value="" disabled selected>Elegí una duración</option>
 							{#each durationOptions as option}
 								<option value={option.value}>{option.selectLabel}</option>
@@ -657,10 +658,7 @@
 								<input type="hidden" name="idempotency_key" value="" />
 								<label>
 									<span class="ux-label">Tiempo exacto a sumar</span>
-									<select
-										name="duration"
-										class="ux-select"
-										value={durationFor(business.id)}
+									<select use:styledSelect={durationFor(business.id)} name="duration" class="ux-select" value={durationFor(business.id)}
 										onchange={(event) => setDurationFor(business.id, (event.currentTarget as HTMLSelectElement).value)}
 									>
 										{#each timedDurationOptions as option}
@@ -727,7 +725,7 @@
 										<input type="hidden" name="business_id" value={business.id} />
 										<input type="hidden" name="operation" value="reduce_access" />
 										<input type="hidden" name="idempotency_key" value="" />
-										<select name="duration" class="ux-select" aria-label="Tiempo a quitar">
+										<select use:styledSelect name="duration" class="ux-select" aria-label="Tiempo a quitar">
 											{#each timedDurationOptions as option}<option value={option.value}>{option.selectLabel}</option>{/each}
 										</select>
 										<button class="ux-btn-secondary">Quitar tiempo</button>

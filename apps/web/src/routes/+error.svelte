@@ -38,10 +38,14 @@
 		<h1 class="ux-title mt-5">{title}</h1>
 		<p class="ux-subtitle mx-auto">{detail}</p>
 		<div class="mt-6 flex flex-wrap justify-center gap-3">
-			<button type="button" class="ux-btn-primary" onclick={() => window.location.reload()}>
-				Volver a intentar
-			</button>
-			<a href="/" class="ux-btn-secondary">Ir al inicio</a>
+			{#if isNotFound}
+				<a href="/" class="ux-btn-primary">Ir al inicio</a>
+			{:else}
+				<button type="button" class="ux-btn-primary" onclick={() => window.location.reload()}>
+					Volver a intentar
+				</button>
+				<a href="/" class="ux-btn-secondary">Ir al inicio</a>
+			{/if}
 		</div>
 	</section>
 </div>

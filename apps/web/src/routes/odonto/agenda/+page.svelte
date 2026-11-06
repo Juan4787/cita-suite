@@ -17,6 +17,7 @@
 	import { agendaDateOf, agendaShortDayLabel, agendaTime, agendaToday } from '$lib/utils/agenda-dates';
 	import { onDestroy, tick } from 'svelte';
 	import { clippedSlide } from '$lib/ui/clipped-slide';
+	import { styledSelect } from '$lib/ui/styled-controls';
 	import {
 		ACTIVE_APPOINTMENT_STATUSES,
 		hasAppointmentStarted,
@@ -654,11 +655,11 @@
 				</button>
 			{/if}
 			{#if !isToday}
-				<a href={buildAgendaHref(todayStr)} class="ux-btn-secondary">Hoy</a>
+				<a href={buildAgendaHref(todayStr)} class="ux-btn-secondary flex-1 px-3 sm:flex-none sm:px-5">Hoy</a>
 			{/if}
 			<button
 				type="button"
-				class="ux-btn-secondary"
+				class="ux-btn-secondary flex-1 px-3 sm:flex-none sm:px-5"
 				onclick={toggleSearch}
 				disabled={!initialized}
 				onpointerenter={() => void loadLiveSnapshot()}
@@ -666,7 +667,7 @@
 			>
 				{showSearch ? 'Ocultar búsqueda' : 'Buscar'}
 			</button>
-			<a href={weekHref} class="ux-btn-secondary w-full sm:w-auto">Ver semana</a>
+			<a href={weekHref} class="ux-btn-secondary flex-1 px-3 sm:flex-none sm:px-5">Ver semana</a>
 		</div>
 	</div>
 
@@ -760,7 +761,7 @@
 				</div>
 				<label>
 					<span class="ux-label">Profesional</span>
-					<select name="professional_id" class="ux-select" disabled={referencesLoading}>
+					<select use:styledSelect={data.selectedProfessionalId} name="professional_id" class="ux-select" disabled={referencesLoading}>
 						<option value="">Todos</option>
 						{#each professionals as professional}
 							<option value={professional.id} selected={professional.id === data.selectedProfessionalId}>{professional.name}</option>
@@ -769,7 +770,7 @@
 				</label>
 				<label>
 					<span class="ux-label">Servicio</span>
-					<select name="service_id" class="ux-select" disabled={referencesLoading}>
+					<select use:styledSelect={data.selectedServiceId} name="service_id" class="ux-select" disabled={referencesLoading}>
 						<option value="">Todos</option>
 						{#each services as service}
 							<option value={service.id} selected={service.id === data.selectedServiceId}>{service.name}</option>
@@ -778,7 +779,7 @@
 				</label>
 				<label>
 					<span class="ux-label">Estado</span>
-					<select name="status" class="ux-select">
+					<select use:styledSelect={data.selectedStatus} name="status" class="ux-select">
 						<option value="">Todos</option>
 						{#each statusFilterEntries as [value, label]}
 							<option value={value} selected={value === data.selectedStatus}>{label}</option>

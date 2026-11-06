@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { createClientReadiness } from '$lib/client/readiness.svelte';
+	import { styledSelect } from '$lib/ui/styled-controls';
 	const client = createClientReadiness();
 	import { onDestroy } from 'svelte';
 	import type { PatientHistoryEntry } from '$lib/patients/contracts';
@@ -154,7 +155,7 @@
 							<path stroke-linecap="round" stroke-linejoin="round" d="M3 5h18M6 12h12M10 19h4" />
 						</svg>
 					</span>
-					<select disabled={!client.ready}
+					<select use:styledSelect={filterType} disabled={!client.ready}
 						bind:value={filterType}
 						aria-label="Tipo de consulta"
 						class="w-full rounded-full border py-2 pl-9 pr-3 text-sm border-line-strong bg-surface"

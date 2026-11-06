@@ -387,7 +387,7 @@
 						<p class="mt-0.5 break-words text-xs text-slate-400">{metadata}</p>
 					{/if}
 				</div>
-				<button type="button" class="clinical-viewer-close" aria-label="Cerrar visor" title="Cerrar (Esc)" onclick={onclose}>
+				<button type="button" class="clinical-viewer-close" aria-label="Cerrar visor" data-tip="Cerrar (Esc)" onclick={onclose}>
 					<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
 						<path stroke-linecap="round" d="M6 6l12 12M18 6L6 18" />
 					</svg>
@@ -456,7 +456,7 @@
 						type="button"
 						class="clinical-viewer-zoom-button"
 						aria-label="Alejar imagen"
-						title="Alejar (−)"
+						data-tip="Alejar (−)"
 						disabled={zoom <= CLINICAL_VIEWER_MIN_ZOOM + 0.001}
 						onclick={zoomOut}
 					>
@@ -470,7 +470,7 @@
 						type="button"
 						class="clinical-viewer-zoom-button"
 						aria-label="Acercar imagen"
-						title="Acercar (+)"
+						data-tip="Acercar (+)"
 						disabled={zoom >= CLINICAL_VIEWER_MAX_ZOOM - 0.001}
 						onclick={zoomIn}
 					>

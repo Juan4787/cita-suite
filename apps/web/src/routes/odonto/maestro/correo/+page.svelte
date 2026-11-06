@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { PageProps } from './$types';
 	import { enhance } from '$app/forms';
+	import { styledDate } from '$lib/ui/styled-controls';
 	import BackLink from '$lib/components/BackLink.svelte';
 	import type { SubmitFunction } from '@sveltejs/kit';
 
@@ -81,11 +82,11 @@
 			</label>
 			<label class="grid min-w-0 gap-2">
 				<span class="font-semibold">Fecha de compra</span>
-				<input class="ux-input" type="date" name="credit_started_on" required value={today} disabled={pending !== null} />
+				<input use:styledDate class="ux-input" type="date" name="credit_started_on" required value={today} disabled={pending !== null} />
 			</label>
 			<label class="grid min-w-0 gap-2">
 				<span class="font-semibold">Vence el</span>
-				<input class="ux-input" type="date" name="credit_expires_on" required disabled={pending !== null} />
+				<input use:styledDate class="ux-input" type="date" name="credit_expires_on" required disabled={pending !== null} />
 			</label>
 		</div>
 		{#if form?.form === 'credit' && form.message}

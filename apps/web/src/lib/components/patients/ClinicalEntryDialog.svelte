@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { styledSelect } from '$lib/ui/styled-controls';
 	import { onDestroy, untrack } from 'svelte';
 	import type { SubmitFunction } from '@sveltejs/kit';
 	import type { PatientHistoryEntry } from '$lib/patients/contracts';
@@ -168,11 +169,11 @@
 		<div class="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-5">
 			<div class="space-y-2">
 				<label class="text-sm font-semibold text-fg" for={`${prefix}entry_type`}>Tipo de consulta</label>
-				<select
+				<select use:styledSelect={entryType}
 					id={`${prefix}entry_type`}
 					name="entry_type"
 					required
-					class="w-full rounded-xl border px-3 py-2 text-sm shadow-sm outline-none transition focus:border-info-primary-500 focus:ring-2 focus:ring-focus-info-primary-100 border-line-strong bg-surface text-fg placeholder:text-copy-subtle"
+					class="ux-select"
 					bind:value={entryType}
 				>
 					<option value="">Seleccionar</option>
@@ -195,7 +196,7 @@
 				name="description"
 				required
 				rows="4"
-				class="w-full rounded-xl border px-3 py-2 text-sm shadow-sm outline-none transition focus:border-info-primary-500 focus:ring-2 focus:ring-focus-info-primary-100 border-line-strong bg-surface text-fg placeholder:text-copy-subtle"
+				class="ux-textarea"
 				bind:value={description}
 				placeholder="Motivo de consulta, hallazgos, indicaciones..."
 			></textarea>
@@ -206,7 +207,7 @@
 				<input
 					id={`${prefix}teeth`}
 					name="teeth"
-					class="w-full rounded-xl border px-3 py-2 text-sm shadow-sm outline-none transition focus:border-info-primary-500 focus:ring-2 focus:ring-focus-info-primary-100 border-line-strong bg-surface text-fg placeholder:text-copy-subtle"
+					class="ux-input"
 					bind:value={teeth}
 					placeholder="Ej: 11-12"
 				/>
@@ -220,7 +221,7 @@
 						name="amount_display"
 						type="text"
 						inputmode={entry ? "decimal" : "numeric"}
-						class="w-full rounded-xl border px-3 py-2 text-sm shadow-sm outline-none transition focus:border-info-primary-500 focus:ring-2 focus:ring-focus-info-primary-100 border-line-strong bg-surface text-fg placeholder:text-copy-subtle"
+						class="ux-input"
 						value={amountDisplay}
 						oninput={handleAmountChange}
 						placeholder="Ej: 18.000"
@@ -232,7 +233,7 @@
 				<input
 					id={`${prefix}internal_note`}
 					name="internal_note"
-					class="w-full rounded-xl border px-3 py-2 text-sm shadow-sm outline-none transition focus:border-info-primary-500 focus:ring-2 focus:ring-focus-info-primary-100 border-line-strong bg-surface text-fg placeholder:text-copy-subtle"
+					class="ux-input"
 					bind:value={note}
 					placeholder="Ej: recordar control"
 				/>
@@ -246,14 +247,14 @@
 			<button
 				type="button"
 				onclick={() => (open = false)} disabled={saving}
-				class="w-full rounded-xl px-4 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50 text-fg hover:bg-fill-1b2d4b sm:w-auto"
+				class="ux-btn-secondary w-full sm:w-auto"
 			>
 				Cancelar
 			</button>
 			<button
 				type="submit"
 				disabled={saving || uncertain}
-				class="w-full rounded-xl bg-info-primary-600 px-4 py-2 text-sm font-semibold text-on-accent shadow-sm transition hover:bg-info-primary-700 disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-info-primary-500 sm:w-auto"
+				class="ux-btn-primary w-full sm:w-auto"
 			>
 				{saving ? 'Guardando…' : entry ? 'Guardar cambios' : 'Guardar'}
 			</button>

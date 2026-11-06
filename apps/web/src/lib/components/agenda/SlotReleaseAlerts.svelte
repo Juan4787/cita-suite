@@ -1,4 +1,5 @@
 <script lang="ts">
+ import { styledSelect } from '$lib/ui/styled-controls';
  import { SLOT_RELEASE_REASONS, slotReleaseHref, type SlotReleaseListView } from '$lib/scheduling/slot-releases';
  import { formatInTimeZone } from '$lib/utils/format';
  let { list, timezone, canOperate, demo, query = '' }: {
@@ -15,17 +16,20 @@
  };
 </script>
 
-<details id="horarios-liberados" data-slot-release-alert class="ux-soft-card p-4 sm:p-5" open={list.items === null || list.items.length > 0 || list.page > 1}>
- <summary class="flex cursor-pointer list-none flex-wrap items-center justify-between gap-2 font-bold text-warning">
-  <span>Horarios que se liberaron</span>
-  {#if list.items && list.items.length > 0}<span class="ux-badge ux-badge-warning">{list.items.length} en esta página</span>{/if}
+<details id="horarios-liberados" data-slot-release-alert class="ux-disclosure" open={list.items === null || list.items.length > 0 || list.page > 1}>
+ <summary>
+  <span class="flex min-w-0 flex-1 flex-wrap items-center gap-2">
+   <span>Horarios que se liberaron</span>
+   {#if list.items && list.items.length > 0}<span class="ux-badge ux-badge-warning">{list.items.length} en esta página</span>{/if}
+  </span>
  </summary>
- <p class="mt-3 text-sm text-fg-65">Siguen libres al revisar la agenda. Las correcciones de menos de <span class="whitespace-nowrap">30 minutos</span> no generan avisos.</p>
+ <div class="ux-disclosure-body">
+ <p class="text-sm text-fg-65">Siguen libres al revisar la agenda. Las correcciones de menos de <span class="whitespace-nowrap">30 minutos</span> no generan avisos.</p>
  <form method="GET" action="/odonto/agenda#horarios-liberados" class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end">
   {#each preserved as [name, value]}<input type="hidden" {name} {value} />{/each}
   <label class="flex min-w-0 flex-1 flex-col gap-2 text-sm text-fg-70">
    <span>Ver próximos días</span>
-   <select name="dias_liberados" value={String(list.days)} class="ux-input" disabled={demo}>
+   <select use:styledSelect={list.days} name="dias_liberados" value={String(list.days)} class="ux-select" disabled={demo}>
     {#each windows as days}<option value={String(days)}>{days} días</option>{/each}
    </select>
   </label>
@@ -67,4 +71,5 @@
   </nav>
  {/if}
  {#if list.truncated && list.page >= 1001}<p class="mt-3 text-sm text-fg-65">Hay más horarios. Elegí un rango más corto para revisarlos.</p>{/if}
+ </div>
 </details>

@@ -24,9 +24,19 @@ const CONTROLS = ['a', 'button', 'input:not(.ux-native-source):not(.sr-only):not
 	.map((control) => `main ${control}:visible`)
 	.join(', ');
 
+/** Controls drawn by the browser that are really on screen: the styled ones keep a 1 px native source. */
+const nativeControls = (page: Page) => page.evaluate(() =>
+	[...document.querySelectorAll('select, input[type="date"], input[type="month"], input[type="week"], input[type="time"], input[type="datetime-local"], input[type="file"]')]
+		.filter((control) => {
+			const box = control.getBoundingClientRect();
+			return box.width > 2 && box.height > 2 && control.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true });
+		})
+		.map((control) => control.outerHTML.slice(0, 120)));
+
 async function sweep(page: Page, info: TestInfo, screens: Screen[], label: string) {
 	const contrast: (ContrastViolation & Finding)[] = [];
 	const layout: (LayoutIssue & Finding)[] = [];
+	const native: ({ control: string } & Finding)[] = [];
 	const coverage: (Finding & { finalPath: string; passes: number; incomplete: number; worstCase: number })[] = [];
 	const undecided: (UndecidedContrast & Finding)[] = [];
 	for (const theme of ['light', 'dark'] as const) {
@@ -50,18 +60,20 @@ async function sweep(page: Page, info: TestInfo, screens: Screen[], label: strin
 				contrast.push(...result.violations.map((violation) => ({ ...violation, route, theme, viewport })));
 				undecided.push(...result.undecided.map((node) => ({ ...node, route, theme, viewport })));
 				layout.push(...(await layoutIssues(page, CONTROLS, 'main')).map((issue) => ({ ...issue, route, theme, viewport })));
+				native.push(...(await nativeControls(page)).map((control) => ({ control, route, theme, viewport })));
 				const name = `${label}-${route.replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').slice(0, 60)}-${theme}-${viewport}.jpg`;
 				await page.screenshot({ path: info.outputPath(name), type: 'jpeg', quality: 55, fullPage: true, animations: 'disabled' });
 				coverage.push({ route, theme, viewport, finalPath: new URL(page.url()).pathname, passes: result.passes, incomplete: result.incomplete, worstCase: result.worstCase });
 			}
 	}
-	await info.attach(`${label}-coverage`, { body: JSON.stringify({ coverage, contrast, layout, undecided }, null, 2), contentType: 'application/json' });
+	await info.attach(`${label}-coverage`, { body: JSON.stringify({ coverage, contrast, layout, native, undecided }, null, 2), contentType: 'application/json' });
 	const expected = screens.reduce((total, screen) => total + 2 * (typeof screen === 'string' ? VIEWPORTS : (screen.viewports ?? VIEWPORTS)).length, 0);
 	expect(coverage.length).toBe(expected);
 	// A sweep that measured nothing would prove nothing.
 	expect(coverage.every((entry) => entry.passes > 0)).toBe(true);
 	expect(contrast).toEqual([]);
 	expect(layout).toEqual([]);
+	expect(native).toEqual([]);
 	// Every text is decided, by axe or by its worst case; an empty field has no text to read.
 	expect(undecided.filter((node) => node.reason !== 'emptyValue')).toEqual([]);
 }

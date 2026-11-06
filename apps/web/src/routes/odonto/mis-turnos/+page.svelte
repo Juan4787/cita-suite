@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { formatDateTime } from '$lib/utils/format';
+	import { styledSelect } from '$lib/ui/styled-controls';
 	import { hasAppointmentStarted } from '$lib/utils/appointment-visibility';
 
 	type ProfessionalLink = {
@@ -79,7 +80,7 @@
 			<form method="GET" class="grid gap-4 md:grid-cols-[1fr_auto]">
 				<label>
 					<span class="ux-label">Perfil</span>
-					<select name="professional_id" class="ux-select">
+					<select use:styledSelect={data.selectedProfessionalId} name="professional_id" class="ux-select">
 						<option value="">Todos mis perfiles</option>
 						{#each data.professionalLinks as link}
 							<option value={link.professional_id} selected={link.professional_id === data.selectedProfessionalId}>

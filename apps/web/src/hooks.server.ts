@@ -21,7 +21,9 @@ import type { HandleServerError } from '@sveltejs/kit';
 
 // Unhandled provider errors may carry SQL details or signed URLs. The framework
 // must use the same bounded diagnostic boundary as explicitly handled failures.
-export const handleError: HandleServerError = ({ error }) => {
+export const handleError: HandleServerError = ({ error, status }) => {
+	// An address that does not exist is not a failure of the app: the error page explains it.
+	if (status === 404) return { message: 'Not Found' };
 	logServerFailure('request.unexpected_failure', error);
 	return { message: 'No pudimos completar la acción. Volvé a intentar en unos momentos.' };
 };

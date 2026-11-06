@@ -1,6 +1,6 @@
 <script lang="ts">
 	import BackLink from '$lib/components/BackLink.svelte';
-	import { formatDate } from '$lib/utils/format';
+	import { styledDate, styledSelect } from '$lib/ui/styled-controls';
 
 	type DaySummary = {
 		date: string;
@@ -38,6 +38,14 @@
 		return `/odonto/agenda/semana?${params.toString()}`;
 	};
 
+	// «Lun 2 nov»: seven cards fit in a row and the day reads at a glance.
+	const dayLabel = (date: string) => {
+		const label = new Intl.DateTimeFormat('es-AR', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' })
+			.format(new Date(`${date}T12:00:00.000Z`))
+			.replace(',', '');
+		return label.charAt(0).toUpperCase() + label.slice(1);
+	};
+
 	const totalWeek = $derived(data.days.reduce((sum: number, day: DaySummary) => sum + day.total, 0));
 </script>
 
@@ -60,11 +68,11 @@
 		<form method="GET" class="grid gap-4 md:grid-cols-[1fr_1fr_auto]">
 			<label>
 				<span class="ux-label">Semana</span>
-				<input type="date" name="date" value={data.selectedDate} class="ux-input" />
+				<input use:styledDate={data.selectedDate} type="date" name="date" value={data.selectedDate} required class="ux-input" />
 			</label>
 			<label>
 				<span class="ux-label">Profesional</span>
-				<select name="professional_id" class="ux-select">
+				<select use:styledSelect={data.selectedProfessionalId} name="professional_id" class="ux-select">
 					<option value="">Todos</option>
 					{#each data.professionals as professional}
 						<option value={professional.id} selected={professional.id === data.selectedProfessionalId}>{professional.name}</option>
@@ -79,7 +87,7 @@
 		{#each data.days as day}
 			<a href={`/odonto/agenda?date=${day.date}${data.selectedProfessionalId ? `&professional_id=${data.selectedProfessionalId}` : ''}`} class="ux-choice p-5">
 				<!-- A day without appointments is quieter through its text colors, not through opacity, which lowered its small texts below 4.5:1. -->
-				<p class={`text-sm font-bold capitalize ${day.total > 0 ? 'text-fg' : 'text-copy-muted'}`}>{formatDate(`${day.date}T00:00:00`)}</p>
+				<p class={`text-sm font-bold ${day.total > 0 ? 'text-fg' : 'text-copy-muted'}`}>{dayLabel(day.date)}</p>
 				<p class={`mt-4 text-4xl font-bold ${day.total > 0 ? 'text-fg' : 'text-copy-muted'}`}>{day.total}</p>
 				<p class="mt-1 text-sm text-fg-50">turnos</p>
 				{#if statusText(day)}

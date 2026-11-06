@@ -1,5 +1,6 @@
 <script lang="ts">
  import { enhance } from '$app/forms';
+ import { styledDate } from '$lib/ui/styled-controls';
  import type { SubmitFunction } from '@sveltejs/kit';
  import { formatDateTime, formatDuration } from '$lib/utils/format';
  import { formatDepositMoney } from '$lib/scheduling/reschedule-terms';
@@ -77,7 +78,7 @@
   <p class="mt-3 text-fg-65 bk-muted">Hasta confirmar, conservás tu turno del {formatDateTime(context.startsAt, context.timezone)}.</p>
   <form method="GET" action={context.url} class="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
    <input type="hidden" name="accion" value="reprogramar" />
-   <label class="min-w-0"><span class="ux-label">Día para el nuevo turno</span><input class="ux-input w-full" type="date" name="fecha" value={draftDate ?? context.date} oninput={event => draftDate = event.currentTarget.value} required /></label>
+   <label class="min-w-0"><span class="ux-label">Día para el nuevo turno</span><input use:styledDate={draftDate ?? context.date} class="ux-input w-full" type="date" name="fecha" value={draftDate ?? context.date} oninput={event => draftDate = event.currentTarget.value} required /></label>
    <button class="ux-btn-secondary">Ver horarios</button>
   </form>
   {#if dateChanged}
