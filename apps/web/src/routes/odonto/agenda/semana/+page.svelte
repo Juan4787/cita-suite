@@ -83,9 +83,9 @@
 		</form>
 	</div>
 
-	<div class="grid gap-4 md:grid-cols-2 xl:grid-cols-7">
+	<div class="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4 xl:grid-cols-7">
 		{#each data.days as day}
-			<a href={`/odonto/agenda?date=${day.date}${data.selectedProfessionalId ? `&professional_id=${data.selectedProfessionalId}` : ''}`} class="ux-choice p-5">
+			<a href={`/odonto/agenda?date=${day.date}${data.selectedProfessionalId ? `&professional_id=${data.selectedProfessionalId}` : ''}`} class="ux-choice p-4 sm:p-5">
 				<!-- A day without appointments is quieter through its text colors, not through opacity, which lowered its small texts below 4.5:1. -->
 				<p class={`text-sm font-bold ${day.total > 0 ? 'text-fg' : 'text-copy-muted'}`}>{dayLabel(day.date)}</p>
 				<p class={`mt-4 text-4xl font-bold ${day.total > 0 ? 'text-fg' : 'text-copy-muted'}`}>{day.total}</p>

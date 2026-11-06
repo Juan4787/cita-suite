@@ -301,7 +301,7 @@ En el formulario final, `patient-service` nombra el servicio y profesional, `pat
 
 La página compartida apila sus grupos con una separación de `lg`. Los contenedores admiten columnas para campos relacionados y se apilan cuando falta espacio. Los valores de spacing registran medidas recurrentes del código, no una nueva escala de CSS.
 
-Reserva online y su editor de sitios se centran con un ancho máximo de 64rem; Configuración admite 72rem. Alrededor de 640px se reorganizan cabeceras, acciones y el bloque para compartir. La navegación de preguntas se convierte en dos columnas por debajo de 480px. Enlaces largos, nombres y mensajes deben partir líneas sin ensanchar la pantalla. Estas composiciones pertenecen a sus superficies, no son una plantilla obligatoria para toda la app.
+Las secciones principales (Agenda, Seguimientos, Señas, Equipo) abren con `ux-hero`, con la acción de la página adentro. Las páginas de Configuración comparten encabezado sin tarjeta y ancho máximo de 64rem. El detalle del turno apila grupos a todo el ancho, con las acciones arriba: una grilla de columnas fijas deja vacíos cuando un grupo es más alto que sus vecinos. Un estado vacío dentro de una tarjeta no dibuja otra caja. Alrededor de 640px se reorganizan cabeceras, acciones y el bloque para compartir. La navegación de preguntas se convierte en dos columnas por debajo de 480px. Enlaces largos, nombres y mensajes deben partir líneas sin ensanchar la pantalla. Estas composiciones pertenecen a sus superficies, no son una plantilla obligatoria para toda la app.
 
 Todo el texto admite cortes en cualquier punto (`overflow-wrap: anywhere` en el documento, los botones y los estados): una columna sin ancho propio se comprimiría hasta letras sueltas. Por eso, en una fila con texto junto a acciones o estados, el texto es la columna que se encoge (`min-w-0`) y las acciones y estados conservan su ancho (`shrink-0`). Cuando varios elementos comparten una fila angosta, la fila se ajusta con una base explícita para el texto (entre 10 y 24rem, como `flex-[1_1_12rem]`) y la acción pasa debajo. Si a (320px) tampoco entran, la acción se apila bajo el texto hasta `sm` (640px), como en el encabezado de pasos de la reserva manual y de la reserva pública. El zoom del navegador permanece habilitado.
 
@@ -333,11 +333,19 @@ Tarjetas para un grupo de trabajo completo; filas y separadores para listas de t
 
 ### Inputs / Fields
 
-Campos con fondo propio y borde de 3:1 (`field-border`) en los dos modos, etiquetas encima y foco visible. Error y cambios sin guardar tienen borde y mensajes propios. Selectores y fechas/meses mejoran progresivamente sus controles originales: el menú, calendario y trigger tienen acabado propio mientras la fuente conserva nombre, valor, validación y bindings. El trigger muestra el valor elegido completo y lo ajusta en varias líneas en vez de truncarlo. Las horas usan un campo de texto con entrada numérica y normalización al formato HH:mm, sin menú. Casillas y radios conservan su semántica nativa con dibujo propio. No ocultar la fuente hasta que su mejora esté montada.
+Campos con fondo propio y borde de 3:1 (`field-border`) en los dos modos, etiquetas encima y foco visible. Error y cambios sin guardar tienen borde y mensajes propios. Selectores y fechas/meses mejoran progresivamente sus controles originales: el menú, calendario y trigger tienen acabado propio mientras la fuente conserva nombre, valor, validación y bindings. El trigger muestra el valor elegido completo y lo ajusta en varias líneas en vez de truncarlo. Las horas usan un campo de texto con entrada numérica y normalización al formato HH:mm, sin menú. Casillas y radios conservan su semántica nativa con dibujo propio. No ocultar la fuente hasta que su mejora esté montada. Los textos largos (`ux-textarea`) crecen con lo que se escribe, hasta 16rem, donde el navegador lo permite.
+
+**The Nada nativo Rule.** Con la página en marcha, nada de lo que dibuja el navegador queda a la vista. Los selectores y las fechas pasan por `$lib/ui/styled-controls`. El campo de archivo muestra las palabras de la app (`ux-file-picker`). Las ayudas emergentes usan `data-tip`, no `title`. Los avisos de validación usan `$lib/ui/field-validation`: el navegador sigue decidiendo qué es válido y bloqueando el envío, pero el mensaje sale debajo del campo, en español y con los colores de la app; `data-invalid-message` da el texto de un formato. Nadie llama a `alert`, `confirm` ni `prompt`. Lo controlan `scripts/lib/native-controls.test.mjs` y el recorrido de `e2e/theme-modes.spec.ts`.
+
+Lo que sigue siendo del navegador o del sistema, y no se presenta como propio: la lista de archivos al elegir uno, el teclado del celular, el diálogo de imprimir y lo que se ve sin JavaScript, donde los controles nativos son la alternativa que mantiene los formularios funcionando.
 
 ### Navigation
 
 Los enlaces de Configuración nombran tareas y ofrecen una línea corta de contexto. En un profesional, Perfil, Servicios y aranceles, Horarios y Preguntas al paciente mantienen una ubicación estable. La selección se distingue visualmente y, donde corresponda, con `aria-current`. En el editor del profesional, la pestaña activa usa el violeta de acción; el hover sólo aparece con puntero y nunca cambia el aspecto de la pestaña activa. El detalle de esta arquitectura pertenece a la nota de superficie.
+
+### Disclosures
+
+`ux-disclosure` es un grupo plegable de una página: título a la izquierda y una sola flecha a la derecha, con `ux-disclosure-body` para el contenido y `ux-disclosure-danger` para una acción destructiva. Un `summary` sin esa clase conserva la flecha chica a la izquierda de su texto, para opciones secundarias dentro de una tarjeta. No se mezclan los dos marcadores.
 
 ### Menus, calendars and dialogs
 
@@ -379,6 +387,7 @@ El diálogo del SDK v1 define su propio centrado y límite de ancho, sin depende
 - **Don't** inventar datos reales, tarifas, contactos ni promesas de marca.
 - **Don't** compensar una estructura confusa con párrafos de instrucciones.
 - **Don't** dejar menús, calendarios o confirmaciones interiores con acabado nativo cuando están mejorados con JavaScript.
+- **Don't** usar `capitalize` en fechas: da «6 De Noviembre De 2026». Se usa `first-letter:uppercase`.
 - **Don't** cortar con «…» el texto de la tarea dentro de `main` o de un diálogo, separar una cantidad de su unidad ni bloquear el zoom del navegador.
 - **Don't** convertir patrones de esta entrega en afirmaciones sobre páginas que no se revisaron.
 

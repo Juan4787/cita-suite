@@ -54,6 +54,7 @@ M	apps/web/src/lib/booking/PublicBookingConfirmation.svelte
 M	apps/web/src/lib/booking/PublicBookingProfessionals.svelte
 M	apps/web/src/lib/booking/PublicInformationPage.svelte
 M	apps/web/src/lib/components/Modal.svelte
+M	apps/web/src/lib/components/agenda/ManualAppointmentWizard.svelte
 M	apps/web/src/lib/components/agenda/SlotReleaseAlerts.client.test.ts
 M	apps/web/src/lib/components/agenda/SlotReleaseAlerts.svelte
 M	apps/web/src/lib/components/appointments/PatientManagementPanel.client.test.ts

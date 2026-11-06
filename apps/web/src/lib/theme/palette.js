@@ -275,7 +275,6 @@ export const tokens = [
 	["--c-text-ink-n950", "#0a0a0a", "#0a0a0a", "antes: neutral-950", {"textColor":["ink-n950"]}],
 	["--c-bg-fill-90", "#ffffff", "rgb(255 255 255 / 0.9)", "antes: white/90", {"backgroundColor":["fill-90"]}],
 	["--c-line-line-1f2b45", "#d0d5dd", "#1f2b45", "antes: [#1f2b45]", {"borderColor":["line-1f2b45"],"divideColor":["line-1f2b45"]}],
-	["--c-bg-danger-430a0a", "#fef3f2", "#430a0a", "antes: [#430a0a]", {"backgroundColor":["danger-430a0a"]}],
 	["--c-bg-fill-07", "rgb(16 24 40 / 0.0385)", "rgb(255 255 255 / 0.07)", "antes: white/[0.07]", {"backgroundColor":["fill-07"]}],
 	["--c-line-warning-400-30", "#f3cf8e", "rgb(251 191 36 / 0.3)", "antes: amber-400/30", {"borderColor":["warning-400-30"],"divideColor":["warning-400-30"]}],
 	["--c-line-danger-300-60", "#d92d20", "rgb(252 165 165 / 0.6)", "antes: red-300/60", {"borderColor":["danger-300-60"],"divideColor":["danger-300-60"]}],

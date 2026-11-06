@@ -1052,7 +1052,7 @@
 							class="ux-choice flex min-h-28 min-w-0 w-full items-center justify-between gap-4 p-5 text-left"
 						>
 							<span>
-								<span class="block capitalize text-lg font-bold text-fg">{formatDayName(dayGroup.day)}</span>
+								<span class="block text-lg font-bold text-fg first-letter:uppercase">{formatDayName(dayGroup.day)}</span>
 								<span class="mt-1.5 block text-base text-fg-55">{formatDayNumber(dayGroup.day)}</span>
 							</span>
 							<svg class="h-5 w-5 shrink-0 text-fg-35" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6" /></svg>
@@ -1086,7 +1086,7 @@
 			<div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 				<div>
 					<h2 class="text-xl font-bold tracking-tight text-fg sm:text-2xl">Elegí un horario</h2>
-					<p class="mt-2 capitalize text-base text-fg-60">{formatLongDate(selectedSlotDate)}</p>
+					<p class="mt-2 text-base text-fg-60 first-letter:uppercase">{formatLongDate(selectedSlotDate)}</p>
 				</div>
 				<button type="button" onclick={changeDay} class="ux-btn-secondary w-fit">Cambiar día</button>
 			</div>
@@ -1319,7 +1319,7 @@
 					</div>
 					<div>
 						<p class="text-xs font-semibold uppercase tracking-wide text-copy-subtle">Fecha</p>
-						<p class="mt-1 capitalize text-base font-semibold text-fg">
+						<p class="mt-1 text-base font-semibold text-fg first-letter:uppercase">
 							{selectedSlot ? formatLongDate(selectedSlot.date) : '-'}
 						</p>
 					</div>
