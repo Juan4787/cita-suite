@@ -77,7 +77,12 @@ describe('hooks auth validation', () => {
 		mocks.createSupabaseServerClient.mockReturnValue({ auth: { getUser: vi.fn(async () => ({ data: { user: null }, error: null })) } });
 
 		// Past the filter a private route may still redirect to sign in: that is the normal path.
-		const outcome: unknown = await handle({ event, resolve } as never).then((value) => value, (thrown) => thrown);
+		let outcome: unknown;
+		try {
+			outcome = await handle({ event, resolve } as never);
+		} catch (thrown) {
+			outcome = thrown;
+		}
 		const refused = outcome instanceof Response && outcome.status === 403;
 
 		expect(refused).toBe(expected === 'refused');

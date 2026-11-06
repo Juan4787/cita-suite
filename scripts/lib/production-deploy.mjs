@@ -18,9 +18,13 @@ const refused = () => new Error('The configuration is not the production target.
 
 // Secrets the application reads at runtime and production must already hold. The deployment
 // never writes them: their values stay where they are.
+// Since phase E the appointment email and the managed calendar are part of the product: a release
+// without their keys would silently stop sending, so it is refused instead.
 export const PRODUCTION_APP_SECRETS = Object.freeze([
+	'GOOGLE_CALENDAR_CLIENT_ID', 'GOOGLE_CALENDAR_CLIENT_SECRET', 'GOOGLE_CALENDAR_MANAGED_ENABLED', 'GOOGLE_CALENDAR_TOKEN_ENCRYPTION_KEY',
 	'INTERNAL_JOB_SECRET', 'MASTER_EMAIL', 'ODONTO_SUPABASE_ANON_KEY', 'ODONTO_SUPABASE_SERVICE_ROLE_KEY', 'ODONTO_SUPABASE_URL',
-	'PUBLIC_ODONTO_SUPABASE_ANON_KEY', 'PUBLIC_ODONTO_SUPABASE_URL', 'PUBLIC_VAPID_PUBLIC_KEY', 'VAPID_PRIVATE_KEY', 'VAPID_PUBLIC_KEY', 'VAPID_SUBJECT'
+	'PUBLIC_ODONTO_SUPABASE_ANON_KEY', 'PUBLIC_ODONTO_SUPABASE_URL', 'PUBLIC_VAPID_PUBLIC_KEY', 'VAPID_PRIVATE_KEY', 'VAPID_PUBLIC_KEY', 'VAPID_SUBJECT',
+	'ZOHO_CPAAS_API_KEY', 'ZOHO_CPAAS_WEBHOOK_KEY'
 ]);
 
 /** The production app: its name, account, origin and placement next to the database; no routes and no crons. */
