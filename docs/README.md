@@ -4,11 +4,13 @@
 
 **Documentación detallada de E:** [traspaso técnico exacto del 5 de noviembre](plans/traspaso-etapa-e-20261105.md) e [índice de implementación, decisiones, pruebas y operación](plans/indice-etapa-e.md). Preservan estado local/GitHub/producción, fundamentos, investigación, hipótesis, evidencia y la intención de continuación del agente saliente. No sustituyen requisitos ni acreditan un cierre integral.
 
-## Estado operativo y criterio actuales — 2 de noviembre
+## Estado operativo y criterio actuales — 6 de noviembre
 
 **Qué historia y qué cambios están vigentes:** [estado vigente](ESTADO-VIGENTE.md), el registro único; lo comprueba `node scripts/check-repo-sync.mjs`.
 
-**Producción sirve V12b** `771fac5950c532b1123f11d4dde93eef9b42ceba` (versión `277d332d-1794-4367-8ef0-567ced159f1b`) desde el 2 de noviembre a las 15:33 UTC. Es V12 (`c21a1983…`, 14:46 UTC) con el fondo general del modo claro apenas más cálido.
+**Producción sirve la primera versión de E** `dfec47747daabf0196dc5f2341eae3725088953f` desde el 6 de noviembre a las 07:41 UTC; versión de Cloudflare e interruptores en el [estado vigente](ESTADO-VIGENTE.md). [Índice de E](plans/indice-etapa-e.md), [plan canónico](plans/plan-integral-avisos-20261105.md).
+
+Antes, V12b `771fac5950c532b1123f11d4dde93eef9b42ceba` (versión `277d332d-1794-4367-8ef0-567ced159f1b`) desde el 2 de noviembre a las 15:33 UTC, que ya no es vuelta atrás válida. Es V12 (`c21a1983…`, 14:46 UTC) con el fondo general del modo claro apenas más cálido.
 - Es V11f más el modo claro predeterminado, con el oscuro conservado y el selector Claro, Oscuro y Automático.
 - Documentos: [plan](plans/modo-claro-20261102.md), [registro](plans/registro-modo-claro-20261102.md), [traspaso](plans/traspaso-modo-claro-20261102.md) y [publicación y reversión](architecture/publicacion-y-reversion.md).
 

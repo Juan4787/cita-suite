@@ -783,6 +783,14 @@
 			if (pushState === 'denied') {
 				pushState = 'undecided';
 				pushMessage = 'Listo: ya no está bloqueado. Ahora tocá “Preguntar de nuevo”.';
+			} else if (previousPermission === 'granted') {
+				// Restablecieron un permiso concedido: Chrome borró la suscripción, y lo que la
+				// pantalla decía del permiso, de la prueba o del recordatorio ya no es cierto.
+				pollRun += 1;
+				activeTestDeliveryId = null;
+				activeTestPhase = null;
+				pushState = 'idle';
+				pushMessage = '';
 			}
 			return;
 		}
@@ -1218,12 +1226,13 @@
 			Prefiero recibir el aviso en este teléfono
 		</summary>
 		<div class="border-t border-line p-5 bk-line">
-			{#if renderedPushState !== 'needs_device_check' && sitePermissionGuide}
-				{@render instructionList(sitePermissionGuide)}
-			{/if}
+			<!-- Android va primero: con Chrome apagado ahí, «Suscribirse» no cambia nada (plan, 4.1). -->
 			{#if phoneNotificationGuide}
-				<div class={renderedPushState !== 'needs_device_check' && sitePermissionGuide ? 'mt-6' : ''}>
-					{@render instructionList(phoneNotificationGuide)}
+				{@render instructionList(phoneNotificationGuide)}
+			{/if}
+			{#if renderedPushState !== 'needs_device_check' && sitePermissionGuide}
+				<div class={phoneNotificationGuide ? 'mt-6' : ''}>
+					{@render instructionList(sitePermissionGuide)}
 				</div>
 			{/if}
 			{#if !sitePermissionGuide && !phoneNotificationGuide}

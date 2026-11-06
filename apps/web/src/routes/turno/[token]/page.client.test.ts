@@ -499,6 +499,34 @@ describe('contextual auxiliary availability', () => {
 		expect(environment.postRequests()).toBe(0);
 	});
 
+	it('pide primero el ajuste de Android: con Chrome apagado, «Suscribirse» no hace nada', async () => {
+		installNotificationEnvironment({ requestedPermission: 'denied' });
+		render(Page, { data: { ...pageData, notificationBrowser: notificationBrowserProfile(USER_AGENT.chrome) } });
+
+		await fireEvent.click(screen.getByRole('button', { name: 'Activar recordatorio' }));
+
+		const site = await screen.findByText('Permití los avisos de este sitio en Chrome');
+		const phone = screen.getByText('Permití que Chrome muestre avisos en el teléfono');
+		expect(phone.compareDocumentPosition(site) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+	});
+
+	it('si restablecen un permiso concedido deja de decir que está dado y ofrece activarlo', async () => {
+		const environment = installNotificationEnvironment();
+		render(Page, { data: pageData });
+
+		await fireEvent.click(screen.getByRole('button', { name: 'Activar recordatorio' }));
+		await clickWhenEnabled(await screen.findByRole('button', { name: 'No la recibí' }));
+		await screen.findByRole('button', { name: 'Enviar otra notificación de prueba' });
+		expect(screen.getByText(/El permiso está dado/)).toBeInTheDocument();
+
+		environment.setPermission('default');
+		window.dispatchEvent(new Event('focus'));
+
+		expect(await screen.findByRole('button', { name: 'Activar recordatorio' })).toBeInTheDocument();
+		expect(screen.queryByText(/El permiso está dado/)).not.toBeInTheDocument();
+		expect(screen.queryByRole('button', { name: 'Enviar otra notificación de prueba' })).not.toBeInTheDocument();
+	});
+
 	it('ningún botón queda mudo: si sigue bloqueado lo dice', async () => {
 		installNotificationEnvironment({ requestedPermission: 'denied' });
 		render(Page, { data: { ...pageData, notificationBrowser: notificationBrowserProfile(USER_AGENT.chrome) } });

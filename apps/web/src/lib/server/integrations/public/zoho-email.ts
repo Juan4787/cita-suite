@@ -54,6 +54,8 @@ export const classifyZohoResponse = (status: number, body: unknown): EmailSendOu
 	}
 	const detail = detailCode(body);
 	const code = safeCode(detail ?? topCode(body), `http_${status}`);
+	// Not followed, so nothing says where the message ended up.
+	if (status >= 300 && status < 400) return { outcome: 'uncertain', code };
 	if (detail === 'SM_111') return { outcome: 'sender_rejected', code };
 	if (detail === 'SERR_157') return { outcome: 'pause', code };
 	if (detail === 'SM_113') return { outcome: 'failed', code };
@@ -92,7 +94,8 @@ export const sendZohoEmail = async (
 				accept: 'application/json'
 			},
 			body: JSON.stringify(zohoEmailBody(message)),
-			redirect: 'error'
+			// Workers accepts only `follow` and `manual`. Following could repeat the send elsewhere.
+			redirect: 'manual'
 		});
 	} catch (cause) {
 		// The budget refuses before the request starts: that attempt certainly did not leave.
