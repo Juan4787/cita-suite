@@ -39,9 +39,9 @@ El chequeo compara esta lista con `git diff --name-status <produccion_revision> 
 ```codigo-distinto-de-produccion
 ```
 
-`supabase/templates/recovery.html` no se despliega con la app: se carga aparte en Supabase. **No está verificado** si la versión de Supabase coincide con ese archivo.
+Hoy la lista está vacía: el código de `main` es el publicado el 7 de noviembre.
 
-Estos cuatro archivos sólo cambian comentarios o documentación, sin efecto en lo que corre. Entran en la próxima publicación.
+`supabase/templates/recovery.html` no se despliega con la app: se carga aparte en Supabase. **No está verificado** si la versión de Supabase coincide con ese archivo.
 
 ## Historia
 
