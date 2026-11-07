@@ -63,8 +63,8 @@ Lecturas, escrituras, identificadores manipulados y funciones llamadas directame
 ## 6. Cuestionarios obligatorios, opcionales y actualización del perfil
 
 - **SQL:** `booking_patient_information.sql` (obligatorios sin atajos, `FAIL_PROFILE_NOT_UPDATED`, respuestas omitidas que no borran el perfil, procedencia, reintentos con el mismo formulario y con un formulario cambiado, recepción sin lectura clínica).
-- **Unidad:** `professional-questions.test.ts`, `booking-information.test.ts`, `booking-patient-fields.test.ts`, `PublicBookingFlow.client.test.ts`, `ProfessionalBookingFormEditor.client.test.ts`.
-- **Navegador:** `booking-embed.spec.ts` (los campos obligatorios antes que los opcionales en la reserva nativa, en todos los anchos).
+- **Unidad:** `professional-questions.test.ts`, `booking-information.test.ts`, `booking-information-page.test.ts`, `booking-patient-fields.test.ts`, `PublicBookingFlow.client.test.ts`, `ProfessionalBookingFormEditor.client.test.ts`.
+- **Navegador:** `booking-embed.spec.ts` (los campos obligatorios antes que los opcionales en la reserva nativa, en todos los anchos; al guardar la información, el paciente vuelve al resumen del turno con el cartel de guardado).
 
 ## 7. Historia clínica y documentos bajo cada rol autorizado
 

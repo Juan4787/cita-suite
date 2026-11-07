@@ -41,10 +41,12 @@ M	apps/web/.impeccable/surfaces/gestion-del-turno.md
 M	apps/web/DESIGN.md
 M	apps/web/e2e/agenda-business-timezone.spec.ts
 M	apps/web/e2e/appointment-slot-releases.spec.ts
+M	apps/web/e2e/booking-embed.spec.ts
 M	apps/web/e2e/booking-reschedule-policy.spec.ts
 M	apps/web/e2e/clinical-entry-date.spec.ts
 M	apps/web/e2e/clinical-files.spec.ts
 M	apps/web/e2e/helpers/layout-usability.ts
+M	apps/web/e2e/patient-management-clinical.spec.ts
 M	apps/web/e2e/patient-management.spec.ts
 A	apps/web/e2e/reception-cancel.spec.ts
 A	apps/web/e2e/resolutions.spec.ts
@@ -85,8 +87,11 @@ M	apps/web/src/lib/components/seguimientos/FollowUpsNotice.svelte
 M	apps/web/src/lib/components/team/ProfessionalSchedulePanel.svelte
 M	apps/web/src/lib/components/team/TeamMemberWizard.svelte
 M	apps/web/src/lib/scheduling/slot-releases.ts
+M	apps/web/src/lib/server/patients/public/booking-information-page.test.ts
+M	apps/web/src/lib/server/patients/public/booking-information-page.ts
 M	apps/web/src/lib/server/patients/public/follow-ups.ts
 M	apps/web/src/lib/server/scheduling/public/appointments.ts
+M	apps/web/src/lib/server/scheduling/public/patient-management-page.ts
 M	apps/web/src/lib/server/scheduling/public/slot-releases.ts
 M	apps/web/src/lib/server/scheduling/public/staff-management-flow.test.ts
 M	apps/web/src/lib/server/scheduling/public/staff-management-flow.ts
@@ -128,6 +133,7 @@ M	apps/web/src/routes/odonto/recordatorios/+page.svelte
 M	apps/web/src/routes/odonto/seguimientos/+page.svelte
 M	apps/web/src/routes/odonto/turnos/[appointmentId]/+page.svelte
 M	apps/web/src/routes/odonto/turnos/[appointmentId]/page.client.test.ts
+M	apps/web/src/routes/turno/[token]/page.client.test.ts
 A	scripts/lib/native-controls.test.mjs
 A	supabase/migrations/20261106040000_staff_cancel_before_start.sql
 M	supabase/tests/staff_appointment_management.sql

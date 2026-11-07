@@ -74,3 +74,5 @@ Después de una compactación: leer AGENTS, estado vigente, [12.34](propuesta-se
 - textos de ejemplo cortados a 320 px.
 
 Después de corregir: cero problemas en todas las pantallas y estados.
+
+**Información adicional del paciente, pedido de Juan del 6 de noviembre:** «cuando guardo la informacion adicional en el turno, deberia aparecer un cartel que indique que se guardo y volver al sitio anterior del resumen del turno». Al guardar, el paciente vuelve al resumen de su turno y arriba aparece «La información quedó guardada para la profesional.», con foco para los lectores de pantalla. Funciona también sin JavaScript, porque la vuelta la decide el servidor con un 303. La marca `?informacion=guardada` se borra de la dirección para que el cartel no reaparezca al recargar. Los errores siguen en el formulario, sin perder lo escrito. Probado con toques reales en el Samsung. Esa prueba mostró además que el formulario tenía otro color de fondo que el resto de las pantallas públicas del turno: quedó igualado.

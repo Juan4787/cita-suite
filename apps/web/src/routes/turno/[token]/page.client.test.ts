@@ -230,6 +230,18 @@ const installNotificationEnvironment = (options: {
 
 describe('activación de notificaciones en el teléfono', () => {
 describe('contextual auxiliary availability', () => {
+ it('says the information was saved when the patient comes back to the summary, and only then', async () => {
+  const environment=installNotificationEnvironment({initialPermission:'default'});
+  const { container,unmount }=render(Page,{data:{...pageData,informationSaved:true}});
+  const notice=container.querySelector('[data-information-saved]');
+  expect(notice).toHaveTextContent('La información quedó guardada para la profesional.');
+  expect(notice).toHaveAttribute('role','status');
+  await waitFor(()=>expect(notice).toHaveFocus());
+  unmount();
+  const plain=render(Page,{data:pageData});
+  expect(plain.container.querySelector('[data-information-saved]')).not.toBeInTheDocument();
+  expect(environment.requestPermission).not.toHaveBeenCalled();
+ });
  it('does not configure notifications or show a dead clinical link in minimum cancellation scope', async () => {
   const environment=installNotificationEnvironment({initialPermission:'granted'});
   render(Page,{data:{...pageData,remindersEnabled:false,bookingInformationEnabled:false}});

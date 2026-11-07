@@ -151,7 +151,8 @@ test.describe('isolated booking integration', () => {
 			(r) => r.method() === 'POST' && r.url().includes('/informacion')
 		);
 		await popup.getByRole('button', { name: 'Guardar información' }).click();
-		await expect(popup.getByRole('status')).toContainText('guardada');
+		await expect(popup.locator('[data-information-saved]')).toContainText('guardada');
+		await expect(popup).toHaveURL((url) => url.pathname === '/turno/' + saved.data![0].confirmation_token);
 		expect((await sending).postData()).toContain(
 			encodeURIComponent('Medicación sintética ampliada').replaceAll('%20', '+')
 		);

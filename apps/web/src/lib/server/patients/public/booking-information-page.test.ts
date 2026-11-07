@@ -24,10 +24,11 @@ describe('Clinical information explicit access channel', () => {
   it(`ignores form attempts to change the server-selected ${legacy ? 'legacy' : 'capability'} channel`, async () => {
    const form = new URLSearchParams({ request_key: '50000000-0000-4000-8000-000000000001', schema_hash: information.schema_hash,
     version: 'initial', intake_coverage: 'Current coverage', comment: 'My comment', p_legacy: String(!legacy), token: 'c'.repeat(64) });
-   const result = await createPublicInformationPage(legacy).actions.save(event(legacy, form));
+   // Saved: back to the summary it came from, which says so.
+   await expect(createPublicInformationPage(legacy).actions.save(event(legacy, form))).rejects.toMatchObject({
+    status: 303, location: `/${legacy ? 'turno' : 'gestion'}/${token}?informacion=guardada` });
    expect(mocks.rpc).toHaveBeenCalledWith('submit_public_booking_information', expect.objectContaining({ p_token: token, p_legacy: legacy,
     p_request_key: form.get('request_key'), p_answers: { coverage: 'Current coverage' } }));
-   expect(result).toMatchObject({ saved: true });
   });
  }
  it('preserves the exact operation and entered values after an uncertain RPC response, also for native form rendering', async () => {

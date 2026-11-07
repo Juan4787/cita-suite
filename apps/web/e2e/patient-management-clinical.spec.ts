@@ -132,7 +132,8 @@ for (const brand of ['cita-suite', 'natalia'] as const) {
     const nativePage=await native.newPage();await nativePage.goto(`${path}/informacion`);
     await nativePage.getByLabel('Cobertura (opcional)',{exact:true}).fill('Native coverage');
     await nativePage.getByRole('button',{name:'Guardar información',exact:true}).click();
-    await expect(nativePage.getByRole('status')).toContainText('La información quedó guardada');
+    await expect(nativePage.locator('[data-information-saved]')).toContainText('La información quedó guardada');
+    await expect(nativePage).toHaveURL(url=>url.pathname===path);
    } finally { await native.close(); }
    expect(f.sql(`select insurance from public.patients where id='${patient}';`)).toBe('Native coverage');
    phase='uncertain_form_response';
@@ -160,9 +161,12 @@ for (const brand of ['cita-suite', 'natalia'] as const) {
    await expect(page.getByLabel('Cobertura (opcional)',{exact:true})).toHaveValue('Uncertain response coverage');
    expect(f.sql(`select count(*) from public.appointment_intake_submissions where appointment_id='${appointment}';`)).toBe('2');
    await page.getByRole('button',{name:'Guardar información',exact:true}).click();
-   await expect(page.getByRole('status')).toContainText('La información quedó guardada');
+   await expect(page.locator('[data-information-saved]')).toContainText('La información quedó guardada');
+   await expect(page.locator('[data-information-saved]')).toBeFocused();
+   await expect(page).toHaveURL(url=>url.pathname===path&&!url.searchParams.has('informacion'));
    expect(f.sql(`select count(*) from public.appointment_intake_submissions where appointment_id='${appointment}';`)).toBe('2');
    phase='upload_document';
+   await page.goto(`${path}/informacion`);
    await page.getByLabel('Documento',{exact:true}).setInputFiles({name:'synthetic.png',mimeType:'image/png',
     buffer:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScLbtAAAAABJRU5ErkJggg==','base64')});
    await page.getByRole('button',{name:'Adjuntar documento',exact:true}).click();
