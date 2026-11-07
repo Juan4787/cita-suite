@@ -353,6 +353,8 @@ Los selectores permiten teclado, búsqueda por texto y opciones deshabilitadas. 
 
 **The Foco Rule.** Un panel modal toma el teclado con `dialogFocus`: el foco entra al abrirlo, Tab no llega a lo que queda detrás, Escape lo cierra y el foco vuelve al botón que lo abrió. Los menús del encabezado también se cierran con Escape.
 
+**The Volver Rule.** Al avanzar de paso, la página puede acompañar con animación. Al volver atrás el paso aparece en su lugar, sin animar: quien vuelve ya va a tocar algo, y una página en movimiento le corre el destino bajo el dedo.
+
 ### Final patient form
 
 Etiquetas visibles y campos amplios, con alto mínimo de `patient-input`; respuestas binarias con alto mínimo de `patient-answer`. El botón de `patient-confirm` ocupa todo el ancho y su medida de altura también es mínima. El texto multilínea conserva (6.5rem) de alto mínimo. El foco dibuja un contorno de (2px) con el acento existente. Selección y bloqueo tienen estados propios; el envío muestra “Confirmando reserva…”.
