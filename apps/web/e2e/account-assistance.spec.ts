@@ -399,7 +399,11 @@ test.describe('Ayuda para configurar', () => {
 				admin.from('patients').insert({ business_id: fixture!.businessId, owner_id: fixture!.userId, full_name: `Paciente E2E ayuda ${unique()}` })
 			);
 			expect((await grants(admin, fixture!.businessId))[0]).toEqual(before);
-			await masterPage.goto('/odonto/configuracion/usuarios');
+			// Leaving while data still loads: WebKit hands the cancellation to the page before it goes,
+			// and SvelteKit answers by reloading that page, which interrupts this navigation.
+			await expect(async () => {
+				await masterPage.goto('/odonto/configuracion/usuarios');
+			}).toPass({ timeout: 20_000 });
 			await expect(masterPage.getByRole('region', { name: `Configurando ${fixture!.businessName}` })).toBeVisible();
 			// With a patient the owner can no longer move to the initial setup.
 			await ownerPage.goto('/odonto/configuracion/ayuda');

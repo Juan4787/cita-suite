@@ -87,7 +87,13 @@ test('appointment deposits: booking terms, registration, agenda and automatic ca
 		const policyPage = await context.newPage();
 		try {
 			await policyPage.goto('/odonto/configuracion/senas');
-			await policyPage.getByRole('textbox', { name: /^Monto fijo, en pesos/ }).fill('50.000');
+			const amount = policyPage.getByRole('textbox', { name: /^Monto fijo, en pesos/ });
+			// When the app starts, Svelte reassigns the value of a filled field and the selection is lost:
+			// if that lands inside fill, the new amount is added to the old one.
+			await expect(async () => {
+				await amount.fill('50.000');
+				await expect(amount).toHaveValue('50.000', { timeout: 500 });
+			}).toPass();
 			await policyPage.getByRole('button', { name: 'Guardar', exact: true }).click();
 			await expect(policyPage.getByRole('status')).toContainText('Configuración de señas guardada.');
 		} finally { await policyPage.close(); }
