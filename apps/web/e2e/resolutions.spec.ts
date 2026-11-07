@@ -10,6 +10,7 @@ import { layoutIssues, type LayoutIssue } from './helpers/layout-usability';
 // a 1366 notebook. Each screen is loaded once and measured at every size, open states included.
 const RESOLUTIONS = [
 	[320, 568], [344, 882], [360, 740], [375, 667], [390, 844], [412, 915], [430, 932], [540, 720], [600, 960],
+	[568, 320], [667, 375], [844, 390], [932, 430], [1024, 600],
 	[768, 1024], [820, 1180], [912, 1368], [1024, 768], [1180, 820],
 	[1280, 720], [1366, 768], [1440, 900], [1536, 864], [1600, 900], [1920, 1080], [2560, 1440]
 ] as const;
