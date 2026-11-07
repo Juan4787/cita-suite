@@ -139,7 +139,11 @@ test('appointment slots released: real cancellation, reassignment, occupation an
   await expect(page.getByRole('status')).toContainText('Aviso ocultado. El horario sigue disponible para reservar.');
   await expect(secondRow).toHaveCount(0);
   await expect(page.getByRole('heading', { name: '¿Para quién es el turno?', exact: true })).toHaveCount(0);
-  await page.goto('/odonto/pacientes');
+  // «Ocultar» posts natively: the answer is a new page that may still be loading its modules. WebKit hands
+  // their cancellation to that page before it goes, and SvelteKit answers by reloading it.
+  await expect(async () => {
+   await page.goto('/odonto/pacientes');
+  }).toPass({ timeout: 20_000 });
   await expect(page.getByRole('heading', { name: 'Pacientes', exact: true })).toBeVisible();
   await expect(shellNotice).toHaveCount(0); // Hidden in the agenda is hidden in the notice: one source.
   const hidden = await must(f.admin.from('appointment_slot_releases').select('hidden_at, hidden_by').eq('id', second.id).eq('business_id', f.businessId).single());
