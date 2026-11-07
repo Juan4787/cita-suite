@@ -215,10 +215,12 @@
 
 	// Solo hay UNA card de paso activa a la vez: los pasos resueltos colapsan.
 	let activeStepCard = $state<HTMLElement | null>(null);
-	afterNavigate(({ from, to }) => {
+	afterNavigate(({ from, to, type }) => {
 		if (!from || !to || from.url.pathname !== to.url.pathname) return;
 		if (from.url.search === to.url.search) return;
-		requestAnimationFrame(() => activeStepCard?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+		// Al volver atrás no se anima: el recorrido es largo y corre el enlace bajo el dedo de quien ya lo está tocando.
+		const behavior = type === 'popstate' ? 'instant' : 'smooth';
+		requestAnimationFrame(() => activeStepCard?.scrollIntoView({ behavior, block: 'start' }));
 	});
 </script>
 

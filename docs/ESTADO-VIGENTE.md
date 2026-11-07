@@ -71,6 +71,7 @@ M	apps/web/src/hooks.server.ts
 M	apps/web/src/lib/booking/BookingShareLink.svelte
 M	apps/web/src/lib/booking/PatientDocumentUpload.svelte
 M	apps/web/src/lib/booking/PublicBookingConfirmation.svelte
+M	apps/web/src/lib/booking/PublicBookingFlow.client.test.ts
 M	apps/web/src/lib/booking/PublicBookingFlow.svelte
 M	apps/web/src/lib/booking/PublicBookingProfessionals.svelte
 M	apps/web/src/lib/booking/PublicInformationPage.svelte

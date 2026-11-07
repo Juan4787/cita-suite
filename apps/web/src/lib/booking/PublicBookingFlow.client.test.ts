@@ -4,7 +4,15 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/svelte";
 import type { BookingIntakeField } from '@cita-suite/shared/booking-integration';
 const requestId = "10000000-0000-4000-8000-000000000001";
 vi.mock("$app/forms", () => ({ enhance: () => ({ destroy() {} }) }));
-vi.mock("$app/navigation", () => ({ afterNavigate() {}, invalidateAll: vi.fn(async () => {}) }));
+const navigation = vi.hoisted(() => ({
+  after: (_event: { from: { url: URL }; to: { url: URL }; type: string }) => {},
+}));
+vi.mock("$app/navigation", () => ({
+  afterNavigate: (callback: typeof navigation.after) => {
+    navigation.after = callback;
+  },
+  invalidateAll: vi.fn(async () => {}),
+}));
 vi.mock("$app/state", () => ({
   page: {
     url: new URL(
@@ -231,6 +239,23 @@ it.each([true, false])('preserves selection in a native POST action, including i
   expect(action.searchParams.get('slot')).toBe('2026-11-02T09:00:00.000Z');
   expect(action.searchParams.has('patient_email')).toBe(false);
   expect(action.searchParams.has('patient_phone')).toBe(false);
+});
+
+it("does not animate the step into view when going back, so the page is not moving under a press", () => {
+  const scrollIntoView = vi.fn();
+  vi.stubGlobal("requestAnimationFrame", (run: FrameRequestCallback) => {
+    run(0);
+    return 0;
+  });
+  Element.prototype.scrollIntoView = scrollIntoView;
+  render(PublicBookingFlow, { data: bookingFixture(["in_person"]), form: null });
+  const days = { url: new URL("https://booking.example.test/reservar/a?service_id=service") };
+  const hours = { url: new URL("https://booking.example.test/reservar/a?service_id=service&date=2026-11-02") };
+  navigation.after({ from: days, to: hours, type: "link" });
+  expect(scrollIntoView).toHaveBeenLastCalledWith({ behavior: "smooth", block: "start" });
+  navigation.after({ from: hours, to: days, type: "popstate" });
+  expect(scrollIntoView).toHaveBeenLastCalledWith({ behavior: "instant", block: "start" });
+  vi.unstubAllGlobals();
 });
 
 it('keeps edited contact, questions and a valid birth date when the same booking form remounts', async () => {
