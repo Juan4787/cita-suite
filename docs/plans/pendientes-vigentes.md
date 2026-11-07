@@ -39,7 +39,7 @@ Fuente: `docs/clientes/natalia-frutos/informacion-20261029.md`, secciones 4 y 5,
 
 ## 3. Etapas D y E: alcance actual
 
-1. **D celular reemplazada:** avisos internos generales de horarios liberados, con patrón similar a Seguimientos. Es P3 de las [tareas posteriores a E](tareas-posteriores-a-e-20261103.md), junto con P1 cancelación desde recepción y P2 estilos y experiencia de toda la app, reanudadas el 6 de noviembre ([12.34](propuesta-senas-avisos-natalia.md#reanudacion-p1-p2-p3-20261106)). Su estado está en ese documento. No retomar push al personal ni pedir tipos de teléfono para esta D.
+1. **D celular reemplazada:** avisos internos generales de horarios liberados, con patrón similar a Seguimientos. Es P3 de las [tareas posteriores a E](tareas-posteriores-a-e-20261103.md), junto con P1 cancelación desde recepción y P2 estilos y experiencia de toda la app, publicadas el 7 de noviembre ([12.34](propuesta-senas-avisos-natalia.md#reanudacion-p1-p2-p3-20261106)). Su estado está en ese documento. No retomar push al personal ni pedir tipos de teléfono para esta D.
 
 <a id="etapa-e-pendientes"></a>
 
@@ -164,6 +164,11 @@ Fuente: `docs/clientes/natalia-frutos/informacion-20261029.md`, secciones 4 y 5,
 - CI usa servicios descartables y no acredita Realtime alojado.
 - **`/confirmar-correo` sin JavaScript:** usa `Referrer-Policy: no-referrer`, así que sus dos formularios (reenviar y cerrar sesión) reciben `Origin: null` y responden 403. Es previo a E y de gravedad baja: la página indica qué hacer sin JavaScript. Se corrige con `FORM_PAGE_REFERRER_POLICY` cuando se vuelva a tocar esa pantalla.
 - Los registros históricos conservan palabras pegadas: se corrigieron los documentos de uso diario, no la historia.
+- **Safari real sin probar.** La aproximación es WebKit de Linux, que omite dos pruebas por límites del entorno: el embebido http dentro de un sitio https, y las cookies `Secure` por http.
+- **Safari y SvelteKit:** quien toca un enlace mientras la página todavía carga su JavaScript puede ver recargarse la misma página en vez de navegar. Vuelve a tocar y sigue. No pasa en Chromium ni en Firefox ([tareas posteriores a E](tareas-posteriores-a-e-20261103.md#punto-de-trabajo)).
+- **Svelte y los campos con valor:** si alguien selecciona el texto de un campo antes de que arranque la app y escribe después, lo escrito se agrega al valor anterior en vez de reemplazarlo. El servidor rechaza un monto inválido; uno que resulte válido se ve en el campo antes de guardar.
+- **Entorno de prueba, WebKit:** `assertBrowserReport` exige cero omitidas, así que una corrida de WebKit figura fallida aunque pasen todas las que pueden correr. Falta aceptar exactamente esas dos omisiones, con su motivo.
+- **Entorno de prueba, `wrangler dev`:** `ProxyWorker.js` compara la dirección completa con una que sólo tiene la raíz. Un POST que pierde su conexión recibe un 503, y un GET queda en una cola que sólo avanza con el próximo pedido. Hoy lo cubren `pastDevProxy` y la repetición de la corrida; la corrección de fondo es procesar esa cola al instante.
 
 ## 6. Hecho (para no repetirlo)
 

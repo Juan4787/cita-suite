@@ -12,7 +12,7 @@ Se actualiza después de cada bloque con resultado. Es el único lugar con el «
 |---|---|
 | Fecha | 6 de noviembre de 2026 (Argentina) |
 | Revisión de partida | `main` `d3f7553c`, igual a GitHub; producción V12b `771fac59`, versión `277d332d`, comprobada con `/_app/version.json` y `wrangler deployments list` |
-| Fase | **E publicada y comprobada en producción.** Quinta versión: instantánea `93b711a1` de `main` `f459b95c`, 164 migraciones. Detalle en `docs/ESTADO-VIGENTE.md` |
+| Fase | **E publicada y comprobada en producción**, y desde el 7 de noviembre también P1, P2 y P3: instantánea `cabd8ae4` de `main` `2f81c7ef`, 165 migraciones. Detalle en `docs/ESTADO-VIGENTE.md` |
 | Corridas de la revisión publicada | SQL 42289086004, paquete 42289073906, fast 42289995256, navegador 42290663360 (76/76) |
 | Datos sintéticos abiertos en producción | Sólo el turno del video: enlace y comando de limpieza en `~/.local/share/cita-suite/google-video/turno-video.txt`. Las demás prácticas se limpiaron. |
 | Ajustes de teléfonos | Restaurados el 6 de noviembre. Xiaomi: pantalla encendida en 0, Chrome apagado en Android como estaba, sitio sin decidir. Samsung: sincronización general apagada como estaba, sitio sin decidir; el valor 7 de pantalla encendida es el suyo. `citasuite` sigue en el Samsung porque la agregó Juan. Queda una notificación vieja de la sonda en el Samsung, que se descarta deslizándola |
@@ -22,7 +22,7 @@ Se actualiza después de cada bloque con resultado. Es el único lugar con el «
 
 Un solo resultado: desde que se crea un turno hasta que deja de requerir acciones, paciente y personal reciben información correcta por los medios disponibles, y el estado comunicado coincide con el estado vigente del turno. La sección 16 del mandato fija las condiciones de cierre; la sección 8 de este plan las traduce a evidencia concreta.
 
-Quedan fuera sólo: P1, P2, P3, la auditoría global de Cita Suite y las acciones de terceros (grabar y presentar el video, decisión de Google, KYC y compras de Zoho).
+Quedan fuera sólo la auditoría global de Cita Suite y las acciones de terceros (grabar y presentar el video, decisión de Google, KYC y compras de Zoho). P1, P2 y P3 se hicieron aparte y se publicaron el 7 de noviembre.
 
 ## 2. Cómo se relacionan los medios con el ciclo del turno
 

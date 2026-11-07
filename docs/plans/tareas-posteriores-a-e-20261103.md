@@ -1,15 +1,15 @@
 # Tareas posteriores a E
 
-**Estado vigente desde el 6 de noviembre de 2026:** P1, P2 y P3 **reanudadas por Juan**, en ese orden y por separado ([plan 12.34](propuesta-senas-avisos-natalia.md#reanudacion-p1-p2-p3-20261106)). Sustituye la pausa de [12.26](propuesta-senas-avisos-natalia.md#posteriores-a-e-pospuestas). Publicar no está incluido: se pide aparte. Estado de producción en el [registro único](../ESTADO-VIGENTE.md).
+**Estado vigente desde el 6 de noviembre de 2026:** P1, P2 y P3 **reanudadas por Juan**, en ese orden y por separado ([plan 12.34](propuesta-senas-avisos-natalia.md#reanudacion-p1-p2-p3-20261106)). Sustituye la pausa de [12.26](propuesta-senas-avisos-natalia.md#posteriores-a-e-pospuestas). **Publicadas el 7 de noviembre**, con la autorización de Juan registrada en el mismo 12.34. Estado de producción en el [registro único](../ESTADO-VIGENTE.md).
 
 ## Orden obligatorio y seguimiento
 
 | Orden | Trabajo | Estado | Condición de avance |
 |---|---|---|---|
 | Previo | E completa: correo, autogestión, señas y sus 97 casos | Publicada el 6 de noviembre | [Registro de E](ejecucion-etapa-e-20261103.md) |
-| P1 | Habilitar cancelar turnos desde recepción | Implementada, en verificación | Ver [punto de trabajo](#punto-de-trabajo) |
-| P2 | Estilar todos los controles y superficies de la app, en claro y oscuro, y revisar el diseño y la experiencia de toda la app | Implementada, en verificación | Ver [punto de trabajo](#punto-de-trabajo) |
-| P3 / nueva D | Avisos internos generales para horarios liberados, con patrón similar a Seguimientos | Implementada, en verificación | Ver [punto de trabajo](#punto-de-trabajo) |
+| P1 | Habilitar cancelar turnos desde recepción | Publicada el 7 de noviembre | Ver [punto de trabajo](#punto-de-trabajo) |
+| P2 | Estilar todos los controles y superficies de la app, en claro y oscuro, y revisar el diseño y la experiencia de toda la app | Publicada el 7 de noviembre | Ver [punto de trabajo](#punto-de-trabajo) |
+| P3 / nueva D | Avisos internos generales para horarios liberados, con patrón similar a Seguimientos | Publicada el 7 de noviembre | Ver [punto de trabajo](#punto-de-trabajo) |
 
 Cada tarea conserva cambios, reproducción/contraste, pruebas, auditoría, publicación y documentación propios. Conservar sus límites e incidencias, y no atribuirles evidencia de otra revisión.
 
@@ -147,4 +147,9 @@ Todo corregido, y el barrido final dio cero problemas en todos los perfiles y mo
 |---|---|---|
 | WebKit: `appointment-slot-releases`, `goto` interrumpido por una navegación a la URL de la acción `…&/hide_slot_release` | «Ocultar» es un POST nativo, y su respuesta es una página nueva que todavía estaba cargando sus módulos: se cancelaron 25 en el instante del `goto`. WebKit le entregó esa falla a la página; el arranque de SvelteKit capturó «Importing a module script failed», pidió el `__data.json`, rechazado por la salida, y recargó la página de la acción. Mismo mecanismo que `account-assistance` | La prueba repite ese `goto`. **Límite conocido de SvelteKit en Safari:** quien toca un enlace mientras la página todavía carga su JavaScript puede ver recargarse la misma página en vez de navegar; vuelve a tocar y sigue. No pasa en Chromium ni en Firefox |
 
-**En curso, 7 de noviembre:** `main` `2f81c7ef`, instantánea `cabd8ae4012749907d7bdb80b90f75bc0119f2a3`, rama `verify/p123-2f81c7ef`: paquete, `fast`, WebKit, Firefox, Chromium y SQL. Si todo aprueba sobre esa misma revisión, sigue la publicación. Para retomar: `gh run list --repo Juan4787/cita-suite-verificacion --branch verify/p123-2f81c7ef`.
+**Verificación de la revisión publicada**, `main` `2f81c7ef`, instantánea `cabd8ae4012749907d7bdb80b90f75bc0119f2a3`:
+- paquete 42362009024, `fast` 42362019500 y SQL 42365877784;
+- Chromium 42365013991 y Firefox 42363631730, con 81 de 81 cada uno;
+- WebKit 42362424031, con 79 de 79 y las 2 omisiones declaradas. Ese trabajo figura fallido sólo porque `assertBrowserReport` exige cero omitidas; queda en [pendientes](pendientes-vigentes.md).
+
+**Publicación, 7 de noviembre, de 11:04 a 11:06 UTC.** Antes del ensayo se migró staging a 165 (42366406312), porque le faltaba la correctiva `20261106030000`: así el ensayo vuelve a comparar contra un catálogo completo. Después: ensayo sin fallas, respaldo, programador sin cron, migración 165 en 756 ms, app `ecec47cb-93f2-49d6-be09-dfa94091810a`, `verify-production-release.mjs` aprobado y programador `0debec79-cadd-47e3-8bf6-47a46e6ba182` con sus cinco cron. Detalle y vuelta atrás en la [guía de publicación](../architecture/publicacion-y-reversion.md).
