@@ -1,5 +1,6 @@
 import { expect, type BrowserContext, type Page } from '@playwright/test';
 import { observeBrowserDiagnostics } from './browser-diagnostics';
+import { ownedAppointmentFixture } from './owned-appointment-fixture';
 
 type StoredSession = Awaited<ReturnType<BrowserContext['storageState']>>;
 
@@ -41,6 +42,9 @@ const restoreSession = async (page: Page, session: StoredSession, readyLinkNames
 
 export async function signInWithPassword(page: Page, email: string, password: string, loginPath = '/login') {
 	observeBrowserDiagnostics(page);
+	// Every spec of a run signs in from one address: together they would use up the limit of a real connection.
+	if (process.env.CITA_E2E_ENVIRONMENT === 'disposable')
+		ownedAppointmentFixture().sql("delete from public.server_rate_limit_events where action in ('login_password_by_ip','login_password_by_email');");
 	await page.goto(loginPath);
 	await page.getByLabel('Correo electrónico').fill(email);
 	await page.getByLabel('Contraseña').fill(password);

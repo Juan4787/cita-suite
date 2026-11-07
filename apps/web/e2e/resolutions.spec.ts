@@ -93,13 +93,12 @@ test('@candidate-behavior every screen holds at the real resolutions of phones, 
 test('@candidate-behavior the screens of a professional hold at every resolution', async ({ page }, info) => {
 	test.setTimeout(300_000);
 	const f = ownedAppointmentFixture();
-	const link = await must(f.admin.from('professional_services').select('service_id').eq('business_id', f.businessId).limit(1).single());
 	const owner = await must(f.admin.from('business_users').select('user_id').eq('business_id', f.businessId).eq('role', 'owner').single());
 	const password = `Owned-resolutions-${randomUUID()}`, email = `resolutions-${randomUUID()}@example.test`;
 	const professionalName = 'Dra. María Eugenia Fernández de los Santos', serviceName = 'Rehabilitación';
 	const issues: (LayoutIssue & { screen: string; viewport: string })[] = [];
 	const cutLabels: string[] = [];
-	let userId: string | null = null, professionalId: string | null = null, patientId: string | null = null;
+	let userId: string | null = null, professionalId: string | null = null, patientId: string | null = null, serviceId: string | null = null;
 	try {
 		const created = await f.admin.auth.admin.createUser({ email, password, email_confirm: true });
 		if (created.error || !created.data.user?.id) throw new Error('Could not create the owned professional account.');
@@ -107,11 +106,12 @@ test('@candidate-behavior the screens of a professional hold at every resolution
 		professionalId = (await must(f.admin.from('professionals').insert({ business_id: f.businessId, name: professionalName }).select('id').single())).id;
 		await must(f.admin.from('business_users').insert({ business_id: f.businessId, user_id: userId, role: 'professional', status: 'active', accepted_at: new Date().toISOString() }).select('user_id').single());
 		await must(f.admin.from('professional_users').insert({ business_id: f.businessId, professional_id: professionalId, user_id: userId }).select('user_id').single());
-		await must(f.admin.from('professional_services').insert({ business_id: f.businessId, professional_id: professionalId, service_id: link.service_id }).select('service_id').single());
+		serviceId = (await must(f.admin.from('services').insert({ business_id: f.businessId, name: serviceName, duration_minutes: 30 }).select('id').single())).id;
+		await must(f.admin.from('professional_services').insert({ business_id: f.businessId, professional_id: professionalId, service_id: serviceId }).select('service_id').single());
 		patientId = (await must(f.admin.from('patients').insert({ business_id: f.businessId, owner_id: owner.user_id, full_name: 'María Eugenia Fernández de los Santos Rodríguez',
 			phone: '3415559988', phone_e164: '+5493415559988' }).select('id').single())).id;
 		const starts = new Date(Date.now() + 5 * 60_000).toISOString(), ends = new Date(Date.now() + 35 * 60_000).toISOString();
-		await must(f.admin.from('appointments').insert({ business_id: f.businessId, patient_id: patientId, service_id: link.service_id, professional_id: professionalId,
+		await must(f.admin.from('appointments').insert({ business_id: f.businessId, patient_id: patientId, service_id: serviceId, professional_id: professionalId,
 			starts_at: starts, ends_at: ends, blocking_starts_at: starts, blocking_ends_at: ends, status: 'reserved', source: 'manual',
 			service_name_snapshot: serviceName, professional_name_snapshot: professionalName, duration_minutes_snapshot: 30, patient_name_at_booking: 'María Eugenia' }).select('id').single());
 		await signInWithPassword(page, email, password);
@@ -139,9 +139,10 @@ test('@candidate-behavior the screens of a professional hold at every resolution
 			delete from public.patients where business_id=:'business'::uuid and id=:'patient'::uuid;
 			delete from public.professional_users where business_id=:'business'::uuid and professional_id=:'professional'::uuid;
 			delete from public.professional_services where business_id=:'business'::uuid and professional_id=:'professional'::uuid;
+			delete from public.services where business_id=:'business'::uuid and id=:'service'::uuid;
 			delete from public.professionals where business_id=:'business'::uuid and id=:'professional'::uuid;
 			delete from public.business_users where business_id=:'business'::uuid and user_id=:'account'::uuid;
-			commit;`, { patient: patientId ?? none, professional: professionalId ?? none, account: userId ?? none });
+			commit;`, { patient: patientId ?? none, professional: professionalId ?? none, service: serviceId ?? none, account: userId ?? none });
 		if (userId) expect((await f.admin.auth.admin.deleteUser(userId)).error).toBeNull();
 	}
 });

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { formatDateTime } from '$lib/utils/format';
+	import { agendaTime } from '$lib/utils/agenda-dates';
 	import { styledSelect } from '$lib/ui/styled-controls';
 	import { hasAppointmentStarted } from '$lib/utils/appointment-visibility';
 
@@ -20,6 +21,7 @@
 
 	let { data }: {
 		data: {
+			timeZone: string;
 			professionalLinks: ProfessionalLink[];
 			selectedProfessionalId: string;
 			todayAppointments: Appointment[];
@@ -42,8 +44,8 @@
 		reschedule_requested: 'ux-badge ux-badge-warning'
 	};
 
-	const timeOnly = (value: string) =>
-		new Intl.DateTimeFormat('es-AR', { hour: '2-digit', minute: '2-digit' }).format(new Date(value));
+	// In the practice's zone, not the runtime's: the server runs in UTC.
+	const timeOnly = (value: string) => agendaTime(value, data.timeZone);
 
 	const selectedProfile = $derived(
 		data.professionalLinks.find((link: ProfessionalLink) => link.professional_id === data.selectedProfessionalId)?.professionals ??
@@ -128,7 +130,7 @@
 				{#each data.upcomingAppointments as appointment}
 					<a href={`/odonto/turnos/${appointment.id}`} class="ux-choice flex items-center gap-3 p-3 sm:gap-4 sm:p-4">
 						<div class="min-w-0 flex-1">
-							<p class="break-words text-base font-bold text-fg">{formatDateTime(appointment.starts_at)}</p>
+							<p class="break-words text-base font-bold text-fg">{formatDateTime(appointment.starts_at, data.timeZone)}</p>
 							<p class="mt-0.5 break-words text-sm text-fg-55">{appointment.service_name_snapshot}</p>
 							<div class="mt-2">
 								<span class={statusTone[appointment.status] ?? 'ux-badge'}>{statusLabels[appointment.status] ?? appointment.status}</span>

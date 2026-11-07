@@ -49,6 +49,7 @@ export const load: PageServerLoad = async ({ params, locals, fetch, cookies }) =
 
 	return {
 		professional: professionalResult.data,
+		timeZone: business.business.timezone,
 		appointments: appointmentsResult.data ?? [],
 		entries: entriesResult.data ?? [],
 		appointmentsTotal: appointmentsResult.count ?? appointmentsResult.data?.length ?? 0,
