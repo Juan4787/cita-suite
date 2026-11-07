@@ -96,6 +96,7 @@ M	apps/web/src/lib/components/team/TeamMemberWizard.svelte
 M	apps/web/src/lib/scheduling/slot-releases.ts
 M	apps/web/src/lib/server/patients/public/booking-information-page.test.ts
 M	apps/web/src/lib/server/patients/public/booking-information-page.ts
+M	apps/web/src/lib/server/patients/public/booking-information.ts
 M	apps/web/src/lib/server/patients/public/follow-ups.ts
 M	apps/web/src/lib/server/scheduling/public/appointments.ts
 M	apps/web/src/lib/server/scheduling/public/patient-management-page.ts
@@ -107,6 +108,8 @@ A	apps/web/src/lib/ui/dialog-focus.client.test.ts
 A	apps/web/src/lib/ui/dialog-focus.ts
 A	apps/web/src/lib/ui/field-validation.client.test.ts
 A	apps/web/src/lib/ui/field-validation.ts
+A	apps/web/src/lib/ui/reveal-notice.client.test.ts
+A	apps/web/src/lib/ui/reveal-notice.ts
 M	apps/web/src/lib/utils/agenda-dates.ts
 M	apps/web/src/lib/utils/appointment-visibility.test.ts
 M	apps/web/src/lib/utils/appointment-visibility.ts

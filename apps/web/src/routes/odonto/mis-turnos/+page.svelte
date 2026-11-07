@@ -98,17 +98,19 @@
 			<div class="mt-5 grid gap-3">
 				{#each data.todayAppointments as appointment}
 					<a href={`/odonto/turnos/${appointment.id}`} class="ux-choice flex items-center gap-3 p-3 sm:gap-4 sm:p-4">
-						<div class="w-14 shrink-0 text-center sm:w-20">
-							<p class="text-xl font-bold text-fg sm:text-2xl">{timeOnly(appointment.starts_at)}</p>
-							<p class="mt-0.5 text-xs text-copy-subtle">{timeOnly(appointment.ends_at)}</p>
-						</div>
-						<div class="min-w-0 flex-1">
-							<p class="break-words text-base font-bold text-fg sm:text-lg">{appointment.service_name_snapshot}</p>
-							<p class="mt-0.5 break-words text-sm text-fg-55">
-								{appointment.patients?.full_name ?? 'Paciente'}{appointment.patients?.phone_e164 ? ` · ${appointment.patients.phone_e164}` : ''}
-							</p>
-							<div class="mt-2">
-								<span class={hasAppointmentStarted(appointment) ? 'ux-badge ux-badge-warning' : (statusTone[appointment.status] ?? 'ux-badge')}>{hasAppointmentStarted(appointment) ? 'Turno pasado' : (statusLabels[appointment.status] ?? appointment.status)}</span>
+						<!-- On a phone the time goes above: beside it, the text has no room left. -->
+						<div class="min-w-0 flex-1 sm:flex sm:items-center sm:gap-4">
+							<div class="flex items-baseline gap-1.5 sm:block sm:w-20 sm:shrink-0 sm:text-center">
+								<p class="text-xl font-bold text-fg sm:text-2xl">{timeOnly(appointment.starts_at)}</p>
+								<p class="text-xs text-copy-subtle sm:mt-0.5"><span class="sm:hidden">a </span>{timeOnly(appointment.ends_at)}</p>
+							</div>
+							<div class="mt-1 min-w-0 flex-1 sm:mt-0">
+								<p class="break-words text-base font-bold text-fg sm:text-lg">{appointment.service_name_snapshot}</p>
+								<p class="mt-0.5 break-words text-sm text-fg-55">{appointment.patients?.full_name ?? 'Paciente'}</p>
+								{#if appointment.patients?.phone_e164}<p class="break-words text-sm text-fg-55">{appointment.patients.phone_e164}</p>{/if}
+								<div class="mt-2">
+									<span class={hasAppointmentStarted(appointment) ? 'ux-badge ux-badge-warning' : (statusTone[appointment.status] ?? 'ux-badge')}>{hasAppointmentStarted(appointment) ? 'Turno pasado' : (statusLabels[appointment.status] ?? appointment.status)}</span>
+								</div>
 							</div>
 						</div>
 						<svg class="h-5 w-5 shrink-0 text-fg-30" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6" /></svg>

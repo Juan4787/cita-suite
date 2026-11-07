@@ -14,6 +14,7 @@ import {formatQuotedPrice} from '$lib/booking/pricing';
 	import { formatInTimeZone } from '$lib/utils/format';
 	import type { StaffManagementFeedback } from '$lib/scheduling/staff-management';
 	import { formatDepositMoney } from '$lib/scheduling/reschedule-terms';
+	import { revealNotice } from '$lib/ui/reveal-notice';
 	import type { PageData } from './$types';
 import { BOOKING_MODALITY_LABELS, type BookingModality } from '@cita-suite/shared/booking-integration';
 
@@ -89,7 +90,7 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@cita-suite/share
    case 'discarded': return `No se envió: ${emailDiscardLabels[delivery.discardReason ?? ''] ?? 'ya no correspondía'}`;
   }
  };
- $effect(() => { if (feedback?.message) feedbackElement?.focus(); });
+ $effect(() => { if (feedback?.message) revealNotice(feedbackElement); });
  const canOperate = $derived(data.context.canOperate && !data.demo);
 	const isClosed = $derived(data.appointment?.status === 'cancelled');
 	const canShowCancelAction = $derived(
