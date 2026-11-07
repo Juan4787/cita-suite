@@ -1407,6 +1407,14 @@ Después, sobre un turno de ese mismo día que ya había pasado:
 
 > entonces esta bien que no aparezca, pero hay problema de UX, debe aclarar que es un turno pasado
 
+Y sobre cómo verificarlo y sobre la información que manda el paciente:
+
+> Asegurate que no quede ningun fallo, proba diferentes pantallas y dispositivos, seguis teniendo el samsung conectado si lo necesitas
+
+> acordate de probar en mas resoluciones, no solo las del samsung
+
+> cuando guardo la informacion adicional en el turno, deberia aparecer un cartel que indique que se guardo y volver al sitio anterior del resumen del turno
+
 **Aplicación y precedencia:** sustituye la pausa de [12.26](#posteriores-a-e-pospuestas). P1, P2 y P3 quedan reanudadas, en ese orden y como tareas separadas, con sus alcances de [12.23](#tareas-posteriores-a-e) y su seguimiento en [tareas posteriores a E](tareas-posteriores-a-e-20261103.md). P2 suma la revisión de diseño y experiencia de toda la app que pide este apartado.
 
 **Decisión sobre turnos pasados (P1):** un turno que ya empezó o ya pasó no se cancela. La pantalla lo dice con claridad en vez de esconder el botón sin explicación, y la base de datos hace valer la misma regla.

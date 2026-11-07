@@ -102,10 +102,12 @@ test('@candidate-behavior isolated informed booking: stale policy, atomic retry 
   await page.getByLabel('Teléfono de contacto', { exact: true }).fill('3425048230');
   await page.getByLabel('Correo electrónico', { exact: true }).fill('Informed+Booking@Example.test');
   await page.getByLabel('Comentario', { exact: true }).fill('Comentario previo al inicio de JavaScript');
-  const preferenceName = await page.getByLabel('Preferencia de contacto', { exact: true }).getAttribute('name');
+  // Once the app starts, the label also names its styled control; the native field is the one sent.
+  const preference = page.getByLabel('Preferencia de contacto', { exact: true }).and(page.locator('select'));
+  const preferenceName = await preference.getAttribute('name');
   const birthName = await page.getByLabel('Fecha de nacimiento', { exact: true }).getAttribute('name');
   expect(preferenceName).toMatch(/^intake_/); expect(birthName).toMatch(/^intake_/);
-  await page.getByLabel('Preferencia de contacto', { exact: true }).selectOption('Tarde');
+  await preference.selectOption('Tarde');
   await page.getByLabel('Fecha de nacimiento', { exact: true }).fill('1990-01-02');
   releaseScripts();
   await expect(page.locator('.patient-booking-form')).toHaveAttribute('data-booking-enhanced', 'true');

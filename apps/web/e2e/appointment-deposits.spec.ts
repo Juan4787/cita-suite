@@ -6,6 +6,7 @@ import { loginWithSharedSession } from './helpers/shared-auth';
 import { layoutIssues, type LayoutIssue } from './helpers/layout-usability';
 import { alignTaskForCapture } from './helpers/task-capture';
 import { observeRenderHealth } from './helpers/render-health';
+import { whatsappDraft } from './helpers/whatsapp-draft';
 
 // Real Auth/PostgREST/SQL and browser actions in the owned disposable fixture only. The one
 // external destination (WhatsApp) is intercepted after our real redirect: no message is sent.
@@ -134,17 +135,11 @@ test('appointment deposits: booking terms, registration, agenda and automatic ca
 		const row = page.locator(`[data-deposit-row="${appointment.id}"]`);
 		await expect(row).toContainText(fullName);
 		await matrix(page, info, 'lista', row.getByRole('button', { name: 'Confirmar seña', exact: true }), issues);
-		await context.route('https://web.whatsapp.com/**', route => route.fulfill({ status: 200, contentType: 'text/html', body: '<title>Destino externo interceptado</title>' }));
-		const popupPromise = context.waitForEvent('page');
-		await row.getByRole('button', { name: 'Pedir seña por WhatsApp', exact: true }).click();
-		const popup = await popupPromise;
-		await popup.waitForURL('https://web.whatsapp.com/**');
-		const external = new URL(popup.url());
+		const external = await whatsappDraft(context, row.getByRole('button', { name: 'Pedir seña por WhatsApp', exact: true }));
+		expect(external.origin + external.pathname).toBe('https://web.whatsapp.com/send');
 		expect(external.searchParams.get('text')).toContain(fullName);
 		expect(external.searchParams.get('text')).toContain('Si ya la transferiste, desestimá este mensaje');
 		expect((await deposit()).reminder_opened_at).not.toBeNull();
-		await popup.close();
-		await context.unroute('https://web.whatsapp.com/**');
 		await page.reload();
 		await expect(row.getByRole('button', { name: 'Abrir de todos modos', exact: true })).toBeVisible();
 		await row.getByRole('button', { name: 'Confirmar seña', exact: true }).click();

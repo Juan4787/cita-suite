@@ -89,4 +89,22 @@ Después de corregir: cero problemas en todas las pantallas y estados.
 | `/realtime/v1/websocket` 404 en Firefox | Firefox informa el rechazo del WebSocket como una respuesta. El entorno de prueba no tiene Realtime | El control lo reconoce sólo contra ese origen, y clasifica el texto de cada motor |
 | `isMobile` y captura mayor a 32767 px | No existe en Firefox. Firefox y WebKit rechazan esa captura, que Términos alcanza a 320 px | `mobileOptions` y captura de pantalla visible en ese caso |
 
-**Barrido exhaustivo con esa base.** 53 pantallas en 26 resoluciones, 1.378 mediciones con Chromium, más otros perfiles y motores. Halló dos defectos más en Ayuda a 320 px: «24 horas» partido y el botón en dos líneas. La captura mostró además «Pacient…» cortado en la barra inferior. Corregidos, junto con «48 horas» partido en Términos.
+**Barrido exhaustivo con esa base.** Las 53 pantallas con página del entorno local, medidas con Chromium en las 26 resoluciones como dueño, recepción y profesional (1.378 mediciones cada uno) y sin sesión, y con Firefox y WebKit en 8 resoluciones como dueño, profesional y sin sesión. Halló:
+- en Ayuda a 320 px, «24 horas» partido y el botón en dos líneas;
+- «Pacient…» cortado en la barra inferior;
+- sólo con el perfil de profesional, la tarjeta de «Mis turnos» con el texto apretado a 108 px y un «·» colgando, «Mis pre…» y «Mis turn…» cortados, y «Mis preguntas» con el ícono de «Más»;
+- «48 horas» partido en Términos.
+
+Todo corregido, y el barrido final dio cero problemas en todos los perfiles y motores. `resolutions.spec.ts` mide ahora también las pantallas de un profesional real y las etiquetas de la barra inferior.
+
+**Defecto real de Safari, hallado por WebKit.** Después de una acción, la app llevaba el foco al aviso y confiaba en que eso lo mostrara. Medido: Chromium y Firefox desplazan la página hacia el elemento enfocado; WebKit no. En un iPhone, un paciente que reprogramaba no veía «La reprogramación quedó registrada», ni el personal el aviso de que el turno había cambiado. `revealNotice` enfoca y desplaza por su cuenta, y lo usan el detalle del turno, la gestión del paciente, la información previa, la exportación y el cartel de información guardada.
+
+**Corrida 42335965685, Firefox, 74 de 78, y 42337545565, WebKit, 45 de 78.** Primeras corridas con todas las pruebas en esos motores, sobre `c4c1ffd0`. Además de lo anterior:
+- **El visor clínico no mostraba la imagen en Firefox:** el PNG de la prueba estaba corrupto, con CRC y zlib incorrectos. Chromium lo dibuja y Firefox y WebKit no. Se reemplazó por uno válido. Eso mostró una mejora real: Firefox dispara `load` para un archivo que no puede decodificar, y el visor quedaba mudo. Ahora ofrece «Reintentar».
+- **Embebido en WebKit:** bloquea contenido http dentro de una página https, incluso en `127.0.0.1`. Es un límite del entorno de prueba, porque en producción las dos partes son https. En esa corrida el sitio embebido se sirve por http.
+- **`request-transport`:** caracteriza justamente el comportamiento de cookies `Secure` que WebKit no tiene; se omite en ese motor.
+- **Cancelaciones:** WebKit informa `Fetch API cannot load … due to access control checks` y Firefox `Unable to preload CSS` al salir de una pantalla; los `fetch` de la agenda sí estaban manejados. Entran en `pageErrorCollector`, siempre contra una carga cancelada.
+
+**Corrida 42335055779, Chromium, 76 de 78.** Los dos fallos no venían del cambio de P1, P2 o P3:
+- **`staff-delivery`, teléfono `--sanitized--`:** la app abre WhatsApp con un formulario en pestaña nueva y el servidor responde con una redirección. Playwright no intercepta redirecciones, así que esa prueba y la de señas siempre llegaron al sitio real, y WhatsApp ahora reescribe esa dirección. Con `whatsappDraft` la pestaña se frena en la respuesta del servidor: se lee el destino y WhatsApp no recibe ningún pedido, comprobado en los tres motores.
+- **`patient-management-clinical`, 503 en vez de 404, una sola vez:** respondió en 1 ms, sin llegar a la base, y la otra variante de la misma prueba dio 404 en 13 ms. Causa sin demostrar. El 503 de `informationContext` no dejaba rastro: ahora queda registrado.
