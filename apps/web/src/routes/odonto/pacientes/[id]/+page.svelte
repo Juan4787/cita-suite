@@ -319,7 +319,7 @@
 			<div class="mt-3 grid gap-2">
 				{#each data.appointments as appointment}
 					<a href={`/odonto/turnos/${appointment.id}`} class="rounded-xl border px-3 py-2 text-sm transition border-line-strong bg-raised hover:bg-raised">
-						<span class="block font-semibold text-fg">{formatDateTime(appointment.starts_at)} ·&nbsp;{appointment.service_name_snapshot}</span>
+						<span class="block font-semibold text-fg">{formatDateTime(appointment.starts_at, data.businessTimeZone)} ·&nbsp;{appointment.service_name_snapshot}</span>
 						<span class="text-xs text-fg-n300">{appointment.professional_name_snapshot} ·&nbsp;{appointmentStatusLabels[appointment.status] ?? 'Estado pendiente'}</span>
 					</a>
 				{/each}

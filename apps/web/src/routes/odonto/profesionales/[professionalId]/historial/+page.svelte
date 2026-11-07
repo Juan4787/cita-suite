@@ -6,6 +6,7 @@
 	let { data }: {
 		data: {
 			professional: { id: string; name: string } | null;
+			timeZone?: string;
 			appointments: Array<{
 				id: string;
 				starts_at: string;
@@ -57,7 +58,7 @@
 					<div class="min-w-0 flex-1">
 						<p class="break-words font-bold text-fg">{appt.patients?.full_name ?? 'Paciente'}</p>
 						<p class="mt-0.5 text-sm text-fg-55">
-							{formatDateTime(appt.starts_at)}{appt.service_name_snapshot ? ` ·\u00a0${appt.service_name_snapshot}` : ''} ·&nbsp;{statusLabels[appt.status] ?? appt.status}
+							{formatDateTime(appt.starts_at, data.timeZone)}{appt.service_name_snapshot ? ` ·\u00a0${appt.service_name_snapshot}` : ''} ·&nbsp;{statusLabels[appt.status] ?? appt.status}
 						</p>
 					</div>
 					<svg class="h-5 w-5 shrink-0 text-fg-30" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6" /></svg>
@@ -82,7 +83,7 @@
 					<div class="min-w-0 flex-1">
 						<p class="break-words font-bold text-fg">{entry.patients?.full_name ?? 'Paciente'}</p>
 						<p class="mt-0.5 text-sm text-fg-55">
-							{formatDateTime(entry.created_at)}{entry.entry_type ? ` ·\u00a0${entry.entry_type}` : ''}
+							{formatDateTime(entry.created_at, data.timeZone)}{entry.entry_type ? ` ·\u00a0${entry.entry_type}` : ''}
 						</p>
 						{#if entry.description}
 							<p class="mt-2 text-sm text-fg-70">{entry.description}</p>

@@ -142,11 +142,14 @@ M	apps/web/src/routes/odonto/layout-notices.server.test.ts
 M	apps/web/src/routes/odonto/maestro/+page.svelte
 M	apps/web/src/routes/odonto/maestro/correo/+page.svelte
 M	apps/web/src/routes/odonto/maestro/correo/page.client.test.ts
+M	apps/web/src/routes/odonto/mis-turnos/+page.server.ts
 M	apps/web/src/routes/odonto/mis-turnos/+page.svelte
 M	apps/web/src/routes/odonto/pacientes/+page.svelte
 M	apps/web/src/routes/odonto/pacientes/[id]/+page.svelte
 M	apps/web/src/routes/odonto/pacientes/papelera/+page.svelte
 M	apps/web/src/routes/odonto/profesionales/[professionalId]/aranceles/+page.svelte
+M	apps/web/src/routes/odonto/profesionales/[professionalId]/historial/+page.server.ts
+M	apps/web/src/routes/odonto/profesionales/[professionalId]/historial/+page.svelte
 M	apps/web/src/routes/odonto/profesionales/[professionalId]/preguntas/+page.svelte
 M	apps/web/src/routes/odonto/recordatorios/+page.svelte
 M	apps/web/src/routes/odonto/seguimientos/+page.svelte

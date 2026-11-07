@@ -11,8 +11,10 @@ import type { PageServerLoad } from './$types';
 export const load: PageServerLoad = async ({ locals, fetch, cookies, url }) => {
 	if (!locals.auth) throw redirect(303, '/login');
 	if (env.DEMO_MODE === 'true') {
+		const context = demoBusinessContext();
 		return {
-			context: demoBusinessContext(),
+			context,
+			timeZone: context.business.timezone,
 			professionalLinks: [],
 			selectedProfessionalId: '',
 			todayAppointments: [],
@@ -77,6 +79,7 @@ export const load: PageServerLoad = async ({ locals, fetch, cookies, url }) => {
 
 	return {
 		context: business,
+		timeZone: business.business.timezone,
 		professionalLinks: links ?? [],
 		selectedProfessionalId,
 		todayAppointments: todayResult.data ?? [],

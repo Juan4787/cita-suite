@@ -196,7 +196,7 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@cita-suite/share
 		if (log.action === 'appointment.rescheduled') {
 			const from = metadataValue(log, 'from_starts_at');
 			const to = metadataValue(log, 'to_starts_at');
-			if (from && to) return `${formatDateTime(from)} -> ${formatDateTime(to)}`;
+			if (from && to) return `${formatDateTime(from, timeZone)} -> ${formatDateTime(to, timeZone)}`;
 		}
 		const depositAmount = log.metadata?.amount;
 		if (['appointment.deposit_paid', 'appointment.deposit_waived', 'appointment.deposit_reopened'].includes(log.action) && typeof depositAmount === 'number') {
@@ -920,7 +920,7 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@cita-suite/share
 					{#each data.auditLogs ?? [] as log}
 						<li class="py-3 text-sm first:pt-0 last:pb-0">
 							<p class="font-semibold text-fg">{auditLabel(log)}</p>
-							<p class="mt-1 text-xs font-semibold text-copy-subtle">{formatDateTime(log.created_at)}</p>
+							<p class="mt-1 text-xs font-semibold text-copy-subtle">{formatDateTime(log.created_at, timeZone)}</p>
 							{#if auditDetail(log)}
 								<p class="mt-2 text-fg-70">{auditDetail(log)}</p>
 							{/if}
