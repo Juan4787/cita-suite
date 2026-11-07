@@ -5,6 +5,7 @@
   import BookingAppearance from "$lib/booking/BookingAppearance.svelte";
   import { enhance } from "$app/forms";
   import { styledSelect } from "$lib/ui/styled-controls";
+  import { revealNotice } from "$lib/ui/reveal-notice";
   import { tick } from "svelte";
   import type { SubmitFunction } from "@sveltejs/kit";
   let { data, form }: { data: PublicInformationPageData; form?: PublicInformationFeedback | null } = $props();
@@ -25,7 +26,7 @@
           await update({ reset: false, invalidateAll: result.type === "success" });
         }
         await tick();
-        feedback?.focus();
+        revealNotice(feedback);
       } finally {
         busy = false;
       }

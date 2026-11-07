@@ -83,8 +83,8 @@
 	];
 
 	const professionalNav: NavItem[] = [
-        { label: 'Mis preguntas', href: '/odonto/mis-preguntas' },
-		{ label: 'Mis turnos', href: '/odonto/mis-turnos', activePrefixes: ['/odonto/mis-turnos'] },
+		{ label: 'Mis preguntas', shortLabel: 'Preguntas', href: '/odonto/mis-preguntas' },
+		{ label: 'Mis turnos', shortLabel: 'Turnos', href: '/odonto/mis-turnos', activePrefixes: ['/odonto/mis-turnos'] },
 		{
 			label: 'Seguimientos',
 			shortLabel: 'Seguir',
@@ -1373,6 +1373,10 @@
 			{:else if label === 'Mis turnos'}
 				<rect x="3.5" y="5" width="17" height="15.5" rx="2.5" />
 				<path d="M3.5 9.5h17M8 3.5v3M16 3.5v3M9 14.7l2 2 4-4" />
+			{:else if label === 'Mis preguntas'}
+				<path d="M20.5 12a8.5 8.5 0 0 1-12.6 7.4l-4.4 1.1 1.1-4.4A8.5 8.5 0 1 1 20.5 12Z" />
+				<path d="M9.8 9.7a2.3 2.3 0 1 1 3.3 2.1c-.7.4-1.1.9-1.1 1.6" />
+				<circle cx="12" cy="16.3" r="0.9" fill="currentColor" stroke="none" />
 			{:else if label === 'Turnos para recordar'}
 				<path d="M18 8.5a6 6 0 0 0-12 0c0 6-2.5 8-2.5 8h17s-2.5-2-2.5-8" />
 				<path d="M13.7 20.5a2 2 0 0 1-3.4 0" />

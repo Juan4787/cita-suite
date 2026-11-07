@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { onDestroy, onMount, tick } from 'svelte';
+	import { revealNotice } from '$lib/ui/reveal-notice';
 	import type { PatientExportDataset, PatientExportScope } from '$lib/patient-export/contract';
 	import type {
 		PatientExportClientErrorCode,
@@ -106,7 +107,7 @@
 
 	const focusTerminalSummary = async () => {
 		await tick();
-		terminalSummary?.focus();
+		revealNotice(terminalSummary);
 	};
 
 	const startExport = async () => {

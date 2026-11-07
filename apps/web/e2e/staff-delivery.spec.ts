@@ -7,6 +7,7 @@ import { observeRenderHealth } from './helpers/render-health';
 import { layoutIssues, type LayoutIssue } from './helpers/layout-usability';
 import { alignTaskForCapture } from './helpers/task-capture';
 import { expectRenderedTheme } from './helpers/theme';
+import { whatsappDraft } from './helpers/whatsapp-draft';
 
 // No host-managed browser is exposed. Hosted Playwright uses owned fixtures,
 // real Auth/PostgREST and actual POSTs. External WhatsApp navigation is intercepted;
@@ -31,15 +32,9 @@ test('@candidate-behavior staff delivery: explicit preparation, contact revocati
  // The packaged release sets Secure cookies, and the request API leaves them out on plain HTTP.
  const session = async () => ({ cookie: (await context.cookies()).map(({ name, value }) => `${name}=${value}`).join('; ') });
  const openDraft = async (button: Locator) => {
-  const next = context.waitForEvent('page');
-  await button.click();
-  const popup = await next;
-  try {
-   await popup.waitForURL(/^https:\/\/(?:wa\.me|web\.whatsapp\.com)\//);
-   const target = new URL(popup.url()), message = target.searchParams.get('text') ?? '';
-   expect(target.searchParams.get('phone') ?? target.pathname.slice(1)).toBe('5493425048271');
-   return { message };
-  } finally { await popup.close(); }
+  const target = await whatsappDraft(context, button), message = target.searchParams.get('text') ?? '';
+  expect(target.searchParams.get('phone') ?? target.pathname.slice(1)).toBe('5493425048271');
+  return { message };
  };
  const open = async (button: Locator) => {
   const { message } = await openDraft(button);
@@ -48,9 +43,6 @@ test('@candidate-behavior staff delivery: explicit preparation, contact revocati
   expect(message).not.toContain('/turno/');
   return { path: '/gestion/' + token, message };
  };
- await context.route(/^https:\/\/(?:wa\.me|web\.whatsapp\.com)\//, route => route.fulfill({
-  status: 200, contentType: 'text/html', body: '<h1>Preparación comprobada. No se envió ningún mensaje.</h1>'
- }));
  try {
   f.sql(`begin;
    insert into public.patients(id,business_id,owner_id,full_name,phone_e164,email)

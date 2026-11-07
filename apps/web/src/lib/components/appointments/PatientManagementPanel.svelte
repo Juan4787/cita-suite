@@ -3,6 +3,7 @@
  import { styledDate } from '$lib/ui/styled-controls';
  import type { SubmitFunction } from '@sveltejs/kit';
  import { formatDateTime, formatDuration } from '$lib/utils/format';
+ import { revealNotice } from '$lib/ui/reveal-notice';
  import { formatDepositMoney } from '$lib/scheduling/reschedule-terms';
  import type { PatientManagementPanelData, PatientManagementFeedback } from '$lib/scheduling/patient-management-page';
  let { context, feedback }: { context: PatientManagementPanelData; feedback?: PatientManagementFeedback | null } = $props();
@@ -13,7 +14,7 @@
  let transportFeedback = $state<PatientManagementFeedback | null>(null);
  const outcome = $derived(transportFeedback ?? feedback);
  let responseElement = $state<HTMLParagraphElement | null>(null);
- $effect(() => { if (outcome?.message) responseElement?.focus(); });
+ $effect(() => { if (outcome?.message) revealNotice(responseElement); });
  const progressive: SubmitFunction = ({ action, formData, cancel }) => {
   if (busy) { cancel(); return; }
   busy = true;

@@ -351,6 +351,11 @@
 
 	function handleImageLoad(event: Event) {
 		const image = event.currentTarget as HTMLImageElement;
+		// Firefox fires load for a file it cannot decode: with no size there is nothing to show.
+		if (!image.naturalWidth) {
+			handleImageError();
+			return;
+		}
 		imageNaturalWidth = image.naturalWidth;
 		imageNaturalHeight = image.naturalHeight;
 		renderError = '';

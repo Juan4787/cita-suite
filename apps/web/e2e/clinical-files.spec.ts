@@ -16,8 +16,9 @@ const isLocalSupabase = Boolean(
 	supabaseUrl?.startsWith('http://127.0.0.1') || supabaseUrl?.startsWith('http://localhost')
 );
 const password = 'E2eClinicalFiles!2026';
+// A valid file: with a wrong checksum Chromium still draws it, and Firefox and WebKit do not.
 const onePixelPng = Buffer.from(
-	'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wl3pGQAAAAASUVORK5CYII=',
+	'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=',
 	'base64'
 );
 
@@ -453,7 +454,7 @@ test.describe('Archivos clínicos privados', () => {
 			const mobileViewerBox = await mobileViewerDialog.boundingBox();
 			expect(mobileViewerBox?.width ?? 0).toBeGreaterThanOrEqual(390);
 			expect(mobileViewerBox?.width ?? Number.POSITIVE_INFINITY).toBeLessThanOrEqual(391);
-			expect(mobileViewerBox?.height ?? 0).toBeGreaterThanOrEqual(844);
+			expect(Math.round(mobileViewerBox?.height ?? 0)).toBeGreaterThanOrEqual(844);
 			await expect(mobileViewerDialog.getByText('Pellizcá para ampliar')).toBeVisible();
 			const touchControls = mobileViewerDialog.locator('.clinical-viewer-touch-controls');
 			const touchZoom = touchControls.getByLabel('Nivel de zoom');

@@ -17,6 +17,7 @@
 		type NotificationBrowserProfile,
 		type NotificationGuide
 	} from '$lib/device';
+	import { revealNotice } from '$lib/ui/reveal-notice';
 	import type { PublicAppointmentView } from '$lib/scheduling/public-appointment';
 	import type { PatientManagementPanelData, PatientManagementFeedback } from '$lib/scheduling/patient-management-page';
 
@@ -1060,7 +1061,7 @@
 	let informationSavedNotice = $state<HTMLParagraphElement>();
 	onMount(() => {
 		if (!data.informationSaved) return;
-		informationSavedNotice?.focus();
+		revealNotice(informationSavedNotice);
 		const clean = new URL(window.location.href);
 		clean.searchParams.delete('informacion');
 		void tick().then(() => replaceState(clean, {})).catch(() => {});

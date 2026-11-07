@@ -3,6 +3,7 @@ import { appendFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { safeBrowserText as safeText, safeBrowserUrl as safeUrl } from '../../../../scripts/lib/browser-evidence.mjs';
+import { fixtureRealtimeDiagnostic } from './realtime-diagnostics';
 
 const observed = new WeakSet<Page>();
 /** Diagnostic evidence only; never retries, reloads or changes the tested flow. */
@@ -20,7 +21,9 @@ export function observeBrowserDiagnostics(page: Page) {
 	};
 	page.on('pageerror', error => record('pageerror', { name: error.name, message: safeText(error.message), stack: safeText(error.stack ?? '') }));
 	page.on('console', message => {
-		if (message.type() === 'error') record('console-error', { message: safeText(message.text()) });
+		// The fixture has no Realtime server: its reconnections would fill the evidence of a long tour.
+		if (message.type() === 'error' && !fixtureRealtimeDiagnostic(message.text(), process.env.CITA_E2E_ENVIRONMENT, process.env.PUBLIC_ODONTO_SUPABASE_URL))
+			record('console-error', { message: safeText(message.text()) });
 	});
 	page.on('requestfailed', request => record('request-failed', { url: safeUrl(request.url()), type: request.resourceType(), error: safeText(request.failure()?.errorText ?? '') }));
 	page.on('response', response => {

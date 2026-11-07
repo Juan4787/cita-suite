@@ -2,7 +2,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
 import { must } from './helpers/fixture-db';
 import { ownedAppointmentFixture } from './helpers/owned-appointment-fixture';
-import { loginWithSharedSession } from './helpers/shared-auth';
+import { loginWithSharedSession, signInWithPassword } from './helpers/shared-auth';
 import { layoutIssues, type LayoutIssue } from './helpers/layout-usability';
 
 // The screens people really use, from a small phone to a large monitor, and not only the widths of
@@ -17,6 +17,9 @@ const RESOLUTIONS = [
 const CONTROLS = ['a', 'button', 'input:not(.ux-native-source):not(.sr-only):not([type="hidden"])', 'textarea', '.ux-control-trigger']
 	.map((control) => `main ${control}:visible`)
 	.join(', ');
+// The bottom bar is outside `main`: on the narrowest phone its labels still have to read whole.
+const cutNavLabels = (page: Page) => page.locator('nav[aria-label="Navegación principal"] span.truncate')
+	.evaluateAll((labels) => labels.filter((label) => label.scrollWidth > label.clientWidth).map((label) => label.textContent?.trim() ?? ''));
 const openAll = (page: Page) => page.evaluate(() => { for (const details of document.querySelectorAll<HTMLDetailsElement>('main details')) details.open = true; });
 
 test('@candidate-behavior every screen holds at the real resolutions of phones, tablets, notebooks and monitors', async ({ page }, info) => {
@@ -30,6 +33,7 @@ test('@candidate-behavior every screen holds at the real resolutions of phones, 
 	let patientId: string | null = null;
 	const issues: (LayoutIssue & { screen: string; viewport: string })[] = [];
 	const measured: string[] = [];
+	const cutLabels: string[] = [];
 	const at = (days: number) => new Date(Date.now() + days * 86_400_000).toISOString();
 	try {
 		const patient = await must(f.admin.from('patients').insert({ business_id: f.businessId, owner_id: owner.user_id, full_name: patientName,
@@ -66,12 +70,14 @@ test('@candidate-behavior every screen holds at the real resolutions of phones, 
 				await page.setViewportSize({ width, height });
 				const viewport = `${width}x${height}`;
 				issues.push(...(await layoutIssues(page, CONTROLS, 'main')).map((issue) => ({ ...issue, screen, viewport })));
+				cutLabels.push(...(await cutNavLabels(page)).map((label) => `${label} ${viewport}`));
 				measured.push(`${screen} ${viewport}`);
 			}
 		}
 		await info.attach('resolutions', { body: JSON.stringify({ resolutions: RESOLUTIONS, measured: measured.length, issues }, null, 2), contentType: 'application/json' });
 		expect(measured.length).toBe(screens.length * RESOLUTIONS.length);
 		expect(issues).toEqual([]);
+		expect(cutLabels).toEqual([]);
 	} finally {
 		f.sql(`begin;
 			delete from public.audit_logs where business_id=:'business'::uuid and (entity_id=:'patient'::uuid or entity_id in (select id from public.appointments where business_id=:'business'::uuid and patient_id=:'patient'::uuid));
@@ -79,5 +85,63 @@ test('@candidate-behavior every screen holds at the real resolutions of phones, 
 			delete from public.patients where business_id=:'business'::uuid and id=:'patient'::uuid;
 			commit;`, { patient: patientId ?? '00000000-0000-0000-0000-000000000000' });
 		if (patientId) expect(await must(f.admin.from('patients').select('id').eq('business_id', f.businessId).eq('id', patientId))).toHaveLength(0);
+	}
+});
+
+// A professional sees another bottom bar and its own agenda, where the card of a turn has to hold a long
+// name, a phone and a long word on the narrowest phone. The owner's sweep above cannot reach any of that.
+test('@candidate-behavior the screens of a professional hold at every resolution', async ({ page }, info) => {
+	test.setTimeout(300_000);
+	const f = ownedAppointmentFixture();
+	const link = await must(f.admin.from('professional_services').select('service_id').eq('business_id', f.businessId).limit(1).single());
+	const owner = await must(f.admin.from('business_users').select('user_id').eq('business_id', f.businessId).eq('role', 'owner').single());
+	const password = `Owned-resolutions-${randomUUID()}`, email = `resolutions-${randomUUID()}@example.test`;
+	const professionalName = 'Dra. María Eugenia Fernández de los Santos', serviceName = 'Rehabilitación';
+	const issues: (LayoutIssue & { screen: string; viewport: string })[] = [];
+	const cutLabels: string[] = [];
+	let userId: string | null = null, professionalId: string | null = null, patientId: string | null = null;
+	try {
+		const created = await f.admin.auth.admin.createUser({ email, password, email_confirm: true });
+		if (created.error || !created.data.user?.id) throw new Error('Could not create the owned professional account.');
+		userId = created.data.user.id;
+		professionalId = (await must(f.admin.from('professionals').insert({ business_id: f.businessId, name: professionalName }).select('id').single())).id;
+		await must(f.admin.from('business_users').insert({ business_id: f.businessId, user_id: userId, role: 'professional', status: 'active', accepted_at: new Date().toISOString() }).select('user_id').single());
+		await must(f.admin.from('professional_users').insert({ business_id: f.businessId, professional_id: professionalId, user_id: userId }).select('user_id').single());
+		await must(f.admin.from('professional_services').insert({ business_id: f.businessId, professional_id: professionalId, service_id: link.service_id }).select('service_id').single());
+		patientId = (await must(f.admin.from('patients').insert({ business_id: f.businessId, owner_id: owner.user_id, full_name: 'María Eugenia Fernández de los Santos Rodríguez',
+			phone: '3415559988', phone_e164: '+5493415559988' }).select('id').single())).id;
+		const starts = new Date(Date.now() + 5 * 60_000).toISOString(), ends = new Date(Date.now() + 35 * 60_000).toISOString();
+		await must(f.admin.from('appointments').insert({ business_id: f.businessId, patient_id: patientId, service_id: link.service_id, professional_id: professionalId,
+			starts_at: starts, ends_at: ends, blocking_starts_at: starts, blocking_ends_at: ends, status: 'reserved', source: 'manual',
+			service_name_snapshot: serviceName, professional_name_snapshot: professionalName, duration_minutes_snapshot: 30, patient_name_at_booking: 'María Eugenia' }).select('id').single());
+		await signInWithPassword(page, email, password);
+		const routes = ['/odonto/mis-turnos', '/odonto/mis-preguntas', '/odonto/seguimientos', '/odonto/pacientes'];
+		for (const route of routes) {
+			await page.setViewportSize({ width: 1280, height: 800 });
+			await page.goto(route);
+			await page.waitForLoadState('networkidle');
+			if (route === '/odonto/mis-turnos') await expect(page.getByText(serviceName, { exact: true }).first()).toBeVisible();
+			for (const [width, height] of RESOLUTIONS) {
+				await page.setViewportSize({ width, height });
+				const viewport = `${width}x${height}`;
+				issues.push(...(await layoutIssues(page, CONTROLS, 'main')).map((issue) => ({ ...issue, screen: route, viewport })));
+				cutLabels.push(...(await cutNavLabels(page)).map((label) => `${label} ${viewport}`));
+			}
+		}
+		await info.attach('professional-resolutions', { body: JSON.stringify({ routes, issues, cutLabels }, null, 2), contentType: 'application/json' });
+		expect(issues).toEqual([]);
+		expect(cutLabels).toEqual([]);
+	} finally {
+		const none = '00000000-0000-0000-0000-000000000000';
+		f.sql(`begin;
+			delete from public.audit_logs where business_id=:'business'::uuid and (entity_id=:'patient'::uuid or entity_id in (select id from public.appointments where business_id=:'business'::uuid and patient_id=:'patient'::uuid));
+			delete from public.appointments where business_id=:'business'::uuid and patient_id=:'patient'::uuid;
+			delete from public.patients where business_id=:'business'::uuid and id=:'patient'::uuid;
+			delete from public.professional_users where business_id=:'business'::uuid and professional_id=:'professional'::uuid;
+			delete from public.professional_services where business_id=:'business'::uuid and professional_id=:'professional'::uuid;
+			delete from public.professionals where business_id=:'business'::uuid and id=:'professional'::uuid;
+			delete from public.business_users where business_id=:'business'::uuid and user_id=:'account'::uuid;
+			commit;`, { patient: patientId ?? none, professional: professionalId ?? none, account: userId ?? none });
+		if (userId) expect((await f.admin.auth.admin.deleteUser(userId)).error).toBeNull();
 	}
 });

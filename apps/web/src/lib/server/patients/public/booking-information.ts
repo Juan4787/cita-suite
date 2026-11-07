@@ -5,6 +5,7 @@ import type { CitaSupabaseClient } from '$lib/types/database';
 import { parsePublicPatientFields, validateBookingIntakeAnswers } from '@cita-suite/shared/booking-integration';
 import { createSupabaseAdminClient } from '$lib/server/platform/supabase';
 import { hashRateLimitSubject } from '$lib/server/platform/rate-limits';
+import { logServerFailure } from '$lib/server/platform/logging';
 import { readBoolean, readRecord, readText, isRecord } from '$lib/contracts/json';
 
 export const bookingInformationEnabled = () => env.BOOKING_INFORMATION_ENABLED === 'true';
@@ -22,7 +23,10 @@ export async function informationContext(event: RequestEvent) {
   if (!/^[a-f0-9]{64}$/.test(token)) error(404, 'Este enlace no está disponible. Abrí el enlace de tu turno.');
   const admin = await createSupabaseAdminClient('odonto', event.fetch);
   const { data, error: rateError } = await admin.rpc('consume_booking_integration_read_limit', { p_subject_hash: hashRateLimitSubject(event.getClientAddress()) });
-  if (rateError) error(503, 'No pudimos abrir la información. Esperá unos segundos y volvé a intentar.');
+  if (rateError) {
+    logServerFailure('Límite de lectura de la información previa', rateError);
+    error(503, 'No pudimos abrir la información. Esperá unos segundos y volvé a intentar.');
+  }
   if (data !== true) error(429, 'Hubo varios intentos seguidos. Esperá un minuto y volvé a intentar.');
   return { admin, token };
 }
