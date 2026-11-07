@@ -51,12 +51,13 @@ test('@candidate-behavior isolated informed booking: stale policy, atomic retry 
       {"id":"birth","label":"Fecha de nacimiento","kind":"text","required":false,"maxLength":10,"patientField":"birth_date"}]'::jsonb);
    commit;`);
   const date = f.sql("select (now() at time zone 'UTC')::date+25;");
-  await page.goto(`/reservar/${slug}?service_id=${serviceId}&professional_id=${professionalId}&date=${date}`);
   const native = await browser.newContext({ javaScriptEnabled: false });
+  let slotUrl = '';
   try {
    const nativePage = await native.newPage();
-   await nativePage.goto(page.url());
+   await nativePage.goto(`/reservar/${slug}?service_id=${serviceId}&professional_id=${professionalId}&date=${date}`);
    await nativePage.getByRole('link', { name: /^\d{2}:\d{2}$/ }).first().click();
+   slotUrl = nativePage.url();
    const nativeSlot = new URL(nativePage.url()).searchParams.get('slot');
    const nativeAttempt = await nativePage.locator('[name="idempotency_key"]').inputValue();
    await nativePage.getByLabel('Nombre y apellido', { exact: true }).fill('Paciente Nativo de Prueba');
@@ -73,11 +74,11 @@ test('@candidate-behavior isolated informed booking: stale policy, atomic retry 
    expect(new URL(nativePage.url()).searchParams.get('date')).toBe(date);
    expect(f.sql(`select count(*) from public.appointments where business_id='${businessId}';`)).toBe('0');
   } finally { await native.close(); }
-  await page.getByRole('link', { name: /^\d{2}:\d{2}$/ }).first().click();
-  await expect(page).toHaveURL(/slot=/);
   // Make early typing deterministic: the native SSR form is usable while its
   // application scripts are delayed. Observe the standard submit-listener
   // registration to know when progressive enhancement has actually attached.
+  // This has to be the first load of the page: WebKit serves modules it already
+  // loaded from memory, past any route, and they would start the app at once.
   await page.addInitScript(() => {
    const descriptor = Object.getOwnPropertyDescriptor(EventTarget.prototype, 'addEventListener');
    if (!descriptor || typeof descriptor.value !== 'function') throw new Error('Missing native listener descriptor');
@@ -97,13 +98,12 @@ test('@candidate-behavior isolated informed booking: stale policy, atomic retry 
    await route.continue();
   };
   await page.route('**/*', delayScripts);
-  await page.goto(page.url(), { waitUntil: 'commit' });
+  await page.goto(slotUrl, { waitUntil: 'commit' });
   await page.getByLabel('Nombre y apellido', { exact: true }).fill('Paciente   Reserva   Informada');
   await page.getByLabel('Teléfono de contacto', { exact: true }).fill('3425048230');
   await page.getByLabel('Correo electrónico', { exact: true }).fill('Informed+Booking@Example.test');
   await page.getByLabel('Comentario', { exact: true }).fill('Comentario previo al inicio de JavaScript');
-  // Once the app starts, the label also names its styled control; the native field is the one sent.
-  const preference = page.getByLabel('Preferencia de contacto', { exact: true }).and(page.locator('select'));
+  const preference = page.getByLabel('Preferencia de contacto', { exact: true });
   const preferenceName = await preference.getAttribute('name');
   const birthName = await page.getByLabel('Fecha de nacimiento', { exact: true }).getAttribute('name');
   expect(preferenceName).toMatch(/^intake_/); expect(birthName).toMatch(/^intake_/);

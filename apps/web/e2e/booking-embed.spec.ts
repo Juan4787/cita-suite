@@ -15,6 +15,22 @@ import { clinicalPdfFixture } from './helpers/clinical-pdf';
 // the regular production/staging suites never create these records.
 const path = process.env.E2E_LOCAL_BOOKING_FIXTURE_PATH;
 const fixture = path ? JSON.parse(readFileSync(path, 'utf8')) : null;
+// Resolves once the page has kept its position for ten frames in a row.
+const pageAtRest = (page: import('@playwright/test').Page) =>
+	page.evaluate(
+		() =>
+			new Promise<void>((done) => {
+				let last = window.scrollY;
+				let still = 0;
+				const tick = () => {
+					still = window.scrollY === last ? still + 1 : 0;
+					last = window.scrollY;
+					if (still >= 10) done();
+					else requestAnimationFrame(tick);
+				};
+				requestAnimationFrame(tick);
+			})
+	);
 test.describe('isolated booking integration', () => {
 	test.use({ actionTimeout: 15_000, navigationTimeout: 30_000 });
 	test.skip(!fixture, 'Requires an explicitly prepared disposable local booking fixture.');
@@ -686,6 +702,8 @@ test.describe('isolated booking integration', () => {
 					await expect(
 						page.getByRole('heading', { name: 'Elegí un día', exact: true })
 					).toBeVisible();
+					// The title arrives before the position does: a page that jumps during the press loses the click.
+					await pageAtRest(page);
 					await previous.click();
 					await expect(
 						page.getByText('No hay horarios disponibles entre estas fechas.', { exact: true })
@@ -1402,12 +1420,12 @@ test.describe('isolated booking integration', () => {
 						});
 						// Region capture (not a simulated viewport) of the complete field order.
 						if ((width === 390 && theme === 'light') || (width === 1280 && theme === 'dark'))
-							await form.screenshot({
+							await health.duringCapture(() => form.screenshot({
 								path: testInfo.outputPath(`public-${brand}-${width}-${theme}-form-region.jpg`),
 								type: 'jpeg',
 								quality: 60,
 								animations: 'disabled'
-							});
+							}));
 						if (width === 320) {
 							await page.getByLabel('Nombre y apellido', { exact: true }).fill('');
 							await page.getByRole('button', { name: 'Confirmar reserva', exact: true }).click();

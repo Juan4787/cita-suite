@@ -11,6 +11,14 @@ type Failure = { status: number; method: string; path: string };
 // What each engine calls a load that the page itself dropped, for example by leaving: measured on all three.
 const DROPPED_LOADS = new Set(['net::ERR_ABORTED', 'NS_BINDING_ABORTED', 'Load request cancelled']);
 // A fetch or import still running when a page is left is a page error for Firefox and WebKit; Chromium says nothing.
+// WebKit refuses a fetch that starts while its document is going away, words it as an access check and reports no
+// request, so there is no dropped load to match. The policy allows 'self': for the page's own origin nothing else refuses it.
+const refusedWhileLeaving = (error: Error, page: Page) =>
+	error.name === 'Fetch API cannot load http' &&
+	error.message.startsWith(`/${new URL(page.url()).host}/`) &&
+	error.message.endsWith(' due to access control checks.');
+// A capture makes Playwright insert a style, and WebKit, only WebKit, applies the page's policy to it: one refusal per frame.
+const CAPTURE_STYLE_REFUSAL = /^Refused to apply a stylesheet because its hash, its nonce, or 'unsafe-inline' does not appear in the style-src directive/;
 const LEFT_PAGE_ERROR = /^NetworkError when attempting to fetch resource\.$|^error loading dynamically imported module: |^Unable to preload CSS for |Load failed$|Importing a module script failed\.$| due to access control checks\.$/;
 
 /** The page errors that mean something: each one caused by leaving must match a load the engine reports as dropped. */
@@ -19,7 +27,9 @@ export function pageErrorCollector() {
 	let dropped = 0;
 	return {
 		watch(page: Page) {
-			page.on('pageerror', (error) => errors.push(error.message));
+			page.on('pageerror', (error) => {
+				if (!refusedWhileLeaving(error, page)) errors.push(error.message);
+			});
 			page.on('requestfailed', (request) => {
 				if (DROPPED_LOADS.has(request.failure()?.errorText ?? '')) dropped++;
 			});
@@ -40,6 +50,17 @@ export async function observeRenderHealth(
 	const failedResponses: Failure[] = [],
 		networkFailures: { path: string; code: string }[] = [];
 	let overflow = false;
+	let capturing = 0;
+	const duringCapture = async <T>(take: () => Promise<T>) => {
+		capturing++;
+		try {
+			return await take();
+		} finally {
+			capturing--;
+		}
+	};
+	const screenshot = page.screenshot.bind(page);
+	page.screenshot = (options) => duringCapture(() => screenshot(options));
 	const socketCloseStates = [0, 0, 0, 0];
 	// Observe the native close call without changing its arguments, result or network.
 	// A known cancellation message alone is insufficient: a fixture socket must
@@ -84,11 +105,13 @@ export async function observeRenderHealth(
 	page.on('console', (message) => {
 		const type = message.type();
 		if (type !== 'error' && type !== 'warning') return;
+		const text = message.text();
+		// Only during a capture: a style of the app refused at any other moment still counts.
+		if (capturing && CAPTURE_STYLE_REFUSAL.test(text)) return;
 		if (messages.length >= 100) {
 			overflow = true;
 			return;
 		}
-		const text = message.text();
 		const category = text.startsWith('Failed to load resource:')
 			? 'resource-failure'
 			// Firefox also words a dropped load this way. A load that really fails stays in networkFailures.
@@ -136,6 +159,8 @@ export async function observeRenderHealth(
 		});
 	});
 	return {
+		/** Page captures are covered by themselves; a capture of a locator has to go through here. */
+		duringCapture,
 		async assertAndAttach(info: TestInfo, label: string) {
 			const hasTitle = Boolean((await page.title()).trim());
 			const report = {
