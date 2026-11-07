@@ -39,6 +39,7 @@ El chequeo compara esta lista con `git diff --name-status <produccion_revision> 
 ```codigo-distinto-de-produccion
 M	apps/web/.impeccable/surfaces/gestion-del-turno.md
 M	apps/web/DESIGN.md
+M	apps/web/e2e/account-assistance.spec.ts
 M	apps/web/e2e/agenda-business-timezone.spec.ts
 M	apps/web/e2e/appointment-deposits.spec.ts
 M	apps/web/e2e/appointment-slot-releases.spec.ts
@@ -48,6 +49,7 @@ M	apps/web/e2e/clinical-entry-date.spec.ts
 M	apps/web/e2e/clinical-files.spec.ts
 M	apps/web/e2e/email-preferences.spec.ts
 M	apps/web/e2e/helpers/browser-diagnostics.ts
+A	apps/web/e2e/helpers/dev-proxy.ts
 A	apps/web/e2e/helpers/engine.ts
 M	apps/web/e2e/helpers/layout-usability.ts
 M	apps/web/e2e/helpers/realtime-diagnostics.ts

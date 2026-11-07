@@ -381,10 +381,8 @@ test.describe('Ayuda para configurar', () => {
 			const serviceName = `Limpieza E2E ${unique()}`;
 			await masterPage.goto(`/odonto/profesionales/${fixture!.professionalId}?tab=servicios`);
 			const servicePanel = masterPage.locator('.ux-soft-card').filter({ hasText: '¿No encontrás el servicio?' });
+			// With no services the form opens by itself once the page starts, and the same button changes its name.
 			const closeServiceForm = servicePanel.getByRole('button', { name: 'Cerrar' });
-			if (!(await closeServiceForm.isVisible().catch(() => false))) {
-				await servicePanel.getByRole('button', { name: 'Crear servicio nuevo' }).click();
-			}
 			await expect(closeServiceForm).toBeVisible({ timeout: 10_000 });
 			await servicePanel.getByLabel('Nombre').fill(serviceName);
 			await servicePanel.getByLabel('Duración en minutos').fill('35');

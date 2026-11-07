@@ -5,6 +5,7 @@ import { ownedAppointmentFixture } from './helpers/owned-appointment-fixture';
 import { must } from './helpers/fixture-db';
 import { layoutIssues, type LayoutIssue } from './helpers/layout-usability';
 import { pageErrorCollector } from './helpers/render-health';
+import { pastDevProxy } from './helpers/dev-proxy';
 
 // Real isolated SQL/PostgREST/Storage and browser; no external clinical data or
 // provider email. Native form and unreadable response exercise the actual page.
@@ -175,8 +176,8 @@ for (const brand of ['cita-suite', 'natalia'] as const) {
    phase='stored_file_readback';
    const file=await must(f.admin.from('patient_radiographs').select('id,status').eq('business_id',business).single());
    expect(file.status).toBe('ready');
-   const legacyCompletion=await request.post(`/turno/${legacy}/documentos/${file.id}/complete`);
-   expect(legacyCompletion.status(),(await legacyCompletion.text()).slice(0,300)).toBe(404);
+   const legacyCompletion=await pastDevProxy(()=>request.post(`/turno/${legacy}/documentos/${file.id}/complete`));
+   expect(legacyCompletion.status()).toBe(404);
    phase='contact_revocation';
    f.sql(`update public.patients set email='corrected-clinical-${patient}@example.test' where id='${patient}';`);
    expect((await request.get(`${path}/informacion`)).status()).toBe(404);

@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { observeRenderHealth } from './helpers/render-health';
+import { observeRenderHealth, pageErrorCollector } from './helpers/render-health';
 import { fixtureRealtimeDiagnostic } from './helpers/realtime-diagnostics';
 
 // Firefox says «interrupted» for a native close while connecting, the same words it uses when a page is left.
@@ -37,6 +37,40 @@ test.describe('render health socket evidence', () => {
 		expect(beforeClose).toBe(0); await warning;
 		const report = await health.assertAndAttach(info, 'current-document-native-close-render-health');
 		expect(report.fixtureSocketCloseStates[0]).toBe(1);
+	});
+
+	test('a style refused during a capture does not count, and one refused outside it still does', async ({ page }, info) => {
+		await page.route('**/__e2e__/render-health-policy', (route) => route.fulfill({
+			status: 200, contentType: 'text/html', headers: { 'content-security-policy': "style-src 'self'" },
+			body: '<!doctype html><title>Style policy probe</title><main>Style policy diagnostic</main>'
+		}));
+		await page.goto('/__e2e__/render-health-policy');
+		const health = await observeRenderHealth(page);
+		await page.screenshot();
+		await health.duringCapture(() => page.getByRole('main').screenshot());
+		await health.assertAndAttach(info, 'capture-style-render-health');
+		const refused = page.waitForEvent('console', { predicate: (message) => message.type() === 'error' });
+		await page.evaluate(() => {
+			const style = document.createElement('style');
+			style.textContent = 'main { color: red; }';
+			document.head.append(style);
+		});
+		await refused;
+		await expect(health.assertAndAttach(info, 'refused-style-render-health')).rejects.toThrow(/unclassified/);
+	});
+
+	test('a fetch refused while leaving only passes for the own origin', async ({ page, browserName }) => {
+		const errors = pageErrorCollector();
+		errors.watch(page);
+		await openSocketProbe(page);
+		await page.evaluate(() => addEventListener('pagehide', () => {
+			void fetch('/__e2e__/refused').catch(() => {});
+			void fetch('http://127.0.0.1:9/refused').catch(() => {});
+		}));
+		await page.goto('/__e2e__/render-health');
+		await expect(page.getByRole('main')).toBeVisible();
+		// Only WebKit refuses them, and it reports no request for either.
+		expect(errors.unexpected()).toHaveLength(browserName === 'webkit' ? 1 : 0);
 	});
 
 	test('a forged cancellation in the current document still has no native evidence', async ({ page }, info) => {
