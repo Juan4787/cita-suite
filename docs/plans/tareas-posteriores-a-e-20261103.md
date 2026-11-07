@@ -1,6 +1,6 @@
 # Tareas posteriores a E
 
-**Estado vigente desde el 6 de noviembre de 2026:** P1, P2 y P3 **reanudadas por Juan**, en ese orden y por separado ([plan 12.34](propuesta-senas-avisos-natalia.md#reanudacion-p1-p2-p3-20261106)). Sustituye la pausa de [12.26](propuesta-senas-avisos-natalia.md#posteriores-a-e-pospuestas). **Publicadas el 7 de noviembre**, con la autorización de Juan registrada en el mismo 12.34. Estado de producción en el [registro único](../ESTADO-VIGENTE.md).
+**Estado vigente desde el 7 de noviembre de 2026:** P1, P2 y P3 **publicadas**. Juan las había reanudado el 6 de noviembre, en ese orden y por separado ([plan 12.34](propuesta-senas-avisos-natalia.md#reanudacion-p1-p2-p3-20261106)). Sustituye la pausa de [12.26](propuesta-senas-avisos-natalia.md#posteriores-a-e-pospuestas). **Publicadas el 7 de noviembre**, con la autorización de Juan registrada en el mismo 12.34. Estado de producción en el [registro único](../ESTADO-VIGENTE.md).
 
 ## Orden obligatorio y seguimiento
 
@@ -41,7 +41,7 @@ Después de una compactación: leer AGENTS, estado vigente, [12.34](propuesta-se
 
 ## Punto de trabajo
 
-**6 de noviembre, noche.** Relevamiento hecho sobre las 665 capturas de la corrida 42290663360 (`main` `f459b95c`). Nada publicado todavía.
+**6 de noviembre, noche.** Relevamiento hecho sobre las 665 capturas de la corrida 42290663360 (`main` `f459b95c`). Hasta ese momento no se había publicado nada; la publicación fue el 7 de noviembre, al final de este punto.
 
 **P1, lo implementado:**
 - `supabase/migrations/20261106040000_staff_cancel_before_start.sql`: el comando rechaza cancelar un turno ya iniciado con `APPOINTMENT_ALREADY_STARTED`. Hasta acá sólo lo impedía la pantalla. Reprogramar un turno pasado sigue permitido.
