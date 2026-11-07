@@ -7,7 +7,29 @@ declare global {
 	}
 }
 type Failure = { status: number; method: string; path: string };
-/** Diagnostic metadata only: never serialize console text, tokens, query strings or clinical values. */
+// What each engine calls a load that the page itself dropped, for example by leaving: measured on all three.
+const DROPPED_LOADS = new Set(['net::ERR_ABORTED', 'NS_BINDING_ABORTED', 'Load request cancelled']);
+// A fetch or import still running when a page is left is a page error for Firefox and WebKit; Chromium says nothing.
+const LEFT_PAGE_ERROR = /^NetworkError when attempting to fetch resource\.$|^error loading dynamically imported module: |Load failed$/;
+
+/** The page errors that mean something: each one caused by leaving must match a load the engine reports as dropped. */
+export function pageErrorCollector() {
+	const errors: string[] = [];
+	let dropped = 0;
+	return {
+		watch(page: Page) {
+			page.on('pageerror', (error) => errors.push(error.message));
+			page.on('requestfailed', (request) => {
+				if (DROPPED_LOADS.has(request.failure()?.errorText ?? '')) dropped++;
+			});
+		},
+		unexpected() {
+			const left = errors.filter((message) => LEFT_PAGE_ERROR.test(message));
+			return [...errors.filter((message) => !LEFT_PAGE_ERROR.test(message)), ...left.slice(dropped)];
+		}
+	};
+}
+
 export async function observeRenderHealth(
 	page: Page,
 	allowResponse: (failure: Failure) => boolean = () => false,
@@ -45,6 +67,12 @@ export async function observeRenderHealth(
 		// a loaded page whose cleanup will close a socket on the next navigation.
 		await page.evaluate(installSocketCloseProbe, api.origin);
 	}
+	// Firefox also reports the rejected handshake of a socket as a response; the fixture has no Realtime server.
+	const fixtureRealtimeHandshake = (raw: string) => {
+		if (process.env.CITA_E2E_ENVIRONMENT !== 'disposable') return false;
+		const target = new URL(raw);
+		return target.host === new URL(process.env.PUBLIC_ODONTO_SUPABASE_URL ?? '').host && target.pathname === '/realtime/v1/websocket';
+	};
 	const safePath = (raw: string) => {
 		try {
 			return new URL(raw).pathname.replace(/[0-9a-f]{8}-[0-9a-f-]{27,}/gi, ':id');
@@ -62,6 +90,9 @@ export async function observeRenderHealth(
 		const text = message.text();
 		const category = text.startsWith('Failed to load resource:')
 			? 'resource-failure'
+			// Firefox also words a dropped load this way. A load that really fails stays in networkFailures.
+			: /^\[JavaScript Warning: "Loading failed for the (<script>|module) with source /.test(text)
+				? 'dropped-load-warning'
 			: text.includes('Avoid calling `fetch` eagerly during server side rendering')
 				? 'known-svelte-dev-fetch-warning'
 				: fixtureRealtimeDiagnostic(text, process.env.CITA_E2E_ENVIRONMENT, process.env.PUBLIC_ODONTO_SUPABASE_URL)
@@ -74,7 +105,7 @@ export async function observeRenderHealth(
 		});
 	});
 	page.on('response', (response) => {
-		if (response.status() < 400) return;
+		if (response.status() < 400 || fixtureRealtimeHandshake(response.url())) return;
 		if (failedResponses.length >= 100) {
 			overflow = true;
 			return;
@@ -87,14 +118,14 @@ export async function observeRenderHealth(
 	});
 	page.on('requestfailed', (request) => {
 		const error = request.failure()?.errorText ?? '';
-		if (error === 'net::ERR_ABORTED') return;
+		if (DROPPED_LOADS.has(error)) return;
 		if (networkFailures.length >= 100) {
 			overflow = true;
 			return;
 		}
 		networkFailures.push({
 			path: safePath(request.url()),
-			code: /^net::[A-Z_]+$/.test(error) ? error : 'network-failure'
+			code: /^(net::|NS_)[A-Z_]+$/.test(error) ? error : 'network-failure'
 		});
 	});
 	return {

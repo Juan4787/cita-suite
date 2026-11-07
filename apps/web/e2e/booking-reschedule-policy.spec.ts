@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { forgetPublicBookingAttempts } from './helpers/fixture-db';
 import { ownedAppointmentFixture } from './helpers/owned-appointment-fixture';
 import { layoutIssues, type LayoutIssue } from './helpers/layout-usability';
+import { pageErrorCollector } from './helpers/render-health';
 import { applyThemeInPage, expectRenderedTheme } from './helpers/theme';
 import { alignTaskForCapture } from './helpers/task-capture';
 
@@ -19,11 +20,11 @@ test('@candidate-behavior isolated informed booking: stale policy, atomic retry 
  if (typeof original !== 'object' || original === null || !('deposit' in original) || typeof original.deposit !== 'boolean' ||
   !('reschedule' in original) || typeof original.reschedule !== 'boolean') throw new Error('Invalid informed booking switch snapshot');
  const issues: LayoutIssue[] = [];
- let pageErrors = 0;
+ const pageErrors = pageErrorCollector();
  const formCheckpoints: unknown[] = [];
  const browserEvents: string[] = [];
  let releaseScripts: () => void = () => {};
- page.on('pageerror', () => { pageErrors++; });
+ pageErrors.watch(page);
  page.on('framenavigated', frame => { if (frame === page.mainFrame()) browserEvents.push('main-frame-navigation'); });
  page.on('request', request => { if (request.method() === 'POST') browserEvents.push('post'); });
  page.on('console', message => { if (message.type() === 'warning' && /hydration|svelte/.test(message.text())) browserEvents.push(message.text().slice(0, 800)); });
@@ -218,7 +219,7 @@ test('@candidate-behavior isolated informed booking: stale policy, atomic retry 
   await expect(page.getByRole('heading', { name: 'Turno cancelado', exact: true })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Cancelar turno', exact: true })).toHaveCount(0);
   await expect(page.getByRole('link', { name: 'Reprogramar turno', exact: true })).toHaveCount(0);
-  expect(pageErrors).toBe(0); expect(issues).toEqual([]);
+  expect(pageErrors.unexpected()).toEqual([]); expect(issues).toEqual([]);
   await info.attach('informed-booking-proof', { body: JSON.stringify({ actualPublicPost: true, staleRejectedAtomically: true, attemptAndAliasPreserved: true, freshTermsPersisted: true,
    noJavaScriptFailureRetainsSelectionAndDraft: true, earlyNativeInputRetained: true, earlyChoiceAndBirthDateRetained: true, enhancementObservedViaSubmitListener: true,
    paymentRecordedBySqlCommand: true, actualInformedReschedule: true, originalPaymentRetainedAsForfeited: true, oneNewPendingDeposit: true, cancelledHasNeitherAction: true, issues, pageErrors }), contentType: 'application/json' });

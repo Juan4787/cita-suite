@@ -65,7 +65,7 @@ Después de una compactación: leer AGENTS, estado vigente, [12.34](propuesta-se
 
 **Corrida 42310115660, servidor de desarrollo, 24 fallos:** no sirve como evidencia de conducta. El servidor de desarrollo hidrata tarde: las pruebas actuaron antes de que la página estuviera lista, y los reintentos de sesión dispararon el límite de ingresos. Dejó defectos reales ya corregidos: nombre accesible del campo de archivo, teléfono partido a 320 px y pruebas que medían los controles nativos ocultos. La evidencia válida usa el paquete real.
 
-**Resoluciones, pedido de Juan del 6 de noviembre.** `e2e/resolutions.spec.ts` recorre 32 pantallas y estados en 26 resoluciones reales, de 320×568 a 2560×1440, con celulares en las dos posiciones, tabletas, notebooks y monitores. Primero se corrió con Chromium local y halló lo que 390 y 1280 no mostraban:
+**Resoluciones, pedido de Juan del 6 de noviembre:** «acordate de probar en mas resoluciones, no solo las del samsung». `e2e/resolutions.spec.ts` recorre 45 pantallas y estados en 26 resoluciones reales, de 320×568 a 2560×1440, con celulares en las dos posiciones, tabletas, notebooks y monitores. Primero se corrió con Chromium local y halló lo que 390 y 1280 no mostraban:
 - tabla de pacientes apretada en tableta y a 1024: ahora es tarjetas hasta 1023 px;
 - botones partidos en Estudios, Turnos para recordar y Reseña de Google;
 - filtros de la agenda partidos a 1024;
@@ -76,3 +76,17 @@ Después de una compactación: leer AGENTS, estado vigente, [12.34](propuesta-se
 Después de corregir: cero problemas en todas las pantallas y estados.
 
 **Información adicional del paciente, pedido de Juan del 6 de noviembre:** «cuando guardo la informacion adicional en el turno, deberia aparecer un cartel que indique que se guardo y volver al sitio anterior del resumen del turno». Al guardar, el paciente vuelve al resumen de su turno y arriba aparece «La información quedó guardada para la profesional.», con foco para los lectores de pantalla. Funciona también sin JavaScript, porque la vuelta la decide el servidor con un 303. La marca `?informacion=guardada` se borra de la dirección para que el cartel no reaparezca al recargar. Los errores siguen en el formulario, sin perder lo escrito. Probado con toques reales en el Samsung. Esa prueba mostró además que el formulario tenía otro color de fondo que el resto de las pantallas públicas del turno: quedó igualado.
+
+**Firefox y WebKit, 6 de noviembre.** Juan instaló en la computadora de trabajo `libavif16` y `libwoff1`, y WebKit pasó a correr también acá. Cada fallo de las corridas 42315494990 (WebKit) y 42316788210 (Firefox) se midió antes de decidir:
+
+| Lo que falló | Causa medida | Qué se hizo |
+|---|---|---|
+| WebKit no ingresa, 7 fallos | WebKit en Linux descarta las cookies `Secure` por http, también en `127.0.0.1` y `localhost`. Chromium y Firefox las conservan. El paquete real marca `Secure` las cookies de sesión. Safari real usa https y no tiene este problema | Con `E2E_ENGINE=webkit`, `serve-booking-fixture.mjs` pone un proxy que le quita ese atributo. El paquete no cambia |
+| Teclado sin llegar al modo oscuro en Firefox | **Defecto real, en todos los navegadores:** el panel móvil declaraba `aria-modal` pero no tomaba el foco, Tab se iba a lo de atrás, y no cerraba con Escape | `dialogFocus`, compartida con `Modal`. Los menús del encabezado también cierran con Escape |
+| Textos de ejemplo cortados en Firefox | `clientWidth` de un `<input>` en Firefox ya viene sin relleno y el control lo restaba dos veces. **El de la Papelera sí se cortaba a 320 px en todos los motores** | El control mide desde la caja. Papelera con `ux-input` y un ejemplo más corto |
+| `network-failure` en Firefox | Cargas canceladas al salir de una pantalla: cada motor las nombra distinto (`net::ERR_ABORTED`, `NS_BINDING_ABORTED`, `Load request cancelled`) | El control reconoce los tres nombres |
+| Errores de página en Firefox | Firefox y WebKit informan como error un `fetch` o `import` pendiente al abandonar la página. Chromium no | `pageErrorCollector`: esos errores sólo se aceptan si el motor informó la carga cancelada |
+| `/realtime/v1/websocket` 404 en Firefox | Firefox informa el rechazo del WebSocket como una respuesta. El entorno de prueba no tiene Realtime | El control lo reconoce sólo contra ese origen, y clasifica el texto de cada motor |
+| `isMobile` y captura mayor a 32767 px | No existe en Firefox. Firefox y WebKit rechazan esa captura, que Términos alcanza a 320 px | `mobileOptions` y captura de pantalla visible en ese caso |
+
+**Barrido exhaustivo con esa base.** 53 pantallas en 26 resoluciones, 1.378 mediciones con Chromium, más otros perfiles y motores. Halló dos defectos más en Ayuda a 320 px: «24 horas» partido y el botón en dos líneas. La captura mostró además «Pacient…» cortado en la barra inferior. Corregidos, junto con «48 horas» partido en Términos.

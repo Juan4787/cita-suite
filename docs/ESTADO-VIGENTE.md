@@ -45,10 +45,17 @@ M	apps/web/e2e/booking-embed.spec.ts
 M	apps/web/e2e/booking-reschedule-policy.spec.ts
 M	apps/web/e2e/clinical-entry-date.spec.ts
 M	apps/web/e2e/clinical-files.spec.ts
+M	apps/web/e2e/email-preferences.spec.ts
+A	apps/web/e2e/helpers/engine.ts
 M	apps/web/e2e/helpers/layout-usability.ts
+M	apps/web/e2e/helpers/realtime-diagnostics.ts
+M	apps/web/e2e/helpers/render-health.ts
 M	apps/web/e2e/patient-management-clinical.spec.ts
 M	apps/web/e2e/patient-management.spec.ts
+M	apps/web/e2e/patient-structure-ux.spec.ts
 A	apps/web/e2e/reception-cancel.spec.ts
+M	apps/web/e2e/reception-email.spec.ts
+M	apps/web/e2e/render-health.spec.ts
 A	apps/web/e2e/resolutions.spec.ts
 M	apps/web/e2e/staff-management.spec.ts
 M	apps/web/e2e/theme-modes.spec.ts
@@ -140,6 +147,7 @@ M	apps/web/src/routes/odonto/turnos/[appointmentId]/page.client.test.ts
 M	apps/web/src/routes/terminos/+page.svelte
 M	apps/web/src/routes/turno/[token]/page.client.test.ts
 A	scripts/lib/native-controls.test.mjs
+M	scripts/serve-booking-fixture.mjs
 A	supabase/migrations/20261106040000_staff_cancel_before_start.sql
 M	supabase/tests/staff_appointment_management.sql
 ```

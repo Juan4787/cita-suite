@@ -20,7 +20,7 @@ const CONTROLS = ['a', 'button', 'input:not(.ux-native-source):not(.sr-only):not
 const openAll = (page: Page) => page.evaluate(() => { for (const details of document.querySelectorAll<HTMLDetailsElement>('main details')) details.open = true; });
 
 test('@candidate-behavior every screen holds at the real resolutions of phones, tablets, notebooks and monitors', async ({ page }, info) => {
-	test.setTimeout(900_000);
+	test.setTimeout(1_500_000);
 	const f = ownedAppointmentFixture();
 	const link = await must(f.admin.from('professional_services').select('professional_id, service_id').eq('business_id', f.businessId).limit(1).single());
 	const professional = await must(f.admin.from('professionals').select('name').eq('business_id', f.businessId).eq('id', link.professional_id).single());
@@ -39,7 +39,7 @@ test('@candidate-behavior every screen holds at the real resolutions of phones, 
 			starts_at: starts, ends_at: new Date(Date.parse(starts) + service.duration_minutes * 60_000).toISOString(),
 			blocking_starts_at: starts, blocking_ends_at: new Date(Date.parse(starts) + service.duration_minutes * 60_000).toISOString(), status: 'reserved', source: 'manual',
 			service_name_snapshot: service.name, professional_name_snapshot: professional.name, duration_minutes_snapshot: service.duration_minutes, patient_name_at_booking: patientName });
-		const future = await must(f.admin.from('appointments').insert(appointment(at(9))).select('id').single());
+		const future = await must(f.admin.from('appointments').insert(appointment(at(9))).select('id, confirmation_token').single());
 		const past = await must(f.admin.from('appointments').insert(appointment(at(-2))).select('id').single());
 		await loginWithSharedSession(page, { email: f.email, password: f.password });
 		const p = `/odonto/pacientes/${patient.id}`, pro = `/odonto/profesionales/${link.professional_id}`;
@@ -51,14 +51,17 @@ test('@candidate-behavior every screen holds at the real resolutions of phones, 
 			['/odonto/configuracion'], ['/odonto/configuracion/negocio'], ['/odonto/configuracion/usuarios'], ['/odonto/configuracion/usuarios', () => open('Agregar integrante')],
 			['/odonto/configuracion/senas'], ['/odonto/configuracion/correo'], ['/odonto/configuracion/reserva-online'], ['/odonto/configuracion/documentos'],
 			['/odonto/configuracion/suscripcion'], ['/odonto/configuracion/resena-google'], [pro], [`${pro}?tab=servicios`], [`${pro}?tab=horarios`], [`${pro}/preguntas`], [`${pro}/aranceles`],
-			['/odonto/exportar-datos'], [`/reservar/${f.businessId}`]
+			['/odonto/exportar-datos'], [`/reservar/${f.businessId}`],
+			['/odonto/pacientes/papelera'], [`${p}/informacion-previa`], ['/odonto/mis-turnos'], ['/odonto/seguimientos/importantes'], ['/odonto/configuracion/ayuda'],
+			['/odonto/configuracion/negocio/contacto'], ['/odonto/configuracion/reserva-online/webs'], [`${pro}/historial`],
+			['/privacidad'], ['/terminos'], ['/reset'], ['/confirmar-correo'], [`/turno/${future.confirmation_token}`]
 		];
 		for (const [route, prepare] of screens) {
 			await page.setViewportSize({ width: 1280, height: 800 });
 			await page.goto(route);
 			await page.waitForLoadState('networkidle');
 			await prepare?.(page);
-			const screen = `${route.replace(/[0-9a-f]{8}-[0-9a-f-]{27}/g, 'id')}${prepare ? ' (abierto)' : ''}`;
+			const screen = `${route.replace(/[0-9a-f]{8}-[0-9a-f-]{27}/g, 'id').replace(/[0-9a-f]{64}/, 'token')}${prepare ? ' (abierto)' : ''}`;
 			for (const [width, height] of RESOLUTIONS) {
 				await page.setViewportSize({ width, height });
 				const viewport = `${width}x${height}`;

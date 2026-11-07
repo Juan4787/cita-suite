@@ -1,4 +1,4 @@
-import { observeRenderHealth } from './helpers/render-health';
+import { observeRenderHealth, pageErrorCollector } from './helpers/render-health';
 import { layoutIssues, type LayoutIssue } from './helpers/layout-usability';
 import { alignTaskForCapture } from './helpers/task-capture';
 import { randomUUID } from 'node:crypto';
@@ -39,15 +39,15 @@ test('patient structure preserves role scope, keyboard access and long content a
 	const name = `Paciente sintético de auditoría ${'NombreExtenso'.repeat(8)}`;
 	const description = `Descripción clínica sintética\n${'Contenido largo de auditoría. '.repeat(70)}\n${'ReferenciaExtensa'.repeat(20)}`;
 	let actorId: string | undefined, ownerId: string | undefined, businessId: string | undefined;
-	const errors: string[] = [],
-		coverage: {
-			role: string;
-			width: number;
-			theme: string;
-			renderedTheme: 'light' | 'dark';
-			checks: string[];
-		}[] = [];
-	page.on('pageerror', (error) => errors.push(error.message));
+	const pageErrors = pageErrorCollector();
+	const coverage: {
+		role: string;
+		width: number;
+		theme: string;
+		renderedTheme: 'light' | 'dark';
+		checks: string[];
+	}[] = [];
+	pageErrors.watch(page);
 	async function must<T>(
 		operation: PromiseLike<{ data: T; error: unknown }>
 	): Promise<NonNullable<T>> {
@@ -389,7 +389,7 @@ test('patient structure preserves role scope, keyboard access and long content a
 		expect(layoutProblems).toEqual([]);
 		expect(narrowEntries).toEqual([]);
 		await health.assertAndAttach(testInfo, 'patient-render-health');
-		expect(errors).toEqual([]);
+		expect(pageErrors.unexpected()).toEqual([]);
 		await testInfo.attach('patient-ux-coverage', {
 			body: JSON.stringify({
 				scope: 'Real disposable Auth/PostgREST and rendered UI; synthetic fixture only.',

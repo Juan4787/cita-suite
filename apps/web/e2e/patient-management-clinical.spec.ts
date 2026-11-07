@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises';
 import { ownedAppointmentFixture } from './helpers/owned-appointment-fixture';
 import { must } from './helpers/fixture-db';
 import { layoutIssues, type LayoutIssue } from './helpers/layout-usability';
+import { pageErrorCollector } from './helpers/render-health';
 
 // Real isolated SQL/PostgREST/Storage and browser; no external clinical data or
 // provider email. Native form and unreadable response exercise the actual page.
@@ -18,7 +19,7 @@ for (const brand of ['cita-suite', 'natalia'] as const) {
   const previous=f.sql('select uploads_enabled from public.clinical_storage_budget where singleton;');
   if (!['t','f'].includes(previous)) throw new Error('Missing clinical budget fixture state');
   const issues:LayoutIssue[]=[];
-  const pageErrors:string[]=[];page.on('pageerror',cause=>pageErrors.push(cause.message));
+  const pageErrors=pageErrorCollector();pageErrors.watch(page);
   let phase='fixture';
   let primaryFailure:unknown;
   try {
@@ -194,7 +195,7 @@ for (const brand of ['cita-suite', 'natalia'] as const) {
    expect((await request.post(`/gestion/${fresh}/documentos/${file.id}/complete`)).status()).toBe(200);
    expect(f.sql(`select count(*) from public.audit_logs where entity_id='${file.id}' and action='clinical_document.patient_upload_completed';`)).toBe('1');
    phase='layout_and_browser_errors';
-   expect(issues).toEqual([]);expect(pageErrors).toEqual([]);
+   expect(issues).toEqual([]);expect(pageErrors.unexpected()).toEqual([]);
    await info.attach('clinical-management-proof',{body:JSON.stringify({brand,themes:['light','dark'],widths:[320,390,768,1280,1600],
     auxiliaryScope:true,calendarObservations:true,stableCalendarUid:true,receiptDownload:true,receiptRevocation:true,auditOnlyIntent:true,nativeForm:true,unreadableCommittedResponse:true,replayWithoutDuplicate:true,realIsolatedStorage:true,revocation:true,issues,pageErrors}),contentType:'application/json'});
   } catch(cause) {
