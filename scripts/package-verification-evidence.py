@@ -29,7 +29,7 @@ with tarfile.open(fileobj=archive, mode="w:gz") as bundle:
             entries.append({"path": str(path.relative_to(root)), "bytes": len(data)})
             total += len(data)
             count += 1
-            if total > 48 * 1024 ** 2 or count > 2000:
+            if total > 64 * 1024 ** 2 or count > 2000:
                 raise RuntimeError("Evidence exceeded its explicit size budget; nothing was silently omitted.")
             member = tarfile.TarInfo(str(path.relative_to(root)))
             member.size = len(data)
@@ -39,9 +39,9 @@ if count == 0:
     raise RuntimeError("No verification evidence was generated.")
 data = archive.getvalue()
 print("CITA_EVIDENCE_BUDGET " + json.dumps({"rawBytes": total, "compressedBytes": len(data), "files": count, "largest": sorted(entries, key=lambda row: row["bytes"], reverse=True)[:12]}))
-# Browser screenshots are already compressed. A failed three-profile release
-# can hold 37 MiB raw / 27 MiB gzip, still inside the unchanged 48 MiB raw cap.
-# Bound transport by that same cap instead of assuming images compress by half.
+# Browser screenshots are already compressed: a full WebKit run holds about
+# 53 MiB raw, its captures weigh 1.4 times Chromium's. What the logs carry is this
+# archive, so transport keeps its own 48 MiB cap whatever the raw size allows.
 if len(data) > 48 * 1024 ** 2:
     raise RuntimeError("Compressed evidence exceeded the workflow log budget.")
 print("CITA_EVIDENCE_SHA256 " + hashlib.sha256(data).hexdigest())

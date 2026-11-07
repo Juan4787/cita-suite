@@ -161,8 +161,11 @@ M	apps/web/src/routes/odonto/turnos/[appointmentId]/+page.svelte
 M	apps/web/src/routes/odonto/turnos/[appointmentId]/page.client.test.ts
 M	apps/web/src/routes/terminos/+page.svelte
 M	apps/web/src/routes/turno/[token]/page.client.test.ts
+M	scripts/collect-verification-evidence.py
 A	scripts/lib/native-controls.test.mjs
+M	scripts/package-verification-evidence.py
 M	scripts/serve-booking-fixture.mjs
+M	scripts/test-verification-evidence.py
 A	supabase/migrations/20261106040000_staff_cancel_before_start.sql
 M	supabase/tests/staff_appointment_management.sql
 ```

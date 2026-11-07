@@ -65,6 +65,16 @@ class EvidenceTests(unittest.TestCase):
         self.assertEqual((self.root / "result/.verification/synthetic.png").read_bytes(), data)
         self.assertIn("CITA_EVIDENCE_BUDGET", packed)
 
+    def test_a_full_webkit_run_fits_the_raw_budget(self):
+        (self.root / ".verification").mkdir()
+        # Compressible on purpose: it is the raw cap under test, not the transport one.
+        (self.root / ".verification/synthetic.jpg").write_bytes(bytes(56 * 1024 ** 2))
+        packed = subprocess.run(["python3", str(self.root / "scripts/package-verification-evidence.py")],
+                                capture_output=True, text=True, check=True).stdout
+        result = self.collect(packed)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual((self.root / "result/.verification/synthetic.jpg").stat().st_size, 56 * 1024 ** 2)
+
     def test_traversal_is_rejected_before_any_file_is_extracted(self):
         data = io.BytesIO()
         with tarfile.open(fileobj=data, mode="w:gz") as bundle:
@@ -108,7 +118,7 @@ class EvidenceTests(unittest.TestCase):
     def test_evidence_still_rejects_an_excessive_payload(self):
         (self.root / ".verification").mkdir()
         with (self.root / ".verification/too-large.log").open("wb") as stream:
-            stream.truncate(49 * 1024 ** 2)
+            stream.truncate(65 * 1024 ** 2)
         result = subprocess.run(["python3", str(self.root / "scripts/package-verification-evidence.py")],
                                 capture_output=True, text=True)
         self.assertNotEqual(result.returncode, 0)
