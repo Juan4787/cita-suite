@@ -65,7 +65,7 @@ test.describe('render health socket evidence', () => {
 		await openSocketProbe(page);
 		await page.evaluate(() => addEventListener('pagehide', () => {
 			void fetch('/__e2e__/refused').catch(() => {});
-			void fetch('http://127.0.0.1:9/refused').catch(() => {});
+			void fetch('http://127.0.0.1:5198/refused').catch(() => {});
 		}));
 		await page.goto('/__e2e__/render-health');
 		await expect(page.getByRole('main')).toBeVisible();

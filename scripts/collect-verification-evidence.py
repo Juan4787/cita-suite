@@ -15,7 +15,7 @@ destination = Path(sys.argv[2]).resolve()
 if destination.exists():
     raise SystemExit("Evidence destination must be new; existing results will not be overwritten.")
 # Actions logs contain both the full job and the evidence step. Allow their
-# duplicated bounded archive, without increasing the 48 MiB extracted-data cap.
+# duplicated bounded archive, without increasing the 64 MiB extracted-data cap.
 if source.stat().st_size > 128 * 1024 ** 2:
     raise SystemExit("Workflow logs exceed their bounded download size.")
 with zipfile.ZipFile(source) as logs:
@@ -38,7 +38,7 @@ with zipfile.ZipFile(source) as logs:
     digest, data = next(iter(unique.items()))
 with tarfile.open(fileobj=io.BytesIO(data), mode="r:gz") as bundle:
     members = bundle.getmembers()
-    if len(members) > 2000 or sum(m.size for m in members) > 48 * 1024 ** 2:
+    if len(members) > 2000 or sum(m.size for m in members) > 64 * 1024 ** 2:
         raise RuntimeError("Extracted evidence exceeded its size budget.")
     for member in members:
         path = PurePosixPath(member.name)

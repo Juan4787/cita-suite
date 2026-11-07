@@ -19,7 +19,7 @@ const refusedWhileLeaving = (error: Error, page: Page) =>
 	error.message.endsWith(' due to access control checks.');
 // A capture makes Playwright insert a style, and WebKit, only WebKit, applies the page's policy to it: one refusal per frame.
 const CAPTURE_STYLE_REFUSAL = /^Refused to apply a stylesheet because its hash, its nonce, or 'unsafe-inline' does not appear in the style-src directive/;
-const LEFT_PAGE_ERROR = /^NetworkError when attempting to fetch resource\.$|^error loading dynamically imported module: |^Unable to preload CSS for |Load failed$|Importing a module script failed\.$| due to access control checks\.$/;
+const LEFT_PAGE_ERROR = /^NetworkError when attempting to fetch resource\.$|^error loading dynamically imported module: |^(?:Error: )?Unable to preload CSS for |Load failed$|Importing a module script failed\.$| due to access control checks\.$/;
 
 /** The page errors that mean something: each one caused by leaving must match a load the engine reports as dropped. */
 export function pageErrorCollector() {
@@ -116,7 +116,8 @@ export async function observeRenderHealth(
 			? 'resource-failure'
 			// Firefox also words a dropped load this way. A load that really fails stays in networkFailures.
 			: /^\[JavaScript Warning: "Loading failed for the (<script>|module) with source /.test(text) ||
-					/^\[JavaScript Error: "downloadable font: download failed .*status=2152398850/.test(text)
+					/^\[JavaScript Error: "downloadable font: download failed .*status=2152398850/.test(text) ||
+					/^\[JavaScript Error: "TypeError: error loading dynamically imported module: /.test(text)
 				? 'dropped-load-warning'
 			// Firefox asks for the tab icon by itself, outside the page: the app declares no such file.
 			: text.includes('FaviconLoader.sys.mjs')
