@@ -1415,8 +1415,16 @@ Y sobre cómo verificarlo y sobre la información que manda el paciente:
 
 > cuando guardo la informacion adicional en el turno, deberia aparecer un cartel que indique que se guardo y volver al sitio anterior del resumen del turno
 
+Sobre los commits y, el 7 de noviembre, sobre la publicación:
+
+> dije que no hagas ningun commit en nombre de claude y lo guardes en tu memoria
+
+> publica cuando termines y deja la documentacion consistente
+
 **Aplicación y precedencia:** sustituye la pausa de [12.26](#posteriores-a-e-pospuestas). P1, P2 y P3 quedan reanudadas, en ese orden y como tareas separadas, con sus alcances de [12.23](#tareas-posteriores-a-e) y su seguimiento en [tareas posteriores a E](tareas-posteriores-a-e-20261103.md). P2 suma la revisión de diseño y experiencia de toda la app que pide este apartado.
 
 **Decisión sobre turnos pasados (P1):** un turno que ya empezó o ya pasó no se cancela. La pantalla lo dice con claridad en vez de esconder el botón sin explicación, y la base de datos hace valer la misma regla.
 
-**Fuera de esta reanudación:** los turnos simultáneos y la adaptación por rubro quedaron como análisis conversado, sin implementar: Juan todavía no decidió avanzar. Este pedido no autoriza publicar: la publicación se pide aparte, nombrando lo que se publica.
+**Fuera de esta reanudación:** los turnos simultáneos y la adaptación por rubro quedaron como análisis conversado, sin implementar: Juan todavía no decidió avanzar.
+
+**Publicación:** el pedido original no la autorizaba. La autorizó Juan el 7 de noviembre con «publica cuando termines y deja la documentacion consistente», para P1, P2 y P3 con la migración 165, una vez aprobadas las verificaciones sobre la misma revisión. Esa autorización no alcanza a turnos simultáneos ni a la adaptación por rubro.
