@@ -1,5 +1,6 @@
-import { observeRenderHealth } from './helpers/render-health';
+import { observeRenderHealth, pageErrorCollector } from './helpers/render-health';
 import { layoutIssues, type LayoutIssue } from './helpers/layout-usability';
+import { mobileOptions } from './helpers/engine';
 import { alignTaskForCapture } from './helpers/task-capture';
 import { applyThemeInPage, chooseTheme, expectRenderedTheme } from './helpers/theme';
 import { test, expect } from '@playwright/test';
@@ -20,6 +21,7 @@ test.describe('isolated booking integration', () => {
 	test.beforeEach(() => forgetPublicBookingAttempts(createFixtureClient(fixture.apiOrigin, fixture.service)));
 	test('recovers a committed booking after a lost response and shares policy with the native page', async ({
 		browser,
+		browserName,
 		request
 	}) => {
 		test.setTimeout(120_000);
@@ -28,8 +30,8 @@ test.describe('isolated booking integration', () => {
 		const db = createFixtureClient(fixture.apiOrigin, fixture.service);
 		const desktop = await browser.newContext({ viewport: { width: 1280, height: 900 } });
 		const page = await desktop.newPage();
-		const exceptions: string[] = [];
-		page.on('pageerror', (error) => exceptions.push(error.message));
+		const exceptions = pageErrorCollector();
+		exceptions.watch(page);
 		await page.goto(fixture.hostOrigin + '/harness');
 		await expect(page).toHaveTitle('Prueba aislada de integración');
 		await page.getByRole('button', { name: 'Reservar consulta', exact: true }).click();
@@ -151,7 +153,8 @@ test.describe('isolated booking integration', () => {
 			(r) => r.method() === 'POST' && r.url().includes('/informacion')
 		);
 		await popup.getByRole('button', { name: 'Guardar información' }).click();
-		await expect(popup.getByRole('status')).toContainText('guardada');
+		await expect(popup.locator('[data-information-saved]')).toContainText('guardada');
+		await expect(popup).toHaveURL((url) => url.pathname === '/turno/' + saved.data![0].confirmation_token);
 		expect((await sending).postData()).toContain(
 			encodeURIComponent('Medicación sintética ampliada').replaceAll('%20', '+')
 		);
@@ -280,11 +283,11 @@ test.describe('isolated booking integration', () => {
 
 		const mobile = await browser.newContext({
 			viewport: { width: 390, height: 844 },
-			isMobile: true,
+			...mobileOptions(browserName),
 			hasTouch: true
 		});
 		const phone = await mobile.newPage();
-		phone.on('pageerror', (error) => exceptions.push(error.message));
+		exceptions.watch(phone);
 		await phone.goto(fixture.hostOrigin + '/harness');
 		await phone.evaluate(() => {
 			if (!window.widget) throw new Error('The host page did not mount the booking widget.');
@@ -380,7 +383,7 @@ test.describe('isolated booking integration', () => {
 			{ name: 'active-business-id', value: fixture.businessId, url: fixture.appOrigin }
 		]);
 		const panel = await manager.newPage();
-		panel.on('pageerror', (e) => exceptions.push(e.message));
+		exceptions.watch(panel);
 		await panel.goto(
 			fixture.appOrigin + '/odonto/pacientes/' + saved.data![0].patient_id + '/informacion-previa'
 		);
@@ -537,7 +540,7 @@ test.describe('isolated booking integration', () => {
 		const freshNotice = await request.get(fixture.appOrigin + '/gestion/' + fresh.data + '/reprogramado');
 		expect(freshNotice.status()).toBe(200);
 		expect(await freshNotice.text()).toContain('Tu turno actualizado');
-		expect(exceptions).toEqual([]);
+		expect(exceptions.unexpected()).toEqual([]);
 	});
 	test('pages real dates after an empty window in shared and Natalia booking, with keyboard and mobile layout', async ({
 		browser
@@ -589,8 +592,8 @@ test.describe('isolated booking integration', () => {
 				});
 				try {
 					const page = await context.newPage();
-					const errors: string[] = [];
-					page.on('pageerror', (error) => errors.push(error.message));
+					const errors = pageErrorCollector();
+					errors.watch(page);
 					await page.goto(
 						fixture.appOrigin +
 							variant.path +
@@ -687,7 +690,7 @@ test.describe('isolated booking integration', () => {
 						page.getByText('No hay horarios disponibles entre estas fechas.', { exact: true })
 					).toBeVisible();
 					expect(new URL(page.url()).searchParams.get('dates_from')).toBe(today);
-					expect(errors).toEqual([]);
+					expect(errors.unexpected()).toEqual([]);
 				} finally {
 					await context.close();
 				}
@@ -894,7 +897,7 @@ test.describe('isolated booking integration', () => {
 		const createdServices: string[] = [];
 		const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
 		const coverage: { width: number; theme: string; tasks: string[] }[] = [];
-		const errors: string[] = [];
+		const errors = pageErrorCollector();
 		const must = async (operation: PromiseLike<{ error: unknown }>) => {
 			const { error } = await operation;
 			if (error) {
@@ -975,7 +978,7 @@ test.describe('isolated booking integration', () => {
 			]);
 			const page = await context.newPage();
 			const health = await observeRenderHealth(page);
-			page.on('pageerror', (e) => errors.push(e.message));
+			errors.watch(page);
 			const editorURL = fixture.appOrigin + '/odonto/profesionales/' + professionalId;
 			let releaseEditorScripts!: () => void;
 			const editorScriptsReady = new Promise<void>((resolve) => {
@@ -1244,7 +1247,7 @@ test.describe('isolated booking integration', () => {
 				}
 			expect(coverage).toHaveLength(10);
 			expect(layoutProblems).toEqual([]);
-			expect(errors).toEqual([]);
+			expect(errors.unexpected()).toEqual([]);
 			await testInfo.attach('team-structure-coverage', {
 				body: JSON.stringify({
 					scope: 'Real disposable Auth/SQL and rendered UI; owned synthetic professional only.',
@@ -1297,12 +1300,12 @@ test.describe('isolated booking integration', () => {
 		});
 		const coverage: { brand: string; width: number; theme: string; renderedTheme: string }[] = [];
 		const publicLayout: (LayoutIssue & { brand: string; viewport: number; theme: string })[] = [];
-		const errors: string[] = [];
+		const errors = pageErrorCollector();
 		let writes = 0;
 		try {
 			const page = await context.newPage();
 			const health = await observeRenderHealth(page);
-			page.on('pageerror', (error) => errors.push(error.message));
+			errors.watch(page);
 			page.on('request', (request) => {
 				if (request.method() === 'POST' && new URL(request.url()).origin === fixture.appOrigin)
 					writes++;
@@ -1420,7 +1423,7 @@ test.describe('isolated booking integration', () => {
 			expect(publicLayout).toEqual([]);
 			await health.assertAndAttach(testInfo, 'public-render-health');
 			expect(writes).toBe(0);
-			expect(errors).toEqual([]);
+			expect(errors.unexpected()).toEqual([]);
 			await testInfo.attach('public-structure-coverage', {
 				body: JSON.stringify({
 					scope: 'Real rendered native routes; no reservation writes, no disabled rate limits.',

@@ -6,6 +6,7 @@ import { spawnSync } from 'node:child_process';
 import { createHash, randomUUID } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { clinicalPdfFixture } from './helpers/clinical-pdf';
+import { mobileOptions } from './helpers/engine';
 import { syntheticMasterId } from './helpers/master-identity';
 
 const supabaseUrl = process.env.ODONTO_SUPABASE_URL;
@@ -387,7 +388,7 @@ test.describe('Archivos clínicos privados', () => {
 		expect(account.data).toMatchObject({ used_bytes: pdf.length, reserved_bytes: 0 });
 	});
 
-	test('el dueño carga una imagen privada y la consulta en escritorio y móvil', async ({ page, browser }) => {
+	test('el dueño carga una imagen privada y la consulta en escritorio y móvil', async ({ page, browser, browserName }) => {
 		if (!fixture) throw new Error('Fixture no preparado.');
 		const { description, filename } = clinicalExample;
 		await login(page, fixture.ownerEmail);
@@ -433,7 +434,7 @@ test.describe('Archivos clínicos privados', () => {
 		const mobileContext = await browser.newContext({
 			viewport: { width: 390, height: 844 },
 			deviceScaleFactor: 1,
-			isMobile: true,
+			...mobileOptions(browserName),
 			hasTouch: true
 		});
 		try {

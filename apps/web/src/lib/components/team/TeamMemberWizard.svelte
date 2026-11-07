@@ -518,7 +518,7 @@
 					<input
 						type="email"
 						autocomplete="email"
-						placeholder="persona@consultorio.com"
+						placeholder="persona@correo.com"
 						disabled={!canManage}
 						class={`ux-input ${emailError ? 'border-danger-400-60' : ''}`}
 						bind:value={email}

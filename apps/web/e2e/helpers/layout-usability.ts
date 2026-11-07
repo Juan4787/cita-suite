@@ -165,7 +165,9 @@ export async function textIssues(page: Page, scope = 'body'): Promise<TextIssue[
 					measure.font = `${style.fontStyle} ${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
 					measure.letterSpacing = style.letterSpacing === 'normal' ? '0px' : style.letterSpacing;
 					const width = measure.measureText(field.placeholder).width;
-					const available = field.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+					// From the box and not from clientWidth, which Firefox gives without the padding of an input.
+					const available = field.getBoundingClientRect().width - parseFloat(style.borderLeftWidth) - parseFloat(style.borderRightWidth) -
+						parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
 					if (width > available + 1)
 						issues.push({
 							check: 'clipped-placeholder',

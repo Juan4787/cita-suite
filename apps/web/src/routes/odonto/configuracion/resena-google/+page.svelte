@@ -57,7 +57,7 @@
 					Se envía 2 horas después de que termina el turno y como máximo una vez cada 180 días por paciente.
 				</p>
 			</div>
-			<button type="submit" disabled={!canManage} class="ux-btn-primary">Guardar</button>
+			<button type="submit" disabled={!canManage} class="ux-btn-primary shrink-0">Guardar</button>
 		</div>
 
 		<label class="ux-choice mt-6 flex items-center gap-3 px-4 py-3">
@@ -99,7 +99,7 @@
 					<button
 						type="button"
 						disabled={!canManage}
-						class="ux-btn-secondary"
+						class="ux-btn-secondary shrink-0 px-3 text-sm"
 						onclick={restoreDefaultMessage}>Restablecer frase original</button
 					>
 				</div>

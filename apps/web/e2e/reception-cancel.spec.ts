@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { ownedAppointmentFixture } from './helpers/owned-appointment-fixture';
 import { signInWithPassword } from './helpers/shared-auth';
 import { layoutIssues, type LayoutIssue } from './helpers/layout-usability';
+import { pageErrorCollector } from './helpers/render-health';
 import { applyThemeInPage, expectRenderedTheme } from './helpers/theme';
 import { alignTaskForCapture } from './helpers/task-capture';
 
@@ -20,8 +21,8 @@ test('@candidate-behavior reception cancels a future appointment; past appointme
  const ids: Partial<Record<(typeof people)[number], string>> = {};
  const issues: LayoutIssue[] = [];
  const contexts: BrowserContext[] = [];
- let pageErrors = 0;
- page.on('pageerror', () => { pageErrors++; });
+ const pageErrors = pageErrorCollector();
+ pageErrors.watch(page);
  const status = (id: string) => f.sql(`select status from public.appointments where id='${id}';`);
  const audits = (id: string) => f.sql(`select count(*) from public.audit_logs where entity_id='${id}' and action='appointment.cancelled';`);
  const revision = (id: string) => f.sql(`select private.appointment_semantic_revision('${businessId}','${id}');`);
@@ -153,7 +154,7 @@ test('@candidate-behavior reception cancels a future appointment; past appointme
   expect([status(withdrawnId), audits(withdrawnId)]).toEqual(['reserved', '0']);
 
   expect(issues).toEqual([]);
-  expect(pageErrors).toBe(0);
+  expect(pageErrors.unexpected()).toEqual([]);
   await info.attach('reception-cancel-proof', { contentType: 'application/json', body: Buffer.from(JSON.stringify({ realReceptionRole: true,
    pastExplained: true, startedRefusedAtWriter: true, otherRolesRefused: ['professional', 'readonly'], otherPracticeRefused: true,
    resultPersisted: true, slotReleased: true, withdrawnPermissionRefused: true })) });

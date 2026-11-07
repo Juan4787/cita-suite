@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { randomUUID } from 'node:crypto';
 import { ownedAppointmentFixture } from './helpers/owned-appointment-fixture';
 import { loginWithSharedSession } from './helpers/shared-auth';
-import { observeRenderHealth } from './helpers/render-health';
+import { observeRenderHealth, pageErrorCollector } from './helpers/render-health';
 import { layoutIssues, type LayoutIssue } from './helpers/layout-usability';
 import { applyThemeInPage } from './helpers/theme';
 
@@ -10,8 +10,8 @@ test('@candidate-behavior isolated email preferences: independent settings, stal
  test.setTimeout(120_000);
  const f = ownedAppointmentFixture(), businessId = randomUUID();
  const health = await observeRenderHealth(page), issues: LayoutIssue[] = [];
- let pageErrors = 0;
- page.on('pageerror', () => { pageErrors++; });
+ const pageErrors = pageErrorCollector();
+ pageErrors.watch(page);
  const base = new URL(process.env.E2E_BASE_URL!).origin;
  const ownerEmail = `email-preferences-${randomUUID()}@example.test`, ownerPassword = `Owned-fixture-${randomUUID()}`;
  let ownerId: string | null = null;
@@ -98,7 +98,7 @@ test('@candidate-behavior isolated email preferences: independent settings, stal
   await expect(page.getByText('El correo vuelve a salir en unos minutos.')).toBeVisible();
   expect(f.sql(`select state||':'||(duplicate_risk_accepted_by='${ownerId}')::text from private.appointment_email_deliveries where id='${deliveryId}';`)).toBe('retry:true');
   expect(issues).toEqual([]);
-  expect(pageErrors).toBe(0);
+  expect(pageErrors.unexpected()).toEqual([]);
   await health.assertAndAttach(info, 'email-preferences-render-health');
   await info.attach('email-preferences-proof', { contentType: 'application/json', body: Buffer.from(JSON.stringify({ independentSettings: true, currentReadiness: true, conflictPreservesDraft: true, nativeSave: true, issues, pageErrors })) });
  } finally {

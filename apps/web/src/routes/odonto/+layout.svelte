@@ -15,6 +15,7 @@
 	import SlotReleasesNotice from '$lib/components/agenda/SlotReleasesNotice.svelte';
 	import { createStalledNavigationRecovery } from '$lib/client/stalled-navigation-recovery';
 	import { createClientReadiness } from '$lib/client/readiness.svelte';
+	import { dialogFocus } from '$lib/ui/dialog-focus';
 	import { formatAccessRemaining, formatDateTime } from '$lib/utils/format';
 	import { allowsRestrictedClinicalRead } from '$lib/utils/restricted-clinical-read';
 
@@ -432,6 +433,10 @@
 		configMenuOpen = false;
 		userMenuOpen = false;
 	};
+	const closeMobileMenu = () => {
+		mobileMenuOpen = false;
+		showReportHelp = false;
+	};
 
 	onMount(() => {
 		const handleOutsideClick = (event: PointerEvent) => {
@@ -441,7 +446,16 @@
 			closeMenus();
 		};
 
+		// A menu of the header closes with Escape and leaves the focus on the button that opened it.
+		const handleMenuEscape = (event: KeyboardEvent) => {
+			if (event.key !== 'Escape' || !(configMenuOpen || userMenuOpen)) return;
+			const opener = document.activeElement?.closest('[data-menu-root]')?.querySelector<HTMLElement>('button[aria-haspopup="menu"]');
+			closeMenus();
+			opener?.focus();
+		};
+
 		document.addEventListener('pointerdown', handleOutsideClick, true);
+		document.addEventListener('keydown', handleMenuEscape);
 		stalledNavigationRecovery = createStalledNavigationRecovery({
 			isPending: (targetHref) => $navigating?.to?.url?.href === targetHref,
 			recover: (targetHref) => {
@@ -455,6 +469,7 @@
 		});
 		return () => {
 			document.removeEventListener('pointerdown', handleOutsideClick, true);
+			document.removeEventListener('keydown', handleMenuEscape);
 			stalledNavigationRecovery?.clear();
 			stalledNavigationRecovery = null;
 		};
@@ -555,6 +570,12 @@
 		if (path.startsWith('/odonto/maestro')) return 'Panel maestro';
 		return 'Cita Suite';
 	});
+
+	// A page without its own title kept the one of the page before it. A patient's name stays out of
+	// the tab and of the browser history.
+	const documentTitle = $derived(
+		$page.url.pathname.startsWith('/odonto/pacientes') ? 'Pacientes · Cita Suite' : `${mobileTitle === 'Cita Suite' ? '' : `${mobileTitle} · `}Cita Suite`
+	);
 
 	const showBack = $derived.by(() => {
 		const path = $page.url.pathname;
@@ -671,6 +692,8 @@
 	});
 </script>
 
+<svelte:head><title>{documentTitle}</title></svelte:head>
+
 <div class="min-h-screen bg-canvas text-copy">
 	<header class="sticky top-0 z-40 border-b border-line-1f2b45 bg-fill-0f1f36-95">
 		<div class="flex h-14 items-center gap-2 px-3 md:hidden">
@@ -729,16 +752,18 @@
 					role="dialog"
 					aria-modal="true"
 					aria-label="Menú de navegación"
+					tabindex="-1"
+					use:dialogFocus
+					onkeydown={(event) => {
+						if (event.key === 'Escape') closeMobileMenu();
+					}}
 				>
 					<div class="flex items-center justify-between px-4 pt-4">
 						<p class="text-sm font-semibold uppercase tracking-wide text-fg-n300">Menú</p>
 						<button
 							type="button"
 							class="flex h-10 w-10 items-center justify-center rounded-full transition text-fg-n300 hover:bg-fill-10"
-							onclick={() => {
-								mobileMenuOpen = false;
-								showReportHelp = false;
-							}}
+							onclick={closeMobileMenu}
 							aria-label="Cerrar menú"
 						>
 							<span aria-hidden="true">×</span>
@@ -887,10 +912,7 @@
 					type="button"
 					class="absolute inset-0 z-0"
 					aria-label="Cerrar menú"
-					onclick={() => {
-						mobileMenuOpen = false;
-						showReportHelp = false;
-					}}
+					onclick={closeMobileMenu}
 				></button>
 			</div>
 		{/if}
@@ -1379,7 +1401,7 @@
 						href={item.href}
 						aria-current={isNavItemActive(item) ? 'page' : undefined}
 						aria-label={item.label}
-						class={`flex min-w-0 flex-1 flex-col items-center gap-1 px-1 py-2 text-micro font-bold transition ${
+						class={`flex min-w-0 flex-1 flex-col items-center gap-1 px-0.5 py-2 text-micro font-bold transition ${
 							isNavItemActive(item) ? 'text-fg' : 'text-fg-70'
 						}`}
 					>
@@ -1397,7 +1419,7 @@
 					type="button"
 					onclick={() => (mobileMenuOpen = true)}
 					disabled={!client.ready}
-					class="flex min-w-0 flex-1 flex-col items-center gap-1 px-1 py-2 text-micro font-bold text-fg-70 transition"
+					class="flex min-w-0 flex-1 flex-col items-center gap-1 px-0.5 py-2 text-micro font-bold text-fg-70 transition"
 					aria-label={menuButtonLabel}
 				>
 					<span class="relative flex h-8 w-14 items-center justify-center rounded-full bg-fill-04">

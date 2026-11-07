@@ -2,6 +2,7 @@
 	import type { Snippet } from 'svelte';
 
   import { createEventDispatcher } from "svelte";
+  import { dialogFocus } from "$lib/ui/dialog-focus";
 
   // dismissible: cierra al click afuera / Escape. closable: muestra la X (cierre explícito) sin click-afuera.
   let {
@@ -14,54 +15,6 @@
 
   const dispatch = createEventDispatcher<{ close: void }>();
   const close = () => dispatch("close");
-  function focusDialog(node: HTMLElement) {
-    const previous = document.activeElement as HTMLElement | null;
-    const controls = () =>
-      [
-        ...node.querySelectorAll<HTMLElement>(
-          'input:not([type="hidden"]),select,textarea,button,a[href],[tabindex="0"]',
-        ),
-      ].filter(
-        (element) =>
-          !element.matches(':disabled,[aria-hidden="true"]') &&
-          element.getClientRects().length > 0,
-      );
-    queueMicrotask(() =>
-      (
-        node.querySelector<HTMLElement>("[autofocus]") ??
-        controls()[0] ??
-        node
-      ).focus(),
-    );
-    const trap = (event: KeyboardEvent) => {
-      if (event.key !== "Tab") return;
-      const elements = controls();
-      if (!elements.length) {
-        event.preventDefault();
-        node.focus();
-        return;
-      }
-      const first = elements[0],
-        last = elements.at(-1)!;
-      if (
-        event.shiftKey &&
-        (document.activeElement === first || document.activeElement === node)
-      ) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault();
-        first.focus();
-      }
-    };
-    node.addEventListener("keydown", trap);
-    return {
-      destroy() {
-        node.removeEventListener("keydown", trap);
-        if (previous?.isConnected) previous.focus();
-      },
-    };
-  }
 </script>
 
 {#if open}
@@ -84,7 +37,7 @@
       aria-modal="true"
       aria-label={title}
       tabindex="-1"
-      use:focusDialog
+      use:dialogFocus
       class="flex max-h-[calc(100dvh-8rem)] w-full max-w-2xl flex-col overflow-hidden rounded-2xl shadow-card border border-line-strong bg-surface sm:max-h-[calc(100dvh-5rem)]"
     >
       <div

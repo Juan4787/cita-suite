@@ -63,8 +63,8 @@ Lecturas, escrituras, identificadores manipulados y funciones llamadas directame
 ## 6. Cuestionarios obligatorios, opcionales y actualización del perfil
 
 - **SQL:** `booking_patient_information.sql` (obligatorios sin atajos, `FAIL_PROFILE_NOT_UPDATED`, respuestas omitidas que no borran el perfil, procedencia, reintentos con el mismo formulario y con un formulario cambiado, recepción sin lectura clínica).
-- **Unidad:** `professional-questions.test.ts`, `booking-information.test.ts`, `booking-patient-fields.test.ts`, `PublicBookingFlow.client.test.ts`, `ProfessionalBookingFormEditor.client.test.ts`.
-- **Navegador:** `booking-embed.spec.ts` (los campos obligatorios antes que los opcionales en la reserva nativa, en todos los anchos).
+- **Unidad:** `professional-questions.test.ts`, `booking-information.test.ts`, `booking-information-page.test.ts`, `booking-patient-fields.test.ts`, `PublicBookingFlow.client.test.ts`, `ProfessionalBookingFormEditor.client.test.ts`.
+- **Navegador:** `booking-embed.spec.ts` (los campos obligatorios antes que los opcionales en la reserva nativa, en todos los anchos; al guardar la información, el paciente vuelve al resumen del turno con el cartel de guardado).
 
 ## 7. Historia clínica y documentos bajo cada rol autorizado
 
@@ -105,6 +105,7 @@ Lecturas, escrituras, identificadores manipulados y funciones llamadas directame
 
 - **Horarios liberados:** `appointment-slot-releases.spec.ts` añade los cinco anchos con nombre profesional largo, `layoutIssues` acumulado, captura alineada y activación por teclado de «Dar este horario»; modo demo sin acciones reales. También recorre el aviso interno de P3: aparece fuera de la agenda, se cierra, no vuelve con el horario ocupado u oculto, y vuelve con uno nuevo.
 - **Cancelación desde recepción:** `reception-cancel.spec.ts` usa un rol real de recepción: cancela un turno futuro, un turno pasado o en curso se explica y el comando lo rechaza, y profesional, sólo lectura, otro consultorio y permiso retirado quedan rechazados.
+- **Resoluciones reales:** `resolutions.spec.ts` mide 45 pantallas y estados en 26 resoluciones, de 320×568 a 2560×1440, con celulares apaisados, con el contrato de `layoutIssues`. Toda pantalla nueva se suma a esa lista.
 - **Nada nativo:** `theme-modes.spec.ts` falla si en una pantalla queda a la vista un selector, una fecha o un campo de archivo del navegador; `native-controls.test.mjs` lo controla en el código. Sólo los recibos completos del registro acreditan su ejecución.
 
 - **Señas:** `appointment-deposits.spec.ts` agrega los cinco anchos en configuración, lista, condiciones previas y turno pendiente/cancelado; Natalia claro y oscuro en las superficies públicas. Acumula `layoutIssues`, alinea cada tarea para la captura y exige comprobaciones de salud del navegador. `odonto.smoke.spec.ts` agrega las páginas nuevas al perfil demo. Estado de ejecución en el registro propio; escribir una matriz no significa haberla aprobado.

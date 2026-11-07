@@ -164,7 +164,7 @@
 			{#if isOwner && assistance.canActivate}
 				<ul class="mt-5 grid gap-3">
 					{#each assistance.activationKinds as kind (kind)}
-						<li class="ux-soft-card flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+						<li class="ux-soft-card flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
 							<div class="min-w-0">
 								<p class="font-bold text-fg">{ACCOUNT_ASSISTANCE_OPTIONS[kind].title}</p>
 								<p class="mt-1 text-sm leading-6 text-fg-60">{ACCOUNT_ASSISTANCE_OPTIONS[kind].description}</p>
@@ -173,7 +173,7 @@
 								action="?/activate"
 								fields={{ kind, return_to: returnTo }}
 								formClass="w-full shrink-0 sm:w-auto"
-								buttonClass={`${kind === 'hour' ? 'ux-btn-primary' : 'ux-btn-secondary'} w-full sm:w-auto`}
+								buttonClass={`${kind === 'hour' ? 'ux-btn-primary' : 'ux-btn-secondary'} w-full px-2 sm:w-auto sm:px-5`}
 								label={ACCOUNT_ASSISTANCE_OPTIONS[kind].activateLabel}
 								title={ACCOUNT_ASSISTANCE_OPTIONS[kind].activateTitle}
 								body={activationBody(kind)}

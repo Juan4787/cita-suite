@@ -361,7 +361,7 @@
 		<div class="relative w-full sm:flex-1">
 			<label class="sr-only" for="q">Buscar pacientes</label>
 			<svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-fg-n400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
-			<input bind:this={searchInputElement} id="q" type="search" placeholder="Nombre, DNI o teléfono" bind:value={search} class="ux-input patient-search pl-10 pr-16" />
+			<input bind:this={searchInputElement} id="q" type="search" placeholder="Nombre, DNI o teléfono" bind:value={search} class="ux-input patient-search pl-10 pr-12" />
 			<div class="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1.5">
 				{#if searchLoading}
 					<span class="h-4 w-4 animate-spin rounded-full border-2 border-line-n300 border-t-accent-600" aria-hidden="true"></span>
@@ -392,30 +392,30 @@
 				{/if}
 			</div>
 		{:else}
-			<div class="hidden md:block">
+			<div class="hidden lg:block">
 				<table class="w-full">
 					<thead class="text-left text-xs uppercase tracking-wide bg-fill-04 text-fg-n200">
-						<tr><th class="px-6 py-4">Paciente</th><th class="px-6 py-4">DNI / Teléfono</th><th class="px-6 py-4">Última visita</th><th class="px-6 py-4 text-right">Acciones</th></tr>
+						<tr><th class="px-6 py-4">Paciente</th><th class="px-6 py-4">DNI / Teléfono</th><th class="px-6 py-4">Última visita</th><th class="whitespace-nowrap px-6 py-4 text-right">Acciones</th></tr>
 					</thead>
 					<tbody>
 						{#each displayedPatients as patient (patient.id)}
 							<!-- svelte-ignore a11y_no_static_element_interactions -->
 							<tr class="cursor-pointer border-t transition border-line hover:bg-surface" onclick={(event) => openPatientFromContainer(event, patient.id)}>
 								<td class="px-6 py-5"><div class="flex items-center gap-4"><div class="grid h-10 w-10 shrink-0 place-items-center rounded-full font-semibold bg-accent-soft text-accent">{(patient.full_name || '?').split(' ').filter(Boolean).slice(0, 2).map((part: string) => part[0]?.toUpperCase()).join('')}</div><div><button type="button" class="text-left text-sm font-semibold hover:underline text-fg" onclick={() => openPatient(patient.id)}>{patient.full_name}</button>{#if listData.showArchived}<p class="mt-1 text-xs text-copy-subtle">Archivado</p>{/if}</div></div></td>
-								<td class="px-6 py-5 text-sm text-fg-n200">{patient.dni || 'Sin DNI'}{patient.phone ? ` · ${patient.phone}` : ''}</td>
+								<td class="whitespace-nowrap px-6 py-5 text-sm text-fg-n200">{patient.dni || 'Sin DNI'}{patient.phone ? ` ·\u00a0${patient.phone}` : ''}</td>
 								<td class="px-6 py-5 text-sm text-fg-n200">{patient.last_entry_at ? formatDate(patient.last_entry_at) : '—'}</td>
-								<td class="px-6 py-5 text-right"><div class="flex flex-col items-end gap-2"><button type="button" class="ux-btn-secondary" onclick={() => openPatient(patient.id)}>Abrir paciente</button>{#if listData.showArchived}<form method="post" action={`/odonto/pacientes/${patient.id}?/unarchive_patient`}><button type="submit" class="rounded-full border px-4 py-2 text-xs font-semibold border-info-8fb3ff">Desarchivar</button></form>{/if}</div></td>
+								<td class="w-px whitespace-nowrap px-6 py-5 text-right"><div class="flex flex-col items-end gap-2"><button type="button" class="ux-btn-secondary whitespace-nowrap" onclick={() => openPatient(patient.id)}>Abrir paciente</button>{#if listData.showArchived}<form method="post" action={`/odonto/pacientes/${patient.id}?/unarchive_patient`}><button type="submit" class="rounded-full border px-4 py-2 text-xs font-semibold border-info-8fb3ff">Desarchivar</button></form>{/if}</div></td>
 							</tr>
 						{/each}
 					</tbody>
 				</table>
 			</div>
 
-			<div class="space-y-3 p-3 md:hidden">
+			<div class="grid gap-3 p-3 md:grid-cols-2 lg:hidden">
 				{#each displayedPatients as patient (patient.id)}
 					<article class="relative rounded-xl border p-4 shadow-sm transition hover:border-accent-600-40 border-line-strong bg-surface">
 						<a href={`/odonto/pacientes/${patient.id}`} class="absolute inset-0 z-0 rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-accent-600" aria-label={`Abrir paciente ${patient.full_name}`} onclick={rememberPosition}></a>
-						<div class="pointer-events-none relative z-[1] flex items-center gap-3"><div class="grid h-10 w-10 shrink-0 place-items-center rounded-full font-semibold bg-accent-soft text-accent">{(patient.full_name || '?').split(' ').filter(Boolean).slice(0, 2).map((part: string) => part[0]?.toUpperCase()).join('')}</div><div class="min-w-0 flex-1"><h2 class="break-words font-semibold text-fg">{patient.full_name}</h2><p class="mt-1 text-xs text-fg-n300">DNI {patient.dni || 'Sin DNI'}{patient.phone ? ` · ${patient.phone}` : ''}</p><p class="mt-1 text-xs text-copy-subtle">Últ. visita {patient.last_entry_at ? formatDate(patient.last_entry_at) : '—'}</p></div></div>
+						<div class="pointer-events-none relative z-[1] flex items-center gap-3"><div class="grid h-10 w-10 shrink-0 place-items-center rounded-full font-semibold bg-accent-soft text-accent">{(patient.full_name || '?').split(' ').filter(Boolean).slice(0, 2).map((part: string) => part[0]?.toUpperCase()).join('')}</div><div class="min-w-0 flex-1"><h2 class="break-words font-semibold text-fg">{patient.full_name}</h2><p class="mt-1 text-xs text-fg-n300">DNI {patient.dni || 'Sin DNI'}{patient.phone ? ` ·\u00a0${patient.phone}` : ''}</p><p class="mt-1 text-xs text-copy-subtle">Últ. visita {patient.last_entry_at ? formatDate(patient.last_entry_at) : '—'}</p></div></div>
 						<div class="relative z-10 mt-3 grid gap-2"><button type="button" class="ux-btn-secondary w-full" onclick={() => openPatient(patient.id)}>Abrir paciente</button>{#if listData.showArchived}<form method="post" action={`/odonto/pacientes/${patient.id}?/unarchive_patient`}><button type="submit" class="w-full rounded-full border px-4 py-2.5 text-sm font-semibold border-info-8fb3ff">Desarchivar paciente</button></form>{/if}</div>
 					</article>
 				{/each}
@@ -423,10 +423,10 @@
 		{/if}
 	</div>
 
-	<footer class="grid gap-3 border-t pt-4 border-line md:grid-cols-3 md:items-start">
-		<div class="md:justify-self-start">{#if listData.canAccessRadiographTrash}<a href="/odonto/pacientes/papelera" class="ux-btn-secondary w-full md:w-auto">Papelera de documentos</a>{/if}</div>
-		<div class="md:justify-self-center">{#if hasMore}<button type="button" class="ux-btn-secondary w-full md:w-auto" disabled={loadingMore} onclick={() => fetchPage()}>{loadingMore ? 'Cargando…' : 'Ver más pacientes'}</button>{/if}</div>
-		<div class="md:justify-self-end"><button type="button" class="ux-btn-secondary w-full md:w-auto" onclick={() => (showReport = !showReport)}>Reportar problema</button>{#if showReport}<div class="mt-2 max-w-md rounded-xl border border-line bg-fill-04 p-4 text-sm text-fg"><p class="font-semibold">¿Encontraste un problema?</p><p class="mt-1">Escribí a <span class="font-semibold">juanpabloaltamira@protonmail.com</span>.</p></div>{/if}</div>
+	<footer class="grid gap-3 border-t pt-4 border-line lg:grid-cols-3 lg:items-start">
+		<div class="lg:justify-self-start">{#if listData.canAccessRadiographTrash}<a href="/odonto/pacientes/papelera" class="ux-btn-secondary w-full lg:w-auto">Papelera de documentos</a>{/if}</div>
+		<div class="lg:justify-self-center">{#if hasMore}<button type="button" class="ux-btn-secondary w-full lg:w-auto" disabled={loadingMore} onclick={() => fetchPage()}>{loadingMore ? 'Cargando…' : 'Ver más pacientes'}</button>{/if}</div>
+		<div class="lg:justify-self-end"><button type="button" class="ux-btn-secondary w-full lg:w-auto" onclick={() => (showReport = !showReport)}>Reportar problema</button>{#if showReport}<div class="mt-2 max-w-md rounded-xl border border-line bg-fill-04 p-4 text-sm text-fg"><p class="font-semibold">¿Encontraste un problema?</p><p class="mt-1">Escribí a <span class="font-semibold">juanpabloaltamira@protonmail.com</span>.</p></div>{/if}</div>
 	</footer>
 </section>
 

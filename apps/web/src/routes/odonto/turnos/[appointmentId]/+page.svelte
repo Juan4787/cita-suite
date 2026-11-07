@@ -670,7 +670,7 @@ import { BOOKING_MODALITY_LABELS, type BookingModality } from '@cita-suite/share
 							{/if}
 						</div>
 
-						{#if slotsCache[selectedDate]}<p class="mt-4 text-sm text-fg-70">Duración de la consulta: {slotsCache[selectedDate].durationMinutes} minutos.</p>{/if}
+						{#if slotsCache[selectedDate]}<p class="mt-4 text-sm text-fg-70">Duración de la consulta: {slotsCache[selectedDate].durationMinutes}&nbsp;minutos.</p>{/if}
 						<form method="POST" action="?/reschedule" class="mt-4" use:enhance={onStaffAction}>
 							<input type="hidden" name="operation_id" value={data.management?.rescheduleOperationId ?? ''} />
 							<input type="hidden" name="expected_revision" value={data.management?.revision ?? ''} />

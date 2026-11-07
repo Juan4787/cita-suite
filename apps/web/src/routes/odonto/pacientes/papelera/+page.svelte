@@ -131,7 +131,7 @@
 				<circle cx="11" cy="11" r="7" />
 				<path stroke-linecap="round" d="m20 20-3.5-3.5" />
 			</svg>
-			<input id="trash-search" type="search" bind:value={query} placeholder="Ej: Juan Pérez o panoramica.jpg" class="w-full rounded-xl border border-line bg-fill-04 py-3 pl-10 pr-4 text-sm text-fg placeholder:text-copy-subtle" />
+			<input id="trash-search" type="search" bind:value={query} placeholder="Ej: Juan Pérez" class="ux-input pl-10" />
 		</div>
 
 		{#if data.demo}

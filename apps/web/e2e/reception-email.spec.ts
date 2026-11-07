@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { ownedAppointmentFixture } from './helpers/owned-appointment-fixture';
 import { loginWithSharedSession } from './helpers/shared-auth';
 import { layoutIssues, type LayoutIssue } from './helpers/layout-usability';
+import { pageErrorCollector } from './helpers/render-health';
 import { applyThemeInPage, expectRenderedTheme } from './helpers/theme';
 import { alignTaskForCapture } from './helpers/task-capture';
 
@@ -14,8 +15,8 @@ test('@candidate-behavior isolated reception email: current contact, existing ed
  let ownerId: string | null = null, receptionId: string | null = null;
  let previousDepositEnabled: boolean | null = null;
  const issues: LayoutIssue[] = [];
- let pageErrors = 0;
- page.on('pageerror', () => { pageErrors++; });
+ const pageErrors = pageErrorCollector();
+ pageErrors.watch(page);
  let popup: Awaited<ReturnType<typeof context.newPage>> | null = null;
  try {
   const owner = await f.admin.auth.admin.createUser({ email: ownerEmail, password, email_confirm: true });
@@ -67,7 +68,7 @@ test('@candidate-behavior isolated reception email: current contact, existing ed
   const opening = page.waitForEvent('popup');
   await page.getByRole('link', { name: 'Agregar email', exact: true }).click();
   popup = await opening;
-  popup.on('pageerror', () => { pageErrors++; });
+  pageErrors.watch(popup);
   await expect(popup.getByRole('dialog', { name: 'Editar datos', exact: true })).toBeVisible();
   const email = popup.getByLabel('Correo electrónico (opcional)', { exact: true });
   await expect(email).toBeFocused();
@@ -153,7 +154,7 @@ test('@candidate-behavior isolated reception email: current contact, existing ed
   expect(f.sql(`select count(*) from public.audit_logs l join public.appointments a on a.id=l.entity_id where a.creation_request_key='${informedKey}'
    and a.business_id='${businessId}' and l.action='appointment.reschedule_policy_informed' and l.user_id='${receptionId}';`)).toBe('1');
   expect(f.sql(`select count(*) from public.appointments where business_id='${businessId}';`)).toBe('4');
-  expect(issues).toEqual([]); expect(pageErrors).toBe(0);
+  expect(issues).toEqual([]); expect(pageErrors.unexpected()).toEqual([]);
   await info.attach('reception-email-proof', { contentType: 'application/json', body: Buffer.from(JSON.stringify({ realReceptionRole: true, warningBeforeCreation: true, existingEditor: true, currentSavedContact: true, sameAttempt: true, explicitContinuation: true, newPatientEmailFocused: true,
    staffDisclosureUnchecked: true, stricterPolicyRejectedWithoutCreation: true, noSilentReattestation: true, sameAttemptAfterPolicyConflict: true, informedStaffActorPersisted: true, duplicates: false, issues, pageErrors })) });
  } finally {

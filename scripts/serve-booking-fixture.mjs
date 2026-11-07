@@ -1,5 +1,5 @@
 import { fixturePath } from './lib/fixture-path.mjs';
-import { createServer } from "node:http";
+import { createServer, request as forward } from "node:http";
 import { createServer as createSecureServer } from "node:https";
 import { spawnSync, spawn } from "node:child_process";
 import { createHmac, randomBytes } from "node:crypto";
@@ -22,6 +22,23 @@ const withoutApp = options.includes('--no-app');
 // workerd, Cloudflare's runtime, instead of the dev server.
 const artifactOption = options.find((option) => option.startsWith('--artifact='));
 const artifact = artifactOption ? resolve(artifactOption.slice('--artifact='.length)) : null;
+// WebKit on Linux discards a Secure cookie on plain http, even on loopback, and the real package marks
+// its session cookies Secure. Safari over https, the real case, keeps them. For that engine only, the
+// package listens one port further and a proxy on the fixture origin takes the attribute off.
+const secureCookieProxy = artifact !== null && process.env.E2E_ENGINE === "webkit";
+const appPort = secureCookieProxy ? 5178 : 5177;
+const serveWithoutSecureCookies = () => {
+  const proxy = createServer((request, response) => {
+    const upstream = forward({ host: "127.0.0.1", port: appPort, method: request.method, path: request.url, headers: request.headers }, (answer) => {
+      const cookies = answer.headers["set-cookie"]?.map((cookie) => cookie.replace(/;\s*secure(?=;|$)/i, ""));
+      response.writeHead(answer.statusCode, answer.statusMessage, { ...answer.headers, ...(cookies ? { "set-cookie": cookies } : {}) });
+      answer.pipe(response);
+    });
+    upstream.on("error", () => response.destroy());
+    request.pipe(upstream);
+  });
+  return new Promise((listening) => proxy.listen(5177, "127.0.0.1", listening));
+};
 const runtimeLog = artifact ? 'workerd' : 'vite';
 if (
   options.some((option) => !['--real-auth', '--no-app'].includes(option) && option !== artifactOption) ||
@@ -547,7 +564,7 @@ try {
     child = spawn(
       "pnpm",
       artifact
-        ? ["exec", "wrangler", "dev", "--config", join(artifactConfig, "wrangler.json"), "--ip", "127.0.0.1", "--port", "5177", "--local"]
+        ? ["exec", "wrangler", "dev", "--config", join(artifactConfig, "wrangler.json"), "--ip", "127.0.0.1", "--port", String(appPort), "--local"]
         : ["dev", "--host", "127.0.0.1", "--port", "5177", "--strictPort"],
       {
         cwd: root + "/apps/web",
@@ -567,6 +584,7 @@ try {
             },
       },
     );
+    if (secureCookieProxy) await serveWithoutSecureCookies();
     // workerd starts the 4 MB bundle more slowly than the dev server answers.
     const attempts = artifact ? 240 : 60;
     for (let n = 0; n < attempts; n++) {

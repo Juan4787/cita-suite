@@ -1,6 +1,6 @@
 import { isUuid } from '@cita-suite/shared/uuid';
 import { randomUUID } from 'node:crypto';
-import { fail, error, isHttpError } from '@sveltejs/kit';
+import { fail, error, isHttpError, redirect } from '@sveltejs/kit';
 import { informationContext, informationErrorMessage, loadBookingInformation } from '$lib/server/patients/public/booking-information';
 import { readBoundedBookingForm } from '$lib/server/platform/form-data';
 import { intakeAnswersFromForm } from '$lib/server/sites/public/booking-integrations';
@@ -23,6 +23,7 @@ const load = async (event: RequestEvent) => {
 const actions = {
   save: async (event) => {
     let submitted: PublicInformationFeedback['submitted'];
+    let summary: string;
     try {
       const { admin, token } = await informationContext(event);
       const form = await readBoundedBookingForm(event.request);
@@ -36,11 +37,13 @@ const actions = {
       });
       if (cause) throw cause;
       if (!isUuid(savedId)) throw new Error('BOOKING_INFORMATION_RESULT_UNCERTAIN');
-      return { saved: true, message: 'La información quedó guardada para la profesional.' };
+      summary = `/${legacy ? 'turno' : 'gestion'}/${token}?informacion=guardada`;
     } catch (cause) {
       if (isHttpError(cause)) throw cause;
       return fail(400, { saved: false, message: informationErrorMessage(cause), ...(submitted ? { submitted } : {}) });
     }
+    // Back to the summary the patient came from, which says it was saved. Also without JavaScript.
+    redirect(303, summary);
   }
 } satisfies Actions;
 

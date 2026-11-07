@@ -121,7 +121,7 @@
 					name="maps_url"
 					value={valueOf('maps_url')}
 					disabled={!canManage}
-					placeholder="https://maps.app.goo.gl/..."
+					placeholder="Pegá el enlace de Maps"
 					class="ux-input"
 				/>
 				<span class="mt-1 block text-xs text-copy-subtle">

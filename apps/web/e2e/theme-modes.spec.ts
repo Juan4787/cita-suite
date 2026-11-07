@@ -5,6 +5,7 @@ import { ownedAppointmentFixture } from './helpers/owned-appointment-fixture';
 import { loginWithSharedSession, signInWithPassword } from './helpers/shared-auth';
 import { syntheticMasterId } from './helpers/master-identity';
 import { layoutIssues, type LayoutIssue } from './helpers/layout-usability';
+import { mobileOptions } from './helpers/engine';
 import { chooseTheme, contrastViolations, expectRenderedTheme, type ContrastViolation, type ThemeChoice, type UndecidedContrast } from './helpers/theme';
 
 // Light mode plan (docs/plans/modo-claro-20261102.md), acceptance criteria C1 to C4: light by
@@ -62,7 +63,9 @@ async function sweep(page: Page, info: TestInfo, screens: Screen[], label: strin
 				layout.push(...(await layoutIssues(page, CONTROLS, 'main')).map((issue) => ({ ...issue, route, theme, viewport })));
 				native.push(...(await nativeControls(page)).map((control) => ({ control, route, theme, viewport })));
 				const name = `${label}-${route.replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '').slice(0, 60)}-${theme}-${viewport}.jpg`;
-				await page.screenshot({ path: info.outputPath(name), type: 'jpeg', quality: 55, fullPage: true, animations: 'disabled' });
+				// Firefox and WebKit refuse a capture beyond 32767 px, which a legal text reaches on a phone.
+				const fullPage = (await page.evaluate(() => document.documentElement.scrollHeight)) <= 32_000;
+				await page.screenshot({ path: info.outputPath(name), type: 'jpeg', quality: 42, fullPage, animations: 'disabled' });
 				coverage.push({ route, theme, viewport, finalPath: new URL(page.url()).pathname, passes: result.passes, incomplete: result.incomplete, worstCase: result.worstCase });
 			}
 	}
@@ -186,6 +189,9 @@ test.describe('color modes', () => {
 		await expect(menu.getByRole('menuitemradio', { name: 'Oscuro' })).toHaveAttribute('aria-checked', 'true');
 		await expect(header).toHaveCSS('background-color', 'rgba(15, 31, 54, 0.95)');
 		await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute('content', '#0b1626');
+		await page.keyboard.press('Escape');
+		await expect(menu).toBeHidden();
+		await expect(page.locator('header button[aria-expanded]').last()).toBeFocused();
 		await page.reload();
 		await expectRenderedTheme(page, 'dark');
 		expect((await page.context().cookies()).find((cookie) => cookie.name === 'cita-theme')).toMatchObject({ value: 'dark', sameSite: 'Lax' });
@@ -197,8 +203,11 @@ test.describe('color modes', () => {
 		await expect(bottomNavigation).toHaveCSS('background-color', 'rgba(11, 29, 50, 0.95)');
 		await page.getByRole('button', { name: 'Abrir menú' }).last().focus();
 		await page.keyboard.press('Enter');
-		const sheet = page.getByRole('dialog', { name: 'Menú de navegación' }).getByRole('group', { name: 'Modo de color' });
+		const dialog = page.getByRole('dialog', { name: 'Menú de navegación' });
+		const sheet = dialog.getByRole('group', { name: 'Modo de color' });
 		await expect(sheet.getByRole('radio', { name: 'Oscuro' })).toBeChecked();
+		// A modal takes the keyboard: the focus enters it and Tab does not reach what stays behind.
+		await expect(dialog.getByRole('button', { name: 'Cerrar menú' })).toBeFocused();
 		await page.emulateMedia({ colorScheme: 'light' });
 		await tabTo(page, { radio: 'dark' });
 		expect(await page.evaluate(() => getComputedStyle(document.activeElement!.closest('label')!).outlineStyle)).toBe('solid');
@@ -214,6 +223,9 @@ test.describe('color modes', () => {
 		await page.keyboard.press('ArrowUp');
 		await expect(sheet.getByRole('radio', { name: 'Claro' })).toBeChecked();
 		await expectRenderedTheme(page, 'light');
+		await page.keyboard.press('Escape');
+		await expect(dialog).toBeHidden();
+		await expect(page.getByRole('button', { name: 'Abrir menú' }).last()).toBeFocused();
 		await page.reload();
 		await expectRenderedTheme(page, 'light');
 		await expect(bottomNavigation).toHaveCSS('background-color', 'rgba(255, 255, 255, 0.95)');
@@ -296,7 +308,7 @@ test.describe('color modes', () => {
 	// The patient's reminder card on an Android phone. This fixture has no Web Push keys, so the page is
 	// in the state where the phone cannot warn: the way out must still be visible, readable and work.
 	// The permission states themselves are covered by the client tests and on physical phones.
-	test('the Android reminder card offers a working calendar in both modes', async ({ browser }, info) => {
+	test('the Android reminder card offers a working calendar in both modes', async ({ browser, browserName }, info) => {
 		test.setTimeout(300_000);
 		const f = ownedAppointmentFixture();
 		const link = await must(f.admin.from('professional_services').select('professional_id, service_id').eq('business_id', f.businessId).limit(1).single());
@@ -309,7 +321,7 @@ test.describe('color modes', () => {
 		const patientName = `Paciente Android ${randomUUID().slice(0, 8)}`;
 		const context = await browser.newContext({
 			userAgent: 'Mozilla/5.0 (Linux; Android 13; SM-A715F) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Mobile Safari/537.36',
-			isMobile: true, hasTouch: true, viewport: { width: 390, height: 900 }
+			...mobileOptions(browserName), hasTouch: true, viewport: { width: 390, height: 900 }
 		});
 		let patientId: string | null = null;
 		try {

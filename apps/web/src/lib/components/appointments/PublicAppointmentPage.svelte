@@ -4,7 +4,8 @@
 	import PatientManagementPanel from '$lib/components/appointments/PatientManagementPanel.svelte';
 	import BookingAppearance from '$lib/booking/BookingAppearance.svelte';
 	import { BOOKING_MODALITY_LABELS, type BookingModality } from '@cita-suite/shared/booking-integration';
-	import { onMount } from 'svelte';
+	import { onMount, tick } from 'svelte';
+	import { replaceState } from '$app/navigation';
 	import { formatDateTime, formatInTimeZone } from '$lib/utils/format';
 	import { isActiveAppointmentStatus } from '$lib/utils/appointment-visibility';
 	import type { DepositWhatsAppNotices, PracticeWhatsAppNotice } from '$lib/scheduling/contracts';
@@ -25,6 +26,7 @@
    management?: PatientManagementPanelData | null;
 			message: string;
 			created: boolean;
+			informationSaved?: boolean;
 			suggestedAction: string;
 			demo: boolean;
 			device: DeviceClass;
@@ -1052,6 +1054,17 @@
 		}
 	};
 
+
+	// Coming back from «Información para tu consulta»: the notice is read once, and a reload does not
+	// announce again something that happened before.
+	let informationSavedNotice = $state<HTMLParagraphElement>();
+	onMount(() => {
+		if (!data.informationSaved) return;
+		informationSavedNotice?.focus();
+		const clean = new URL(window.location.href);
+		clean.searchParams.delete('informacion');
+		void tick().then(() => replaceState(clean, {})).catch(() => {});
+	});
 </script>
 
 {#snippet instructionList(guide: NotificationGuide)}
@@ -1487,9 +1500,14 @@
    {/if}
 {/snippet}
 
+<svelte:head><title>Tu turno{appointment?.business?.name ? ` · ${appointment.business.name}` : ''}</title></svelte:head>
+
 <BookingAppearance theme={appointment?.booking_context?.theme ?? 'cita-suite'}>
 <main class="min-h-screen bg-fill-06111f px-4 py-6 text-fg sm:py-10 bk-text">{#if !managementDecision && data.appointment?.price_quote_snapshot}<section class="ux-card mb-5"><h2 class="ux-section-title">Arancel registrado al reservar</h2><p class="mt-2 font-bold">{formatQuotedPrice(data.appointment.price_quote_snapshot)}</p></section>{/if}{#if !managementDecision && data.appointment?.patient_instructions_snapshot}<section class="ux-card mb-5"><h2 class="ux-section-title">Indicaciones para tu turno</h2><p class="mt-2 whitespace-pre-wrap break-words">{data.appointment.patient_instructions_snapshot}</p></section>{/if}
 	<div class="mx-auto flex w-full max-w-3xl flex-col gap-5">
+		{#if data.informationSaved}
+			<p bind:this={informationSavedNotice} tabindex="-1" role="status" class="ux-alert ux-alert-success" data-information-saved>La información quedó guardada para la profesional.</p>
+		{/if}
 		<section class="ux-hero">
 			{#if appointment?.business?.logo_url}
 				<img src={appointment.business.logo_url} alt={appointment.business.name} class="mb-5 h-16 w-16 rounded-2xl object-cover" />

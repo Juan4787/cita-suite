@@ -12,7 +12,6 @@
   let transportMessage = $state("");
   let feedback = $state<HTMLParagraphElement>();
   const feedbackText = $derived(transportMessage || form?.message || "");
-  const feedbackSaved = $derived(!transportMessage && form?.saved === true);
   const submitInformation: SubmitFunction = () => {
     busy = true;
     transportMessage = "";
@@ -61,10 +60,11 @@
 </script>
 
 <BookingAppearance theme={data.info.theme}>
-<main class="mx-auto max-w-2xl space-y-6 px-5 py-8">
+<main class="min-h-screen bg-fill-06111f px-4 py-6 text-fg sm:py-10 bk-text">
+<div class="mx-auto max-w-2xl space-y-6">
   <a class="ux-btn-secondary" href={data.managementUrl}>Volver a mi turno</a>
   <div><h1 class="ux-title">Información para tu consulta</h1><p class="mt-3 text-fg-65 bk-muted">Tu turno ya está reservado. Podés ampliar los datos para la profesional. Los campos configurados se guardan automáticamente en tu perfil y los envíos anteriores se conservan.</p></div>
-  {#if feedbackText}<p bind:this={feedback} tabindex="-1" class={feedbackSaved ? 'ux-alert ux-alert-success' : 'ux-alert'} role={feedbackSaved ? 'status' : 'alert'}>{feedbackText}</p>{/if}
+  {#if feedbackText}<p bind:this={feedback} tabindex="-1" class="ux-alert" role="alert">{feedbackText}</p>{/if}
   <form method="POST" action="?/save" use:enhance={submitInformation} class="ux-soft-card space-y-4 p-5">
     <fieldset disabled={busy} class="space-y-4">
     <input type="hidden" name="request_key" value={form?.submitted?.requestKey ?? data.requestKey} /><input type="hidden" name="schema_hash" value={form?.submitted?.schemaHash ?? data.info.schema_hash} /><input type="hidden" name="version" value={form?.submitted?.version ?? data.info.version} />
@@ -82,5 +82,6 @@
     </fieldset>
   </form>
   {#if data.info.documents_enabled}<PatientDocumentUpload endpoint={data.documentsUrl}/>{/if}
+</div>
 </main>
 </BookingAppearance>

@@ -235,7 +235,7 @@
 			</p>
 			<button
 				type="button"
-				class="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-accent-press px-5 py-3 text-base font-bold text-on-accent shadow-lg shadow-shade-accent-900-15 transition hover:-translate-y-0.5 hover:bg-accent-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-accent-600 sm:w-auto"
+				class="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-accent-press px-3 py-3 text-sm font-bold sm:px-5 sm:text-base text-on-accent shadow-lg shadow-shade-accent-900-15 transition hover:-translate-y-0.5 hover:bg-accent-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus-accent-600 sm:w-auto"
 				onclick={startExport}
 			>
 				<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-5 w-5">

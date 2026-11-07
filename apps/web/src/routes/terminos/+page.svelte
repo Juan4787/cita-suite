@@ -342,7 +342,7 @@ La falta de pago, suspensión, baja o archivo de cuenta no implica eliminación 
 2. Exportación
 El titular o un administrador directo pueden exportar los datos tabulares descriptos en la sección 23 mientras el estado y los permisos de la cuenta lo permitan. La exportación no incluye imágenes ni adjuntos y no constituye un backup restaurable.
 3. Gracia y modo restringido
-La cuenta podrá tener hasta 48 horas de gracia tras el vencimiento. Luego podrá pasar a modo restringido por hasta 30 días, con funciones limitadas.
+La cuenta podrá tener hasta 48&nbsp;horas de gracia tras el vencimiento. Luego podrá pasar a modo restringido por hasta 30 días, con funciones limitadas.
 4. Cuenta archivada
 Pasado el período restringido sin regularización, la cuenta podrá archivarse. La cuenta archivada no garantiza acceso normal al panel.
 5. Eliminación

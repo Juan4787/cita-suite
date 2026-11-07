@@ -2,6 +2,10 @@ import { expect, test } from '@playwright/test';
 import { observeRenderHealth } from './helpers/render-health';
 import { fixtureRealtimeDiagnostic } from './helpers/realtime-diagnostics';
 
+// Firefox says «interrupted» for a native close while connecting, the same words it uses when a page is left.
+const nativeCloseMessage = (text: string, apiOrigin: string) =>
+	['fixture-realtime-cancelled', 'fixture-realtime-interrupted'].includes(fixtureRealtimeDiagnostic(text, 'disposable', apiOrigin) ?? '');
+
 async function openSocketProbe(page: import('@playwright/test').Page) {
 	// A generated document on our own origin: no application code, login layout,
 	// Supabase SDK or navigation lifecycle can cause the warning under study.
@@ -23,7 +27,7 @@ test.describe('render health socket evidence', () => {
 		await openSocketProbe(page);
 		const health = await observeRenderHealth(page);
 		const warning = page.waitForEvent('console', {
-			predicate: message => fixtureRealtimeDiagnostic(message.text(), 'disposable', api.origin) === 'fixture-realtime-cancelled'
+			predicate: message => nativeCloseMessage(message.text(), api.origin)
 		});
 		const beforeClose = await page.evaluate(async socketUrl => {
 			const socket = new WebSocket(socketUrl);
@@ -50,7 +54,7 @@ test.describe('render health socket evidence', () => {
 		const health = await observeRenderHealth(page);
 		await openSocketProbe(page);
 		const warning = page.waitForEvent('console', {
-			predicate: (message) => fixtureRealtimeDiagnostic(message.text(), 'disposable', api.origin) === 'fixture-realtime-cancelled'
+			predicate: (message) => nativeCloseMessage(message.text(), api.origin)
 		});
 		const beforeClose = await page.evaluate(async (socketUrl) => {
 			const socket = new WebSocket(socketUrl);
