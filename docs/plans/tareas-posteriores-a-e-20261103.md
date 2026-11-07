@@ -1,6 +1,6 @@
 # Tareas posteriores a E
 
-**Estado vigente desde el 7 de noviembre de 2026:** P1, P2 y P3 **publicadas**. Juan las había reanudado el 6 de noviembre, en ese orden y por separado ([plan 12.34](propuesta-senas-avisos-natalia.md#reanudacion-p1-p2-p3-20261106)). Sustituye la pausa de [12.26](propuesta-senas-avisos-natalia.md#posteriores-a-e-pospuestas). **Publicadas el 7 de noviembre**, con la autorización de Juan registrada en el mismo 12.34. Estado de producción en el [registro único](../ESTADO-VIGENTE.md).
+**Estado vigente desde el 7 de noviembre de 2026:** P1, P2 y P3 **publicadas**. Juan las había reanudado el 6 de noviembre, en ese orden y por separado ([plan 12.34](propuesta-senas-avisos-natalia.md#reanudacion-p1-p2-p3-20261106)). Sustituye la pausa de [12.26](propuesta-senas-avisos-natalia.md#posteriores-a-e-pospuestas). La autorización de publicar está registrada en el mismo 12.34. Estado de producción en el [registro único](../ESTADO-VIGENTE.md).
 
 ## Orden obligatorio y seguimiento
 
