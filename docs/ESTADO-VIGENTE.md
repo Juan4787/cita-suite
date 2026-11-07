@@ -96,6 +96,8 @@ M	apps/web/src/lib/server/scheduling/public/slot-releases.ts
 M	apps/web/src/lib/server/scheduling/public/staff-management-flow.test.ts
 M	apps/web/src/lib/server/scheduling/public/staff-management-flow.ts
 M	apps/web/src/lib/theme/palette.js
+A	apps/web/src/lib/ui/dialog-focus.client.test.ts
+A	apps/web/src/lib/ui/dialog-focus.ts
 A	apps/web/src/lib/ui/field-validation.client.test.ts
 A	apps/web/src/lib/ui/field-validation.ts
 M	apps/web/src/lib/utils/agenda-dates.ts
@@ -111,6 +113,7 @@ M	apps/web/src/routes/odonto/+layout.svelte
 M	apps/web/src/routes/odonto/agenda/+page.svelte
 M	apps/web/src/routes/odonto/agenda/page.client.test.ts
 M	apps/web/src/routes/odonto/agenda/semana/+page.svelte
+M	apps/web/src/routes/odonto/configuracion/ayuda/+page.svelte
 M	apps/web/src/routes/odonto/configuracion/correo/+page.svelte
 M	apps/web/src/routes/odonto/configuracion/documentos/+page.svelte
 M	apps/web/src/routes/odonto/configuracion/negocio/+page.svelte
@@ -127,12 +130,14 @@ M	apps/web/src/routes/odonto/maestro/correo/page.client.test.ts
 M	apps/web/src/routes/odonto/mis-turnos/+page.svelte
 M	apps/web/src/routes/odonto/pacientes/+page.svelte
 M	apps/web/src/routes/odonto/pacientes/[id]/+page.svelte
+M	apps/web/src/routes/odonto/pacientes/papelera/+page.svelte
 M	apps/web/src/routes/odonto/profesionales/[professionalId]/aranceles/+page.svelte
 M	apps/web/src/routes/odonto/profesionales/[professionalId]/preguntas/+page.svelte
 M	apps/web/src/routes/odonto/recordatorios/+page.svelte
 M	apps/web/src/routes/odonto/seguimientos/+page.svelte
 M	apps/web/src/routes/odonto/turnos/[appointmentId]/+page.svelte
 M	apps/web/src/routes/odonto/turnos/[appointmentId]/page.client.test.ts
+M	apps/web/src/routes/terminos/+page.svelte
 M	apps/web/src/routes/turno/[token]/page.client.test.ts
 A	scripts/lib/native-controls.test.mjs
 A	supabase/migrations/20261106040000_staff_cancel_before_start.sql

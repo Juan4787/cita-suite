@@ -351,6 +351,8 @@ Los enlaces de Configuración nombran tareas y ofrecen una línea corta de conte
 
 Los selectores permiten teclado, búsqueda por texto y opciones deshabilitadas. Los calendarios anuncian etiqueta y valor seleccionado, incluso tras cambios de atributos; respetan límites de fecha. Escape cierra el selector y devuelve el foco. El diálogo de cambios sin guardar prioriza “Seguir editando” y ofrece “Descartar cambios”; sólo después de aceptar limpia el borrador y navega. La salida o recarga de pestaña conserva la advertencia del navegador.
 
+**The Foco Rule.** Un panel modal toma el teclado con `dialogFocus`: el foco entra al abrirlo, Tab no llega a lo que queda detrás, Escape lo cierra y el foco vuelve al botón que lo abrió. Los menús del encabezado también se cierran con Escape.
+
 ### Final patient form
 
 Etiquetas visibles y campos amplios, con alto mínimo de `patient-input`; respuestas binarias con alto mínimo de `patient-answer`. El botón de `patient-confirm` ocupa todo el ancho y su medida de altura también es mínima. El texto multilínea conserva (6.5rem) de alto mínimo. El foco dibuja un contorno de (2px) con el acento existente. Selección y bloqueo tienen estados propios; el envío muestra “Confirmando reserva…”.
