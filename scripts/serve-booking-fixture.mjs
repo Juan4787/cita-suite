@@ -360,11 +360,7 @@ try {
     "-subj", "/CN=127.0.0.1", "-addext", "subjectAltName=IP:127.0.0.1",
     "-keyout", join(hostCertificate, "key.pem"), "-out", join(hostCertificate, "certificate.pem")], { encoding: "utf8" });
   if (certificate.status !== 0) throw new Error("Could not create the certificate of the isolated host page.");
-  // WebKit blocks http content inside an https page even on loopback, and this app has no TLS: on that
-  // engine both sides are http. The real site and the real app are both https.
-  const serveHost = (handler) => secureCookieProxy ? createServer(handler)
-    : createSecureServer({ key: readFileSync(join(hostCertificate, "key.pem")), cert: readFileSync(join(hostCertificate, "certificate.pem")) }, handler);
-  host = serveHost((req, res) => {
+  host = createSecureServer({ key: readFileSync(join(hostCertificate, "key.pem")), cert: readFileSync(join(hostCertificate, "certificate.pem")) }, (req, res) => {
     if (req.url !== "/harness") {
       res.writeHead(404).end();
       return;
@@ -375,7 +371,7 @@ try {
     );
   });
   await new Promise((resolve) => host.listen(0, "127.0.0.1", resolve));
-  const hostOrigin = (secureCookieProxy ? "http" : "https") + "://127.0.0.1:" + host.address().port;
+  const hostOrigin = "https://127.0.0.1:" + host.address().port;
   if (realAuth) {
     // The internal network has no outbound relay. Actual GoTrue SMTP messages
     // are captured here and never leave this disposable run.

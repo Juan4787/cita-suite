@@ -92,7 +92,8 @@ export async function observeRenderHealth(
 		const category = text.startsWith('Failed to load resource:')
 			? 'resource-failure'
 			// Firefox also words a dropped load this way. A load that really fails stays in networkFailures.
-			: /^\[JavaScript Warning: "Loading failed for the (<script>|module) with source /.test(text)
+			: /^\[JavaScript Warning: "Loading failed for the (<script>|module) with source /.test(text) ||
+					/^\[JavaScript Error: "downloadable font: download failed .*status=2152398850/.test(text)
 				? 'dropped-load-warning'
 			// Firefox asks for the tab icon by itself, outside the page: the app declares no such file.
 			: text.includes('FaviconLoader.sys.mjs')

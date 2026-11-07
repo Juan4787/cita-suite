@@ -101,9 +101,13 @@ Todo corregido, y el barrido final dio cero problemas en todos los perfiles y mo
 
 **Corrida 42335965685, Firefox, 74 de 78, y 42337545565, WebKit, 45 de 78.** Primeras corridas con todas las pruebas en esos motores, sobre `c4c1ffd0`. Además de lo anterior:
 - **El visor clínico no mostraba la imagen en Firefox:** el PNG de la prueba estaba corrupto, con CRC y zlib incorrectos. Chromium lo dibuja y Firefox y WebKit no. Se reemplazó por uno válido. Eso mostró una mejora real: Firefox dispara `load` para un archivo que no puede decodificar, y el visor quedaba mudo. Ahora ofrece «Reintentar».
-- **Embebido en WebKit:** bloquea contenido http dentro de una página https, incluso en `127.0.0.1`. Es un límite del entorno de prueba, porque en producción las dos partes son https. En esa corrida el sitio embebido se sirve por http.
+- **Embebido en WebKit:** bloquea contenido http dentro de una página https, incluso en `127.0.0.1`. Es un límite del entorno de prueba, porque en producción las dos partes son https. El paquete real sólo acepta orígenes https, así que esa prueba se omite en WebKit. Chromium y Firefox la cubren.
 - **`request-transport`:** caracteriza justamente el comportamiento de cookies `Secure` que WebKit no tiene; se omite en ese motor.
 - **Cancelaciones:** WebKit informa `Fetch API cannot load … due to access control checks` y Firefox `Unable to preload CSS` al salir de una pantalla; los `fetch` de la agenda sí estaban manejados. Entran en `pageErrorCollector`, siempre contra una carga cancelada.
+
+**Hora en «Mis turnos» y turnos en otras pantallas internas.** «Mis turnos» formateaba la hora sin la zona del consultorio y en 12 horas: el servidor corre en UTC, así que la primera pintura mostraba un horario corrido. Ahora usa `agendaTime`, igual que la agenda. También pasan la zona la ficha del paciente, el historial del profesional y el detalle del turno.
+
+**Corridas 42340600343, Chromium, y 42342070553, Firefox.** El límite real de 40 ingresos por dirección cada 15 minutos se agotó: todas las pruebas ingresan desde la misma dirección, y ya eran más de 40. La app hizo bien en frenar. `signInWithPassword` limpia ese contador sólo en el entorno descartable.
 
 **Corrida 42335055779, Chromium, 76 de 78.** Los dos fallos no venían del cambio de P1, P2 o P3:
 - **`staff-delivery`, teléfono `--sanitized--`:** la app abre WhatsApp con un formulario en pestaña nueva y el servidor responde con una redirección. Playwright no intercepta redirecciones, así que esa prueba y la de señas siempre llegaron al sitio real, y WhatsApp ahora reescribe esa dirección. Con `whatsappDraft` la pestaña se frena en la respuesta del servidor: se lee el destino y WhatsApp no recibe ningún pedido, comprobado en los tres motores.

@@ -467,32 +467,35 @@ test.describe('Archivos clínicos privados', () => {
 			if (!stageBox) throw new Error('El lienzo clínico móvil no tiene dimensiones.');
 			const centerX = stageBox.x + stageBox.width / 2;
 			const centerY = stageBox.y + stageBox.height / 2;
-			const cdp = await mobileContext.newCDPSession(mobilePage);
-			await cdp.send('Input.dispatchTouchEvent', {
-				type: 'touchStart',
-				touchPoints: [
-					{ x: centerX - 40, y: centerY, id: 1 },
-					{ x: centerX + 40, y: centerY, id: 2 }
-				]
-			});
-			await cdp.send('Input.dispatchTouchEvent', {
-				type: 'touchMove',
-				touchPoints: [
-					{ x: centerX - 90, y: centerY, id: 1 },
-					{ x: centerX + 90, y: centerY, id: 2 }
-				]
-			});
-			await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
-			await expect
-				.poll(async () => Number.parseInt((await touchZoom.textContent()) ?? '0', 10))
-				.toBeGreaterThan(150);
-			expect(
-				await mobileViewerDialog.evaluate((dialog) => dialog.scrollWidth <= dialog.clientWidth)
-			).toBe(true);
-			await expect(mobileViewerDialog.getByRole('button', { name: 'Cerrar visor' })).toBeInViewport();
-			await expect(touchControls.getByRole('button', { name: 'Restablecer' })).toBeInViewport();
-			await touchControls.getByRole('button', { name: 'Restablecer' }).click();
-			await expect(touchZoom).toHaveText('Ajustada');
+			// The pinch needs Chromium's touch protocol; the other engines still open and close the viewer.
+			if (browserName === 'chromium') {
+				const cdp = await mobileContext.newCDPSession(mobilePage);
+				await cdp.send('Input.dispatchTouchEvent', {
+					type: 'touchStart',
+					touchPoints: [
+						{ x: centerX - 40, y: centerY, id: 1 },
+						{ x: centerX + 40, y: centerY, id: 2 }
+					]
+				});
+				await cdp.send('Input.dispatchTouchEvent', {
+					type: 'touchMove',
+					touchPoints: [
+						{ x: centerX - 90, y: centerY, id: 1 },
+						{ x: centerX + 90, y: centerY, id: 2 }
+					]
+				});
+				await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+				await expect
+					.poll(async () => Number.parseInt((await touchZoom.textContent()) ?? '0', 10))
+					.toBeGreaterThan(150);
+				expect(
+					await mobileViewerDialog.evaluate((dialog) => dialog.scrollWidth <= dialog.clientWidth)
+				).toBe(true);
+				await expect(mobileViewerDialog.getByRole('button', { name: 'Cerrar visor' })).toBeInViewport();
+				await expect(touchControls.getByRole('button', { name: 'Restablecer' })).toBeInViewport();
+				await touchControls.getByRole('button', { name: 'Restablecer' }).click();
+				await expect(touchZoom).toHaveText('Ajustada');
+			}
 			await mobileViewerDialog.getByRole('button', { name: 'Cerrar visor' }).click();
 		} finally {
 			await mobileContext.close();

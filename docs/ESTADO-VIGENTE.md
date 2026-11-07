@@ -52,6 +52,7 @@ A	apps/web/e2e/helpers/engine.ts
 M	apps/web/e2e/helpers/layout-usability.ts
 M	apps/web/e2e/helpers/realtime-diagnostics.ts
 M	apps/web/e2e/helpers/render-health.ts
+M	apps/web/e2e/helpers/shared-auth.ts
 A	apps/web/e2e/helpers/whatsapp-draft.ts
 M	apps/web/e2e/patient-management-clinical.spec.ts
 M	apps/web/e2e/patient-management.spec.ts
